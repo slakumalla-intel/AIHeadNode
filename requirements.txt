@@ -1,0 +1,14 @@
+# Core test dependencies
+numpy>=1.24.0
+psutil>=5.9.0
+pytest>=7.4.0
+pytest-timeout>=2.1.0
+
+# GPU / CUDA dependencies (optional – tests skip gracefully when absent)
+# Install these on systems with NVIDIA GPUs:
+# torch>=2.1.0+cu121  (install from https://pytorch.org)
+# nvidia-ml-py>=12.535.77  (pynvml)
+
+# Optional accelerators
+# torch>=2.1.0
+# pynvml>=11.5.0

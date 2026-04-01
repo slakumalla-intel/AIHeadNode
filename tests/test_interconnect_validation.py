@@ -217,22 +217,29 @@ class TestD2HBandwidth:
 
 
 # ---------------------------------------------------------------------------
-# TC-IC-04  Bidirectional PCIe bandwidth
+# TC-IC-04  Bidirectional PCIe bandwidth – all GPUs
 # ---------------------------------------------------------------------------
 @pytest.mark.pcie
 @pytest.mark.slow
 class TestBidirectionalPCIeBandwidth:
 
-    def test_bidir_pcie_bandwidth_gpu0(self):
-        """TC-IC-04: Bidirectional PCIe BW for GPU 0 must exceed 100 GB/s total."""
+    @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
+    def test_bidir_pcie_bandwidth_per_gpu(self, device_idx):
+        """TC-IC-04: Simultaneous H2D+D2H PCIe BW per GPU must exceed 100 GB/s total."""
         _skip_if_no_gpu()
+        if device_idx >= torch.cuda.device_count():
+            pytest.skip(f"GPU {device_idx} not available")
         results: List[float] = [0.0, 0.0]
 
         def _h2d():
-            results[0] = _h2d_bandwidth_gbs(0, n_bytes=512 * 1024 ** 2, n_runs=2)
+            results[0] = _h2d_bandwidth_gbs(
+                device_idx, n_bytes=512 * 1024 ** 2, n_runs=2
+            )
 
         def _d2h():
-            results[1] = _d2h_bandwidth_gbs(0, n_bytes=512 * 1024 ** 2, n_runs=2)
+            results[1] = _d2h_bandwidth_gbs(
+                device_idx, n_bytes=512 * 1024 ** 2, n_runs=2
+            )
 
         t0 = threading.Thread(target=_h2d)
         t1 = threading.Thread(target=_d2h)
@@ -241,7 +248,7 @@ class TestBidirectionalPCIeBandwidth:
 
         bidir_bw = results[0] + results[1]
         assert bidir_bw >= 100.0, (
-            f"Bidirectional PCIe BW {bidir_bw:.2f} GB/s < 100 GB/s"
+            f"GPU {device_idx}: bidirectional PCIe BW {bidir_bw:.2f} GB/s < 100 GB/s"
         )
 
 
@@ -398,47 +405,64 @@ class TestPCIeVsNVLink:
 
 
 # ---------------------------------------------------------------------------
-# TC-IC-10  Unified Virtual Addressing (UVA) / P2P memory access
+# TC-IC-10  Unified Virtual Addressing (UVA) / P2P memory access – all pairs
 # ---------------------------------------------------------------------------
+
+# Build every ordered (src, dst) pair at collection time so parametrize
+# only generates pairs that are logically valid (src ≠ dst).
+_ALL_P2P_PAIRS: List[Tuple[int, int]] = [
+    (s, d)
+    for s in range(EXPECTED_GPU_COUNT)
+    for d in range(EXPECTED_GPU_COUNT)
+    if s != d
+]
+
+
 @pytest.mark.nvlink
 class TestUVAMemoryAccess:
 
-    def test_uva_p2p_read_write(self):
-        """TC-IC-10: GPU 0 must be able to write directly into GPU 1's memory via UVA."""
+    @pytest.mark.parametrize("src_idx,dst_idx", _ALL_P2P_PAIRS)
+    def test_uva_p2p_read_write(self, src_idx: int, dst_idx: int):
+        """TC-IC-10: Every GPU pair must support direct UVA P2P write with data integrity."""
         _skip_if_no_gpu()
         n_gpus = torch.cuda.device_count()
-        if n_gpus < 2:
-            pytest.skip("Need ≥ 2 GPUs")
-        if not torch.cuda.can_device_access_peer(0, 1):
-            pytest.skip("P2P access not available between GPU 0 and 1")
+        if src_idx >= n_gpus or dst_idx >= n_gpus:
+            pytest.skip(f"GPU {src_idx} or {dst_idx} not available")
+        if not torch.cuda.can_device_access_peer(src_idx, dst_idx):
+            pytest.skip(
+                f"P2P access not available between GPU {src_idx} and {dst_idx}"
+            )
 
-        gpu0 = torch.device("cuda:0")
-        gpu1 = torch.device("cuda:1")
+        src_dev = torch.device(f"cuda:{src_idx}")
+        dst_dev = torch.device(f"cuda:{dst_idx}")
         n = 1024 * 1024  # 1 M float32
 
-        src = torch.ones(n, device=gpu0, dtype=torch.float32)
-        dst = torch.zeros(n, device=gpu1, dtype=torch.float32)
+        src = torch.ones(n, device=src_dev, dtype=torch.float32)
+        dst = torch.zeros(n, device=dst_dev, dtype=torch.float32)
 
-        # Direct P2P copy
         dst.copy_(src)
-        torch.cuda.synchronize(gpu1)
+        torch.cuda.synchronize(dst_dev)
 
-        # Verify data integrity
         result = dst.to("cpu")
-        assert (result == 1.0).all(), "P2P UVA copy produced incorrect values"
+        assert (result == 1.0).all(), (
+            f"P2P UVA copy GPU {src_idx}→{dst_idx} produced incorrect values"
+        )
 
 
 # ---------------------------------------------------------------------------
-# TC-IC-11  CPU↔GPU pipeline overlap
+# TC-IC-11  CPU↔GPU pipeline overlap – all GPUs
 # ---------------------------------------------------------------------------
 @pytest.mark.pcie
 @pytest.mark.slow
 class TestCPUGPUPipelineOverlap:
 
-    def test_compute_transfer_overlap(self):
+    @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
+    def test_compute_transfer_overlap(self, device_idx: int):
         """TC-IC-11: Overlapping compute + H2D transfer must be faster than serial execution."""
         _skip_if_no_gpu()
-        device = torch.device("cuda:0")
+        if device_idx >= torch.cuda.device_count():
+            pytest.skip(f"GPU {device_idx} not available")
+        device = torch.device(f"cuda:{device_idx}")
         m = 4096
         a = torch.randn(m, m, device=device, dtype=torch.float16)
         b = torch.randn(m, m, device=device, dtype=torch.float16)
@@ -469,25 +493,29 @@ class TestCPUGPUPipelineOverlap:
         overlap_time = time.perf_counter() - t0
 
         assert overlap_time < serial_time, (
-            f"Overlapped ({overlap_time:.3f}s) not faster than serial ({serial_time:.3f}s)"
+            f"GPU {device_idx}: overlapped ({overlap_time:.3f}s) not faster "
+            f"than serial ({serial_time:.3f}s)"
         )
 
 
 # ---------------------------------------------------------------------------
-# TC-IC-12  DMA large-copy consistency
+# TC-IC-12  DMA large-copy consistency – all GPUs
 # ---------------------------------------------------------------------------
 @pytest.mark.pcie
 class TestDMAConsistency:
 
+    @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
     @pytest.mark.parametrize("transfer_mb", [64, 256, 512, 1024])
-    def test_large_h2d_data_integrity(self, transfer_mb):
-        """TC-IC-12: Large H2D DMA transfers must preserve data integrity."""
+    def test_large_h2d_data_integrity(self, device_idx: int, transfer_mb: int):
+        """TC-IC-12: Large H2D DMA transfers on every GPU must preserve data integrity."""
         _skip_if_no_gpu()
-        device = torch.device("cuda:0")
+        if device_idx >= torch.cuda.device_count():
+            pytest.skip(f"GPU {device_idx} not available")
+        device = torch.device(f"cuda:{device_idx}")
         n = transfer_mb * 1024 * 1024 // 4  # float32 elements
         host = torch.arange(n, dtype=torch.float32)
         dev = host.to(device)
         result = dev.to("cpu")
         assert torch.equal(host, result), (
-            f"{transfer_mb} MB H2D transfer produced data mismatch"
+            f"GPU {device_idx}: {transfer_mb} MB H2D transfer produced data mismatch"
         )

@@ -166,6 +166,42 @@ def _hbm_bandwidth_tbs(device_idx: int, n_bytes: int = 4 * 1024 ** 3) -> float:
     return bytes_moved / elapsed / 1e12
 
 
+def _pcie_h2d_bandwidth_gbs(device_idx: int, n_bytes: int = 512 * 1024 * 1024,
+                             n_iters: int = 5) -> float:
+    """Measure PCIe host-to-device transfer bandwidth in GB/s (pinned memory)."""
+    if not _HAS_TORCH:
+        return 0.0
+    device = torch.device(f"cuda:{device_idx}")
+    host_buf = torch.ones(n_bytes // 4, dtype=torch.float32).pin_memory()
+    dev_buf  = torch.empty(n_bytes // 4, device=device, dtype=torch.float32)
+    dev_buf.copy_(host_buf)                 # warm-up
+    torch.cuda.synchronize(device)
+    t0 = time.perf_counter()
+    for _ in range(n_iters):
+        dev_buf.copy_(host_buf)
+        torch.cuda.synchronize(device)
+    elapsed = time.perf_counter() - t0
+    return (n_bytes * n_iters) / elapsed / 1e9
+
+
+def _pcie_d2h_bandwidth_gbs(device_idx: int, n_bytes: int = 512 * 1024 * 1024,
+                             n_iters: int = 5) -> float:
+    """Measure PCIe device-to-host transfer bandwidth in GB/s (pinned memory)."""
+    if not _HAS_TORCH:
+        return 0.0
+    device = torch.device(f"cuda:{device_idx}")
+    dev_buf  = torch.ones(n_bytes // 4, device=device, dtype=torch.float32)
+    host_buf = torch.empty(n_bytes // 4, dtype=torch.float32).pin_memory()
+    host_buf.copy_(dev_buf)                 # warm-up
+    torch.cuda.synchronize(device)
+    t0 = time.perf_counter()
+    for _ in range(n_iters):
+        host_buf.copy_(dev_buf)
+        torch.cuda.synchronize(device)
+    elapsed = time.perf_counter() - t0
+    return (n_bytes * n_iters) / elapsed / 1e9
+
+
 # ---------------------------------------------------------------------------
 # TC-GPU-01  GPU discovery
 # ---------------------------------------------------------------------------
@@ -583,4 +619,148 @@ class TestCUDAStreamConcurrency:
 
         assert concurrent_time < serial_time, (
             f"Concurrent ({concurrent_time:.3f}s) not faster than serial ({serial_time:.3f}s)"
+        )
+
+
+# ---------------------------------------------------------------------------
+# TC-GPU-16  GPU enumeration and PCIe topology
+# ---------------------------------------------------------------------------
+@pytest.mark.gpu
+@pytest.mark.pcie
+class TestGPUEnumerationPCIeTopology:
+    """Verify correct GPU enumeration and that PCIe links meet the Gen-5 ×16 spec."""
+
+    def test_gpu_enumeration_count_consistent(self):
+        """TC-GPU-16a: NVML and CUDA must report identical GPU counts (= 4)."""
+        _skip_if_no_gpu()
+        cuda_count = torch.cuda.device_count()
+        if _HAS_NVML:
+            nvml_count = pynvml.nvmlDeviceGetCount()
+            assert cuda_count == nvml_count, (
+                f"CUDA reports {cuda_count} GPUs but NVML reports {nvml_count}"
+            )
+        assert cuda_count == EXPECTED_GPU_COUNT, (
+            f"Expected {EXPECTED_GPU_COUNT} GPUs, detected {cuda_count}"
+        )
+
+    def test_each_gpu_has_unique_pci_bus_id(self):
+        """TC-GPU-16b: Each GPU must have a unique, non-empty PCI bus ID string."""
+        _skip_if_no_gpu()
+        if not _HAS_NVML:
+            pytest.skip("pynvml not installed")
+        seen: List[str] = []
+        for i in range(pynvml.nvmlDeviceGetCount()):
+            handle  = pynvml.nvmlDeviceGetHandleByIndex(i)
+            pci_info = pynvml.nvmlDeviceGetPciInfo(handle)
+            raw_id  = pci_info.busId
+            bus_id  = raw_id.decode() if isinstance(raw_id, bytes) else raw_id
+            assert bus_id, f"GPU {i}: PCI bus ID is empty"
+            assert bus_id not in seen, (
+                f"GPU {i}: duplicate PCI bus ID '{bus_id}' already seen on another GPU"
+            )
+            seen.append(bus_id)
+
+    def test_pcie_max_link_generation_is_gen5(self):
+        """TC-GPU-16c: Maximum supported PCIe generation must be ≥ Gen 5 on every GPU."""
+        _skip_if_no_gpu()
+        if not _HAS_NVML:
+            pytest.skip("pynvml not installed")
+        for i in range(pynvml.nvmlDeviceGetCount()):
+            handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+            try:
+                max_gen = pynvml.nvmlDeviceGetMaxPcieLinkGeneration(handle)
+                assert max_gen >= H100_SPECS.pcie_gen, (
+                    f"GPU {i}: max PCIe Gen {max_gen} < expected Gen {H100_SPECS.pcie_gen}"
+                )
+            except pynvml.NVMLError as exc:
+                pytest.skip(f"GPU {i}: PCIe gen query not supported – {exc}")
+
+    def test_pcie_max_link_width_is_x16(self):
+        """TC-GPU-16d: Maximum supported PCIe link width must be ≥ ×16 on every GPU."""
+        _skip_if_no_gpu()
+        if not _HAS_NVML:
+            pytest.skip("pynvml not installed")
+        for i in range(pynvml.nvmlDeviceGetCount()):
+            handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+            try:
+                max_width = pynvml.nvmlDeviceGetMaxPcieLinkWidth(handle)
+                assert max_width >= H100_SPECS.pcie_lanes, (
+                    f"GPU {i}: max PCIe width ×{max_width} < expected ×{H100_SPECS.pcie_lanes}"
+                )
+            except pynvml.NVMLError as exc:
+                pytest.skip(f"GPU {i}: PCIe width query not supported – {exc}")
+
+    def test_pcie_current_link_gen_not_degraded(self):
+        """TC-GPU-16e: Current PCIe gen must equal the advertised max (no downgrade)."""
+        _skip_if_no_gpu()
+        if not _HAS_NVML:
+            pytest.skip("pynvml not installed")
+        for i in range(pynvml.nvmlDeviceGetCount()):
+            handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+            try:
+                curr_gen = pynvml.nvmlDeviceGetCurrPcieLinkGeneration(handle)
+                max_gen  = pynvml.nvmlDeviceGetMaxPcieLinkGeneration(handle)
+                assert curr_gen >= max_gen, (
+                    f"GPU {i}: PCIe link gen degraded – current Gen {curr_gen} < max Gen {max_gen}"
+                )
+            except pynvml.NVMLError as exc:
+                pytest.skip(f"GPU {i}: PCIe gen query not supported – {exc}")
+
+    def test_pcie_current_link_width_not_degraded(self):
+        """TC-GPU-16f: Current PCIe width must equal the advertised max (no downgrade)."""
+        _skip_if_no_gpu()
+        if not _HAS_NVML:
+            pytest.skip("pynvml not installed")
+        for i in range(pynvml.nvmlDeviceGetCount()):
+            handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+            try:
+                curr_width = pynvml.nvmlDeviceGetCurrPcieLinkWidth(handle)
+                max_width  = pynvml.nvmlDeviceGetMaxPcieLinkWidth(handle)
+                assert curr_width >= max_width, (
+                    f"GPU {i}: PCIe link width degraded – ×{curr_width} < max ×{max_width}"
+                )
+            except pynvml.NVMLError as exc:
+                pytest.skip(f"GPU {i}: PCIe width query not supported – {exc}")
+
+    def test_gpu_pci_bus_numbers_are_unique(self):
+        """TC-GPU-16g: Each GPU must reside on a distinct PCIe bus number."""
+        _skip_if_no_gpu()
+        if not _HAS_NVML:
+            pytest.skip("pynvml not installed")
+        bus_numbers: List[int] = []
+        for i in range(pynvml.nvmlDeviceGetCount()):
+            handle   = pynvml.nvmlDeviceGetHandleByIndex(i)
+            pci_info = pynvml.nvmlDeviceGetPciInfo(handle)
+            bus      = pci_info.bus
+            assert bus not in bus_numbers, (
+                f"GPU {i}: PCIe bus number {bus:#04x} collides with another GPU"
+            )
+            bus_numbers.append(bus)
+
+    @pytest.mark.slow
+    @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
+    def test_pcie_host_to_device_bandwidth(self, device_idx):
+        """TC-GPU-16h: H2D PCIe BW per GPU must be ≥ 65 % of theoretical 63 GB/s."""
+        _skip_if_no_gpu()
+        if device_idx >= torch.cuda.device_count():
+            pytest.skip(f"GPU {device_idx} not available")
+        bw_gbs = _pcie_h2d_bandwidth_gbs(device_idx)
+        assert_efficiency(
+            bw_gbs, H100_SPECS.pcie_unidirectional_bw_gbs,
+            ACCEPTANCE_THRESHOLDS["pcie_h2d_bandwidth_efficiency"],
+            f"PCIe H2D bandwidth GPU {device_idx}",
+        )
+
+    @pytest.mark.slow
+    @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
+    def test_pcie_device_to_host_bandwidth(self, device_idx):
+        """TC-GPU-16i: D2H PCIe BW per GPU must be ≥ 65 % of theoretical 63 GB/s."""
+        _skip_if_no_gpu()
+        if device_idx >= torch.cuda.device_count():
+            pytest.skip(f"GPU {device_idx} not available")
+        bw_gbs = _pcie_d2h_bandwidth_gbs(device_idx)
+        assert_efficiency(
+            bw_gbs, H100_SPECS.pcie_unidirectional_bw_gbs,
+            ACCEPTANCE_THRESHOLDS["pcie_d2h_bandwidth_efficiency"],
+            f"PCIe D2H bandwidth GPU {device_idx}",
         )

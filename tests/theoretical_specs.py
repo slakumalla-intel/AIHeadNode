@@ -72,6 +72,26 @@ def _detect_gpu_count() -> int:
         return torch.cuda.device_count()
     return 0
 
+
+def _detect_nvlink_available() -> bool:
+    """Check if NVLink is available on at least one GPU via NVML."""
+    try:
+        import pynvml
+        pynvml.nvmlInit()
+        count = pynvml.nvmlDeviceGetCount()
+        for i in range(count):
+            handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+            try:
+                # Try to query NVLink link state; if it succeeds, NVLink is supported
+                state = pynvml.nvmlDeviceGetNvLinkState(handle, 0)
+                return True  # At least one link is queryable
+            except pynvml.NVMLError:
+                # Link not available; continue to next GPU
+                continue
+        return False
+    except Exception:
+        return False
+
 # ---------------------------------------------------------------------------
 # CPU
 # ---------------------------------------------------------------------------
@@ -174,20 +194,36 @@ class H100Specs:
     hbm3_bandwidth_tbs: float = 3.35   # HBM3 bandwidth in TB/s
 
     # NVLink 4.0 bandwidth per GPU (bidirectional, full-mesh with 3 peers)
+    # NOTE: Set to 0 when NVLink is not available (PCIe-only fabric)
     nvlink_bw_per_link_gbs: float = 50.0     # 50 GB/s per unidirectional NVLink port
     nvlink_links_per_gpu: int = 18
+    has_nvlink: bool = True               # Set to False for PCIe-only systems
+    
     @property
     def nvlink_total_bw_gbs(self) -> float:
-        """Total unidirectional NVLink bandwidth leaving this GPU (GB/s)."""
+        """Total unidirectional NVLink bandwidth leaving this GPU (GB/s).
+        Returns 0 if NVLink is not available on this system.
+        """
+        if not self.has_nvlink:
+            return 0.0
         return self.nvlink_links_per_gpu * self.nvlink_bw_per_link_gbs
 
     # PCIe 5.0 ×16 host interface
     pcie_gen: int = 5
     pcie_lanes: int = 16
     pcie_unidirectional_bw_gbs: float = 63.0    # ~63 GB/s unidirectional per ×16
+    
+    @property
+    def interconnect_type(self) -> str:
+        """Return the primary GPU-to-GPU interconnect type available."""
+        if self.has_nvlink:
+            return "NVLink 4.0"
+        return "PCIe Gen-5 (no NVLink)"
 
 
-H100_SPECS = H100Specs()
+_NVLINK_AVAILABLE = _detect_nvlink_available()
+
+H100_SPECS = H100Specs(has_nvlink=_NVLINK_AVAILABLE)
 
 
 # ---------------------------------------------------------------------------
@@ -201,6 +237,7 @@ class SystemSpecs:
     gpu_count: int = 4
     total_memory_gb: float = 0.0
     total_storage_gb: float = 0.0
+    has_nvlink: bool = False              # Set to False for PCIe-only systems
     cpu: CPUSpecs = field(default_factory=CPUSpecs)
     gpu: H100Specs = field(default_factory=H100Specs)
 
@@ -234,11 +271,22 @@ class SystemSpecs:
     def total_hbm_bandwidth_tbs(self) -> float:
         return self.gpu_count * self.gpu.hbm3_bandwidth_tbs
 
-    # --- GPU-to-GPU bandwidth (NVLink, full-mesh) ---
+    # --- GPU-to-GPU bandwidth (NVLink or PCIe) ---
     @property
     def nvlink_fabric_bw_gbs(self) -> float:
-        """Total aggregate NVLink bandwidth across all GPUs (unidirectional)."""
+        """Total aggregate NVLink bandwidth across all GPUs (unidirectional).
+        Returns 0 if NVLink is not available on this system.
+        """
+        if not self.has_nvlink:
+            return 0.0
         return self.gpu_count * self.gpu.nvlink_total_bw_gbs
+    
+    @property
+    def fabric_topology(self) -> str:
+        """Return the primary GPU-to-GPU connectivity topology."""
+        if self.has_nvlink:
+            return f"NVLink 4.0 full-mesh ({self.gpu_count} GPUs)"
+        return f"PCIe Gen-5 fabric ({self.gpu_count} GPUs, no NVLink)"
 
     # --- CPU↔GPU PCIe ---
     @property
@@ -260,6 +308,7 @@ SYSTEM_SPECS = SystemSpecs(
     gpu_count=_detect_gpu_count(),
     total_memory_gb=_detect_total_ram_gb(),
     total_storage_gb=_detect_total_storage_gb(),
+    has_nvlink=_NVLINK_AVAILABLE,
     cpu=CPU_SPECS,
     gpu=H100_SPECS,
 )

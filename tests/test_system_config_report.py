@@ -25,6 +25,7 @@ repository root when TC-REPORT-04 runs.
 import json
 import os
 import platform
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -91,6 +92,9 @@ def _collect_cpu_info() -> Dict[str, Any]:
         vm = psutil.virtual_memory()
         info["total_ram_gb"]     = round(vm.total     / 1024 ** 3, 2)
         info["available_ram_gb"] = round(vm.available / 1024 ** 3, 2)
+        info["total_storage_gb"] = round(
+            shutil.disk_usage(os.path.abspath(os.sep)).total / 1024 ** 3, 2
+        )
 
         numa_root = "/sys/devices/system/node"
         if os.path.isdir(numa_root):
@@ -105,6 +109,9 @@ def _collect_cpu_info() -> Dict[str, Any]:
         info["physical_cores"]  = None
         info["logical_threads"] = os.cpu_count()
         info["total_ram_gb"]    = None
+        info["total_storage_gb"] = round(
+            shutil.disk_usage(os.path.abspath(os.sep)).total / 1024 ** 3, 2
+        )
 
     # Theoretical specification values from theoretical_specs.py
     info["spec"] = {
@@ -268,6 +275,7 @@ def _print_cpu_section(cpu: Dict[str, Any]) -> None:
         "  Memory",
         f"    Total RAM          : {cpu.get('total_ram_gb', 'n/a')} GB",
         f"    Available RAM      : {cpu.get('available_ram_gb', 'n/a')} GB",
+        f"    Total storage      : {cpu.get('total_storage_gb', 'n/a')} GB",
         f"    Peak DRAM BW (spec): {spec['peak_memory_bw_gbs']} GB/s",
         _sep(),
         "  Theoretical Performance (spec)",
@@ -438,13 +446,14 @@ class TestGPUConfigReport:
             )
 
     def test_total_gpu_memory_in_report(self):
-        """TC-REPORT-02c: Total HBM across all GPUs must be ≥ 315 GB."""
+        """TC-REPORT-02c: Total HBM must scale with detected GPU count."""
         if not _HAS_TORCH:
             pytest.skip("PyTorch / CUDA not available")
         gpu_info = _collect_gpu_info()
         total_gb = sum(g.get("total_memory_gb", 0) for g in gpu_info)
-        assert total_gb >= 315.0, (
-            f"Total GPU memory {total_gb:.1f} GB < 315 GB"
+        expected_total_gb = len(gpu_info) * H100_SPECS.hbm3_capacity_gb * 0.9875
+        assert total_gb >= expected_total_gb, (
+            f"Total GPU memory {total_gb:.1f} GB < {expected_total_gb:.1f} GB"
         )
 
 

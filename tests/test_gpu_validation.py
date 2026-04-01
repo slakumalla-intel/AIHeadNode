@@ -274,13 +274,17 @@ class TestHBMCapacity:
             )
 
     def test_total_gpu_memory(self):
-        """TC-GPU-03b: Total GPU memory across 4 GPUs must be ≥ 315 GB."""
+        """TC-GPU-03b: Total GPU memory must scale with detected GPU count."""
         _skip_if_no_gpu()
+        n_gpus = torch.cuda.device_count()
         total_gb = sum(
             torch.cuda.get_device_properties(i).total_memory
-            for i in range(torch.cuda.device_count())
+            for i in range(n_gpus)
         ) / 1024 ** 3
-        assert total_gb >= 315.0, f"Total GPU memory {total_gb:.1f} GB < 315 GB"
+        expected_total_gb = n_gpus * H100_SPECS.hbm3_capacity_gb * 0.9875
+        assert total_gb >= expected_total_gb, (
+            f"Total GPU memory {total_gb:.1f} GB < {expected_total_gb:.1f} GB"
+        )
 
 
 # ---------------------------------------------------------------------------

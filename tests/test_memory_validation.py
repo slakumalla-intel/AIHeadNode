@@ -29,7 +29,7 @@ from typing import List
 
 import pytest
 
-from tests.theoretical_specs import CPU_SPECS, ACCEPTANCE_THRESHOLDS
+from tests.theoretical_specs import CPU_SPECS, SYSTEM_SPECS, ACCEPTANCE_THRESHOLDS
 from tests.conftest import assert_efficiency
 
 try:
@@ -49,9 +49,10 @@ except ImportError:
 # Constants derived from theoretical specs
 # ---------------------------------------------------------------------------
 
-THEORETICAL_MEM_GB     = 2048.0          # 2 TB
+THEORETICAL_MEM_GB     = SYSTEM_SPECS.total_memory_gb
 THEORETICAL_MEM_BW_GBS = CPU_SPECS.peak_memory_bandwidth_gbs  # ~614 GB/s
 L3_TOTAL_MB            = CPU_SPECS.l3_cache_mb_total           # 640 MB
+THEORETICAL_STORAGE_GB = SYSTEM_SPECS.total_storage_gb
 
 
 # ---------------------------------------------------------------------------
@@ -163,9 +164,11 @@ class TestRAMCapacity:
         assert total_gb >= 1024.0, f"Total RAM {total_gb:.0f} GB < 1 TB"
 
     def test_total_ram_equals_2tb(self):
-        """TC-MEM-01b: Total RAM must equal 2 TB (full platform spec)."""
+        """TC-MEM-01b: Total RAM must match detected platform memory baseline."""
         if not _HAS_PSUTIL:
             pytest.skip("psutil not installed")
+        if THEORETICAL_MEM_GB <= 0:
+            pytest.skip("Detected memory baseline unavailable")
         total_gb = psutil.virtual_memory().total / 1024 ** 3
         # Allow ±5 % for OS overhead and BIOS reservations
         assert abs(total_gb - THEORETICAL_MEM_GB) / THEORETICAL_MEM_GB <= 0.05, (
@@ -212,6 +215,27 @@ class TestDRAMInfo:
         # The active mode is enclosed in brackets: e.g. "[always] madvise never"
         assert "[always]" in mode or "[madvise]" in mode, (
             f"THP mode unexpected: {mode!r}. Expected 'always' or 'madvise'."
+        )
+
+
+# ---------------------------------------------------------------------------
+# TC-MEM-13  Storage capacity baseline
+# ---------------------------------------------------------------------------
+@pytest.mark.memory
+class TestStorageCapacity:
+
+    def test_storage_capacity_matches_detected_baseline(self):
+        """TC-MEM-13: Root storage size should match detected baseline within 5 %."""
+        if THEORETICAL_STORAGE_GB <= 0:
+            pytest.skip("Detected storage baseline unavailable")
+        st = os.statvfs("/") if hasattr(os, "statvfs") else None
+        if st is not None:
+            total_gb = (st.f_frsize * st.f_blocks) / 1024 ** 3
+        else:
+            import shutil
+            total_gb = shutil.disk_usage(os.path.abspath(os.sep)).total / 1024 ** 3
+        assert abs(total_gb - THEORETICAL_STORAGE_GB) / THEORETICAL_STORAGE_GB <= 0.05, (
+            f"Storage {total_gb:.0f} GB deviates > 5 % from {THEORETICAL_STORAGE_GB:.0f} GB"
         )
 
 

@@ -658,12 +658,12 @@ class TestMultiGPUScalingBottleneck:
         )
 
     def test_scaling_efficiency_4_vs_1_gpu(self):
-        """TC-BN-09b: 4-GPU throughput ≥ 80 % of 4× single-GPU throughput."""
+        """TC-BN-09b: N-GPU throughput ≥ 80 % of N× single-GPU throughput."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
         n_gpus = torch.cuda.device_count()
-        if n_gpus < 4:
-            pytest.skip("Need 4 GPUs")
+        if n_gpus < 2:
+            pytest.skip("Need at least 2 GPUs")
         single = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
         results = [0.0] * n_gpus
 

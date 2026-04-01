@@ -23,6 +23,7 @@ TC-CPU-14  CPU power-efficiency: GFLOPS per watt (placeholder – requires RAPL)
 TC-CPU-15  Hyper-Threading throughput gain vs. physical-core-only run
 """
 
+import logging
 import math
 import os
 import time
@@ -35,6 +36,8 @@ import pytest
 
 from tests.theoretical_specs import CPU_SPECS, ACCEPTANCE_THRESHOLDS
 from tests.conftest import assert_efficiency
+
+logger = logging.getLogger("cpu_validation")
 
 # ---------------------------------------------------------------------------
 # Optional imports
@@ -215,13 +218,27 @@ class TestAllCoreFP32Scaling:
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
         available_workers = min(THEORETICAL_CPU_CORES, os.cpu_count() or 1)
-        # Keep runtime bounded: benchmark a subset of cores, then extrapolate to all cores.
         sample_workers = min(available_workers, 32)
+        
+        logger.info(
+            f"\n{'='*80}\n"
+            f"  TC-CPU-04: ALL-CORE FP32 GFLOPS BENCHMARK\n"
+            f"{'='*80}\n"
+            f"  Available logical cores:  {available_workers}\n"
+            f"  Sample size (cores):      {sample_workers}\n"
+            f"  Theoretical FP32 @ base:  {THEORETICAL_FP32_BASE:.2f} TFLOPS\n"
+            f"  Theoretical peak (GFLOPS):{THEORETICAL_FP32_BASE * 1000:.2f}\n"
+            f"  Time budget:              3 minutes (180 seconds)\n"
+            f"{'='*80}"
+        )
+        
+        # Keep runtime bounded: benchmark a subset of cores, then extrapolate to all cores.
         args = [(256, 30)] * sample_workers
         t0 = time.perf_counter()
         with ProcessPoolExecutor(max_workers=sample_workers) as ex:
             sample_results = list(ex.map(_parallel_blas_worker, args))
         elapsed = time.perf_counter() - t0
+        
         assert elapsed <= 180.0, (
             f"All-core GFLOPS sampling exceeded 3-minute budget ({elapsed:.1f}s)"
         )
@@ -230,10 +247,31 @@ class TestAllCoreFP32Scaling:
         scale = available_workers / sample_workers
         total_gflops = sampled_gflops * scale
         theoretical_gflops = THEORETICAL_FP32_BASE * 1000  # TFLOPS → GFLOPS
+        efficiency = (total_gflops / theoretical_gflops * 100) if theoretical_gflops > 0 else 0.0
+        
+        logger.info(
+            f"\n{'─'*80}\n"
+            f"  BENCHMARK RESULTS\n"
+            f"{'─'*80}\n"
+            f"  Elapsed time:             {elapsed:.2f} seconds\n"
+            f"  Sampled GFLOPS ({sample_workers} cores): {sampled_gflops:.2f}\n"
+            f"  Per-core avg:             {sampled_gflops / sample_workers:.2f} GFLOPS/core\n"
+            f"  Extrapolated to all cores:{total_gflops:.2f} GFLOPS\n"
+            f"  Theoretical peak:         {theoretical_gflops:.2f} GFLOPS\n"
+            f"  Efficiency:               {efficiency:.1f}%\n"
+            f"  Min required:             {ACCEPTANCE_THRESHOLDS['cpu_avx512_fp32_efficiency'] * 100:.1f}%\n"
+            f"{'─'*80}"
+        )
+        
         assert_efficiency(
             total_gflops, theoretical_gflops,
             ACCEPTANCE_THRESHOLDS["cpu_avx512_fp32_efficiency"],
             "All-core FP32 GFLOPS (BLAS)"
+        )
+        
+        logger.info(
+            f"  ✅ PASS: All-core FP32 GFLOPS meets {ACCEPTANCE_THRESHOLDS['cpu_avx512_fp32_efficiency']*100:.0f}% efficiency threshold\n"
+            f"{'='*80}\n"
         )
 
     def test_all_core_throughput_scales_with_cores(self):

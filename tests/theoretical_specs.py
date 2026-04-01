@@ -1,18 +1,76 @@
 """
 Theoretical performance specifications for the AI Head Node platform.
 
-Platform configuration:
-  - CPU: 160 physical cores (e.g. 2× Intel Xeon Platinum 8592+ @ 1.9 GHz base / 3.9 GHz turbo)
-  - RAM: 2 TB DDR5-4800 (16-channel per socket, 8 DIMMs per channel)
-  - GPUs: 4× NVIDIA H100 SXM5 (80 GB HBM3 each)
-  - GPU interconnect: NVLink 4.0 full-mesh between all 4 H100s
-  - CPU↔GPU: PCIe 5.0 ×16 per GPU pair (via PCIe switch)
+Runtime-detected topology values (core count, memory size, storage size, GPU count)
+are used where possible to avoid hardcoded configuration assumptions.
 
-All bandwidth and throughput figures are theoretical peaks from vendor datasheets.
+Bandwidth and throughput figures remain theoretical peaks from vendor datasheets.
 """
 
+import os
+import shutil
 from dataclasses import dataclass, field
 from typing import Dict
+
+try:
+    import psutil
+    _HAS_PSUTIL = True
+except ImportError:
+    psutil = None  # type: ignore[assignment]
+    _HAS_PSUTIL = False
+
+try:
+    import torch
+    _HAS_TORCH = torch.cuda.is_available()
+except ImportError:
+    torch = None  # type: ignore[assignment]
+    _HAS_TORCH = False
+
+
+def _detect_cpu_counts() -> tuple[int, int]:
+    """Return detected (physical_cores, logical_threads) with safe fallbacks."""
+    logical = os.cpu_count() or 1
+    physical = logical
+    if _HAS_PSUTIL:
+        physical = psutil.cpu_count(logical=False) or logical
+        logical = psutil.cpu_count(logical=True) or logical
+    return max(1, physical), max(1, logical)
+
+
+def _detect_sockets() -> int:
+    """Infer socket count from Linux NUMA node directories; fallback to 1."""
+    numa_root = "/sys/devices/system/node"
+    if os.path.isdir(numa_root):
+        nodes = [
+            d for d in os.listdir(numa_root)
+            if d.startswith("node") and d[4:].isdigit()
+        ]
+        if nodes:
+            return max(1, len(nodes))
+    return 1
+
+
+def _detect_total_ram_gb() -> float:
+    """Return installed RAM (GB) or 0.0 when unavailable."""
+    if _HAS_PSUTIL:
+        return round(psutil.virtual_memory().total / 1024 ** 3, 2)
+    return 0.0
+
+
+def _detect_total_storage_gb() -> float:
+    """Return total filesystem size (GB) for root volume."""
+    try:
+        root = os.path.abspath(os.sep)
+        return round(shutil.disk_usage(root).total / 1024 ** 3, 2)
+    except OSError:
+        return 0.0
+
+
+def _detect_gpu_count() -> int:
+    """Return number of detected CUDA GPUs; 0 when CUDA is unavailable."""
+    if _HAS_TORCH:
+        return torch.cuda.device_count()
+    return 0
 
 # ---------------------------------------------------------------------------
 # CPU
@@ -80,7 +138,18 @@ class CPUSpecs:
         )
 
 
-CPU_SPECS = CPUSpecs()
+_DETECTED_PHYSICAL_CORES, _DETECTED_LOGICAL_THREADS = _detect_cpu_counts()
+_DETECTED_SOCKETS = _detect_sockets()
+_DETECTED_THREADS_PER_CORE = max(1, _DETECTED_LOGICAL_THREADS // _DETECTED_PHYSICAL_CORES)
+_DETECTED_CORES_PER_SOCKET = max(1, _DETECTED_PHYSICAL_CORES // _DETECTED_SOCKETS)
+
+CPU_SPECS = CPUSpecs(
+    sockets=_DETECTED_SOCKETS,
+    cores_per_socket=_DETECTED_CORES_PER_SOCKET,
+    total_physical_cores=_DETECTED_PHYSICAL_CORES,
+    threads_per_core=_DETECTED_THREADS_PER_CORE,
+    total_logical_threads=_DETECTED_LOGICAL_THREADS,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -130,6 +199,8 @@ class SystemSpecs:
     """Aggregate theoretical specifications for the full AI Head Node."""
 
     gpu_count: int = 4
+    total_memory_gb: float = 0.0
+    total_storage_gb: float = 0.0
     cpu: CPUSpecs = field(default_factory=CPUSpecs)
     gpu: H100Specs = field(default_factory=H100Specs)
 
@@ -185,7 +256,13 @@ class SystemSpecs:
         return (self.gpu.fp16_tflops * 1e12) / (self.gpu.hbm3_bandwidth_tbs * 1e12)
 
 
-SYSTEM_SPECS = SystemSpecs()
+SYSTEM_SPECS = SystemSpecs(
+    gpu_count=_detect_gpu_count(),
+    total_memory_gb=_detect_total_ram_gb(),
+    total_storage_gb=_detect_total_storage_gb(),
+    cpu=CPU_SPECS,
+    gpu=H100_SPECS,
+)
 
 
 # ---------------------------------------------------------------------------

@@ -15,6 +15,7 @@ TC-IC-09  PCIe vs NVLink bandwidth comparison
 TC-IC-10  Peer-to-peer memory access (UVA)
 TC-IC-11  CPU↔GPU pipeline overlap (compute + transfer concurrency)
 TC-IC-12  DMA transfer alignment and large-copy consistency
+TC-IC-13  Multistream bidirectional PCIe sweep (4 MB to 1024 MB)
 """
 
 import logging
@@ -55,6 +56,7 @@ P2P_FABRIC_LABEL = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
 THEORETICAL_P2P_BW = (
     THEORETICAL_NVLINK_BW if SYSTEM_SPECS.has_nvlink else H100_SPECS.pcie_unidirectional_bw_gbs
 )
+MULTISTREAM_SWEEP_MB = [4, 8, 16, 32, 64, 128, 256, 512, 1024]
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +82,25 @@ def _format_bandwidth_table(title: str, rows: List[Tuple[str, float, float]], un
             f"{label:<42} {measured:>10.2f} {unit:>2}  {theoretical:>12.2f} {unit:>2}  {eff:>6.1f}%"
         )
     lines.append("-" * 88)
+    return "\n".join(lines)
+
+
+def _format_multistream_sweep_table(
+    title: str, rows: List[Tuple[int, float, float, float]], theoretical_bidir: float
+) -> str:
+    lines = [
+        "",
+        f"{title}",
+        "-" * 100,
+        f"{'SIZE (MB)':>10} {'H2D (GB/s)':>14} {'D2H (GB/s)':>14} {'TOTAL (GB/s)':>14} {'EFF%':>8}",
+        "-" * 100,
+    ]
+    for size_mb, h2d_bw, d2h_bw, total_bw in rows:
+        eff = (total_bw / theoretical_bidir * 100.0) if theoretical_bidir > 0 else 0.0
+        lines.append(
+            f"{size_mb:>10} {h2d_bw:>14.2f} {d2h_bw:>14.2f} {total_bw:>14.2f} {eff:>7.1f}%"
+        )
+    lines.append("-" * 100)
     return "\n".join(lines)
 
 
@@ -187,6 +208,71 @@ def _bidir_bandwidth_gbs(device_idx: int, n_bytes: int = 512 * 1024 ** 2,
         h2d_bw = n_bytes / elapsed / 1e9
         d2h_bw = n_bytes / elapsed / 1e9
         total_bw = (2 * n_bytes) / elapsed / 1e9
+        if total_bw > best_total:
+            best_h2d = h2d_bw
+            best_d2h = d2h_bw
+            best_total = total_bw
+
+    return best_h2d, best_d2h, best_total
+
+
+def _bidir_multistream_bandwidth_gbs(
+    device_idx: int,
+    n_bytes: int,
+    n_streams_per_direction: int = 4,
+    n_runs: int = 3,
+    pinned: bool = True,
+) -> Tuple[float, float, float]:
+    """Measure simultaneous H2D+D2H bandwidth using multiple streams per direction."""
+    if not _HAS_TORCH:
+        return 0.0, 0.0, 0.0
+
+    device = torch.device(f"cuda:{device_idx}")
+    n_streams = max(1, n_streams_per_direction)
+
+    elems_total = max(1, n_bytes // 4)
+    elems_per_stream = max(1, elems_total // n_streams)
+    bytes_per_direction = elems_per_stream * n_streams * 4
+
+    host_src = [
+        (torch.ones(elems_per_stream, dtype=torch.float32).pin_memory() if pinned else torch.ones(elems_per_stream, dtype=torch.float32))
+        for _ in range(n_streams)
+    ]
+    host_dst = [
+        (torch.empty(elems_per_stream, dtype=torch.float32).pin_memory() if pinned else torch.empty(elems_per_stream, dtype=torch.float32))
+        for _ in range(n_streams)
+    ]
+    dev_src = [torch.ones(elems_per_stream, device=device, dtype=torch.float32) for _ in range(n_streams)]
+    dev_dst = [torch.empty(elems_per_stream, device=device, dtype=torch.float32) for _ in range(n_streams)]
+
+    h2d_streams = [torch.cuda.Stream(device=device) for _ in range(n_streams)]
+    d2h_streams = [torch.cuda.Stream(device=device) for _ in range(n_streams)]
+
+    # Warm-up all streams to avoid one-time setup costs in timed runs.
+    for i in range(n_streams):
+        with torch.cuda.stream(h2d_streams[i]):
+            dev_dst[i].copy_(host_src[i], non_blocking=pinned)
+        with torch.cuda.stream(d2h_streams[i]):
+            host_dst[i].copy_(dev_src[i], non_blocking=pinned)
+    torch.cuda.synchronize(device)
+
+    best_h2d = 0.0
+    best_d2h = 0.0
+    best_total = 0.0
+    for _ in range(n_runs):
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        for i in range(n_streams):
+            with torch.cuda.stream(h2d_streams[i]):
+                dev_dst[i].copy_(host_src[i], non_blocking=pinned)
+            with torch.cuda.stream(d2h_streams[i]):
+                host_dst[i].copy_(dev_src[i], non_blocking=pinned)
+        torch.cuda.synchronize(device)
+        elapsed = time.perf_counter() - t0
+
+        h2d_bw = bytes_per_direction / elapsed / 1e9
+        d2h_bw = bytes_per_direction / elapsed / 1e9
+        total_bw = (2 * bytes_per_direction) / elapsed / 1e9
         if total_bw > best_total:
             best_h2d = h2d_bw
             best_d2h = d2h_bw
@@ -640,3 +726,44 @@ class TestDMAConsistency:
         assert torch.equal(host, result), (
             f"GPU {device_idx}: {transfer_mb} MB H2D transfer produced data mismatch"
         )
+
+
+# ---------------------------------------------------------------------------
+# TC-IC-13  Multistream bidirectional PCIe sweep
+# ---------------------------------------------------------------------------
+@pytest.mark.pcie
+@pytest.mark.slow
+class TestMultiStreamParallelSweep:
+
+    @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
+    def test_multistream_parallel_bidir_sweep(self, device_idx: int):
+        """TC-IC-13: Capture simultaneous multistream H2D+D2H BW across transfer-size sweep."""
+        _skip_if_no_gpu()
+        if device_idx >= torch.cuda.device_count():
+            pytest.skip(f"GPU {device_idx} not available")
+
+        captured_rows: List[Tuple[int, float, float, float]] = []
+        for transfer_mb in MULTISTREAM_SWEEP_MB:
+            h2d_bw, d2h_bw, total_bw = _bidir_multistream_bandwidth_gbs(
+                device_idx=device_idx,
+                n_bytes=transfer_mb * 1024 ** 2,
+                n_streams_per_direction=4,
+                n_runs=3,
+                pinned=True,
+            )
+            captured_rows.append((transfer_mb, h2d_bw, d2h_bw, total_bw))
+
+        logger.info(
+            _format_multistream_sweep_table(
+                title=f"TC-IC-13 Multistream parallel bidirectional sweep (GPU {device_idx}, 4 streams/dir)",
+                rows=captured_rows,
+                theoretical_bidir=THEORETICAL_H2D_BW * 2,
+            )
+        )
+
+        # Validation is focused on successful capture of all sweep points.
+        for transfer_mb, h2d_bw, d2h_bw, total_bw in captured_rows:
+            assert h2d_bw > 0.0 and d2h_bw > 0.0 and total_bw > 0.0, (
+                f"GPU {device_idx}: invalid multistream capture at {transfer_mb} MB "
+                f"(H2D={h2d_bw:.2f}, D2H={d2h_bw:.2f}, total={total_bw:.2f} GB/s)"
+            )

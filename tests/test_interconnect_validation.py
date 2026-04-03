@@ -23,6 +23,7 @@ TC-IC-15  Multistream D2H PCIe sweep (adaptive by CUDA memory)
 import logging
 import time
 import threading
+import math
 from typing import List, Tuple
 
 import pytest
@@ -60,6 +61,7 @@ THEORETICAL_P2P_BW = (
 )
 MULTISTREAM_SWEEP_CANDIDATE_MB = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
 MULTISTREAM_DEFAULT_STREAMS = 4
+LATENCY_SWEEP_KB = [4, 16, 64, 256, 1024, 4096]
 
 
 def _adaptive_multistream_sweep_mb(device_idx: int, mode: str) -> List[int]:
@@ -145,6 +147,29 @@ def _format_multistream_sweep_table(
     return "\n".join(lines)
 
 
+def _format_multistream_sweep_stats_table(
+    title: str,
+    rows: List[Tuple[int, float, float, float]],
+    theoretical: float,
+    metric_label: str,
+) -> str:
+    lines = [
+        "",
+        f"{title}",
+        "-" * 100,
+        f"{'SIZE (MB)':>10} {'BEST (GB/s)':>14} {'MEDIAN (GB/s)':>16} {'P95 (GB/s)':>13} {'EFF%':>8}",
+        "-" * 100,
+    ]
+    for size_mb, best_bw, median_bw, p95_bw in rows:
+        eff = (median_bw / theoretical * 100.0) if theoretical > 0 else 0.0
+        lines.append(
+            f"{size_mb:>10} {best_bw:>14.2f} {median_bw:>16.2f} {p95_bw:>13.2f} {eff:>7.1f}%"
+        )
+    lines.append("-" * 100)
+    lines.append(f"Note: efficiency uses median {metric_label} vs theoretical.")
+    return "\n".join(lines)
+
+
 def _format_unidir_multistream_sweep_table(
     title: str,
     rows: List[Tuple[int, float]],
@@ -163,6 +188,47 @@ def _format_unidir_multistream_sweep_table(
         lines.append(f"{size_mb:>10} {bw:>14.2f} GB/s {theoretical:>12.2f} GB/s {eff:>7.1f}%")
     lines.append("-" * 84)
     return "\n".join(lines)
+
+
+def _format_latency_table(title: str, rows: List[Tuple[int, float, float, float]]) -> str:
+    lines = [
+        "",
+        title,
+        "-" * 86,
+        f"{'SIZE (KB)':>10} {'BEST (us)':>12} {'MEDIAN (us)':>14} {'P95 (us)':>10} {'MEAN (us)':>11}",
+        "-" * 86,
+    ]
+    for size_kb, best_us, median_us, p95_us in rows:
+        mean_us = (best_us + median_us + p95_us) / 3.0
+        lines.append(
+            f"{size_kb:>10} {best_us:>12.2f} {median_us:>14.2f} {p95_us:>10.2f} {mean_us:>11.2f}"
+        )
+    lines.append("-" * 86)
+    return "\n".join(lines)
+
+
+def _percentile(sorted_samples: List[float], q: float) -> float:
+    if not sorted_samples:
+        return 0.0
+    if len(sorted_samples) == 1:
+        return sorted_samples[0]
+    idx = (len(sorted_samples) - 1) * q
+    lo = int(math.floor(idx))
+    hi = int(math.ceil(idx))
+    if lo == hi:
+        return sorted_samples[lo]
+    frac = idx - lo
+    return sorted_samples[lo] + (sorted_samples[hi] - sorted_samples[lo]) * frac
+
+
+def _stats_from_samples(samples: List[float]) -> Tuple[float, float, float]:
+    if not samples:
+        return 0.0, 0.0, 0.0
+    s = sorted(samples)
+    best = s[-1]
+    median = _percentile(s, 0.50)
+    p95 = _percentile(s, 0.95)
+    return best, median, p95
 
 
 def _h2d_bandwidth_gbs(device_idx: int, n_bytes: int = 1 * 1024 ** 3,
@@ -342,6 +408,75 @@ def _bidir_multistream_bandwidth_gbs(
     return best_h2d, best_d2h, best_total
 
 
+def _bidir_multistream_bandwidth_stats(
+    device_idx: int,
+    n_bytes: int,
+    n_streams_per_direction: int = 4,
+    warmup_runs: int = 2,
+    n_runs: int = 7,
+    pinned: bool = True,
+) -> Tuple[Tuple[float, float, float], Tuple[float, float, float], Tuple[float, float, float]]:
+    """Return (best, median, p95) GB/s for H2D, D2H and total bidir bandwidth."""
+    if not _HAS_TORCH:
+        zero = (0.0, 0.0, 0.0)
+        return zero, zero, zero
+
+    device = torch.device(f"cuda:{device_idx}")
+    n_streams = max(1, n_streams_per_direction)
+
+    elems_total = max(1, n_bytes // 4)
+    elems_per_stream = max(1, elems_total // n_streams)
+    bytes_per_direction = elems_per_stream * n_streams * 4
+
+    host_src = [
+        (torch.ones(elems_per_stream, dtype=torch.float32).pin_memory() if pinned else torch.ones(elems_per_stream, dtype=torch.float32))
+        for _ in range(n_streams)
+    ]
+    host_dst = [
+        (torch.empty(elems_per_stream, dtype=torch.float32).pin_memory() if pinned else torch.empty(elems_per_stream, dtype=torch.float32))
+        for _ in range(n_streams)
+    ]
+    dev_src = [torch.ones(elems_per_stream, device=device, dtype=torch.float32) for _ in range(n_streams)]
+    dev_dst = [torch.empty(elems_per_stream, device=device, dtype=torch.float32) for _ in range(n_streams)]
+
+    h2d_streams = [torch.cuda.Stream(device=device) for _ in range(n_streams)]
+    d2h_streams = [torch.cuda.Stream(device=device) for _ in range(n_streams)]
+
+    def _launch_once() -> None:
+        for i in range(n_streams):
+            with torch.cuda.stream(h2d_streams[i]):
+                dev_dst[i].copy_(host_src[i], non_blocking=pinned)
+            with torch.cuda.stream(d2h_streams[i]):
+                host_dst[i].copy_(dev_src[i], non_blocking=pinned)
+
+    for _ in range(max(1, warmup_runs)):
+        _launch_once()
+        torch.cuda.synchronize(device)
+
+    h2d_samples: List[float] = []
+    d2h_samples: List[float] = []
+    total_samples: List[float] = []
+    for _ in range(max(1, n_runs)):
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        _launch_once()
+        torch.cuda.synchronize(device)
+        elapsed = time.perf_counter() - t0
+
+        h2d_bw = bytes_per_direction / elapsed / 1e9
+        d2h_bw = bytes_per_direction / elapsed / 1e9
+        total_bw = (2 * bytes_per_direction) / elapsed / 1e9
+        h2d_samples.append(h2d_bw)
+        d2h_samples.append(d2h_bw)
+        total_samples.append(total_bw)
+
+    return (
+        _stats_from_samples(h2d_samples),
+        _stats_from_samples(d2h_samples),
+        _stats_from_samples(total_samples),
+    )
+
+
 def _h2d_multistream_bandwidth_gbs(
     device_idx: int,
     n_bytes: int,
@@ -386,6 +521,53 @@ def _h2d_multistream_bandwidth_gbs(
     return best_bw
 
 
+def _h2d_multistream_bandwidth_stats(
+    device_idx: int,
+    n_bytes: int,
+    n_streams: int = 4,
+    warmup_runs: int = 2,
+    n_runs: int = 7,
+    pinned: bool = True,
+) -> Tuple[float, float, float]:
+    """Return (best, median, p95) GB/s for multistream H2D."""
+    if not _HAS_TORCH:
+        return 0.0, 0.0, 0.0
+
+    device = torch.device(f"cuda:{device_idx}")
+    stream_count = max(1, n_streams)
+
+    elems_total = max(1, n_bytes // 4)
+    elems_per_stream = max(1, elems_total // stream_count)
+    bytes_total = elems_per_stream * stream_count * 4
+
+    host_src = [
+        (torch.ones(elems_per_stream, dtype=torch.float32).pin_memory() if pinned else torch.ones(elems_per_stream, dtype=torch.float32))
+        for _ in range(stream_count)
+    ]
+    dev_dst = [torch.empty(elems_per_stream, device=device, dtype=torch.float32) for _ in range(stream_count)]
+    streams = [torch.cuda.Stream(device=device) for _ in range(stream_count)]
+
+    def _launch_once() -> None:
+        for i in range(stream_count):
+            with torch.cuda.stream(streams[i]):
+                dev_dst[i].copy_(host_src[i], non_blocking=pinned)
+
+    for _ in range(max(1, warmup_runs)):
+        _launch_once()
+        torch.cuda.synchronize(device)
+
+    samples: List[float] = []
+    for _ in range(max(1, n_runs)):
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        _launch_once()
+        torch.cuda.synchronize(device)
+        elapsed = time.perf_counter() - t0
+        samples.append(bytes_total / elapsed / 1e9)
+
+    return _stats_from_samples(samples)
+
+
 def _d2h_multistream_bandwidth_gbs(
     device_idx: int,
     n_bytes: int,
@@ -428,6 +610,90 @@ def _d2h_multistream_bandwidth_gbs(
         bw = bytes_total / elapsed / 1e9
         best_bw = max(best_bw, bw)
     return best_bw
+
+
+def _d2h_multistream_bandwidth_stats(
+    device_idx: int,
+    n_bytes: int,
+    n_streams: int = 4,
+    warmup_runs: int = 2,
+    n_runs: int = 7,
+    pinned: bool = True,
+) -> Tuple[float, float, float]:
+    """Return (best, median, p95) GB/s for multistream D2H."""
+    if not _HAS_TORCH:
+        return 0.0, 0.0, 0.0
+
+    device = torch.device(f"cuda:{device_idx}")
+    stream_count = max(1, n_streams)
+
+    elems_total = max(1, n_bytes // 4)
+    elems_per_stream = max(1, elems_total // stream_count)
+    bytes_total = elems_per_stream * stream_count * 4
+
+    dev_src = [torch.ones(elems_per_stream, device=device, dtype=torch.float32) for _ in range(stream_count)]
+    host_dst = [
+        (torch.empty(elems_per_stream, dtype=torch.float32).pin_memory() if pinned else torch.empty(elems_per_stream, dtype=torch.float32))
+        for _ in range(stream_count)
+    ]
+    streams = [torch.cuda.Stream(device=device) for _ in range(stream_count)]
+
+    def _launch_once() -> None:
+        for i in range(stream_count):
+            with torch.cuda.stream(streams[i]):
+                host_dst[i].copy_(dev_src[i], non_blocking=pinned)
+
+    for _ in range(max(1, warmup_runs)):
+        _launch_once()
+        torch.cuda.synchronize(device)
+
+    samples: List[float] = []
+    for _ in range(max(1, n_runs)):
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        _launch_once()
+        torch.cuda.synchronize(device)
+        elapsed = time.perf_counter() - t0
+        samples.append(bytes_total / elapsed / 1e9)
+
+    return _stats_from_samples(samples)
+
+
+def _copy_latency_stats_us(
+    device_idx: int,
+    n_bytes: int,
+    direction: str,
+    warmup_runs: int = 20,
+    n_runs: int = 60,
+    pinned: bool = True,
+) -> Tuple[float, float, float]:
+    """Measure copy latency in microseconds for small transfers."""
+    if not _HAS_TORCH:
+        return 0.0, 0.0, 0.0
+    device = torch.device(f"cuda:{device_idx}")
+    n = max(1, n_bytes // 4)
+
+    host = (torch.ones(n, dtype=torch.float32).pin_memory() if pinned else torch.ones(n, dtype=torch.float32))
+    dev = torch.empty(n, device=device, dtype=torch.float32)
+
+    if direction == "d2h":
+        dev.copy_(host, non_blocking=pinned)
+    torch.cuda.synchronize(device)
+
+    lat_us: List[float] = []
+    for i in range(max(1, warmup_runs) + max(1, n_runs)):
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        if direction == "h2d":
+            dev.copy_(host, non_blocking=pinned)
+        else:
+            host.copy_(dev, non_blocking=pinned)
+        torch.cuda.synchronize(device)
+        elapsed_us = (time.perf_counter() - t0) * 1e6
+        if i >= max(1, warmup_runs):
+            lat_us.append(elapsed_us)
+
+    return _stats_from_samples(lat_us)
 
 
 def _p2p_bandwidth_gbs(src_idx: int, dst_idx: int,
@@ -892,33 +1158,55 @@ class TestMultiStreamParallelSweep:
             pytest.skip(f"GPU {device_idx} not available")
 
         sweep_mb = _adaptive_multistream_sweep_mb(device_idx, mode="bidir")
-        captured_rows: List[Tuple[int, float, float, float]] = []
+        captured_rows_h2d: List[Tuple[int, float, float, float]] = []
+        captured_rows_d2h: List[Tuple[int, float, float, float]] = []
+        captured_rows_total: List[Tuple[int, float, float, float]] = []
         for transfer_mb in sweep_mb:
-            h2d_bw, d2h_bw, total_bw = _bidir_multistream_bandwidth_gbs(
+            h2d_stats, d2h_stats, total_stats = _bidir_multistream_bandwidth_stats(
                 device_idx=device_idx,
                 n_bytes=transfer_mb * 1024 ** 2,
                 n_streams_per_direction=MULTISTREAM_DEFAULT_STREAMS,
-                n_runs=3,
+                warmup_runs=2,
+                n_runs=7,
                 pinned=True,
             )
-            captured_rows.append((transfer_mb, h2d_bw, d2h_bw, total_bw))
+            captured_rows_h2d.append((transfer_mb, h2d_stats[0], h2d_stats[1], h2d_stats[2]))
+            captured_rows_d2h.append((transfer_mb, d2h_stats[0], d2h_stats[1], d2h_stats[2]))
+            captured_rows_total.append((transfer_mb, total_stats[0], total_stats[1], total_stats[2]))
 
         logger.info(
-            _format_multistream_sweep_table(
+            _format_multistream_sweep_stats_table(
                 title=(
                     f"TC-IC-13 Multistream parallel bidirectional sweep "
                     f"(GPU {device_idx}, {MULTISTREAM_DEFAULT_STREAMS} streams/dir, adaptive sizes)"
                 ),
-                rows=captured_rows,
-                theoretical_bidir=THEORETICAL_H2D_BW * 2,
+                rows=captured_rows_total,
+                theoretical=THEORETICAL_H2D_BW * 2,
+                metric_label="total bidirectional BW",
+            )
+        )
+        logger.info(
+            _format_multistream_sweep_stats_table(
+                title=f"TC-IC-13 Per-direction H2D stats (GPU {device_idx})",
+                rows=captured_rows_h2d,
+                theoretical=THEORETICAL_H2D_BW,
+                metric_label="H2D BW",
+            )
+        )
+        logger.info(
+            _format_multistream_sweep_stats_table(
+                title=f"TC-IC-13 Per-direction D2H stats (GPU {device_idx})",
+                rows=captured_rows_d2h,
+                theoretical=THEORETICAL_H2D_BW,
+                metric_label="D2H BW",
             )
         )
 
         # Validation is focused on successful capture of all sweep points.
-        for transfer_mb, h2d_bw, d2h_bw, total_bw in captured_rows:
-            assert h2d_bw > 0.0 and d2h_bw > 0.0 and total_bw > 0.0, (
+        for transfer_mb, best_bw, median_bw, p95_bw in captured_rows_total:
+            assert best_bw > 0.0 and median_bw > 0.0 and p95_bw > 0.0, (
                 f"GPU {device_idx}: invalid multistream capture at {transfer_mb} MB "
-                f"(H2D={h2d_bw:.2f}, D2H={d2h_bw:.2f}, total={total_bw:.2f} GB/s)"
+                f"(best={best_bw:.2f}, median={median_bw:.2f}, p95={p95_bw:.2f} GB/s)"
             )
 
 
@@ -937,32 +1225,34 @@ class TestMultiStreamH2DSweep:
             pytest.skip(f"GPU {device_idx} not available")
 
         sweep_mb = _adaptive_multistream_sweep_mb(device_idx, mode="h2d")
-        rows: List[Tuple[int, float]] = []
+        rows_stats: List[Tuple[int, float, float, float]] = []
         for transfer_mb in sweep_mb:
-            bw = _h2d_multistream_bandwidth_gbs(
+            best_bw, median_bw, p95_bw = _h2d_multistream_bandwidth_stats(
                 device_idx=device_idx,
                 n_bytes=transfer_mb * 1024 ** 2,
                 n_streams=MULTISTREAM_DEFAULT_STREAMS,
-                n_runs=3,
+                warmup_runs=2,
+                n_runs=7,
                 pinned=True,
             )
-            rows.append((transfer_mb, bw))
+            rows_stats.append((transfer_mb, best_bw, median_bw, p95_bw))
 
         logger.info(
-            _format_unidir_multistream_sweep_table(
+            _format_multistream_sweep_stats_table(
                 title=(
                     f"TC-IC-14 Multistream H2D sweep "
                     f"(GPU {device_idx}, {MULTISTREAM_DEFAULT_STREAMS} streams, adaptive sizes)"
                 ),
-                rows=rows,
+                rows=rows_stats,
                 theoretical=THEORETICAL_H2D_BW,
-                direction_label="H2D (GB/s)",
+                metric_label="H2D BW",
             )
         )
 
-        for transfer_mb, bw in rows:
-            assert bw > 0.0, (
-                f"GPU {device_idx}: invalid H2D multistream capture at {transfer_mb} MB ({bw:.2f} GB/s)"
+        for transfer_mb, best_bw, median_bw, p95_bw in rows_stats:
+            assert best_bw > 0.0 and median_bw > 0.0 and p95_bw > 0.0, (
+                f"GPU {device_idx}: invalid H2D multistream capture at {transfer_mb} MB "
+                f"(best={best_bw:.2f}, median={median_bw:.2f}, p95={p95_bw:.2f} GB/s)"
             )
 
 
@@ -981,30 +1271,90 @@ class TestMultiStreamD2HSweep:
             pytest.skip(f"GPU {device_idx} not available")
 
         sweep_mb = _adaptive_multistream_sweep_mb(device_idx, mode="d2h")
-        rows: List[Tuple[int, float]] = []
+        rows_stats: List[Tuple[int, float, float, float]] = []
         for transfer_mb in sweep_mb:
-            bw = _d2h_multistream_bandwidth_gbs(
+            best_bw, median_bw, p95_bw = _d2h_multistream_bandwidth_stats(
                 device_idx=device_idx,
                 n_bytes=transfer_mb * 1024 ** 2,
                 n_streams=MULTISTREAM_DEFAULT_STREAMS,
-                n_runs=3,
+                warmup_runs=2,
+                n_runs=7,
                 pinned=True,
             )
-            rows.append((transfer_mb, bw))
+            rows_stats.append((transfer_mb, best_bw, median_bw, p95_bw))
 
         logger.info(
-            _format_unidir_multistream_sweep_table(
+            _format_multistream_sweep_stats_table(
                 title=(
                     f"TC-IC-15 Multistream D2H sweep "
                     f"(GPU {device_idx}, {MULTISTREAM_DEFAULT_STREAMS} streams, adaptive sizes)"
                 ),
-                rows=rows,
+                rows=rows_stats,
                 theoretical=THEORETICAL_H2D_BW,
-                direction_label="D2H (GB/s)",
+                metric_label="D2H BW",
             )
         )
 
-        for transfer_mb, bw in rows:
-            assert bw > 0.0, (
-                f"GPU {device_idx}: invalid D2H multistream capture at {transfer_mb} MB ({bw:.2f} GB/s)"
+        for transfer_mb, best_bw, median_bw, p95_bw in rows_stats:
+            assert best_bw > 0.0 and median_bw > 0.0 and p95_bw > 0.0, (
+                f"GPU {device_idx}: invalid D2H multistream capture at {transfer_mb} MB "
+                f"(best={best_bw:.2f}, median={median_bw:.2f}, p95={p95_bw:.2f} GB/s)"
+            )
+
+
+# ---------------------------------------------------------------------------
+# TC-IC-16  Micro-transfer latency sweep (4 KB to 4 MB)
+# ---------------------------------------------------------------------------
+@pytest.mark.pcie
+@pytest.mark.slow
+class TestMicroTransferLatency:
+
+    @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
+    def test_h2d_latency_sweep(self, device_idx: int):
+        """TC-IC-16a: Capture H2D latency trend for micro transfer sizes."""
+        _skip_if_no_gpu()
+        if device_idx >= torch.cuda.device_count():
+            pytest.skip(f"GPU {device_idx} not available")
+
+        rows: List[Tuple[int, float, float, float]] = []
+        for size_kb in LATENCY_SWEEP_KB:
+            best_us, median_us, p95_us = _copy_latency_stats_us(
+                device_idx=device_idx,
+                n_bytes=size_kb * 1024,
+                direction="h2d",
+                warmup_runs=20,
+                n_runs=60,
+                pinned=True,
+            )
+            rows.append((size_kb, best_us, median_us, p95_us))
+
+        logger.info(_format_latency_table(f"TC-IC-16a H2D latency sweep (GPU {device_idx})", rows))
+        for size_kb, best_us, median_us, p95_us in rows:
+            assert best_us > 0 and median_us > 0 and p95_us > 0, (
+                f"GPU {device_idx}: invalid H2D latency stats at {size_kb} KB"
+            )
+
+    @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
+    def test_d2h_latency_sweep(self, device_idx: int):
+        """TC-IC-16b: Capture D2H latency trend for micro transfer sizes."""
+        _skip_if_no_gpu()
+        if device_idx >= torch.cuda.device_count():
+            pytest.skip(f"GPU {device_idx} not available")
+
+        rows: List[Tuple[int, float, float, float]] = []
+        for size_kb in LATENCY_SWEEP_KB:
+            best_us, median_us, p95_us = _copy_latency_stats_us(
+                device_idx=device_idx,
+                n_bytes=size_kb * 1024,
+                direction="d2h",
+                warmup_runs=20,
+                n_runs=60,
+                pinned=True,
+            )
+            rows.append((size_kb, best_us, median_us, p95_us))
+
+        logger.info(_format_latency_table(f"TC-IC-16b D2H latency sweep (GPU {device_idx})", rows))
+        for size_kb, best_us, median_us, p95_us in rows:
+            assert best_us > 0 and median_us > 0 and p95_us > 0, (
+                f"GPU {device_idx}: invalid D2H latency stats at {size_kb} KB"
             )

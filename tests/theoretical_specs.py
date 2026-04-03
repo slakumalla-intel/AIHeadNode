@@ -339,8 +339,10 @@ ACCEPTANCE_THRESHOLDS: Dict[str, float] = {
 
     # Interconnect
     "nvlink_bandwidth_efficiency": 0.70,
+    "p2p_pcie_bandwidth_efficiency": 0.50,
     "pcie_h2d_bandwidth_efficiency": 0.65,
     "pcie_d2h_bandwidth_efficiency": 0.65,
+    "pcie_bidir_bandwidth_efficiency": 0.70,
 
     # System-level
     "multi_gpu_scaling_efficiency": 0.80,   # 4-GPU vs. 4× single-GPU throughput

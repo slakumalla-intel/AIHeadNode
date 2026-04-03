@@ -489,39 +489,53 @@ class TestPCIeBottleneck:
 # ---------------------------------------------------------------------------
 @pytest.mark.bottleneck
 @pytest.mark.nvlink
+@pytest.mark.pcie
 @pytest.mark.slow
 class TestNVLinkBottleneck:
 
     def test_nvlink_bw_vs_theoretical(self):
-        """TC-BN-06a: NVLink P2P BW between GPU 0→1 ≥ 70 % of theoretical 900 GB/s."""
+        """TC-BN-06a: Inter-GPU P2P BW must meet threshold for active fabric."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
         n_gpus = torch.cuda.device_count()
         if n_gpus < 2:
             pytest.skip("Need ≥ 2 GPUs")
+
+        fabric_label = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
+        theoretical = (
+            H100_SPECS.nvlink_total_bw_gbs
+            if SYSTEM_SPECS.has_nvlink
+            else H100_SPECS.pcie_unidirectional_bw_gbs
+        )
+        threshold_key = "nvlink_bandwidth_efficiency" if SYSTEM_SPECS.has_nvlink else "p2p_pcie_bandwidth_efficiency"
+
         bw = _p2p_bw_gbs(0, 1, n_bytes=1 * 1024 ** 3)
         result = BenchmarkResult(
-            label="NVLink P2P BW GPU 0→1",
+            label=f"{fabric_label} P2P BW GPU 0->1",
             measured=bw,
-            theoretical=H100_SPECS.nvlink_total_bw_gbs,
+            theoretical=theoretical,
             unit="GB/s",
         )
         logger.info(_format_report([result]))
         assert_efficiency(
-            bw, H100_SPECS.nvlink_total_bw_gbs,
-            ACCEPTANCE_THRESHOLDS["nvlink_bandwidth_efficiency"],
+            bw, theoretical,
+            ACCEPTANCE_THRESHOLDS[threshold_key],
             result.label,
         )
 
     def test_nvlink_faster_than_pcie_bottleneck(self):
-        """TC-BN-06b: NVLink must not be the bandwidth bottleneck vs PCIe."""
-        # NVLink BW >> PCIe BW means the bottleneck is PCIe (host ingestion),
-        # not NVLink (GPU-to-GPU).
-        nvlink_bw = H100_SPECS.nvlink_total_bw_gbs           # 900 GB/s
-        pcie_bw = H100_SPECS.pcie_unidirectional_bw_gbs      # 63 GB/s
-        assert nvlink_bw > pcie_bw, (
-            "NVLink BW should exceed PCIe BW – topology misconfigured?"
-        )
+        """TC-BN-06b: Validate expected relationship between inter-GPU fabric and host PCIe BW."""
+        pcie_bw = H100_SPECS.pcie_unidirectional_bw_gbs
+        if SYSTEM_SPECS.has_nvlink:
+            nvlink_bw = H100_SPECS.nvlink_total_bw_gbs
+            assert nvlink_bw > pcie_bw, (
+                "NVLink BW should exceed PCIe BW – topology misconfigured?"
+            )
+        else:
+            # On PCIe-only systems, peer traffic shares the PCIe fabric.
+            assert H100_SPECS.nvlink_total_bw_gbs == 0.0, (
+                "Expected zero NVLink bandwidth on PCIe-only topology"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -716,7 +730,12 @@ class TestSystemLevelSummary:
             "HBM3 capacity/GPU (GB)": f"{H100_SPECS.hbm3_capacity_gb:.0f}",
             "HBM3 BW/GPU (TB/s)": f"{H100_SPECS.hbm3_bandwidth_tbs:.2f}",
             "Total HBM3 BW (TB/s)": f"{SYSTEM_SPECS.total_hbm_bandwidth_tbs:.2f}",
-            "NVLink total BW/GPU (GB/s)": f"{H100_SPECS.nvlink_total_bw_gbs:.0f}",
+            "GPU interconnect": H100_SPECS.interconnect_type,
+            "Inter-GPU BW/GPU (GB/s)": (
+                f"{H100_SPECS.nvlink_total_bw_gbs:.0f}"
+                if SYSTEM_SPECS.has_nvlink
+                else f"{H100_SPECS.pcie_unidirectional_bw_gbs:.0f}"
+            ),
             "PCIe 5.0 H2D BW/GPU (GB/s)": f"{H100_SPECS.pcie_unidirectional_bw_gbs:.0f}",
             "Aggregate GPU FP16 (TFLOPS)": f"{SYSTEM_SPECS.total_fp16_tflops_gpu:.0f}",
             "Roofline knee FP16 (FLOP/byte)": f"{SYSTEM_SPECS.arithmetic_intensity_roofline:.1f}",
@@ -731,34 +750,44 @@ class TestSystemLevelSummary:
 
     def test_known_bottlenecks_summary(self):
         """TC-BN-10b: Log known theoretical bottlenecks for the platform."""
+        inter_gpu_entry = {
+            "subsystem": "NVLink fabric (GPU-to-GPU)",
+            "bottleneck": f"NVLink total BW = {SYSTEM_SPECS.nvlink_fabric_bw_gbs:.0f} GB/s — "
+                          "not a bottleneck vs HBM but limits all-reduce in training",
+            "ratio": f"{SYSTEM_SPECS.nvlink_fabric_bw_gbs / (H100_SPECS.hbm3_bandwidth_tbs * 1000):.2f}x NVLink/HBM",
+            "mitigation": "Overlap all-reduce with compute; use ring-all-reduce or NCCL overlap.",
+        }
+        if not SYSTEM_SPECS.has_nvlink:
+            inter_gpu_entry = {
+                "subsystem": "PCIe peer fabric (GPU-to-GPU)",
+                "bottleneck": f"GPU peer BW over PCIe = {H100_SPECS.pcie_unidirectional_bw_gbs:.0f} GB/s "
+                              f"<< HBM3 = {H100_SPECS.hbm3_bandwidth_tbs * 1000:.0f} GB/s",
+                "ratio": f"{(H100_SPECS.hbm3_bandwidth_tbs * 1000) / H100_SPECS.pcie_unidirectional_bw_gbs:.0f}x HBM/PCIe-peer",
+                "mitigation": "Reduce inter-GPU traffic with tensor/sequence parallel tuning and communication overlap.",
+            }
+
         bottlenecks = [
             {
                 "subsystem": "Host PCIe (data ingestion)",
                 "bottleneck": "PCIe 5.0 ×16 = 63 GB/s per GPU << HBM3 = 3350 GB/s",
-                "ratio": f"{H100_SPECS.hbm3_bandwidth_tbs * 1000 / H100_SPECS.pcie_unidirectional_bw_gbs:.0f}× HBM/PCIe",
+                "ratio": f"{H100_SPECS.hbm3_bandwidth_tbs * 1000 / H100_SPECS.pcie_unidirectional_bw_gbs:.0f}x HBM/PCIe",
                 "mitigation": "Use in-GPU preprocessing, NVLink-based data redistribution, or PCIe switches.",
             },
             {
                 "subsystem": "CPU DRAM bandwidth",
                 "bottleneck": f"CPU DRAM peak = {CPU_SPECS.peak_memory_bandwidth_gbs:.0f} GB/s "
                               f"<< HBM3 total = {SYSTEM_SPECS.total_hbm_bandwidth_tbs * 1000:.0f} GB/s",
-                "ratio": f"{SYSTEM_SPECS.total_hbm_bandwidth_tbs * 1000 / CPU_SPECS.peak_memory_bandwidth_gbs:.0f}× HBM/DRAM",
+                "ratio": f"{SYSTEM_SPECS.total_hbm_bandwidth_tbs * 1000 / CPU_SPECS.peak_memory_bandwidth_gbs:.0f}x HBM/DRAM",
                 "mitigation": "Pre-process data on GPU, use NUMA-local allocation, or async prefetch.",
             },
             {
                 "subsystem": "CPU FP32 vs GPU FP32",
                 "bottleneck": f"CPU FP32 turbo = {CPU_SPECS.peak_fp32_tflops_turbo:.0f} TFLOPS "
                               f"<< GPU total FP32 = {SYSTEM_SPECS.total_fp32_tflops_gpu:.0f} TFLOPS",
-                "ratio": f"{SYSTEM_SPECS.total_fp32_tflops_gpu / CPU_SPECS.peak_fp32_tflops_turbo:.0f}× GPU/CPU",
+                "ratio": f"{SYSTEM_SPECS.total_fp32_tflops_gpu / CPU_SPECS.peak_fp32_tflops_turbo:.0f}x GPU/CPU",
                 "mitigation": "Offload all FP32 workloads to GPU; CPU handles orchestration only.",
             },
-            {
-                "subsystem": "NVLink fabric (GPU-to-GPU)",
-                "bottleneck": f"NVLink total BW = {SYSTEM_SPECS.nvlink_fabric_bw_gbs:.0f} GB/s — "
-                              "not a bottleneck vs HBM but limits all-reduce in training",
-                "ratio": f"{SYSTEM_SPECS.nvlink_fabric_bw_gbs / (H100_SPECS.hbm3_bandwidth_tbs * 1000):.2f}× NVLink/HBM",
-                "mitigation": "Overlap all-reduce with compute; use ring-all-reduce or NCCL overlap.",
-            },
+            inter_gpu_entry,
             {
                 "subsystem": "Memory-bound kernels (low AI)",
                 "bottleneck": f"Any kernel with AI < {SYSTEM_SPECS.arithmetic_intensity_roofline:.0f} FLOP/byte "
@@ -821,8 +850,14 @@ class TestSystemLevelSummary:
             # P2P (NVLink)
             if torch.cuda.device_count() >= 2:
                 p2p = _p2p_bw_gbs(0, 1, n_bytes=1 * 1024 ** 3)
+                p2p_theoretical = (
+                    H100_SPECS.nvlink_total_bw_gbs
+                    if SYSTEM_SPECS.has_nvlink
+                    else H100_SPECS.pcie_unidirectional_bw_gbs
+                )
+                p2p_label = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
                 results.append(BenchmarkResult(
-                    "NVLink P2P BW (GPU 0→1)", p2p, H100_SPECS.nvlink_total_bw_gbs, "GB/s",
+                    f"{p2p_label} BW (GPU 0->1)", p2p, p2p_theoretical, "GB/s",
                 ))
 
         if results:

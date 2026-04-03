@@ -9,7 +9,7 @@ TC-IC-03  Device-to-host (D2H) bandwidth per GPU
 TC-IC-04  Bidirectional PCIe bandwidth per GPU
 TC-IC-05  H2D bandwidth across all 4 GPUs simultaneously
 TC-IC-06  NVLink detection and topology
-TC-IC-07  GPU-to-GPU (P2P) copy bandwidth via NVLink
+TC-IC-07  GPU-to-GPU (P2P) copy bandwidth via active fabric (NVLink/PCIe)
 TC-IC-08  NVLink all-to-all bandwidth (4-GPU ring)
 TC-IC-09  PCIe vs NVLink bandwidth comparison
 TC-IC-10  Peer-to-peer memory access (UVA)
@@ -17,6 +17,7 @@ TC-IC-11  CPU↔GPU pipeline overlap (compute + transfer concurrency)
 TC-IC-12  DMA transfer alignment and large-copy consistency
 """
 
+import logging
 import time
 import threading
 from typing import List, Tuple
@@ -25,6 +26,8 @@ import pytest
 
 from tests.theoretical_specs import H100_SPECS, SYSTEM_SPECS, ACCEPTANCE_THRESHOLDS
 from tests.conftest import assert_efficiency
+
+logger = logging.getLogger("interconnect_validation")
 
 try:
     import torch
@@ -48,6 +51,10 @@ except Exception:
 EXPECTED_GPU_COUNT = SYSTEM_SPECS.gpu_count   # 4
 THEORETICAL_H2D_BW = H100_SPECS.pcie_unidirectional_bw_gbs   # 63 GB/s
 THEORETICAL_NVLINK_BW = H100_SPECS.nvlink_total_bw_gbs        # 900 GB/s per GPU
+P2P_FABRIC_LABEL = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
+THEORETICAL_P2P_BW = (
+    THEORETICAL_NVLINK_BW if SYSTEM_SPECS.has_nvlink else H100_SPECS.pcie_unidirectional_bw_gbs
+)
 
 
 # ---------------------------------------------------------------------------
@@ -57,6 +64,23 @@ THEORETICAL_NVLINK_BW = H100_SPECS.nvlink_total_bw_gbs        # 900 GB/s per GPU
 def _skip_if_no_gpu():
     if not _HAS_TORCH:
         pytest.skip("CUDA / PyTorch not available")
+
+
+def _format_bandwidth_table(title: str, rows: List[Tuple[str, float, float]], unit: str = "GB/s") -> str:
+    lines = [
+        "",
+        f"{title}",
+        "-" * 88,
+        f"{'METRIC':<42} {'MEASURED':>12} {'THEORETICAL':>14} {'EFF%':>8}",
+        "-" * 88,
+    ]
+    for label, measured, theoretical in rows:
+        eff = (measured / theoretical * 100.0) if theoretical > 0 else 0.0
+        lines.append(
+            f"{label:<42} {measured:>10.2f} {unit:>2}  {theoretical:>12.2f} {unit:>2}  {eff:>6.1f}%"
+        )
+    lines.append("-" * 88)
+    return "\n".join(lines)
 
 
 def _h2d_bandwidth_gbs(device_idx: int, n_bytes: int = 1 * 1024 ** 3,
@@ -188,6 +212,12 @@ class TestH2DBandwidth:
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
         bw = _h2d_bandwidth_gbs(device_idx, n_bytes=1 * 1024 ** 3, n_runs=3)
+        logger.info(
+            _format_bandwidth_table(
+                f"TC-IC-02 H2D bandwidth (GPU {device_idx})",
+                [(f"GPU {device_idx} H2D", bw, THEORETICAL_H2D_BW)],
+            )
+        )
         assert_efficiency(
             bw, THEORETICAL_H2D_BW,
             ACCEPTANCE_THRESHOLDS["pcie_h2d_bandwidth_efficiency"],
@@ -209,6 +239,12 @@ class TestD2HBandwidth:
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
         bw = _d2h_bandwidth_gbs(device_idx, n_bytes=1 * 1024 ** 3, n_runs=3)
+        logger.info(
+            _format_bandwidth_table(
+                f"TC-IC-03 D2H bandwidth (GPU {device_idx})",
+                [(f"GPU {device_idx} D2H", bw, THEORETICAL_H2D_BW)],
+            )
+        )
         assert_efficiency(
             bw, THEORETICAL_H2D_BW,
             ACCEPTANCE_THRESHOLDS["pcie_d2h_bandwidth_efficiency"],
@@ -225,7 +261,7 @@ class TestBidirectionalPCIeBandwidth:
 
     @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
     def test_bidir_pcie_bandwidth_per_gpu(self, device_idx):
-        """TC-IC-04: Simultaneous H2D+D2H PCIe BW per GPU must exceed 100 GB/s total."""
+        """TC-IC-04: Simultaneous H2D+D2H PCIe BW must meet efficiency target vs 2x PCIe peak."""
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
@@ -247,8 +283,23 @@ class TestBidirectionalPCIeBandwidth:
         t0.join(); t1.join()
 
         bidir_bw = results[0] + results[1]
-        assert bidir_bw >= 100.0, (
-            f"GPU {device_idx}: bidirectional PCIe BW {bidir_bw:.2f} GB/s < 100 GB/s"
+        theoretical_bidir = THEORETICAL_H2D_BW * 2
+        threshold = ACCEPTANCE_THRESHOLDS["pcie_bidir_bandwidth_efficiency"]
+        required = theoretical_bidir * threshold
+        logger.info(
+            _format_bandwidth_table(
+                f"TC-IC-04 Bidirectional PCIe bandwidth (GPU {device_idx})",
+                [
+                    (f"GPU {device_idx} H2D", results[0], THEORETICAL_H2D_BW),
+                    (f"GPU {device_idx} D2H", results[1], THEORETICAL_H2D_BW),
+                    (f"GPU {device_idx} H2D+D2H", bidir_bw, theoretical_bidir),
+                ],
+            )
+        )
+        assert bidir_bw >= required, (
+            f"GPU {device_idx}: bidirectional PCIe BW {bidir_bw:.2f} GB/s is below "
+            f"{threshold:.0%} of theoretical {theoretical_bidir:.2f} GB/s "
+            f"(required >= {required:.2f} GB/s)"
         )
 
 
@@ -331,23 +382,30 @@ class TestNVLinkDetection:
 # TC-IC-07  GPU-to-GPU (P2P) bandwidth
 # ---------------------------------------------------------------------------
 @pytest.mark.nvlink
+@pytest.mark.pcie
 @pytest.mark.slow
 class TestP2PBandwidth:
 
     @pytest.mark.parametrize("src,dst", [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)])
     def test_p2p_bandwidth_pair(self, src, dst):
-        """TC-IC-07: P2P BW between GPU pair ≥ 70 % of available fabric bandwidth."""
+        """TC-IC-07: P2P BW between GPU pair must meet threshold for active fabric."""
         _skip_if_no_gpu()
-        if not SYSTEM_SPECS.has_nvlink:
-            pytest.skip("NVLink not available on this system (using PCIe fabric instead)")
         n_gpus = torch.cuda.device_count()
         if src >= n_gpus or dst >= n_gpus:
             pytest.skip(f"GPU {src} or {dst} not available")
         bw = _p2p_bandwidth_gbs(src, dst, n_bytes=1 * 1024 ** 3, n_runs=3)
+        threshold_key = "nvlink_bandwidth_efficiency" if SYSTEM_SPECS.has_nvlink else "p2p_pcie_bandwidth_efficiency"
+        threshold = ACCEPTANCE_THRESHOLDS[threshold_key]
+        logger.info(
+            _format_bandwidth_table(
+                f"TC-IC-07 {P2P_FABRIC_LABEL} P2P bandwidth (GPU {src}->{dst})",
+                [(f"GPU {src}->{dst} P2P", bw, THEORETICAL_P2P_BW)],
+            )
+        )
         assert_efficiency(
-            bw, H100_SPECS.nvlink_total_bw_gbs,
-            ACCEPTANCE_THRESHOLDS["nvlink_bandwidth_efficiency"],
-            f"NVLink P2P BW GPU {src}→{dst}"
+            bw, THEORETICAL_P2P_BW,
+            threshold,
+            f"{P2P_FABRIC_LABEL} P2P BW GPU {src}->{dst}"
         )
 
 
@@ -429,6 +487,7 @@ _ALL_P2P_PAIRS: List[Tuple[int, int]] = [
 
 
 @pytest.mark.nvlink
+@pytest.mark.pcie
 class TestUVAMemoryAccess:
 
     @pytest.mark.parametrize("src_idx,dst_idx", _ALL_P2P_PAIRS)

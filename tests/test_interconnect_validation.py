@@ -119,12 +119,22 @@ def _d2h_bandwidth_gbs(device_idx: int, n_bytes: int = 1 * 1024 ** 3,
         return 0.0
     device = torch.device(f"cuda:{device_idx}")
     dev_tensor = torch.ones(n_bytes // 4, device=device, dtype=torch.float32)
+    host_tensor = (
+        torch.empty(n_bytes // 4, dtype=torch.float32).pin_memory()
+        if pinned
+        else torch.empty(n_bytes // 4, dtype=torch.float32)
+    )
+
+    # Warm-up copy so allocator/setup costs do not pollute measurement.
+    host_tensor.copy_(dev_tensor, non_blocking=pinned)
     torch.cuda.synchronize(device)
 
     best_bw = 0.0
     for _ in range(n_runs):
+        torch.cuda.synchronize(device)
         t0 = time.perf_counter()
-        host_tensor = dev_tensor.to("cpu")
+        host_tensor.copy_(dev_tensor, non_blocking=pinned)
+        torch.cuda.synchronize(device)
         elapsed = time.perf_counter() - t0
         bw = n_bytes / elapsed / 1e9
         best_bw = max(best_bw, bw)

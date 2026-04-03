@@ -15,9 +15,9 @@ TC-IC-09  PCIe vs NVLink bandwidth comparison
 TC-IC-10  Peer-to-peer memory access (UVA)
 TC-IC-11  CPU↔GPU pipeline overlap (compute + transfer concurrency)
 TC-IC-12  DMA transfer alignment and large-copy consistency
-TC-IC-13  Multistream bidirectional PCIe sweep (4 MB to 1024 MB)
-TC-IC-14  Multistream H2D PCIe sweep (4 MB to 1024 MB)
-TC-IC-15  Multistream D2H PCIe sweep (4 MB to 1024 MB)
+TC-IC-13  Multistream bidirectional PCIe sweep (4 MB to 8 GB)
+TC-IC-14  Multistream H2D PCIe sweep (4 MB to 8 GB)
+TC-IC-15  Multistream D2H PCIe sweep (4 MB to 8 GB)
 """
 
 import logging
@@ -58,7 +58,7 @@ P2P_FABRIC_LABEL = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
 THEORETICAL_P2P_BW = (
     THEORETICAL_NVLINK_BW if SYSTEM_SPECS.has_nvlink else H100_SPECS.pcie_unidirectional_bw_gbs
 )
-MULTISTREAM_SWEEP_MB = [4, 8, 16, 32, 64, 128, 256, 512, 1024]
+MULTISTREAM_SWEEP_MB = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
 
 
 # ---------------------------------------------------------------------------

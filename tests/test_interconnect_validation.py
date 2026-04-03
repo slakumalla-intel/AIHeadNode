@@ -15,9 +15,9 @@ TC-IC-09  PCIe vs NVLink bandwidth comparison
 TC-IC-10  Peer-to-peer memory access (UVA)
 TC-IC-11  CPU↔GPU pipeline overlap (compute + transfer concurrency)
 TC-IC-12  DMA transfer alignment and large-copy consistency
-TC-IC-13  Multistream bidirectional PCIe sweep (4 MB to 8 GB)
-TC-IC-14  Multistream H2D PCIe sweep (4 MB to 8 GB)
-TC-IC-15  Multistream D2H PCIe sweep (4 MB to 8 GB)
+TC-IC-13  Multistream bidirectional PCIe sweep (adaptive by CUDA memory)
+TC-IC-14  Multistream H2D PCIe sweep (adaptive by CUDA memory)
+TC-IC-15  Multistream D2H PCIe sweep (adaptive by CUDA memory)
 """
 
 import logging
@@ -58,7 +58,46 @@ P2P_FABRIC_LABEL = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
 THEORETICAL_P2P_BW = (
     THEORETICAL_NVLINK_BW if SYSTEM_SPECS.has_nvlink else H100_SPECS.pcie_unidirectional_bw_gbs
 )
-MULTISTREAM_SWEEP_MB = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+MULTISTREAM_SWEEP_CANDIDATE_MB = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+MULTISTREAM_DEFAULT_STREAMS = 4
+
+
+def _adaptive_multistream_sweep_mb(device_idx: int, mode: str) -> List[int]:
+    """Return sweep sizes capped by currently available CUDA memory on the target GPU."""
+    # Per-mode device-memory footprint for one run of transfer buffers.
+    # h2d: dev_dst ~ n_bytes
+    # d2h: dev_src ~ n_bytes
+    # bidir: dev_src + dev_dst ~ 2 * n_bytes
+    mode_multiplier = {
+        "h2d": 1.0,
+        "d2h": 1.0,
+        "bidir": 2.0,
+    }
+    multiplier = mode_multiplier.get(mode, 2.0)
+
+    if not _HAS_TORCH:
+        return [4]
+
+    free_bytes, total_bytes = torch.cuda.mem_get_info(device_idx)
+    # Reserve headroom for framework/runtime allocations.
+    budget_bytes = int(free_bytes * 0.30)
+    max_transfer_bytes = max(4 * 1024 ** 2, int(budget_bytes / multiplier))
+    max_transfer_mb = max(4, max_transfer_bytes // (1024 ** 2))
+
+    sizes = [mb for mb in MULTISTREAM_SWEEP_CANDIDATE_MB if mb <= max_transfer_mb]
+    if not sizes:
+        sizes = [4]
+
+    logger.info(
+        "Adaptive sweep (mode=%s, gpu=%d): free=%.2f GB, total=%.2f GB, max_transfer=%d MB, sizes=%s",
+        mode,
+        device_idx,
+        free_bytes / 1024 ** 3,
+        total_bytes / 1024 ** 3,
+        max_transfer_mb,
+        sizes,
+    )
+    return sizes
 
 
 # ---------------------------------------------------------------------------
@@ -852,12 +891,13 @@ class TestMultiStreamParallelSweep:
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
 
+        sweep_mb = _adaptive_multistream_sweep_mb(device_idx, mode="bidir")
         captured_rows: List[Tuple[int, float, float, float]] = []
-        for transfer_mb in MULTISTREAM_SWEEP_MB:
+        for transfer_mb in sweep_mb:
             h2d_bw, d2h_bw, total_bw = _bidir_multistream_bandwidth_gbs(
                 device_idx=device_idx,
                 n_bytes=transfer_mb * 1024 ** 2,
-                n_streams_per_direction=4,
+                n_streams_per_direction=MULTISTREAM_DEFAULT_STREAMS,
                 n_runs=3,
                 pinned=True,
             )
@@ -865,7 +905,10 @@ class TestMultiStreamParallelSweep:
 
         logger.info(
             _format_multistream_sweep_table(
-                title=f"TC-IC-13 Multistream parallel bidirectional sweep (GPU {device_idx}, 4 streams/dir)",
+                title=(
+                    f"TC-IC-13 Multistream parallel bidirectional sweep "
+                    f"(GPU {device_idx}, {MULTISTREAM_DEFAULT_STREAMS} streams/dir, adaptive sizes)"
+                ),
                 rows=captured_rows,
                 theoretical_bidir=THEORETICAL_H2D_BW * 2,
             )
@@ -893,12 +936,13 @@ class TestMultiStreamH2DSweep:
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
 
+        sweep_mb = _adaptive_multistream_sweep_mb(device_idx, mode="h2d")
         rows: List[Tuple[int, float]] = []
-        for transfer_mb in MULTISTREAM_SWEEP_MB:
+        for transfer_mb in sweep_mb:
             bw = _h2d_multistream_bandwidth_gbs(
                 device_idx=device_idx,
                 n_bytes=transfer_mb * 1024 ** 2,
-                n_streams=4,
+                n_streams=MULTISTREAM_DEFAULT_STREAMS,
                 n_runs=3,
                 pinned=True,
             )
@@ -906,7 +950,10 @@ class TestMultiStreamH2DSweep:
 
         logger.info(
             _format_unidir_multistream_sweep_table(
-                title=f"TC-IC-14 Multistream H2D sweep (GPU {device_idx}, 4 streams)",
+                title=(
+                    f"TC-IC-14 Multistream H2D sweep "
+                    f"(GPU {device_idx}, {MULTISTREAM_DEFAULT_STREAMS} streams, adaptive sizes)"
+                ),
                 rows=rows,
                 theoretical=THEORETICAL_H2D_BW,
                 direction_label="H2D (GB/s)",
@@ -933,12 +980,13 @@ class TestMultiStreamD2HSweep:
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
 
+        sweep_mb = _adaptive_multistream_sweep_mb(device_idx, mode="d2h")
         rows: List[Tuple[int, float]] = []
-        for transfer_mb in MULTISTREAM_SWEEP_MB:
+        for transfer_mb in sweep_mb:
             bw = _d2h_multistream_bandwidth_gbs(
                 device_idx=device_idx,
                 n_bytes=transfer_mb * 1024 ** 2,
-                n_streams=4,
+                n_streams=MULTISTREAM_DEFAULT_STREAMS,
                 n_runs=3,
                 pinned=True,
             )
@@ -946,7 +994,10 @@ class TestMultiStreamD2HSweep:
 
         logger.info(
             _format_unidir_multistream_sweep_table(
-                title=f"TC-IC-15 Multistream D2H sweep (GPU {device_idx}, 4 streams)",
+                title=(
+                    f"TC-IC-15 Multistream D2H sweep "
+                    f"(GPU {device_idx}, {MULTISTREAM_DEFAULT_STREAMS} streams, adaptive sizes)"
+                ),
                 rows=rows,
                 theoretical=THEORETICAL_H2D_BW,
                 direction_label="D2H (GB/s)",

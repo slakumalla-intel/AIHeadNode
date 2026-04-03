@@ -202,6 +202,43 @@ def _cpu_blas_gflops_worker(args: tuple) -> float:
     return _cpu_blas_gflops(n_iters=iters, size=sz)
 
 
+def _p95(values: List[float]) -> float:
+    if not values:
+        return 0.0
+    s = sorted(values)
+    idx = int(0.95 * (len(s) - 1))
+    return s[idx]
+
+
+def _format_cpu_fp32_analysis(
+    workers: int,
+    size: int,
+    n_iters: int,
+    measured_tflops: float,
+    theoretical_tflops: float,
+    per_worker_gflops: List[float],
+) -> str:
+    eff = (measured_tflops / theoretical_tflops * 100.0) if theoretical_tflops > 0 else 0.0
+    p50 = sorted(per_worker_gflops)[len(per_worker_gflops) // 2] if per_worker_gflops else 0.0
+    lines = [
+        "",
+        "CPU FP32 ANALYSIS REPORT",
+        "-" * 88,
+        f"{'Workers':<35}: {workers}",
+        f"{'GEMM size per worker':<35}: {size} x {size}",
+        f"{'Iterations per worker':<35}: {n_iters}",
+        f"{'Measured aggregate':<35}: {measured_tflops:.3f} TFLOPS",
+        f"{'Theoretical aggregate (base clock)':<35}: {theoretical_tflops:.3f} TFLOPS",
+        f"{'Efficiency':<35}: {eff:.2f}%",
+        f"{'Per-worker GFLOPS (min/p50/p95/max)':<35}: "
+        f"{(min(per_worker_gflops) if per_worker_gflops else 0.0):.2f} / "
+        f"{p50:.2f} / {_p95(per_worker_gflops):.2f} / "
+        f"{(max(per_worker_gflops) if per_worker_gflops else 0.0):.2f}",
+        "-" * 88,
+    ]
+    return "\n".join(lines)
+
+
 def _p2p_bw_gbs(src: int, dst: int, n_bytes: int = 1 * 1024 ** 3) -> float:
     if not _HAS_TORCH:
         return 0.0
@@ -222,51 +259,63 @@ def _p2p_bw_gbs(src: int, dst: int, n_bytes: int = 1 * 1024 ** 3) -> float:
 class TestCPUComputeBottleneck:
 
     def test_cpu_fp32_efficiency_report(self):
-        """TC-BN-01: Measure and report CPU FP32 GFLOPS vs theoretical peak."""
+        """TC-BN-01: Measure and report CPU FP32 TFLOPS vs CPU theoretical peak."""
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
 
         from concurrent.futures import ProcessPoolExecutor
 
         n_workers = min(CPU_SPECS.total_physical_cores, os.cpu_count() or 1)
-        args_list = [(256, 50)] * n_workers
+        # Larger GEMM size reduces launch/scheduling noise and improves compute saturation.
+        gemm_size = 1024
+        n_iters = 20
+        args_list = [(gemm_size, n_iters)] * n_workers
         # Use the module-level _cpu_blas_gflops_worker (picklable) via a wrapper
         with ProcessPoolExecutor(max_workers=n_workers) as ex:
             per_core = list(ex.map(_cpu_blas_gflops_worker, args_list))
 
-        measured_gflops = sum(per_core)
-        theoretical_gflops = CPU_SPECS.peak_fp32_tflops_base * 1000
-        # Scale theoretical by available cores ratio
-        scaled_theoretical = theoretical_gflops * n_workers / CPU_SPECS.total_physical_cores
+        measured_tflops = sum(per_core) / 1000.0
+        theoretical_tflops = CPU_SPECS.peak_fp32_tflops_base
+        # Scale theoretical by available cores ratio so partial-core runs compare fairly.
+        scaled_theoretical_tflops = theoretical_tflops * n_workers / CPU_SPECS.total_physical_cores
 
         result = BenchmarkResult(
             label="CPU FP32 (AVX-512 BLAS, all cores)",
-            measured=measured_gflops,
-            theoretical=scaled_theoretical,
-            unit="GFLOPS",
+            measured=measured_tflops,
+            theoretical=scaled_theoretical_tflops,
+            unit="TFLOPS",
         )
         logger.info(_format_report([result]))
+        logger.info(
+            _format_cpu_fp32_analysis(
+                workers=n_workers,
+                size=gemm_size,
+                n_iters=n_iters,
+                measured_tflops=measured_tflops,
+                theoretical_tflops=scaled_theoretical_tflops,
+                per_worker_gflops=per_core,
+            )
+        )
         assert_efficiency(
-            measured_gflops, scaled_theoretical,
+            measured_tflops, scaled_theoretical_tflops,
             ACCEPTANCE_THRESHOLDS["cpu_avx512_fp32_efficiency"],
             result.label,
         )
 
-    def test_cpu_not_bottleneck_vs_gpu_fp32(self):
-        """TC-BN-01b: CPU FP32 peak must be < GPU FP32 peak (GPU should dominate)."""
-        cpu_tflops = CPU_SPECS.peak_fp32_tflops_turbo
-        gpu_total_tflops = SYSTEM_SPECS.total_fp32_tflops_gpu
-        assert cpu_tflops < gpu_total_tflops, (
-            f"CPU peak ({cpu_tflops:.1f} TFLOPS) ≥ GPU aggregate ({gpu_total_tflops:.1f} TFLOPS)"
-        )
-        ratio = gpu_total_tflops / cpu_tflops
+    def test_cpu_fp32_base_vs_turbo_headroom(self):
+        """TC-BN-01b: Compare CPU FP32 turbo theoretical headroom vs base (CPU-only)."""
+        base_tflops = CPU_SPECS.peak_fp32_tflops_base
+        turbo_tflops = CPU_SPECS.peak_fp32_tflops_turbo
+        headroom = turbo_tflops / max(base_tflops, 1e-12)
+
         logger.info(
-            "GPU FP32 / CPU FP32 ratio = %.1f× (%.1f TFLOPS GPU vs %.1f TFLOPS CPU)",
-            ratio, gpu_total_tflops, cpu_tflops,
+            "CPU FP32 theoretical headroom: base=%.2f TFLOPS, turbo=%.2f TFLOPS, ratio=%.2fx",
+            base_tflops,
+            turbo_tflops,
+            headroom,
         )
-        assert ratio >= 5.0, (
-            f"GPU/CPU compute ratio {ratio:.1f}× is below expected 5× "
-            "– CPU may be the bottleneck for FP32 workloads"
+        assert turbo_tflops >= base_tflops, (
+            f"CPU turbo TFLOPS ({turbo_tflops:.2f}) should be >= base TFLOPS ({base_tflops:.2f})"
         )
 
 

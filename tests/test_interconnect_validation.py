@@ -141,6 +141,60 @@ def _d2h_bandwidth_gbs(device_idx: int, n_bytes: int = 1 * 1024 ** 3,
     return best_bw
 
 
+def _bidir_bandwidth_gbs(device_idx: int, n_bytes: int = 512 * 1024 ** 2,
+                         n_runs: int = 3, pinned: bool = True) -> Tuple[float, float, float]:
+    """Measure true simultaneous H2D+D2H bandwidth using two CUDA streams."""
+    if not _HAS_TORCH:
+        return 0.0, 0.0, 0.0
+
+    device = torch.device(f"cuda:{device_idx}")
+    host_src = (
+        torch.ones(n_bytes // 4, dtype=torch.float32).pin_memory()
+        if pinned
+        else torch.ones(n_bytes // 4, dtype=torch.float32)
+    )
+    host_dst = (
+        torch.empty(n_bytes // 4, dtype=torch.float32).pin_memory()
+        if pinned
+        else torch.empty(n_bytes // 4, dtype=torch.float32)
+    )
+    dev_src = torch.ones(n_bytes // 4, device=device, dtype=torch.float32)
+    dev_dst = torch.empty(n_bytes // 4, device=device, dtype=torch.float32)
+
+    h2d_stream = torch.cuda.Stream(device=device)
+    d2h_stream = torch.cuda.Stream(device=device)
+
+    # Warm-up launch for both directions.
+    with torch.cuda.stream(h2d_stream):
+        dev_dst.copy_(host_src, non_blocking=pinned)
+    with torch.cuda.stream(d2h_stream):
+        host_dst.copy_(dev_src, non_blocking=pinned)
+    torch.cuda.synchronize(device)
+
+    best_h2d = 0.0
+    best_d2h = 0.0
+    best_total = 0.0
+    for _ in range(n_runs):
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        with torch.cuda.stream(h2d_stream):
+            dev_dst.copy_(host_src, non_blocking=pinned)
+        with torch.cuda.stream(d2h_stream):
+            host_dst.copy_(dev_src, non_blocking=pinned)
+        torch.cuda.synchronize(device)
+        elapsed = time.perf_counter() - t0
+
+        h2d_bw = n_bytes / elapsed / 1e9
+        d2h_bw = n_bytes / elapsed / 1e9
+        total_bw = (2 * n_bytes) / elapsed / 1e9
+        if total_bw > best_total:
+            best_h2d = h2d_bw
+            best_d2h = d2h_bw
+            best_total = total_bw
+
+    return best_h2d, best_d2h, best_total
+
+
 def _p2p_bandwidth_gbs(src_idx: int, dst_idx: int,
                         n_bytes: int = 1 * 1024 ** 3,
                         n_runs: int = 3) -> float:
@@ -275,34 +329,22 @@ class TestBidirectionalPCIeBandwidth:
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
-        results: List[float] = [0.0, 0.0]
-
-        def _h2d():
-            results[0] = _h2d_bandwidth_gbs(
-                device_idx, n_bytes=512 * 1024 ** 2, n_runs=2
-            )
-
-        def _d2h():
-            results[1] = _d2h_bandwidth_gbs(
-                device_idx, n_bytes=512 * 1024 ** 2, n_runs=2
-            )
-
-        t0 = threading.Thread(target=_h2d)
-        t1 = threading.Thread(target=_d2h)
-        t0.start(); t1.start()
-        t0.join(); t1.join()
-
-        bidir_bw = results[0] + results[1]
+        h2d_bw, d2h_bw, bidir_bw = _bidir_bandwidth_gbs(
+            device_idx,
+            n_bytes=512 * 1024 ** 2,
+            n_runs=3,
+            pinned=True,
+        )
         theoretical_bidir = THEORETICAL_H2D_BW * 2
         threshold = ACCEPTANCE_THRESHOLDS["pcie_bidir_bandwidth_efficiency"]
         required = theoretical_bidir * threshold
         logger.info(
             _format_bandwidth_table(
-                f"TC-IC-04 Bidirectional PCIe bandwidth (GPU {device_idx})",
+                f"TC-IC-04 Simultaneous-stream bidirectional PCIe bandwidth (GPU {device_idx})",
                 [
-                    (f"GPU {device_idx} H2D", results[0], THEORETICAL_H2D_BW),
-                    (f"GPU {device_idx} D2H", results[1], THEORETICAL_H2D_BW),
-                    (f"GPU {device_idx} H2D+D2H", bidir_bw, theoretical_bidir),
+                    (f"GPU {device_idx} H2D (simul stream)", h2d_bw, THEORETICAL_H2D_BW),
+                    (f"GPU {device_idx} D2H (simul stream)", d2h_bw, THEORETICAL_H2D_BW),
+                    (f"GPU {device_idx} H2D+D2H (simul)", bidir_bw, theoretical_bidir),
                 ],
             )
         )

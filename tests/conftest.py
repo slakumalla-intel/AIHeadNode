@@ -12,7 +12,9 @@ import platform
 import subprocess
 import time
 import logging
-from typing import Generator, List, Optional, Tuple
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Generator, List, Optional, Tuple
 
 import pytest
 
@@ -24,6 +26,93 @@ logging.basicConfig(
     format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
 )
 logger = logging.getLogger("ai_headnode_tests")
+
+_REPORT_PATH = Path(__file__).resolve().parents[1] / "TESTCASE_EXECUTION_FINAL_REPORT.md"
+
+
+def _md_escape(value: Any) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ").strip()
+
+
+def _purpose_from_item(item: pytest.Item) -> str:
+    doc = getattr(item.obj, "__doc__", None)
+    if not doc:
+        return item.name
+    return " ".join(doc.strip().splitlines()).strip()
+
+
+def _status_result_analysis(report: pytest.TestReport) -> Tuple[str, str, str]:
+    if report.outcome == "passed":
+        return "PASS", f"PASS ({report.duration:.3f}s)", "Executed successfully."
+
+    if report.outcome == "skipped":
+        reason = "Skipped"
+        if hasattr(report.longrepr, "reprcrash") and report.longrepr.reprcrash:
+            reason = report.longrepr.reprcrash.message
+        else:
+            lr = str(report.longrepr)
+            if "Skipped:" in lr:
+                reason = lr.split("Skipped:", 1)[-1].strip()
+        return "SKIP", f"SKIPPED: {reason}", "Execution skipped due to environment or prerequisites."
+
+    # Failed
+    fail_msg = "Assertion or runtime failure"
+    if hasattr(report.longrepr, "reprcrash") and report.longrepr.reprcrash:
+        fail_msg = report.longrepr.reprcrash.message
+    return "FAIL", f"FAILED: {fail_msg}", "Check assertion thresholds and benchmark environment consistency."
+
+
+def _write_final_report(config: pytest.Config) -> None:
+    rows: Dict[str, Dict[str, str]] = getattr(config, "_exec_report_rows", {})
+    if not rows:
+        return
+
+    statuses = [v["status"] for v in rows.values()]
+    passed = statuses.count("PASS")
+    failed = statuses.count("FAIL")
+    skipped = statuses.count("SKIP")
+    total = len(statuses)
+
+    highlights = [
+        f"- Total testcases captured: {total}",
+        f"- Passed: {passed}",
+        f"- Failed: {failed}",
+        f"- Skipped: {skipped}",
+    ]
+    if failed:
+        highlights.append("- Attention required: One or more testcase failures were detected.")
+    else:
+        highlights.append("- No testcase failures detected in this run.")
+
+    lines = [
+        "# AI Head Node Testcase Execution Final Report",
+        "",
+        f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"Pytest command line: {' '.join(config.invocation_params.args)}",
+        "",
+        "## Highlights",
+        "",
+        *highlights,
+        "",
+        "## Execution Status Table",
+        "",
+        "| Test | Purpose | Result | Status | Analysis |",
+        "|---|---|---|---|---|",
+    ]
+
+    for nodeid in sorted(rows):
+        row = rows[nodeid]
+        lines.append(
+            "| "
+            f"{_md_escape(nodeid)} | "
+            f"{_md_escape(row['purpose'])} | "
+            f"{_md_escape(row['result'])} | "
+            f"{_md_escape(row['status'])} | "
+            f"{_md_escape(row['analysis'])} |"
+        )
+
+    _REPORT_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    logger.info("Wrote final testcase report: %s", _REPORT_PATH)
 
 # ---------------------------------------------------------------------------
 # Optional-dependency guards
@@ -55,6 +144,30 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "pcie: tests that measure PCIe host↔device bandwidth")
     config.addinivalue_line("markers", "bottleneck: bottleneck / roofline analysis tests")
     config.addinivalue_line("markers", "slow: tests that take more than 30 s to complete")
+    setattr(config, "_exec_report_rows", {})
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
+    outcome = yield
+    report: pytest.TestReport = outcome.get_result()
+
+    rows: Dict[str, Dict[str, str]] = getattr(item.config, "_exec_report_rows")
+    nodeid = item.nodeid
+
+    # Prefer call-phase results. For setup-skip/fail without call, capture setup phase.
+    if report.when == "call" or (report.when == "setup" and report.outcome in {"failed", "skipped"}):
+        status, result, analysis = _status_result_analysis(report)
+        rows[nodeid] = {
+            "purpose": _purpose_from_item(item),
+            "result": result,
+            "status": status,
+            "analysis": analysis,
+        }
+
+
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
+    _write_final_report(session.config)
 
 
 # ---------------------------------------------------------------------------

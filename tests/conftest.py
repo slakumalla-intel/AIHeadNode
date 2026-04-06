@@ -28,6 +28,7 @@ logging.basicConfig(
 logger = logging.getLogger("ai_headnode_tests")
 
 _REPORT_PATH = Path(__file__).resolve().parents[1] / "TESTCASE_EXECUTION_FINAL_REPORT.md"
+_NODE_VALIDATION_REPORT_PATH = Path(__file__).resolve().parents[1] / "NODE_VALIDATION_REPORT.md"
 
 
 def _md_escape(value: Any) -> str:
@@ -62,8 +63,12 @@ def _status_result_analysis(report: pytest.TestReport) -> Tuple[str, str, str]:
     return "FAIL", f"FAILED: {fail_msg}", "Check assertion thresholds and benchmark environment consistency."
 
 
-def _write_final_report(config: pytest.Config) -> None:
-    rows: Dict[str, Dict[str, str]] = getattr(config, "_exec_report_rows", {})
+def _write_final_report(config: pytest.Config, is_node_validation: bool = False) -> None:
+    """Write final report to appropriate file based on test category."""
+    report_dict_attr = "_node_validation_report_rows" if is_node_validation else "_exec_report_rows"
+    rows: Dict[str, Dict[str, str]] = getattr(config, report_dict_attr, {})
+    report_path = _NODE_VALIDATION_REPORT_PATH if is_node_validation else _REPORT_PATH
+
     if not rows:
         return
 
@@ -84,8 +89,14 @@ def _write_final_report(config: pytest.Config) -> None:
     else:
         highlights.append("- No testcase failures detected in this run.")
 
+    report_title = (
+        "# AI Head Node — Node Validation Report"
+        if is_node_validation
+        else "# AI Head Node Testcase Execution Final Report"
+    )
+
     lines = [
-        "# AI Head Node Testcase Execution Final Report",
+        report_title,
         "",
         f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"Pytest command line: {' '.join(config.invocation_params.args)}",
@@ -111,8 +122,8 @@ def _write_final_report(config: pytest.Config) -> None:
             f"{_md_escape(row['analysis'])} |"
         )
 
-    _REPORT_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    logger.info("Wrote final testcase report: %s", _REPORT_PATH)
+    report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    logger.info("Wrote final testcase report: %s", report_path)
 
 # ---------------------------------------------------------------------------
 # Optional-dependency guards
@@ -144,7 +155,17 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "pcie: tests that measure PCIe host↔device bandwidth")
     config.addinivalue_line("markers", "bottleneck: bottleneck / roofline analysis tests")
     config.addinivalue_line("markers", "slow: tests that take more than 30 s to complete")
+    config.addinivalue_line("markers", "node_validation: node validation and bring-up tests")
+    config.addinivalue_line("markers", "gpu_enumeration: GPU enumeration and topology tests")
+    config.addinivalue_line("markers", "pcie_validation: PCIe bandwidth validation tests")
+    config.addinivalue_line("markers", "memory_validation: memory type validation tests")
+    config.addinivalue_line("markers", "p2p_validation: GPU P2P bandwidth tests")
+    config.addinivalue_line("markers", "sync_overhead: CPU-GPU sync overhead tests")
+    config.addinivalue_line("markers", "power_validation: power and thermal tests")
+    config.addinivalue_line("markers", "nccl_validation: NCCL and inter-GPU communication tests")
+    config.addinivalue_line("markers", "workload_acceptance: workload acceptance tests")
     setattr(config, "_exec_report_rows", {})
+    setattr(config, "_node_validation_report_rows", {})
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -152,7 +173,12 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
     outcome = yield
     report: pytest.TestReport = outcome.get_result()
 
-    rows: Dict[str, Dict[str, str]] = getattr(item.config, "_exec_report_rows")
+    # Determine if this is a node_validation test
+    is_node_validation = "node_validation" in [marker.name for marker in item.iter_markers()]
+
+    # Choose appropriate report rows dictionary
+    report_dict_attr = "_node_validation_report_rows" if is_node_validation else "_exec_report_rows"
+    rows: Dict[str, Dict[str, str]] = getattr(item.config, report_dict_attr)
     nodeid = item.nodeid
 
     # Prefer call-phase results. For setup-skip/fail without call, capture setup phase.
@@ -167,7 +193,9 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
-    _write_final_report(session.config)
+    # Write both reports
+    _write_final_report(session.config, is_node_validation=False)
+    _write_final_report(session.config, is_node_validation=True)
 
 
 # ---------------------------------------------------------------------------

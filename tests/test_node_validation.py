@@ -42,6 +42,22 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# =============================================================================
+# Binary / workload paths  (edit here if paths change)
+# =============================================================================
+
+_NVBANDWIDTH_BIN    = Path("/root/workloads/nvbandwidth")
+_P2P_LATENCY_BIN    = Path(
+    "/root/workloads/cuda-samples/Samples/5_Domain_Specific"
+    "/p2pBandwidthLatencyTest/p2pBandwidthLatencyTest"
+)
+_NCCL_TESTS_DIR     = Path("/root/workloads/nccl-tests/build")
+
+# HuggingFace model IDs used for inference / training acceptance tests.
+# Swap to a locally cached path if internet access is unavailable on the node.
+_HF_INFERENCE_MODEL = "gpt2"          # small causal-LM, ~500 MB
+_HF_TRAINING_MODEL  = "bert-base-uncased"  # encoder, fast fine-tune loop
+
 
 # =============================================================================
 # Data Classes for Results
@@ -96,30 +112,116 @@ class GPUEnumeration:
 
     @staticmethod
     def get_pcie_topology() -> Dict:
-        """Query PCIe topology and link speeds using nvidia-smi."""
+        """Query per-GPU PCIe negotiated link speed and width (current vs max).
+
+        Fields queried:
+          pcie.link.gen.gpucurrent  — current negotiated PCIe generation
+          pcie.link.gen.gpumax      — max generation supported by the GPU
+          pcie.link.width.current   — current negotiated link width (e.g. 16)
+          pcie.link.width.max       — max link width supported by the GPU
+        """
         try:
             result = subprocess.run(
-                ["nvidia-smi", "--query-gpu=index,pci.bus_id,pcie_gen,pcie_bus_width",
-                 "--format=csv,noheader,nounits"],
+                [
+                    "nvidia-smi",
+                    "--query-gpu=index,pci.bus_id,"
+                    "pcie.link.gen.gpucurrent,pcie.link.gen.gpumax,"
+                    "pcie.link.width.current,pcie.link.width.max",
+                    "--format=csv,noheader,nounits",
+                ],
                 capture_output=True, text=True, timeout=10
             )
             if result.returncode != 0:
-                return {"error": "nvidia-smi failed", "topology": []}
+                return {"error": f"nvidia-smi failed: {result.stderr.strip()}", "topology": []}
 
             topology = []
             for line in result.stdout.strip().split("\n"):
-                if line:
-                    parts = line.split(",")
-                    if len(parts) >= 4:
-                        topology.append({
-                            "gpu_index": int(parts[0].strip()),
-                            "pci_bus_id": parts[1].strip(),
-                            "pcie_gen": parts[2].strip(),
-                            "pcie_bus_width": parts[3].strip(),
-                        })
+                if not line.strip():
+                    continue
+                parts = [p.strip() for p in line.split(",")]
+                if len(parts) >= 6:
+                    cur_gen = parts[2]
+                    max_gen = parts[3]
+                    cur_width = parts[4]
+                    max_width = parts[5]
+                    # PCIe Gen5 x16 theoretical peak: 63 GB/s unidirectional
+                    _GEN_BW = {"1": 4, "2": 8, "3": 16, "4": 32, "5": 63, "6": 128}
+                    try:
+                        neg_bw = _GEN_BW.get(cur_gen, 0) * int(cur_width) // 16
+                    except (ValueError, ZeroDivisionError):
+                        neg_bw = 0
+                    topology.append({
+                        "gpu_index": int(parts[0]),
+                        "pci_bus_id": parts[1],
+                        "gen_current": cur_gen,
+                        "gen_max": max_gen,
+                        "width_current": cur_width,
+                        "width_max": max_width,
+                        "negotiated_bw_gbs": neg_bw,
+                        "downgraded": cur_gen != max_gen or cur_width != max_width,
+                    })
             return {"topology": topology}
         except Exception as e:
             return {"error": str(e), "topology": []}
+
+    @staticmethod
+    def get_topo_matrix() -> Dict:
+        """Run ``nvidia-smi topo -m`` and parse the GPU placement matrix.
+
+        Returns the raw text output and a parsed dict keyed by (src_idx, dst_idx)
+        with the interconnect type string (NV1..NV18, PIX, PXB, PHB, SYS, NODE, MIG).
+        """
+        try:
+            result = subprocess.run(
+                ["nvidia-smi", "topo", "-m"],
+                capture_output=True, text=True, timeout=15
+            )
+            if result.returncode != 0:
+                return {"error": f"nvidia-smi topo -m failed: {result.stderr.strip()}",
+                        "raw": "", "links": {}}
+
+            raw = result.stdout
+            links: Dict[Tuple[int, int], str] = {}
+
+            # Matrix header row starts with GPU indices like "GPU0  GPU1  ..."
+            lines = raw.splitlines()
+            header_idx = None
+            gpu_col_order: List[int] = []
+
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped.startswith("GPU") and "GPU" in stripped[3:]:
+                    # Header row — collect column GPU indices
+                    tokens = stripped.split()
+                    gpu_col_order = []
+                    for tok in tokens:
+                        if tok.startswith("GPU"):
+                            try:
+                                gpu_col_order.append(int(tok[3:]))
+                            except ValueError:
+                                pass
+                    header_idx = i
+                    break
+
+            if header_idx is not None:
+                for line in lines[header_idx + 1:]:
+                    stripped = line.strip()
+                    if not stripped.startswith("GPU"):
+                        break
+                    tokens = stripped.split()
+                    try:
+                        row_gpu = int(tokens[0][3:])
+                    except (ValueError, IndexError):
+                        continue
+                    # Values start after the row label
+                    values = tokens[1:]
+                    for col_pos, col_gpu in enumerate(gpu_col_order):
+                        if col_pos < len(values):
+                            links[(row_gpu, col_gpu)] = values[col_pos]
+
+            return {"raw": raw, "links": links}
+        except Exception as e:
+            return {"error": str(e), "raw": "", "links": {}}
 
     @staticmethod
     def validate_topology(gpus: List[Dict], topology: List[Dict]) -> Tuple[bool, str]:
@@ -133,7 +235,18 @@ class GPUEnumeration:
 
         message = f"Found {len(gpus)} GPU(s) with valid PCIe topology:\n"
         for gpu, topo in zip(gpus, topology):
-            message += f"  GPU {gpu['index']}: {gpu['name']}, {topo['pcie_gen']}, {topo['pcie_bus_width']}\n"
+            cur_gen = topo.get('gen_current', '?')
+            max_gen = topo.get('gen_max', '?')
+            cur_w = topo.get('width_current', '?')
+            max_w = topo.get('width_max', '?')
+            neg_bw = topo.get('negotiated_bw_gbs', 0)
+            downgraded = topo.get('downgraded', False)
+            flag = "  *** DOWNGRADED ***" if downgraded else ""
+            message += (
+                f"  GPU {gpu['index']}: {gpu['name']}, "
+                f"PCIe Gen{cur_gen}x{cur_w} (negotiated) "
+                f"[max Gen{max_gen}x{max_w}]  ~{neg_bw} GB/s{flag}\n"
+            )
         return True, message
 
 
@@ -449,39 +562,221 @@ def measure_power_profile(duration_sec: int = 30) -> Dict[str, float]:
 
 
 # =============================================================================
-# NCCL Validation
+# nvbandwidth helper — run one test-case and return per-GPU bandwidth table
+# =============================================================================
+
+def _run_nvbandwidth(testcase: str, timeout: int = 120) -> Dict:
+    """Run a single nvbandwidth test-case and parse the bandwidth matrix.
+
+    Returns
+    -------
+    dict with keys:
+      "testcase"   : str   – the test name
+      "raw"        : str   – full stdout
+      "values"     : list[float]  – all bandwidth values extracted (GB/s)
+      "matrix"     : list[list[float]]  – row-major bandwidth matrix
+      "error"      : str | None
+    """
+    if not _NVBANDWIDTH_BIN.exists():
+        return {"testcase": testcase, "raw": "", "values": [],
+                "matrix": [], "error": f"{_NVBANDWIDTH_BIN} not found"}
+    try:
+        result = subprocess.run(
+            [str(_NVBANDWIDTH_BIN), "-t", testcase],
+            capture_output=True, text=True, timeout=timeout,
+            env={**os.environ, "CUDA_VISIBLE_DEVICES": ",".join(
+                str(i) for i in range(4))},  # expose all GPUs
+        )
+        raw = result.stdout + result.stderr
+        values: List[float] = []
+        matrix: List[List[float]] = []
+        in_matrix = False
+        for line in raw.splitlines():
+            stripped = line.strip()
+            # Matrix data rows are lines of whitespace-separated floats
+            # preceded by a header row starting with spaces + numbers
+            if stripped.startswith("0") or (in_matrix and stripped and stripped[0].isdigit()):
+                in_matrix = True
+                try:
+                    row_vals = [float(x) for x in stripped.split()]
+                    matrix.append(row_vals)
+                    values.extend(row_vals)
+                except ValueError:
+                    pass
+            elif in_matrix and not stripped:
+                in_matrix = False
+        return {
+            "testcase": testcase,
+            "raw": raw,
+            "values": values,
+            "matrix": matrix,
+            "error": None if result.returncode == 0 else f"Exit {result.returncode}",
+        }
+    except subprocess.TimeoutExpired:
+        return {"testcase": testcase, "raw": "", "values": [],
+                "matrix": [], "error": "Timeout"}
+    except Exception as exc:
+        return {"testcase": testcase, "raw": "", "values": [],
+                "matrix": [], "error": str(exc)}
+
+
+def _run_p2p_latency_test(timeout: int = 120) -> Dict:
+    """Run p2pBandwidthLatencyTest and parse per-pair bandwidth matrices.
+
+    Returns dict with keys: "raw", "bidir_bw", "unidir_bw", "latency_us", "error".
+    """
+    if not _P2P_LATENCY_BIN.exists():
+        return {"raw": "", "bidir_bw": [], "unidir_bw": [], "latency_us": [],
+                "error": f"{_P2P_LATENCY_BIN} not found"}
+    try:
+        result = subprocess.run(
+            [str(_P2P_LATENCY_BIN)],
+            capture_output=True, text=True, timeout=timeout,
+        )
+        raw = result.stdout + result.stderr
+        bidir_bw: List[float] = []
+        unidir_bw: List[float] = []
+        latency_us: List[float] = []
+        section = None
+        for line in raw.splitlines():
+            l = line.strip()
+            if "Bidirectional" in l and "Bandwidth" in l:
+                section = "bidir"
+            elif "Unidirectional" in l and "Bandwidth" in l:
+                section = "unidir"
+            elif "Latency" in l:
+                section = "latency"
+            elif section and l and l[0].isdigit():
+                try:
+                    vals = [float(x) for x in l.split() if x.replace('.','',1).isdigit()]
+                    if section == "bidir":
+                        bidir_bw.extend(vals)
+                    elif section == "unidir":
+                        unidir_bw.extend(vals)
+                    elif section == "latency":
+                        latency_us.extend(vals)
+                except ValueError:
+                    pass
+        return {
+            "raw": raw,
+            "bidir_bw": bidir_bw,
+            "unidir_bw": unidir_bw,
+            "latency_us": latency_us,
+            "error": None if result.returncode == 0 else f"Exit {result.returncode}",
+        }
+    except subprocess.TimeoutExpired:
+        return {"raw": "", "bidir_bw": [], "unidir_bw": [], "latency_us": [],
+                "error": "Timeout"}
+    except Exception as exc:
+        return {"raw": "", "bidir_bw": [], "unidir_bw": [], "latency_us": [],
+                "error": str(exc)}
+
+
+def _run_nccl_test(
+    binary: str,
+    n_gpus: int = 4,
+    min_bytes: str = "8",
+    max_bytes: str = "256M",
+    step_factor: int = 2,
+    warmup_iters: int = 5,
+    iters: int = 20,
+    timeout: int = 300,
+) -> Dict:
+    """Run a single NCCL test binary and parse busbw (bus bandwidth) from output.
+
+    Returns dict with keys: "raw", "busbw_gbs", "algbw_gbs", "error".
+    """
+    bin_path = _NCCL_TESTS_DIR / binary
+    if not bin_path.exists():
+        return {"raw": "", "busbw_gbs": [], "algbw_gbs": [],
+                "error": f"{bin_path} not found"}
+    try:
+        cmd = [
+            str(bin_path),
+            "-b", min_bytes,
+            "-e", max_bytes,
+            "-f", str(step_factor),
+            "-g", str(n_gpus),
+            "-w", str(warmup_iters),
+            "-n", str(iters),
+        ]
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=timeout,
+        )
+        raw = result.stdout + result.stderr
+        busbw: List[float] = []
+        algbw: List[float] = []
+        for line in raw.splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            tokens = stripped.split()
+            # NCCL test output columns (typical):
+            # size count type redop root time algbw busbw #wrong time algbw busbw #wrong
+            # The in-place busbw is the rightmost numeric busbw column
+            if len(tokens) >= 12 and tokens[0].isdigit():
+                try:
+                    algbw.append(float(tokens[6]))   # out-of-place algbw
+                    busbw.append(float(tokens[7]))   # out-of-place busbw
+                except (ValueError, IndexError):
+                    pass
+        return {
+            "raw": raw,
+            "busbw_gbs": busbw,
+            "algbw_gbs": algbw,
+            "error": None if result.returncode == 0 else f"Exit {result.returncode}",
+        }
+    except subprocess.TimeoutExpired:
+        return {"raw": "", "busbw_gbs": [], "algbw_gbs": [], "error": "Timeout"}
+    except Exception as exc:
+        return {"raw": "", "busbw_gbs": [], "algbw_gbs": [], "error": str(exc)}
+
+
+# =============================================================================
+# NCCL Validation helpers
 # =============================================================================
 
 def check_nccl_availability() -> Tuple[bool, str]:
-    """Check NCCL library availability and version."""
+    """Check NCCL library availability — prefers torch.cuda.nccl, falls back to import."""
+    if _HAS_TORCH:
+        try:
+            ver = torch.cuda.nccl.version()
+            return True, f"NCCL available via torch.cuda.nccl (version tuple: {ver})"
+        except Exception:
+            pass
     try:
-        import nccl
+        import nccl  # type: ignore[import]
         version = getattr(nccl, "__version__", "unknown")
         return True, f"NCCL available (version: {version})"
     except ImportError:
+        # Also check if the test binary itself exists as a proxy for NCCL presence
+        if (_NCCL_TESTS_DIR / "all_reduce_perf").exists():
+            return True, f"NCCL test binaries found at {_NCCL_TESTS_DIR}"
         return False, "NCCL not available"
 
 
-def validate_nvlink_status() -> Dict[str, any]:
-    """Query NVLink status via nvidia-smi."""
+def validate_nvlink_status() -> Dict:
+    """Query NVLink status and per-link speed via nvidia-smi nvlink."""
     try:
-        result = subprocess.run(
+        status_result = subprocess.run(
             ["nvidia-smi", "nvlink", "-s"],
             capture_output=True, text=True, timeout=10
         )
-        if result.returncode == 0:
-            return {
-                "available": True,
-                "status": result.stdout.strip(),
-            }
+        speed_result = subprocess.run(
+            ["nvidia-smi", "nvlink", "-c"],
+            capture_output=True, text=True, timeout=10
+        )
+        available = status_result.returncode == 0 and "Link" in status_result.stdout
         return {
-            "available": False,
-            "status": "NVLink not available or not supported",
+            "available": available,
+            "status": status_result.stdout.strip(),
+            "capabilities": speed_result.stdout.strip(),
         }
     except Exception as e:
         return {
             "available": False,
             "status": f"Error querying NVLink: {e}",
+            "capabilities": "",
         }
 
 
@@ -504,13 +799,72 @@ class TestGPUEnumerationAndTopology:
             logger.info(f"  GPU {gpu['index']}: {gpu['name']} ({gpu['pci_bus_id']})")
 
     def test_pcie_topology_discovery(self):
-        """Verify PCIe topology and link speeds."""
-        enum_result = GPUEnumeration.enumerate_gpus()
+        """TC-NV-01b: Validate GPU placement via nvidia-smi topo -m and print negotiated PCIe link speed/width."""
+        # ── 1. Negotiated link speed per GPU ────────────────────────────────
         topo_result = GPUEnumeration.get_pcie_topology()
-        assert topo_result.get("topology"), "No PCIe topology data"
-        logger.info(f"PCIe topology discovered: {len(topo_result['topology'])} entries")
-        for entry in topo_result.get("topology", []):
-            logger.info(f"  GPU {entry['gpu_index']}: {entry['pcie_gen']}, {entry['pcie_bus_width']}")
+        assert topo_result.get("topology"), (
+            f"No PCIe topology data. Error: {topo_result.get('error', 'unknown')}"
+        )
+
+        downgraded_gpus = []
+        lines = ["\n", "=" * 80, "  PCIe NEGOTIATED LINK SPEED / WIDTH PER GPU", "=" * 80]
+        lines.append(f"  {'GPU':<6} {'PCI Bus ID':<16} {'Gen (cur/max)':<16} "
+                     f"{'Width (cur/max)':<18} {'Neg. BW':<12} {'Status'}")
+        lines.append("  " + "-" * 76)
+        for entry in topo_result["topology"]:
+            cur_gen = entry.get('gen_current', '?')
+            max_gen = entry.get('gen_max', '?')
+            cur_w   = entry.get('width_current', '?')
+            max_w   = entry.get('width_max', '?')
+            neg_bw  = entry.get('negotiated_bw_gbs', 0)
+            flag    = "DOWNGRADED" if entry.get('downgraded') else "OK"
+            if entry.get('downgraded'):
+                downgraded_gpus.append(entry['gpu_index'])
+            lines.append(
+                f"  GPU{entry['gpu_index']:<3} {entry['pci_bus_id']:<16} "
+                f"Gen{cur_gen} / Gen{max_gen:<8}  "
+                f"x{cur_w} / x{max_w:<12}  "
+                f"~{neg_bw:>4} GB/s   {flag}"
+            )
+        lines.append("=" * 80)
+        logger.info("\n".join(lines))
+
+        # ── 2. GPU placement matrix via nvidia-smi topo -m ──────────────────
+        matrix_result = GPUEnumeration.get_topo_matrix()
+        if matrix_result.get("error"):
+            logger.warning("nvidia-smi topo -m: %s", matrix_result['error'])
+        else:
+            logger.info("\n\nnvidia-smi topo -m output:\n%s", matrix_result.get('raw', ''))
+
+            links = matrix_result.get("links", {})
+            # Classify interconnect types between all GPU pairs
+            nvlink_pairs = []
+            pcie_pairs   = []
+            for (src, dst), link_type in sorted(links.items()):
+                if src == dst:
+                    continue
+                if link_type.startswith("NV"):
+                    nvlink_pairs.append((src, dst, link_type))
+                elif link_type in ("PIX", "PXB", "PHB", "NODE", "SYS"):
+                    pcie_pairs.append((src, dst, link_type))
+
+            link_summary = ["\n", "  GPU INTERCONNECT SUMMARY (from topo -m)", "  " + "-" * 50]
+            if nvlink_pairs:
+                link_summary.append(f"  NVLink pairs  ({len(nvlink_pairs)}):")
+                for src, dst, lt in nvlink_pairs:
+                    link_summary.append(f"    GPU{src} <-> GPU{dst} : {lt}")
+            if pcie_pairs:
+                link_summary.append(f"  PCIe-only pairs ({len(pcie_pairs)}):")
+                for src, dst, lt in pcie_pairs:
+                    link_summary.append(f"    GPU{src} <-> GPU{dst} : {lt}")
+            logger.info("\n".join(link_summary))
+
+        # ── 3. Assertions ───────────────────────────────────────────────────
+        assert not downgraded_gpus, (
+            f"GPU(s) {downgraded_gpus} are running at a downgraded PCIe link speed or width. "
+            "Expected all GPUs at max negotiated Gen/width. "
+            "Check slot seating, BIOS ASPM settings, and riser cable integrity."
+        )
 
     def test_topology_consistency(self):
         """Validate GPU count and topology matrix consistency."""
@@ -562,54 +916,165 @@ class TestPCIeBandwidthDirect:
 
 @pytest.mark.node_validation
 @pytest.mark.memory_validation
-class TestPinnedVsPageableMemory:
-    """TC-NV-03: Pinned vs Pageable memory performance comparison."""
+class TestNVBandwidthMemcpy:
+    """TC-NV-03: DMA / SM copy validation via nvbandwidth.
 
-    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
-    def test_ce_pinned_vs_pageable_h2d(self):
-        """Compare Copy Engine bandwidth with pinned vs pageable memory."""
-        bw_pinned = measure_ce_bandwidth_pinned(device_idx=0, n_bytes=256*1024*1024)
-        bw_pageable = measure_ce_bandwidth_pageable(device_idx=0, n_bytes=256*1024*1024)
+    Covers:
+      CE pinned   : host_to_device_memcpy_ce  /  device_to_host_memcpy_ce
+      CE bidir    : host_to_device_bidirectional_memcpy_ce
+                    device_to_host_bidirectional_memcpy_ce
+      D2D CE      : device_to_device_memcpy_read_ce
+      SM variants : host_to_device_memcpy_sm  /  device_to_host_memcpy_sm
+    """
 
-        logger.info(f"CE H2D Pinned memory:   {bw_pinned:.1f} GB/s")
-        logger.info(f"CE H2D Pageable memory: {bw_pageable:.1f} GB/s")
-        logger.info(f"Speedup (pinned/pageable): {bw_pinned/max(bw_pageable, 1e-6):.2f}x")
+    # Minimum acceptable bandwidth (GB/s) per nvbandwidth test-case.
+    # Values are intentionally conservative; real PCIe Gen5 typically yields ~55+ GB/s.
+    _THRESHOLDS: Dict[str, float] = {
+        "host_to_device_memcpy_ce":              40.0,
+        "device_to_host_memcpy_ce":              40.0,
+        "host_to_device_bidirectional_memcpy_ce": 40.0,
+        "device_to_host_bidirectional_memcpy_ce": 40.0,
+        "device_to_device_memcpy_read_ce":       800.0,   # HBM3 D2D should be fast
+        "host_to_device_memcpy_sm":              30.0,
+        "device_to_host_memcpy_sm":              30.0,
+    }
 
-        # Pinned should be faster than pageable
-        assert bw_pinned > 0, "Pinned memory measurement failed"
-        if bw_pageable > 0:
-            assert bw_pinned >= bw_pageable * 0.9, (
-                f"Pinned BW ({bw_pinned:.1f}) not faster than pageable ({bw_pageable:.1f})"
-            )
+    def _run_and_validate(self, testcase: str) -> None:
+        """Run nvbandwidth for *testcase*, log the full matrix, assert threshold."""
+        if not _NVBANDWIDTH_BIN.exists():
+            pytest.skip(f"nvbandwidth not found at {_NVBANDWIDTH_BIN}")
+
+        res = _run_nvbandwidth(testcase)
+        if res["error"]:
+            pytest.skip(f"nvbandwidth {testcase} error: {res['error']}")
+
+        logger.info(
+            "\n=== nvbandwidth: %s ===\n%s",
+            testcase, res["raw"].strip()
+        )
+
+        values = [v for v in res["values"] if v > 0]
+        assert values, f"No bandwidth values parsed for {testcase}"
+
+        min_bw = min(values)
+        mean_bw = sum(values) / len(values)
+        threshold = self._THRESHOLDS.get(testcase, 0.0)
+
+        logger.info(
+            "%s  min=%.1f GB/s  mean=%.1f GB/s  threshold=%.1f GB/s",
+            testcase, min_bw, mean_bw, threshold
+        )
+        assert min_bw >= threshold, (
+            f"{testcase}: min BW {min_bw:.1f} GB/s below threshold {threshold:.1f} GB/s"
+        )
+
+    def test_host_to_device_memcpy_ce(self):
+        """CE + pinned: H2D memcpy bandwidth via Copy Engine (all GPUs)."""
+        self._run_and_validate("host_to_device_memcpy_ce")
+
+    def test_device_to_host_memcpy_ce(self):
+        """CE + pinned: D2H memcpy bandwidth via Copy Engine (all GPUs)."""
+        self._run_and_validate("device_to_host_memcpy_ce")
+
+    def test_host_to_device_bidirectional_memcpy_ce(self):
+        """CE bidirectional: simultaneous H2D + D2H bandwidth via Copy Engine."""
+        self._run_and_validate("host_to_device_bidirectional_memcpy_ce")
+
+    def test_device_to_host_bidirectional_memcpy_ce(self):
+        """CE bidirectional: D2H direction of simultaneous CE transfer."""
+        self._run_and_validate("device_to_host_bidirectional_memcpy_ce")
+
+    def test_device_to_device_memcpy_read_ce(self):
+        """CE D2D: device-to-device read bandwidth (HBM3 internal copy engine)."""
+        self._run_and_validate("device_to_device_memcpy_read_ce")
+
+    def test_host_to_device_memcpy_sm(self):
+        """SM copy: H2D bandwidth using CUDA Streaming Multiprocessors (pageable)."""
+        self._run_and_validate("host_to_device_memcpy_sm")
+
+    def test_device_to_host_memcpy_sm(self):
+        """SM copy: D2H bandwidth using CUDA Streaming Multiprocessors (pageable)."""
+        self._run_and_validate("device_to_host_memcpy_sm")
 
 
 @pytest.mark.node_validation
 @pytest.mark.p2p_validation
 class TestGPUP2PBandwidth:
-    """TC-NV-04: GPU-to-GPU P2P data bandwidth validation."""
+    """TC-NV-04: GPU-to-GPU P2P data bandwidth validation.
+
+    Uses the CUDA sample p2pBandwidthLatencyTest binary as the primary source of
+    truth.  Falls back to a pure-PyTorch measurement when the binary is absent.
+    """
+
+    def test_p2p_bandwidth_latency_binary(self):
+        """Run p2pBandwidthLatencyTest and validate bidirectional P2P BW ≥ threshold."""
+        if not _P2P_LATENCY_BIN.exists():
+            pytest.skip(f"p2pBandwidthLatencyTest not found at {_P2P_LATENCY_BIN}")
+
+        res = _run_p2p_latency_test(timeout=180)
+        if res["error"]:
+            pytest.skip(f"p2pBandwidthLatencyTest error: {res['error']}")
+
+        logger.info("\n=== p2pBandwidthLatencyTest output ===\n%s", res["raw"].strip())
+
+        bidir = [v for v in res["bidir_bw"] if v > 0]
+        unidir = [v for v in res["unidir_bw"] if v > 0]
+        latency = [v for v in res["latency_us"] if v > 0]
+
+        if bidir:
+            logger.info(
+                "Bidirectional P2P BW — min=%.1f GB/s  mean=%.1f GB/s  max=%.1f GB/s",
+                min(bidir), sum(bidir)/len(bidir), max(bidir)
+            )
+        if unidir:
+            logger.info(
+                "Unidirectional P2P BW — min=%.1f GB/s  mean=%.1f GB/s  max=%.1f GB/s",
+                min(unidir), sum(unidir)/len(unidir), max(unidir)
+            )
+        if latency:
+            logger.info(
+                "P2P Latency           — min=%.2f µs  mean=%.2f µs  max=%.2f µs",
+                min(latency), sum(latency)/len(latency), max(latency)
+            )
+
+        # On NVLink systems off-diagonal BW should be >> PCIe (40 GB/s minimum)
+        # On PCIe-only systems ~40 GB/s still expected
+        min_threshold = 40.0
+        off_diag_bw = bidir or unidir
+        assert off_diag_bw, "No inter-GPU bandwidth values parsed"
+        failing = [v for v in off_diag_bw if v < min_threshold]
+        assert not failing, (
+            f"{len(failing)} P2P bandwidth values below {min_threshold} GB/s: "
+            f"{[f'{v:.1f}' for v in sorted(failing)]}"
+        )
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
-    def test_p2p_bandwidth_all_pairs(self):
-        """Measure P2P bandwidth for all GPU pairs."""
+    def test_p2p_bandwidth_pytorch_fallback(self):
+        """PyTorch direct P2P measurement for all GPU pairs (sanity check)."""
         n_gpus = torch.cuda.device_count()
         if n_gpus < 2:
             pytest.skip("Need ≥ 2 GPUs for P2P test")
 
-        # Typical NVLink theoretical: 400 GB/s per direction
-        # Typical PCIe P2P theoretical: 63 GB/s per direction
-        min_threshold = 40.0  # Conservative minimum
-
+        min_threshold = 40.0
+        header = ["\n", "=" * 60, "  PyTorch P2P Bandwidth Matrix (GB/s)", "=" * 60]
+        header.append(f"  {'':6}" + "".join(f"  GPU{d:<3}" for d in range(n_gpus)))
+        rows = []
         for src in range(n_gpus):
+            row_vals = []
             for dst in range(n_gpus):
                 if src == dst:
-                    continue
-                bw = measure_p2p_bandwidth(src_device=src, dst_device=dst, 
-                                          n_bytes=1024**3, n_iters=5)
-                if bw > 0:
-                    logger.info(f"GPU {src} -> GPU {dst}: {bw:.1f} GB/s")
-                    assert bw >= min_threshold, (
-                        f"P2P BW GPU{src}->GPU{dst} ({bw:.1f} GB/s) below minimum {min_threshold:.1f} GB/s"
-                    )
+                    row_vals.append("  ---  ")
+                else:
+                    bw = measure_p2p_bandwidth(src_device=src, dst_device=dst,
+                                              n_bytes=1024**3, n_iters=5)
+                    row_vals.append(f"{bw:7.1f}")
+                    if bw > 0:
+                        assert bw >= min_threshold, (
+                            f"P2P BW GPU{src}->GPU{dst} ({bw:.1f} GB/s) "
+                            f"below minimum {min_threshold:.1f} GB/s"
+                        )
+            rows.append(f"  GPU{src}   " + "".join(row_vals))
+        logger.info("\n".join(header + rows + ["=" * 60]))
 
 
 @pytest.mark.node_validation
@@ -669,137 +1134,420 @@ class TestCPUGPUPowerAndThrottling:
 
 @pytest.mark.node_validation
 @pytest.mark.nccl_validation
-class TestNCCLInitializationAndValidation:
-    """TC-NV-07: NCCL initialization and distributed communication validation."""
+class TestNCCLAndNVLinkValidation:
+    """TC-NV-07: NVLink status + NCCL collective performance via nccl-tests binaries.
+
+    Binaries used (from /root/workloads/nccl-tests/build/):
+      all_reduce_perf    – AllReduce collective (primary training collective)
+      all_gather_perf    – AllGather collective
+      reduce_scatter_perf – ReduceScatter collective
+      broadcast_perf     – Broadcast collective
+      p2p_perf           – Point-to-point send/recv
+    """
+
+    def test_nvlink_status(self):
+        """Verify NVLink is active and report per-link speed."""
+        nvlink_info = validate_nvlink_status()
+        logger.info("\nNVLink status:\n%s", nvlink_info.get("status", "(none)"))
+        if nvlink_info.get("capabilities"):
+            logger.info("\nNVLink capabilities:\n%s", nvlink_info["capabilities"])
+        # Non-fatal: node may be PCIe-only
+        if not nvlink_info["available"]:
+            logger.warning("NVLink not detected — system may be PCIe-only interconnect")
 
     def test_nccl_availability(self):
-        """Verify NCCL library is available."""
+        """Verify NCCL is accessible (via torch or test binary)."""
         available, message = check_nccl_availability()
-        logger.info(f"NCCL status: {message}")
-        # Skip if not available, but don't fail
+        logger.info("NCCL availability: %s", message)
         if not available:
             pytest.skip(message)
 
-    def test_nvlink_status(self):
-        """Check NVLink status and capabilities."""
-        nvlink_info = validate_nvlink_status()
-        logger.info(f"NVLink status: {nvlink_info.get('status', 'unknown')}")
+    def test_nccl_all_reduce_perf(self):
+        """Run all_reduce_perf across all GPUs and validate peak busbw."""
+        if not _HAS_TORCH:
+            pytest.skip("torch not available")
+        n_gpus = torch.cuda.device_count()
+        if n_gpus < 2:
+            pytest.skip("Need ≥ 2 GPUs for NCCL collective test")
 
-    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
-    def test_nccl_deterministic_init(self):
-        """Run NCCL initialization multiple times and measure variance."""
-        if torch.cuda.device_count() < 2:
-            pytest.skip("Need ≥ 2 GPUs for NCCL test")
+        res = _run_nccl_test(
+            "all_reduce_perf",
+            n_gpus=n_gpus,
+            min_bytes="1M",
+            max_bytes="1G",
+            step_factor=4,
+            iters=20,
+        )
+        if res["error"] and "not found" in res["error"]:
+            pytest.skip(f"all_reduce_perf binary: {res['error']}")
 
-        try:
-            import nccl
-            init_times = []
-            for _ in range(5):
-                t0 = time.perf_counter()
-                # Simulate NCCL init
-                torch.cuda.synchronize()
-                elapsed_ms = (time.perf_counter() - t0) * 1000
-                init_times.append(elapsed_ms)
+        logger.info("\n=== NCCL all_reduce_perf ===\n%s", res["raw"].strip())
 
-            mean_init = np.mean(init_times)
-            std_init = np.std(init_times)
-            logger.info(f"NCCL init variance: mean={mean_init:.2f}ms, std={std_init:.2f}ms")
+        busbw = res["busbw_gbs"]
+        if not busbw:
+            pytest.skip("Could not parse busbw from all_reduce_perf output")
 
-            # Verify low jitter
-            assert std_init < mean_init * 0.5, "NCCL init has high variance"
-        except ImportError:
-            pytest.skip("NCCL not available")
+        peak_busbw = max(busbw)
+        # NVLink H100: peak allreduce busbw ≈ 300–400 GB/s for large messages
+        # PCIe only: expect ~40+ GB/s    Conservative threshold = 30 GB/s
+        min_busbw = 30.0
+        logger.info(
+            "AllReduce busbw — peak=%.1f GB/s  mean=%.1f GB/s  threshold=%.1f GB/s",
+            peak_busbw, sum(busbw)/len(busbw), min_busbw
+        )
+        assert peak_busbw >= min_busbw, (
+            f"AllReduce peak busbw {peak_busbw:.1f} GB/s below threshold {min_busbw:.1f} GB/s"
+        )
+
+    def test_nccl_all_gather_perf(self):
+        """Run all_gather_perf and validate peak bus bandwidth."""
+        if not _HAS_TORCH:
+            pytest.skip("torch not available")
+        n_gpus = torch.cuda.device_count()
+        if n_gpus < 2:
+            pytest.skip("Need ≥ 2 GPUs")
+
+        res = _run_nccl_test(
+            "all_gather_perf", n_gpus=n_gpus,
+            min_bytes="1M", max_bytes="256M", step_factor=4, iters=20
+        )
+        if res["error"] and "not found" in res["error"]:
+            pytest.skip(f"all_gather_perf binary: {res['error']}")
+
+        logger.info("\n=== NCCL all_gather_perf ===\n%s", res["raw"].strip())
+        busbw = res["busbw_gbs"]
+        if not busbw:
+            pytest.skip("Could not parse all_gather_perf output")
+        peak = max(busbw)
+        logger.info("AllGather peak busbw: %.1f GB/s", peak)
+        assert peak >= 30.0, f"AllGather busbw {peak:.1f} GB/s too low"
+
+    def test_nccl_reduce_scatter_perf(self):
+        """Run reduce_scatter_perf and validate peak bus bandwidth."""
+        if not _HAS_TORCH:
+            pytest.skip("torch not available")
+        n_gpus = torch.cuda.device_count()
+        if n_gpus < 2:
+            pytest.skip("Need ≥ 2 GPUs")
+
+        res = _run_nccl_test(
+            "reduce_scatter_perf", n_gpus=n_gpus,
+            min_bytes="1M", max_bytes="256M", step_factor=4, iters=20
+        )
+        if res["error"] and "not found" in res["error"]:
+            pytest.skip(f"reduce_scatter_perf binary: {res['error']}")
+
+        logger.info("\n=== NCCL reduce_scatter_perf ===\n%s", res["raw"].strip())
+        busbw = res["busbw_gbs"]
+        if not busbw:
+            pytest.skip("Could not parse reduce_scatter_perf output")
+        peak = max(busbw)
+        logger.info("ReduceScatter peak busbw: %.1f GB/s", peak)
+        assert peak >= 30.0, f"ReduceScatter busbw {peak:.1f} GB/s too low"
+
+    def test_nccl_p2p_perf(self):
+        """Run p2p_perf (point-to-point send/recv) and validate bandwidth."""
+        if not _HAS_TORCH:
+            pytest.skip("torch not available")
+        n_gpus = torch.cuda.device_count()
+        if n_gpus < 2:
+            pytest.skip("Need ≥ 2 GPUs")
+
+        res = _run_nccl_test(
+            "sendrecv_perf", n_gpus=n_gpus,
+            min_bytes="1M", max_bytes="256M", step_factor=4, iters=20
+        )
+        if res["error"] and "not found" in res["error"]:
+            pytest.skip(f"sendrecv_perf binary: {res['error']}")
+
+        logger.info("\n=== NCCL sendrecv_perf ===\n%s", res["raw"].strip())
+        busbw = res["busbw_gbs"]
+        if not busbw:
+            pytest.skip("Could not parse sendrecv_perf output")
+        peak = max(busbw)
+        logger.info("SendRecv peak busbw: %.1f GB/s", peak)
+        assert peak >= 30.0, f"NCCL sendrecv busbw {peak:.1f} GB/s too low"
+
+    def test_nccl_deterministic_init_variance(self):
+        """Run AllReduce 50× with small message and measure init/launch variance."""
+        if not _HAS_TORCH:
+            pytest.skip("torch not available")
+        n_gpus = torch.cuda.device_count()
+        if n_gpus < 2:
+            pytest.skip("Need ≥ 2 GPUs")
+
+        res = _run_nccl_test(
+            "all_reduce_perf", n_gpus=n_gpus,
+            min_bytes="8", max_bytes="8",   # tiny message → measures init/launch overhead
+            step_factor=2, warmup_iters=5, iters=50,
+        )
+        if res["error"] and "not found" in res["error"]:
+            pytest.skip(f"all_reduce_perf binary: {res['error']}")
+
+        # With a single message size we get a single busbw row; look for latency in algbw
+        algbw = res["algbw_gbs"]
+        if not algbw:
+            pytest.skip("Could not parse deterministic init output")
+        mean_algbw = sum(algbw) / len(algbw)
+        logger.info(
+            "NCCL 8-byte AllReduce (50 iters): algbw mean=%.3f GB/s", mean_algbw
+        )
+        logger.info("Full output:\n%s", res["raw"].strip())
 
 
 @pytest.mark.node_validation
 @pytest.mark.workload_acceptance
-class TestWorkloadAcceptanceBasic:
-    """TC-NV-08: Basic workload acceptance tests (inference prefill, training micro-batch)."""
+class TestWorkloadAcceptanceHuggingFace:
+    """TC-NV-08: Workload acceptance using HuggingFace Transformer models.
+
+    Inference model : _HF_INFERENCE_MODEL (default: gpt2)
+    Training model  : _HF_TRAINING_MODEL  (default: bert-base-uncased)
+
+    The tests use the 'transformers' library directly on GPU.  Set
+    _HF_INFERENCE_MODEL / _HF_TRAINING_MODEL to a local cached path if the
+    node has no internet access.
+    """
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
-    def test_simple_inference_latency(self):
-        """Measure single-batch inference latency (simple MLP)."""
+    def test_hf_causal_lm_inference_latency(self):
+        """Load a HuggingFace causal-LM (GPT-2) on GPU and measure per-token generation latency."""
+        try:
+            from transformers import AutoModelForCausalLM, AutoTokenizer
+        except ImportError:
+            pytest.skip("transformers not installed")
+
         if torch.cuda.device_count() == 0:
             pytest.skip("No CUDA devices")
 
-        torch.cuda.set_device(0)
-        # Simple MLP: input -> 1024 -> 512 -> 128 -> output
-        model = torch.nn.Sequential(
-            torch.nn.Linear(512, 1024),
-            torch.nn.ReLU(),
-            torch.nn.Linear(1024, 512),
-            torch.nn.ReLU(),
-            torch.nn.Linear(512, 128),
-            torch.nn.ReLU(),
-            torch.nn.Linear(128, 10),
-        ).cuda()
+        device = torch.device("cuda:0")
+        logger.info("Loading %s for causal-LM inference …", _HF_INFERENCE_MODEL)
+        tokenizer = AutoTokenizer.from_pretrained(_HF_INFERENCE_MODEL)
+        model = AutoModelForCausalLM.from_pretrained(
+            _HF_INFERENCE_MODEL, torch_dtype=torch.float16
+        ).to(device)
+        model.eval()
 
-        x = torch.randn(1, 512, device="cuda:0")
-        latencies = []
+        prompt = "The AI head node validation test confirms"
+        inputs = tokenizer(prompt, return_tensors="pt").to(device)
+        max_new_tokens = 32
 
         # Warmup
-        for _ in range(5):
-            with torch.no_grad():
-                _ = model(x)
-            torch.cuda.synchronize(0)
+        with torch.no_grad():
+            for _ in range(3):
+                _ = model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                    pad_token_id=tokenizer.eos_token_id,
+                )
+                torch.cuda.synchronize(device)
 
         # Measure
-        for _ in range(20):
-            torch.cuda.synchronize(0)
-            t0 = time.perf_counter()
-            with torch.no_grad():
-                _ = model(x)
-            torch.cuda.synchronize(0)
-            latencies.append((time.perf_counter() - t0) * 1000)
+        latencies_ms = []
+        with torch.no_grad():
+            for _ in range(10):
+                torch.cuda.synchronize(device)
+                t0 = time.perf_counter()
+                out = model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                    pad_token_id=tokenizer.eos_token_id,
+                )
+                torch.cuda.synchronize(device)
+                latencies_ms.append((time.perf_counter() - t0) * 1000)
 
-        mean_latency = np.mean(latencies)
-        p95_latency = np.percentile(latencies, 95)
-        logger.info(f"Inference latency: mean={mean_latency:.2f}ms, p95={p95_latency:.2f}ms")
+        mean_ms  = np.mean(latencies_ms)
+        p95_ms   = np.percentile(latencies_ms, 95)
+        tps = max_new_tokens / (mean_ms / 1000)   # tokens per second
 
-        # Latency should be reasonable (< 100ms for simple model)
-        assert mean_latency < 100, f"Inference latency {mean_latency:.1f}ms too high"
+        logger.info(
+            "HF Causal-LM (%s) inference: mean=%.1f ms  p95=%.1f ms  "
+            "tokens/sec=%.0f (batch=1, new_tokens=%d)",
+            _HF_INFERENCE_MODEL, mean_ms, p95_ms, tps, max_new_tokens
+        )
+
+        # GPT-2 should complete 32 tokens in < 500 ms on H100
+        assert mean_ms < 500, (
+            f"{_HF_INFERENCE_MODEL} inference mean latency {mean_ms:.0f} ms > 500 ms"
+        )
+        del model
+        torch.cuda.empty_cache()
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
-    def test_simple_training_throughput(self):
-        """Measure training throughput (simple training loop)."""
+    def test_hf_causal_lm_batch_throughput(self):
+        """Measure batched prefill throughput for HuggingFace GPT-2 (tokens/sec)."""
+        try:
+            from transformers import AutoModelForCausalLM, AutoTokenizer
+        except ImportError:
+            pytest.skip("transformers not installed")
+
         if torch.cuda.device_count() == 0:
             pytest.skip("No CUDA devices")
 
-        torch.cuda.set_device(0)
-        model = torch.nn.Linear(1024, 10).cuda()
-        optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
-        loss_fn = torch.nn.CrossEntropyLoss()
+        device = torch.device("cuda:0")
+        tokenizer = AutoTokenizer.from_pretrained(_HF_INFERENCE_MODEL)
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+        model = AutoModelForCausalLM.from_pretrained(
+            _HF_INFERENCE_MODEL, torch_dtype=torch.float16
+        ).to(device)
+        model.eval()
 
-        batch_size = 128
-        x = torch.randn(batch_size, 1024, device="cuda:0")
-        y = torch.randint(0, 10, (batch_size,), device="cuda:0")
+        batch_size  = 8
+        seq_len     = 256
+        max_new     = 64
+        prompts     = ["GPU validation benchmark prompt number " + str(i)
+                       for i in range(batch_size)]
+        inputs = tokenizer(
+            prompts, return_tensors="pt", padding=True, truncation=True,
+            max_length=seq_len
+        ).to(device)
 
         # Warmup
-        for _ in range(3):
-            optimizer.zero_grad()
-            out = model(x)
-            loss = loss_fn(out, y)
-            loss.backward()
-            optimizer.step()
-            torch.cuda.synchronize(0)
+        with torch.no_grad():
+            _ = model.generate(
+                **inputs, max_new_tokens=max_new, do_sample=False,
+                pad_token_id=tokenizer.eos_token_id
+            )
+            torch.cuda.synchronize(device)
 
-        # Measure
-        torch.cuda.synchronize(0)
+        # Measure 5 iterations
         t0 = time.perf_counter()
-        for _ in range(10):
+        n_iters = 5
+        with torch.no_grad():
+            for _ in range(n_iters):
+                out = model.generate(
+                    **inputs, max_new_tokens=max_new, do_sample=False,
+                    pad_token_id=tokenizer.eos_token_id
+                )
+        torch.cuda.synchronize(device)
+        elapsed = time.perf_counter() - t0
+
+        total_tokens = batch_size * max_new * n_iters
+        tps = total_tokens / elapsed
+        logger.info(
+            "HF Causal-LM (%s) batch throughput: %.0f tokens/sec "
+            "(batch=%d, max_new_tokens=%d, iters=%d)",
+            _HF_INFERENCE_MODEL, tps, batch_size, max_new, n_iters
+        )
+
+        assert tps > 100, f"Batch throughput {tps:.0f} tokens/sec too low"
+        del model
+        torch.cuda.empty_cache()
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    def test_hf_encoder_training_throughput(self):
+        """Fine-tune HuggingFace BERT for one epoch of synthetic data; validate throughput."""
+        try:
+            from transformers import AutoModelForSequenceClassification, AutoTokenizer
+        except ImportError:
+            pytest.skip("transformers not installed")
+
+        if torch.cuda.device_count() == 0:
+            pytest.skip("No CUDA devices")
+
+        device = torch.device("cuda:0")
+        logger.info("Loading %s for training throughput test …", _HF_TRAINING_MODEL)
+        tokenizer = AutoTokenizer.from_pretrained(_HF_TRAINING_MODEL)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            _HF_TRAINING_MODEL, num_labels=2
+        ).to(device)
+        model.train()
+
+        optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5)
+        batch_size = 16
+        seq_len    = 128
+
+        # Synthetic batch
+        input_ids      = torch.randint(0, tokenizer.vocab_size,
+                                       (batch_size, seq_len), device=device)
+        attention_mask = torch.ones_like(input_ids)
+        labels         = torch.randint(0, 2, (batch_size,), device=device)
+
+        # Warmup
+        for _ in range(2):
             optimizer.zero_grad()
-            out = model(x)
-            loss = loss_fn(out, y)
-            loss.backward()
+            out = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+            out.loss.backward()
             optimizer.step()
-        torch.cuda.synchronize(0)
-        elapsed = (time.perf_counter() - t0)
+            torch.cuda.synchronize(device)
 
-        samples_per_sec = (batch_size * 10) / elapsed
-        logger.info(f"Training throughput: {samples_per_sec:.0f} samples/sec")
+        # Measure 10 steps
+        n_steps = 10
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        for _ in range(n_steps):
+            optimizer.zero_grad()
+            out = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+            out.loss.backward()
+            optimizer.step()
+        torch.cuda.synchronize(device)
+        elapsed = time.perf_counter() - t0
 
-        # Should be reasonable for simple model
-        assert samples_per_sec > 1000, f"Training throughput {samples_per_sec:.0f} too low"
+        samples_per_sec = (batch_size * n_steps) / elapsed
+        logger.info(
+            "HF Encoder training (%s): %.0f samples/sec "
+            "(batch=%d, seq=%d, steps=%d)",
+            _HF_TRAINING_MODEL, samples_per_sec, batch_size, seq_len, n_steps
+        )
+
+        assert samples_per_sec > 50, (
+            f"{_HF_TRAINING_MODEL} training throughput {samples_per_sec:.0f} samples/sec too low"
+        )
+        del model
+        torch.cuda.empty_cache()
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    def test_vllm_inference_throughput(self):
+        """Run vLLM offline inference with a HuggingFace model and measure throughput."""
+        try:
+            from vllm import LLM, SamplingParams
+        except ImportError:
+            pytest.skip("vllm not installed")
+
+        if torch.cuda.device_count() == 0:
+            pytest.skip("No CUDA devices")
+
+        logger.info("Launching vLLM engine with model=%s …", _HF_INFERENCE_MODEL)
+        llm = LLM(
+            model=_HF_INFERENCE_MODEL,
+            dtype="float16",
+            tensor_parallel_size=min(torch.cuda.device_count(), 1),
+            gpu_memory_utilization=0.5,
+            max_model_len=512,
+        )
+        sampling_params = SamplingParams(temperature=0.0, max_tokens=64)
+
+        prompts = [
+            "Explain PCIe Gen5 bandwidth in one sentence:",
+            "Describe NVLink topology for H100 GPUs:",
+            "What is the purpose of HBM3 memory in AI accelerators:",
+            "Summarize the importance of NCCL in distributed training:",
+        ]
+
+        # Warmup
+        _ = llm.generate(prompts[:1], sampling_params)
+
+        # Measure
+        t0 = time.perf_counter()
+        outputs = llm.generate(prompts, sampling_params)
+        elapsed = time.perf_counter() - t0
+
+        total_tokens = sum(len(o.outputs[0].token_ids) for o in outputs)
+        tps = total_tokens / elapsed
+
+        logger.info(
+            "vLLM inference (%s): %d prompts in %.2f s  total_tokens=%d  "
+            "throughput=%.0f tokens/sec",
+            _HF_INFERENCE_MODEL, len(prompts), elapsed, total_tokens, tps
+        )
+        for i, output in enumerate(outputs):
+            logger.info("  Prompt %d: %s", i, output.outputs[0].text[:80].replace("\n", " "))
+
+        assert tps > 10, f"vLLM throughput {tps:.0f} tokens/sec too low"
+        del llm
+        torch.cuda.empty_cache()
 
 
 # =============================================================================

@@ -593,18 +593,28 @@ def _run_nvbandwidth(testcase: str, timeout: int = 120) -> Dict:
         in_matrix = False
         for line in raw.splitlines():
             stripped = line.strip()
-            # Matrix data rows are lines of whitespace-separated floats
-            # preceded by a header row starting with spaces + numbers
-            if stripped.startswith("0") or (in_matrix and stripped and stripped[0].isdigit()):
+            if not stripped:
+                if in_matrix:
+                    in_matrix = False
+                continue
+
+            tokens = stripped.split()
+
+            # Header row is GPU IDs only (e.g., "0 1 2 3"); begin matrix parsing.
+            if not in_matrix and all(tok.isdigit() for tok in tokens):
                 in_matrix = True
+                continue
+
+            # Data row format: row-id followed by bandwidth cells.
+            if in_matrix and len(tokens) >= 2 and tokens[0].isdigit():
                 try:
-                    row_vals = [float(x) for x in stripped.split()]
-                    matrix.append(row_vals)
-                    values.extend(row_vals)
+                    row_vals = [float(x) for x in tokens[1:]]
+                    if row_vals:
+                        matrix.append(row_vals)
+                        values.extend(row_vals)
                 except ValueError:
+                    # Ignore non-numeric lines inside matrix block.
                     pass
-            elif in_matrix and not stripped:
-                in_matrix = False
         return {
             "testcase": testcase,
             "raw": raw,
@@ -1320,10 +1330,11 @@ class TestWorkloadAcceptanceHuggingFace:
             pytest.skip("No CUDA devices")
 
         device = torch.device("cuda:0")
+        hf_token = os.environ.get("HF_TOKEN")
         logger.info("Loading %s for causal-LM inference …", _HF_INFERENCE_MODEL)
-        tokenizer = AutoTokenizer.from_pretrained(_HF_INFERENCE_MODEL)
+        tokenizer = AutoTokenizer.from_pretrained(_HF_INFERENCE_MODEL, token=hf_token)
         model = AutoModelForCausalLM.from_pretrained(
-            _HF_INFERENCE_MODEL, torch_dtype=torch.float16
+            _HF_INFERENCE_MODEL, torch_dtype=torch.float16, token=hf_token
         ).to(device)
         model.eval()
 
@@ -1386,11 +1397,12 @@ class TestWorkloadAcceptanceHuggingFace:
             pytest.skip("No CUDA devices")
 
         device = torch.device("cuda:0")
-        tokenizer = AutoTokenizer.from_pretrained(_HF_INFERENCE_MODEL)
+        hf_token = os.environ.get("HF_TOKEN")
+        tokenizer = AutoTokenizer.from_pretrained(_HF_INFERENCE_MODEL, token=hf_token)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(
-            _HF_INFERENCE_MODEL, torch_dtype=torch.float16
+            _HF_INFERENCE_MODEL, torch_dtype=torch.float16, token=hf_token
         ).to(device)
         model.eval()
 
@@ -1448,10 +1460,11 @@ class TestWorkloadAcceptanceHuggingFace:
             pytest.skip("No CUDA devices")
 
         device = torch.device("cuda:0")
+        hf_token = os.environ.get("HF_TOKEN")
         logger.info("Loading %s for training throughput test …", _HF_TRAINING_MODEL)
-        tokenizer = AutoTokenizer.from_pretrained(_HF_TRAINING_MODEL)
+        tokenizer = AutoTokenizer.from_pretrained(_HF_TRAINING_MODEL, token=hf_token)
         model = AutoModelForSequenceClassification.from_pretrained(
-            _HF_TRAINING_MODEL, num_labels=2
+            _HF_TRAINING_MODEL, num_labels=2, token=hf_token
         ).to(device)
         model.train()
 

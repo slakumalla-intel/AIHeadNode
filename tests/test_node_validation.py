@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 # Binary / workload paths  (edit here if paths change)
 # =============================================================================
 
-_NVBANDWIDTH_BIN    = Path("/root/workloads/nvbandwidth")
+_NVBANDWIDTH_BIN    = Path("/root/workloads/nvbandwidth/nvbandwidth")
 _P2P_LATENCY_BIN    = Path(
     "/root/workloads/cuda-samples/Samples/5_Domain_Specific"
     "/p2pBandwidthLatencyTest/p2pBandwidthLatencyTest"

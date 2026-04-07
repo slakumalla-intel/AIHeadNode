@@ -79,6 +79,19 @@ pip install torch --index-url https://download.pytorch.org/whl/cu121
 pip install nvidia-ml-py
 ```
 
+### System Prerequisites (for vLLM tests)
+
+vLLM can compile native helpers at runtime and requires Python C headers
+(`Python.h`) and a working compiler toolchain.
+
+```bash
+# RHEL / Rocky / CentOS
+sudo dnf install -y python3-devel gcc gcc-c++ make
+
+# Ubuntu / Debian
+sudo apt-get update && sudo apt-get install -y python3-dev build-essential
+```
+
 ---
 
 ## Running the Tests

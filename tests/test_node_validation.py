@@ -1559,6 +1559,16 @@ class TestWorkloadAcceptanceHuggingFace:
         except ImportError:
             pytest.skip("vllm not installed")
 
+        # vLLM may compile small C/CUDA helpers at runtime; ensure Python headers exist.
+        import sysconfig
+        include_dir = sysconfig.get_config_var("INCLUDEPY")
+        python_h = (Path(include_dir) / "Python.h") if include_dir else None
+        if not python_h or not python_h.exists():
+            pytest.skip(
+                "Missing Python.h (python dev headers). "
+                "Install python3-devel/python3-dev for this interpreter."
+            )
+
         if torch.cuda.device_count() == 0:
             pytest.skip("No CUDA devices")
 

@@ -58,6 +58,23 @@ _NCCL_TESTS_DIR     = Path("/root/workloads/nccl-tests/build")
 _HF_INFERENCE_MODEL = "gpt2"          # small causal-LM, ~500 MB
 _HF_TRAINING_MODEL  = "bert-base-uncased"  # encoder, fast fine-tune loop
 
+_HF_DEEPSEEK_R1_QUANT_MODEL = os.environ.get(
+    "HF_DEEPSEEK_R1_QUANT_MODEL",
+    "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+)
+_HF_LLAMA_7B_MODEL = os.environ.get(
+    "HF_LLAMA_7B_MODEL",
+    "meta-llama/Llama-2-7b-hf",
+)
+_HF_LLAMA_70B_MODEL = os.environ.get(
+    "HF_LLAMA_70B_MODEL",
+    "meta-llama/Llama-2-70b-hf",
+)
+_HF_QWEN_70B_MODEL = os.environ.get(
+    "HF_QWEN_70B_MODEL",
+    "Qwen/Qwen2.5-72B-Instruct",
+)
+
 
 # =============================================================================
 # Data Classes for Results
@@ -1339,6 +1356,115 @@ def _hf_from_pretrained(cls, model_id: str, **kwargs):
         raise
 
 
+def _run_hf_causal_latency_workload(
+    model_id: str,
+    max_new_tokens: int,
+    max_mean_latency_ms: float,
+    min_duration_sec: int,
+    prefer_4bit_quant: bool = False,
+) -> None:
+    """Run a causal-LM latency workload for at least *min_duration_sec* and assert mean latency."""
+    try:
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+    except ImportError:
+        pytest.skip("transformers not installed")
+
+    if torch.cuda.device_count() == 0:
+        pytest.skip("No CUDA devices")
+
+    device = torch.device("cuda:0")
+    logger.info("Loading %s for causal-LM latency workload …", model_id)
+    tokenizer = _hf_from_pretrained(AutoTokenizer, model_id)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    model_kwargs: Dict = {}
+    use_quantized_load = False
+    if prefer_4bit_quant:
+        try:
+            from transformers import BitsAndBytesConfig
+            model_kwargs["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True,
+            )
+            model_kwargs["device_map"] = "auto"
+            use_quantized_load = True
+        except Exception as exc:
+            logger.warning("4-bit quantization config unavailable: %s", exc)
+
+    if not use_quantized_load:
+        model_kwargs["torch_dtype"] = torch.float16
+
+    try:
+        model = _hf_from_pretrained(AutoModelForCausalLM, model_id, **model_kwargs)
+    except Exception as exc:
+        pytest.skip(f"Model load failed for {model_id}: {exc}")
+
+    if not use_quantized_load:
+        model = model.to(device)
+    model.eval()
+
+    prompt = "The AI head node validation test confirms stable latency for"
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+
+    # Warmup
+    with torch.no_grad():
+        for _ in range(2):
+            _ = model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                do_sample=False,
+                pad_token_id=tokenizer.eos_token_id,
+            )
+            torch.cuda.synchronize(device)
+
+    latencies_ms = []
+    with torch.no_grad():
+        start = time.perf_counter()
+        while (time.perf_counter() - start) < min_duration_sec:
+            torch.cuda.synchronize(device)
+            t0 = time.perf_counter()
+            _ = model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                do_sample=False,
+                pad_token_id=tokenizer.eos_token_id,
+            )
+            torch.cuda.synchronize(device)
+            latencies_ms.append((time.perf_counter() - t0) * 1000)
+
+    total_runtime_sec = time.perf_counter() - start
+    assert total_runtime_sec >= min_duration_sec, (
+        f"Inference test runtime {total_runtime_sec:.1f}s shorter than required "
+        f"{min_duration_sec}s"
+    )
+
+    mean_ms = np.mean(latencies_ms)
+    p95_ms = np.percentile(latencies_ms, 95)
+    tps = max_new_tokens / (mean_ms / 1000)
+
+    logger.info(
+        "HF Causal-LM (%s) inference: mean=%.1f ms  p95=%.1f ms  "
+        "tokens/sec=%.0f (batch=1, new_tokens=%d, runtime=%.1fs, samples=%d)",
+        model_id,
+        mean_ms,
+        p95_ms,
+        tps,
+        max_new_tokens,
+        total_runtime_sec,
+        len(latencies_ms),
+    )
+
+    assert mean_ms < max_mean_latency_ms, (
+        f"{model_id} inference mean latency {mean_ms:.0f} ms > {max_mean_latency_ms:.0f} ms"
+    )
+
+    del model
+    torch.cuda.empty_cache()
+
+
 @pytest.mark.node_validation
 @pytest.mark.workload_acceptance
 class TestWorkloadAcceptanceHuggingFace:
@@ -1426,6 +1552,60 @@ class TestWorkloadAcceptanceHuggingFace:
         )
         del model
         torch.cuda.empty_cache()
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.slow
+    @pytest.mark.parametrize(
+        "workload_name,model_id,max_new_tokens,max_mean_latency_ms,prefer_4bit_quant",
+        [
+            (
+                "deepseek_r1_quantized",
+                _HF_DEEPSEEK_R1_QUANT_MODEL,
+                32,
+                3000.0,
+                True,
+            ),
+            (
+                "llama_7b",
+                _HF_LLAMA_7B_MODEL,
+                32,
+                3000.0,
+                False,
+            ),
+            (
+                "llama_70b",
+                _HF_LLAMA_70B_MODEL,
+                16,
+                12000.0,
+                True,
+            ),
+            (
+                "qwen_70b",
+                _HF_QWEN_70B_MODEL,
+                16,
+                12000.0,
+                True,
+            ),
+        ],
+    )
+    def test_hf_causal_lm_inference_latency_enterprise_workloads(
+        self,
+        workload_name: str,
+        model_id: str,
+        max_new_tokens: int,
+        max_mean_latency_ms: float,
+        prefer_4bit_quant: bool,
+    ):
+        """Repeat latency validation for DeepSeek-R1 quantized, Llama, and Qwen workloads."""
+        min_duration_sec = int(os.environ.get("HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC", "300"))
+        logger.info("Running workload=%s model=%s", workload_name, model_id)
+        _run_hf_causal_latency_workload(
+            model_id=model_id,
+            max_new_tokens=max_new_tokens,
+            max_mean_latency_ms=max_mean_latency_ms,
+            min_duration_sec=min_duration_sec,
+            prefer_4bit_quant=prefer_4bit_quant,
+        )
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_hf_causal_lm_batch_throughput(self):

@@ -124,7 +124,9 @@ pytest -m nccl_validation -vv
 
 **Workload Acceptance:**
 ```powershell
-pytest -m workload_acceptance -vv
+./run_workload_acceptance.ps1
+# Include 70B models intentionally:
+./run_workload_acceptance.ps1 -IncludeLargeModels
 ```
 
 ### Run with custom output:

@@ -41,7 +41,8 @@ pytest -m gpu_enumeration -vv          # GPU discovery
 pytest -m pcie_validation -vv          # PCIe bandwidth
 pytest -m p2p_validation -vv           # GPU P2P
 pytest -m nccl_validation -vv          # NCCL checks
-pytest -m workload_acceptance -vv      # Inference/training
+./run_workload_acceptance.ps1          # Inference/training (70B disabled by default)
+./run_workload_acceptance.ps1 -IncludeLargeModels   # Enable 70B workloads
 ```
 
 ---

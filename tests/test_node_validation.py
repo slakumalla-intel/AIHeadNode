@@ -35,7 +35,7 @@ try:
 except ImportError:
     _HAS_TORCH = False
 
-try:
+try: 
     import pytest
 except ImportError:
     pytest = None
@@ -65,11 +65,11 @@ _HF_DEEPSEEK_R1_QUANT_MODEL = os.environ.get(
 )
 _HF_LLAMA_7B_MODEL = os.environ.get(
     "HF_LLAMA_7B_MODEL",
-    "meta-llama/Llama-2-7b-hf",
+    "meta-llama/Meta-Llama-3-8B",
 )
 _HF_LLAMA_70B_MODEL = os.environ.get(
     "HF_LLAMA_70B_MODEL",
-    "meta-llama/Llama-2-70b-hf",
+    "meta-llama/Meta-Llama-3-70B",
 )
 _HF_QWEN_70B_MODEL = os.environ.get(
     "HF_QWEN_70B_MODEL",
@@ -1616,6 +1616,15 @@ class TestWorkloadAcceptanceHuggingFace:
         prefer_4bit_quant: bool,
     ):
         """Repeat latency validation for DeepSeek-R1 quantized, Llama, and Qwen workloads."""
+        enable_large_models = os.environ.get("HF_ENABLE_LARGE_MODELS", "0").lower() in {
+            "1", "true", "yes", "on"
+        }
+        if "70b" in workload_name and not enable_large_models:
+            pytest.skip(
+                f"Skipping {workload_name} ({model_id}) by default. "
+                "Set HF_ENABLE_LARGE_MODELS=1 to enable 70B workloads."
+            )
+
         min_duration_sec = int(os.environ.get("HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC", "300"))
         logger.info("Running workload=%s model=%s", workload_name, model_id)
         _run_hf_causal_latency_workload(

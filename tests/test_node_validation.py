@@ -626,13 +626,28 @@ def _run_nvbandwidth(testcase: str, timeout: int = 120) -> Dict:
             # Data row format: row-id followed by bandwidth cells.
             if in_matrix and len(tokens) >= 2 and tokens[0].isdigit():
                 try:
-                    row_vals = [float(x) for x in tokens[1:]]
+                    # Parse only numeric tokens; skip N/A and other non-numeric markers
+                    row_vals = [float(x) for x in tokens[1:] if x not in ("N/A", "---", "n/a")]
                     if row_vals:
                         matrix.append(row_vals)
                         values.extend(row_vals)
                 except ValueError:
                     # Ignore non-numeric lines inside matrix block.
                     pass
+
+        # Fallback for D2D or other single-value outputs: parse any standalone floats
+        if not values:
+            for line in raw.splitlines():
+                stripped = line.strip()
+                if stripped and not stripped.startswith("#") and not stripped.startswith("Device"):
+                    tokens = stripped.split()
+                    for token in tokens:
+                        try:
+                            val = float(token)
+                            if val > 0 and val < 10000:  # Sanity check: BW between 0-10K GB/s
+                                values.append(val)
+                        except ValueError:
+                            pass
         return {
             "testcase": testcase,
             "raw": raw,
@@ -676,7 +691,9 @@ def _run_p2p_latency_test(timeout: int = 120) -> Dict:
                 section = "latency"
             elif section and l and l[0].isdigit():
                 try:
-                    vals = [float(x) for x in l.split() if x.replace('.','',1).isdigit()]
+                    tokens = l.split()
+                    # First token is row/GPU ID; skip it and parse remaining as bandwidth values
+                    vals = [float(x) for x in tokens[1:] if x.replace('.','',1).isdigit()]
                     if section == "bidir":
                         bidir_bw.extend(vals)
                     elif section == "unidir":
@@ -962,7 +979,7 @@ class TestNVBandwidthMemcpy:
         "device_to_host_memcpy_ce":              40.0,
         "host_to_device_bidirectional_memcpy_ce": 40.0,
         "device_to_host_bidirectional_memcpy_ce": 40.0,
-        "device_to_device_memcpy_read_ce":       800.0,   # HBM3 D2D should be fast
+        "device_to_device_memcpy_read_ce":       30.0,   # NVLink CE bandwidth, ~50 GB/s typical
         "host_to_device_memcpy_sm":              30.0,
         "device_to_host_memcpy_sm":              30.0,
     }

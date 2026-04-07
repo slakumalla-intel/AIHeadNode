@@ -388,7 +388,7 @@ def measure_p2p_bandwidth(src_device: int = 0, dst_device: int = 1,
     try:
         # Check P2P access
         torch.cuda.set_device(src_device)
-        can_access = torch.cuda.can_device_access(dst_device)
+        can_access = torch.cuda.can_device_access_peer(src_device, dst_device)
         if not can_access:
             logger.warning(f"P2P access not available from GPU {src_device} to {dst_device}")
             return 0.0

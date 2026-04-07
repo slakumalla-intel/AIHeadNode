@@ -1305,6 +1305,40 @@ class TestNCCLAndNVLinkValidation:
         logger.info("Full output:\n%s", res["raw"].strip())
 
 
+def _hf_auth_token() -> Optional[str]:
+    """Resolve HuggingFace token from common environment variable names."""
+    token = (
+        os.environ.get("HF_TOKEN")
+        or os.environ.get("HUGGINGFACE_HUB_TOKEN")
+        or os.environ.get("HUGGING_FACE_HUB_TOKEN")
+    )
+    if not token:
+        return None
+    token = token.strip().strip('"').strip("'")
+    return token or None
+
+
+def _hf_from_pretrained(cls, model_id: str, **kwargs):
+    """Load HF assets with auth fallback for mixed transformers versions.
+
+    Uses token= for modern transformers, and falls back to use_auth_token=
+    when running with older versions.
+    """
+    token = _hf_auth_token()
+    call_kwargs = dict(kwargs)
+    if token:
+        call_kwargs["token"] = token
+
+    try:
+        return cls.from_pretrained(model_id, **call_kwargs)
+    except TypeError as exc:
+        if token and "token" in str(exc):
+            call_kwargs.pop("token", None)
+            call_kwargs["use_auth_token"] = token
+            return cls.from_pretrained(model_id, **call_kwargs)
+        raise
+
+
 @pytest.mark.node_validation
 @pytest.mark.workload_acceptance
 class TestWorkloadAcceptanceHuggingFace:
@@ -1330,17 +1364,17 @@ class TestWorkloadAcceptanceHuggingFace:
             pytest.skip("No CUDA devices")
 
         device = torch.device("cuda:0")
-        hf_token = os.environ.get("HF_TOKEN")
         logger.info("Loading %s for causal-LM inference …", _HF_INFERENCE_MODEL)
-        tokenizer = AutoTokenizer.from_pretrained(_HF_INFERENCE_MODEL, token=hf_token)
-        model = AutoModelForCausalLM.from_pretrained(
-            _HF_INFERENCE_MODEL, torch_dtype=torch.float16, token=hf_token
+        tokenizer = _hf_from_pretrained(AutoTokenizer, _HF_INFERENCE_MODEL)
+        model = _hf_from_pretrained(
+            AutoModelForCausalLM, _HF_INFERENCE_MODEL, torch_dtype=torch.float16
         ).to(device)
         model.eval()
 
         prompt = "The AI head node validation test confirms"
         inputs = tokenizer(prompt, return_tensors="pt").to(device)
         max_new_tokens = 32
+        min_test_duration_sec = 5 * 60
 
         # Warmup
         with torch.no_grad():
@@ -1356,7 +1390,8 @@ class TestWorkloadAcceptanceHuggingFace:
         # Measure
         latencies_ms = []
         with torch.no_grad():
-            for _ in range(10):
+            start = time.perf_counter()
+            while (time.perf_counter() - start) < min_test_duration_sec:
                 torch.cuda.synchronize(device)
                 t0 = time.perf_counter()
                 out = model.generate(
@@ -1368,14 +1403,21 @@ class TestWorkloadAcceptanceHuggingFace:
                 torch.cuda.synchronize(device)
                 latencies_ms.append((time.perf_counter() - t0) * 1000)
 
+        total_runtime_sec = time.perf_counter() - start
+        assert total_runtime_sec >= min_test_duration_sec, (
+            f"Inference test runtime {total_runtime_sec:.1f}s shorter than required "
+            f"{min_test_duration_sec}s"
+        )
+
         mean_ms  = np.mean(latencies_ms)
         p95_ms   = np.percentile(latencies_ms, 95)
         tps = max_new_tokens / (mean_ms / 1000)   # tokens per second
 
         logger.info(
             "HF Causal-LM (%s) inference: mean=%.1f ms  p95=%.1f ms  "
-            "tokens/sec=%.0f (batch=1, new_tokens=%d)",
-            _HF_INFERENCE_MODEL, mean_ms, p95_ms, tps, max_new_tokens
+            "tokens/sec=%.0f (batch=1, new_tokens=%d, runtime=%.1fs, samples=%d)",
+            _HF_INFERENCE_MODEL, mean_ms, p95_ms, tps, max_new_tokens,
+            total_runtime_sec, len(latencies_ms)
         )
 
         # GPT-2 should complete 32 tokens in < 500 ms on H100
@@ -1397,12 +1439,11 @@ class TestWorkloadAcceptanceHuggingFace:
             pytest.skip("No CUDA devices")
 
         device = torch.device("cuda:0")
-        hf_token = os.environ.get("HF_TOKEN")
-        tokenizer = AutoTokenizer.from_pretrained(_HF_INFERENCE_MODEL, token=hf_token)
+        tokenizer = _hf_from_pretrained(AutoTokenizer, _HF_INFERENCE_MODEL)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
-        model = AutoModelForCausalLM.from_pretrained(
-            _HF_INFERENCE_MODEL, torch_dtype=torch.float16, token=hf_token
+        model = _hf_from_pretrained(
+            AutoModelForCausalLM, _HF_INFERENCE_MODEL, torch_dtype=torch.float16
         ).to(device)
         model.eval()
 
@@ -1460,11 +1501,10 @@ class TestWorkloadAcceptanceHuggingFace:
             pytest.skip("No CUDA devices")
 
         device = torch.device("cuda:0")
-        hf_token = os.environ.get("HF_TOKEN")
         logger.info("Loading %s for training throughput test …", _HF_TRAINING_MODEL)
-        tokenizer = AutoTokenizer.from_pretrained(_HF_TRAINING_MODEL, token=hf_token)
-        model = AutoModelForSequenceClassification.from_pretrained(
-            _HF_TRAINING_MODEL, num_labels=2, token=hf_token
+        tokenizer = _hf_from_pretrained(AutoTokenizer, _HF_TRAINING_MODEL)
+        model = _hf_from_pretrained(
+            AutoModelForSequenceClassification, _HF_TRAINING_MODEL, num_labels=2
         ).to(device)
         model.train()
 

@@ -17,6 +17,7 @@ Can be executed separately with:
 
 import logging
 import os
+import json
 import subprocess
 import sys
 import threading
@@ -1356,6 +1357,24 @@ def _hf_from_pretrained(cls, model_id: str, **kwargs):
         raise
 
 
+def _kpi_output_path() -> Path:
+    """Return JSONL file path for persisted KPI records."""
+    return Path(os.environ.get("NODE_VALIDATION_KPI_FILE", "artifacts/node_validation_kpis.jsonl"))
+
+
+def _record_kpi(test_name: str, metrics: Dict) -> None:
+    """Append KPI metrics to a JSONL file for post-run reporting."""
+    out_path = _kpi_output_path()
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "test": test_name,
+        "metrics": metrics,
+    }
+    with out_path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(payload, default=str) + "\n")
+
+
 def _run_hf_causal_latency_workload(
     model_id: str,
     max_new_tokens: int,
@@ -1725,6 +1744,18 @@ class TestWorkloadAcceptanceHuggingFace:
             _HF_TRAINING_MODEL, samples_per_sec, batch_size, seq_len, n_steps
         )
 
+        _record_kpi(
+            "test_hf_encoder_training_throughput",
+            {
+                "model": _HF_TRAINING_MODEL,
+                "batch_size": batch_size,
+                "seq_len": seq_len,
+                "steps": n_steps,
+                "elapsed_sec": round(elapsed, 4),
+                "samples_per_sec": round(float(samples_per_sec), 2),
+            },
+        )
+
         assert samples_per_sec > 50, (
             f"{_HF_TRAINING_MODEL} training throughput {samples_per_sec:.0f} samples/sec too low"
         )
@@ -1815,9 +1846,36 @@ class TestWorkloadAcceptanceHuggingFace:
         for i, output in enumerate(outputs):
             logger.info("  Prompt %d: %s", i, output.outputs[0].text[:80].replace("\n", " "))
 
+        _record_kpi(
+            "test_vllm_inference_throughput",
+            {
+                "model": _HF_INFERENCE_MODEL,
+                "prompts": len(prompts),
+                "max_tokens_per_prompt": 64,
+                "elapsed_sec": round(elapsed, 4),
+                "total_tokens": int(total_tokens),
+                "throughput_tokens_per_sec": round(float(tps), 2),
+            },
+        )
+
         assert tps > 10, f"vLLM throughput {tps:.0f} tokens/sec too low"
         del llm
         torch.cuda.empty_cache()
+
+    def test_vllm_training_kpi_status(self):
+        """Capture vLLM training KPI status (vLLM is inference-focused and does not train)."""
+        _record_kpi(
+            "test_vllm_training_kpi_status",
+            {
+                "component": "vllm",
+                "training_supported": False,
+                "status": "not_applicable",
+                "note": "vLLM is inference-serving runtime; use PyTorch/DeepSpeed for training KPIs",
+            },
+        )
+        logger.info(
+            "vLLM training KPI status: not_applicable (vLLM is inference-focused; training not supported)"
+        )
 
 
 # =============================================================================

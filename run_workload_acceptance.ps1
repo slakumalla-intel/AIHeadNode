@@ -1,11 +1,22 @@
 param(
     [switch]$IncludeLargeModels,
+    [switch]$SkipLargeModels,
     [int]$MinDurationSec = 300,
     [string]$KpiFile = "artifacts/node_validation_kpis.jsonl",
     [string[]]$ExtraPytestArgs = @()
 )
 
-$env:HF_ENABLE_LARGE_MODELS = if ($IncludeLargeModels) { "1" } else { "0" }
+if ($SkipLargeModels) {
+    $env:HF_ENABLE_LARGE_MODELS = "0"
+} else {
+    # Default to enabled so 70B enterprise workloads execute unless explicitly skipped.
+    $env:HF_ENABLE_LARGE_MODELS = "1"
+}
+
+# Backward-compatible explicit enable switch (no-op when already enabled).
+if ($IncludeLargeModels) {
+    $env:HF_ENABLE_LARGE_MODELS = "1"
+}
 $env:HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC = [string]$MinDurationSec
 $env:NODE_VALIDATION_KPI_FILE = $KpiFile
 

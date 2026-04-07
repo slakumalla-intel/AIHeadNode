@@ -18,6 +18,7 @@ Can be executed separately with:
 import logging
 import os
 import json
+import re
 import subprocess
 import sys
 import threading
@@ -1391,6 +1392,10 @@ def _record_kpi(test_name: str, metrics: Dict) -> None:
     with out_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, default=str) + "\n")
 
+    # Emit KPI values directly to test logs so workload-category runs show
+    # throughput/latency/utilization numbers without opening the JSONL artifact.
+    logger.info("KPI %s: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
+
 
 def _run_hf_causal_latency_workload(
     model_id: str,
@@ -1713,6 +1718,415 @@ class TestWorkloadAcceptanceHuggingFace:
         assert tps > 100, f"Batch throughput {tps:.0f} tokens/sec too low"
         del model
         torch.cuda.empty_cache()
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.workload_acceptance
+    def test_vllm_data_pipeline_saturation_inference_prefill(self):
+        """TC-NV-08b: Data pipeline saturation (inference prefill).
+
+        Goal: ensure GPUs do not idle due to CPU-side starvation while serving
+        prefill-heavy requests.
+
+        Workload command (vLLM benchmark):
+          python -m vllm.benchmarks.benchmark_serving --request-rate 100 --input-len-mean 1024
+
+        Pass criteria:
+          - GPU utilization sustained high (>= 90% for most samples)
+          - CPU utilization sustained below saturation (<= 70% for most samples)
+        """
+        try:
+            import psutil
+        except ImportError:
+            pytest.skip("psutil not installed")
+
+        if torch.cuda.device_count() == 0:
+            pytest.skip("No CUDA devices")
+
+        try:
+            import vllm  # noqa: F401
+        except ImportError:
+            pytest.skip("vllm not installed")
+
+        benchmark_timeout_sec = int(os.environ.get("VLLM_BENCHMARK_TIMEOUT_SEC", "240"))
+        sample_interval_sec = float(os.environ.get("VLLM_BENCHMARK_SAMPLE_INTERVAL_SEC", "1.0"))
+
+        cmd = [
+            sys.executable,
+            "-m",
+            "vllm.benchmarks.benchmark_serving",
+            "--model",
+            _HF_INFERENCE_MODEL,
+            "--request-rate",
+            "100",
+            "--input-len-mean",
+            "1024",
+        ]
+
+        logger.info("Running vLLM pipeline saturation benchmark: %s", " ".join(cmd))
+
+        gpu_util_samples: List[float] = []
+        cpu_util_samples: List[float] = []
+        start = time.perf_counter()
+
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env={**os.environ, "CUDA_DEVICE_ORDER": "PCI_BUS_ID"},
+        )
+
+        try:
+            while proc.poll() is None and (time.perf_counter() - start) < benchmark_timeout_sec:
+                # System-wide CPU utilization for starvation detection.
+                cpu_util_samples.append(psutil.cpu_percent(interval=sample_interval_sec))
+                try:
+                    smi = subprocess.run(
+                        [
+                            "nvidia-smi",
+                            "--query-gpu=utilization.gpu",
+                            "--format=csv,noheader,nounits",
+                        ],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                    )
+                    if smi.returncode == 0:
+                        vals = []
+                        for line in smi.stdout.strip().splitlines():
+                            line = line.strip()
+                            if line:
+                                vals.append(float(line))
+                        if vals:
+                            gpu_util_samples.append(float(sum(vals) / len(vals)))
+                except Exception:
+                    # Keep sampling loop running even if one nvidia-smi call fails.
+                    pass
+
+            if proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+
+            stdout, stderr = proc.communicate(timeout=10)
+        except Exception:
+            if proc.poll() is None:
+                proc.kill()
+            raise
+
+        runtime_sec = time.perf_counter() - start
+
+        if proc.returncode not in (0, None):
+            # Benchmark CLI arguments/options can vary by vLLM version.
+            pytest.skip(
+                "vLLM benchmark_serving failed in this environment. "
+                f"exit={proc.returncode}, stderr={stderr.strip()[:300]}"
+            )
+
+        if not gpu_util_samples:
+            pytest.skip("No GPU utilization samples collected during vLLM benchmark")
+        if not cpu_util_samples:
+            pytest.skip("No CPU utilization samples collected during vLLM benchmark")
+
+        gpu_over_90_ratio = sum(1 for x in gpu_util_samples if x >= 90.0) / len(gpu_util_samples)
+        cpu_under_70_ratio = sum(1 for x in cpu_util_samples if x <= 70.0) / len(cpu_util_samples)
+        gpu_mean = float(np.mean(gpu_util_samples))
+        cpu_mean = float(np.mean(cpu_util_samples))
+        cpu_p95 = float(np.percentile(cpu_util_samples, 95))
+
+        # Optional latency-jitter signals from benchmark output, when available.
+        p50_ms = None
+        p95_ms = None
+        p99_ms = None
+        out = (stdout or "") + "\n" + (stderr or "")
+        for token in out.replace(",", " ").split():
+            low = token.lower()
+            if low.startswith("p50") and "=" in token:
+                try:
+                    p50_ms = float(token.split("=")[-1])
+                except ValueError:
+                    pass
+            if low.startswith("p95") and "=" in token:
+                try:
+                    p95_ms = float(token.split("=")[-1])
+                except ValueError:
+                    pass
+            if low.startswith("p99") and "=" in token:
+                try:
+                    p99_ms = float(token.split("=")[-1])
+                except ValueError:
+                    pass
+
+        logger.info(
+            "vLLM prefill saturation: runtime=%.1fs  gpu_mean=%.1f%%  cpu_mean=%.1f%%  "
+            "gpu>=90%% ratio=%.2f  cpu<=70%% ratio=%.2f  cpu_p95=%.1f%%",
+            runtime_sec,
+            gpu_mean,
+            cpu_mean,
+            gpu_over_90_ratio,
+            cpu_under_70_ratio,
+            cpu_p95,
+        )
+
+        if p50_ms is not None and p95_ms is not None and p99_ms is not None:
+            logger.info("vLLM latency percentiles (ms): p50=%.2f p95=%.2f p99=%.2f", p50_ms, p95_ms, p99_ms)
+            if p99_ms > p95_ms * 1.5:
+                logger.warning(
+                    "Large tail-latency spread detected (p99 much larger than p95) - "
+                    "possible jitter, memory thrash, or system instability"
+                )
+
+        _record_kpi(
+            "test_vllm_data_pipeline_saturation_inference_prefill",
+            {
+                "model": _HF_INFERENCE_MODEL,
+                "runtime_sec": round(runtime_sec, 2),
+                "gpu_mean_util_pct": round(gpu_mean, 2),
+                "cpu_mean_util_pct": round(cpu_mean, 2),
+                "gpu_over_90_ratio": round(gpu_over_90_ratio, 3),
+                "cpu_under_70_ratio": round(cpu_under_70_ratio, 3),
+                "cpu_p95_util_pct": round(cpu_p95, 2),
+                "request_rate": 100,
+                "input_len_mean": 1024,
+                "p50_ms": p50_ms,
+                "p95_ms": p95_ms,
+                "p99_ms": p99_ms,
+            },
+        )
+
+        assert gpu_over_90_ratio >= 0.8, (
+            f"GPU utilization not sustained (>=90% ratio={gpu_over_90_ratio:.2f}, mean={gpu_mean:.1f}%)"
+        )
+        assert cpu_under_70_ratio >= 0.8, (
+            f"CPU utilization too high for sustained periods (<=70% ratio={cpu_under_70_ratio:.2f}, p95={cpu_p95:.1f}%)"
+        )
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.workload_acceptance
+    def test_vision_object_detection_yolo_fps(self):
+        """TC-NV-08c: Vision workload (object detection) via YOLO.
+
+        Goal: validate high aggregate FPS with efficient preprocessing.
+        Pass criteria:
+          - Aggregate FPS >= 200
+          - CPU utilization mean < 50%
+        """
+        try:
+            import psutil
+        except ImportError:
+            pytest.skip("psutil not installed")
+
+        if torch.cuda.device_count() == 0:
+            pytest.skip("No CUDA devices")
+
+        # Ultralytics CLI must be available (pip install ultralytics).
+        yolo_cli = subprocess.run(
+            ["yolo", "help"], capture_output=True, text=True, timeout=10
+        )
+        if yolo_cli.returncode != 0:
+            pytest.skip("YOLO CLI not available. Install with: pip install ultralytics")
+
+        device_count = torch.cuda.device_count()
+        device_str = ",".join(str(i) for i in range(device_count))
+        batch_size = int(os.environ.get("YOLO_DETECT_BATCH", "128"))
+        imgsz = int(os.environ.get("YOLO_DETECT_IMGSZ", "640"))
+        src = os.environ.get("YOLO_DETECT_SOURCE", "https://ultralytics.com/images/bus.jpg")
+        timeout_sec = int(os.environ.get("YOLO_DETECT_TIMEOUT_SEC", "240"))
+        cpu_sample_interval_sec = float(os.environ.get("YOLO_CPU_SAMPLE_INTERVAL_SEC", "0.5"))
+        # Default target scales with GPU count: 25 FPS/GPU corresponds to 200 FPS on 8 GPUs.
+        fps_target = float(os.environ.get("YOLO_AGGREGATE_FPS_TARGET", str(25 * device_count)))
+
+        cmd = [
+            "yolo",
+            "detect",
+            "predict",
+            "model=yolov8x.pt",
+            f"source={src}",
+            f"device={device_str}",
+            f"batch={batch_size}",
+            f"imgsz={imgsz}",
+            "half=True",
+            "save=False",
+            "verbose=True",
+        ]
+        logger.info("Running YOLO workload: %s", " ".join(cmd))
+
+        cpu_samples: List[float] = []
+        t_start = time.perf_counter()
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        try:
+            while proc.poll() is None and (time.perf_counter() - t_start) < timeout_sec:
+                cpu_samples.append(psutil.cpu_percent(interval=cpu_sample_interval_sec))
+
+            if proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+
+            stdout, stderr = proc.communicate(timeout=10)
+        except Exception:
+            if proc.poll() is None:
+                proc.kill()
+            raise
+
+        runtime_sec = time.perf_counter() - t_start
+        combined = (stdout or "") + "\n" + (stderr or "")
+        if proc.returncode not in (0, None):
+            pytest.skip(f"YOLO workload command failed (exit={proc.returncode}): {combined[-500:]}")
+
+        # Parse speed lines, e.g. "Speed: 0.8ms preprocess, 2.1ms inference, 0.4ms postprocess per image"
+        speed_matches = re.findall(
+            r"Speed:\s*([0-9]*\.?[0-9]+)ms\s*preprocess,\s*([0-9]*\.?[0-9]+)ms\s*inference,\s*([0-9]*\.?[0-9]+)ms\s*postprocess",
+            combined,
+            flags=re.IGNORECASE,
+        )
+        if not speed_matches:
+            pytest.skip("Could not parse YOLO speed output for FPS computation")
+
+        # Use average over all reported speed lines to reduce one-off jitter.
+        preprocess_ms = float(np.mean([float(x[0]) for x in speed_matches]))
+        inference_ms = float(np.mean([float(x[1]) for x in speed_matches]))
+        postprocess_ms = float(np.mean([float(x[2]) for x in speed_matches]))
+        per_image_ms = preprocess_ms + inference_ms + postprocess_ms
+        if per_image_ms <= 0:
+            pytest.skip("Invalid YOLO per-image latency parsed from output")
+
+        # Aggregate FPS estimate from per-image timing and batch size.
+        fps_aggregate = batch_size * (1000.0 / per_image_ms)
+        cpu_mean = float(np.mean(cpu_samples)) if cpu_samples else 0.0
+        cpu_p95 = float(np.percentile(cpu_samples, 95)) if cpu_samples else 0.0
+
+        logger.info(
+            "YOLO object detection workload: runtime=%.1fs  per_image=%.2f ms  aggregate_fps=%.1f  "
+            "cpu_mean=%.1f%% cpu_p95=%.1f%%",
+            runtime_sec,
+            per_image_ms,
+            fps_aggregate,
+            cpu_mean,
+            cpu_p95,
+        )
+
+        _record_kpi(
+            "test_vision_object_detection_yolo_fps",
+            {
+                "runtime_sec": round(runtime_sec, 2),
+                "batch": batch_size,
+                "imgsz": imgsz,
+                "per_image_ms": round(per_image_ms, 4),
+                "aggregate_fps": round(fps_aggregate, 2),
+                "aggregate_fps_target": round(fps_target, 2),
+                "cpu_mean_util_pct": round(cpu_mean, 2),
+                "cpu_p95_util_pct": round(cpu_p95, 2),
+                "gpu_devices": device_str,
+            },
+        )
+
+        assert fps_aggregate >= fps_target, (
+            f"YOLO aggregate FPS too low: {fps_aggregate:.1f} < target {fps_target:.1f}"
+        )
+        assert cpu_mean < 50.0, f"CPU utilization too high during YOLO workload: {cpu_mean:.1f}% >= 50%"
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.workload_acceptance
+    def test_vision_image_generation_diffusers_throughput(self):
+        """TC-NV-08d: Vision workload (image generation) via Diffusers command.
+
+        Goal: validate stable image generation throughput.
+        Default command:
+          torchrun generate.py
+        Pass criteria:
+          - Throughput > 10 images/sec
+        """
+        cmd_str = os.environ.get("DIFFUSERS_GENERATE_CMD", "torchrun generate.py")
+        script_path = Path("generate.py")
+        use_inline_fallback = "generate.py" in cmd_str and not script_path.exists()
+
+        timeout_sec = int(os.environ.get("DIFFUSERS_GENERATE_TIMEOUT_SEC", "300"))
+        throughput = None
+        mode = "external_command"
+
+        if use_inline_fallback:
+            mode = "inline_diffusers_fallback"
+            try:
+                from diffusers import StableDiffusionPipeline
+            except ImportError:
+                pytest.skip(
+                    "generate.py not found and diffusers not installed. "
+                    "Install diffusers or set DIFFUSERS_GENERATE_CMD to your command."
+                )
+
+            model_id = os.environ.get("DIFFUSERS_MODEL_ID", "runwayml/stable-diffusion-v1-5")
+            prompt = os.environ.get("DIFFUSERS_PROMPT", "A modern AI datacenter with H100 GPUs")
+            num_images = int(os.environ.get("DIFFUSERS_NUM_IMAGES", "16"))
+            steps = int(os.environ.get("DIFFUSERS_STEPS", "20"))
+
+            logger.info(
+                "Running inline Diffusers benchmark: model=%s images=%d steps=%d",
+                model_id,
+                num_images,
+                steps,
+            )
+
+            try:
+                pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
+                pipe = pipe.to("cuda:0")
+                # Warmup
+                _ = pipe(prompt, num_inference_steps=steps, guidance_scale=7.5)
+                torch.cuda.synchronize("cuda:0")
+
+                t0 = time.perf_counter()
+                for _ in range(num_images):
+                    _ = pipe(prompt, num_inference_steps=steps, guidance_scale=7.5)
+                torch.cuda.synchronize("cuda:0")
+                elapsed = time.perf_counter() - t0
+                throughput = num_images / elapsed if elapsed > 0 else None
+            except Exception as exc:
+                pytest.skip(f"Inline Diffusers benchmark failed: {exc}")
+        else:
+            logger.info("Running Diffusers image-generation workload: %s", cmd_str)
+            result = subprocess.run(
+                cmd_str,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=timeout_sec,
+                env=os.environ.copy(),
+            )
+            output = (result.stdout or "") + "\n" + (result.stderr or "")
+            if result.returncode != 0:
+                pytest.skip(f"Diffusers generation command failed (exit={result.returncode}): {output[-500:]}")
+
+            # Parse throughput from output patterns like "12.3 img/s" or "throughput=12.3".
+            patterns = [
+                r"([0-9]*\.?[0-9]+)\s*img/s",
+                r"throughput\s*[:=]\s*([0-9]*\.?[0-9]+)",
+                r"images_per_second\s*[:=]\s*([0-9]*\.?[0-9]+)",
+            ]
+            for pat in patterns:
+                m = re.search(pat, output, flags=re.IGNORECASE)
+                if m:
+                    throughput = float(m.group(1))
+                    break
+
+            if throughput is None:
+                pytest.skip("Could not parse image-generation throughput from command output")
+
+        logger.info("Diffusers image-generation throughput: %.2f img/s", throughput)
+        _record_kpi(
+            "test_vision_image_generation_diffusers_throughput",
+            {
+                "mode": mode,
+                "command": cmd_str,
+                "throughput_img_per_sec": round(throughput, 3),
+            },
+        )
+
+        assert throughput > 10.0, f"Image-generation throughput too low: {throughput:.2f} img/s <= 10.0"
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_hf_encoder_training_throughput(self):

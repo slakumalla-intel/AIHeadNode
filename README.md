@@ -54,6 +54,7 @@ tests/
 | `pcie` | PCIe 5.0 host↔device bandwidth tests |
 | `bottleneck` | Roofline analysis and bottleneck identification |
 | `workload_acceptance` | End-to-end ML workload validation (inference, training, vision) |
+| `rdma_validation` | RDMA/MMIO/FENCE/DMA functional validation tests |
 | `node_validation` | High-level node health and performance acceptance tests |
 | `slow` | Tests that take > 30 s |
 
@@ -162,6 +163,9 @@ The suite includes comprehensive end-to-end ML workload validation:
 
 # Run via pytest directly
 pytest -m workload_acceptance -vv --log-cli-level=INFO
+
+# Run only RDMA/MMIO/FENCE/DMA validation tests
+pytest -m rdma_validation -vv tests/test_node_validation.py
 ```
 
 ---
@@ -241,7 +245,7 @@ TORCH_HOME=~/.cache/torch             # PyTorch cache
 export VLLM_KV_OFFLOAD_MODEL=meta-llama/Llama-2-70b-hf
 export VLLM_KV_CONTEXT_LENGTH=32768
 export VLLM_KV_BATCH_SIZE=8
-pytest -m workload_acceptance tests/test_node_validation.py::TestNodeValidation::test_predictable_memory_orchestration_kv_cache_offload -vv
+pytest -m workload_acceptance tests/test_node_validation.py::TestWorkloadAcceptanceHuggingFace::test_predictable_memory_orchestration_kv_cache_offload -vv
 ```
 
 #### Quick YOLO validation with small model
@@ -249,13 +253,56 @@ pytest -m workload_acceptance tests/test_node_validation.py::TestNodeValidation:
 ```bash
 export YOLO_DETECT_MODEL=yolov8n.pt
 export YOLO_AGGREGATE_FPS_TARGET=50
-pytest -m workload_acceptance tests/test_node_validation.py::TestNodeValidation::test_vision_object_detection_yolo_fps -vv
+pytest -m workload_acceptance tests/test_node_validation.py::TestWorkloadAcceptanceHuggingFace::test_vision_object_detection_yolo_fps -vv
 ```
 
 #### Enterprise workloads with long inference duration
 
 ```bash
 ./run_workload_acceptance.sh --min-duration-sec 900
+```
+
+---
+
+## Node Validation Report
+
+After each pytest session, the framework writes a node validation report to:
+
+- `NODE_VALIDATION_REPORT.md` (for tests marked `node_validation`)
+- `TESTCASE_EXECUTION_FINAL_REPORT.md` (other test categories)
+
+The report includes:
+
+- **Highlights**: total, pass, fail, skip counts with color badges.
+- **Top 5 KPIs**: compact high-value metrics (throughput/FPS/latency/bandwidth).
+- **Issues Summary**: explicit failure reasons and skipped reasons.
+- **Success Summary**: successful cases with concise outcomes.
+- **KPI Summary**: latest KPI metrics by test key loaded from JSONL.
+- **Execution Status Table**: colorized, scrollable, and horizontally resizable table with:
+  - test name
+  - purpose
+  - result
+  - status
+  - analysis
+  - KPI snapshot
+  - reason/success/issue detail
+
+KPI source file is controlled by:
+
+```bash
+NODE_VALIDATION_KPI_FILE=artifacts/node_validation_kpis.jsonl
+```
+
+If KPI file is missing for a run, report generation continues and shows a clear note.
+
+### Generate Node Validation Report
+
+```bash
+# Node validation only
+pytest -m node_validation -vv
+
+# Workload acceptance only
+pytest -m workload_acceptance -vv
 ```
 
 ---

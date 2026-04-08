@@ -8,6 +8,7 @@ Hardware target:
 
 import os
 import sys
+import json
 import platform
 import subprocess
 import time
@@ -34,7 +35,7 @@ _NODE_VALIDATION_REPORT_PATH = Path(__file__).resolve().parents[1] / "NODE_VALID
 # ---------------------------------------------------------------------------
 # Environment Variable Defaults (pytest_configure hook)
 # ---------------------------------------------------------------------------
-def pytest_configure(config: pytest.Config) -> None:
+def _configure_default_env() -> None:
     """Set environment variable defaults for all workload tests."""
     
     # =========================================================================
@@ -139,7 +140,7 @@ def _purpose_from_item(item: pytest.Item) -> str:
 
 def _status_result_analysis(report: pytest.TestReport) -> Tuple[str, str, str]:
     if report.outcome == "passed":
-        return "PASS", f"PASS ({report.duration:.3f}s)", "Executed successfully."
+        return "PASS", f"PASS ({report.duration:.3f}s)", "Executed successfully; acceptance criteria met."
 
     if report.outcome == "skipped":
         reason = "Skipped"
@@ -149,13 +150,138 @@ def _status_result_analysis(report: pytest.TestReport) -> Tuple[str, str, str]:
             lr = str(report.longrepr)
             if "Skipped:" in lr:
                 reason = lr.split("Skipped:", 1)[-1].strip()
-        return "SKIP", f"SKIPPED: {reason}", "Execution skipped due to environment or prerequisites."
+        return "SKIP", f"SKIPPED: {reason}", "Skipped by design: environment, tools, or prerequisites unavailable."
 
     # Failed
     fail_msg = "Assertion or runtime failure"
     if hasattr(report.longrepr, "reprcrash") and report.longrepr.reprcrash:
         fail_msg = report.longrepr.reprcrash.message
-    return "FAIL", f"FAILED: {fail_msg}", "Check assertion thresholds and benchmark environment consistency."
+    return "FAIL", f"FAILED: {fail_msg}", "Investigate thresholds, platform readiness, and benchmark runtime conditions."
+
+
+def _kpi_output_path() -> Path:
+    return Path(os.environ.get("NODE_VALIDATION_KPI_FILE", "artifacts/node_validation_kpis.jsonl"))
+
+
+def _normalize_test_key(value: str) -> str:
+    key = value.strip()
+    if "::" in key:
+        key = key.split("::")[-1]
+    if "[" in key:
+        key = key.split("[", 1)[0]
+    return key
+
+
+def _load_latest_kpis() -> Dict[str, Dict[str, Any]]:
+    """Load latest KPI payload per test name from JSONL, if available."""
+    out: Dict[str, Dict[str, Any]] = {}
+    kpi_path = _kpi_output_path()
+    if not kpi_path.exists():
+        return out
+
+    try:
+        with kpi_path.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    payload = json.loads(line)
+                except Exception:
+                    continue
+                test_name = str(payload.get("test", "")).strip()
+                if not test_name:
+                    continue
+                metrics = payload.get("metrics", {})
+                if not isinstance(metrics, dict):
+                    metrics = {"value": metrics}
+                out[_normalize_test_key(test_name)] = {
+                    "timestamp": payload.get("timestamp", ""),
+                    "metrics": metrics,
+                }
+    except Exception as exc:
+        logger.warning("Unable to parse KPI JSONL %s: %s", kpi_path, exc)
+    return out
+
+
+def _extract_reason(result: str) -> str:
+    if result.startswith("FAILED:"):
+        return result.split("FAILED:", 1)[-1].strip()
+    if result.startswith("SKIPPED:"):
+        return result.split("SKIPPED:", 1)[-1].strip()
+    if result.startswith("PASS"):
+        return "Acceptance criteria satisfied"
+    return result
+
+
+def _compact_metrics(metrics: Dict[str, Any], max_items: int = 5) -> str:
+    if not metrics:
+        return "-"
+    items = []
+    for i, (k, v) in enumerate(metrics.items()):
+        if i >= max_items:
+            items.append("...")
+            break
+        if isinstance(v, float):
+            items.append(f"{k}={v:.3f}")
+        else:
+            items.append(f"{k}={v}")
+    return "; ".join(items)
+
+
+def _pick_top_kpis(latest_kpis: Dict[str, Dict[str, Any]], limit: int = 5) -> List[Dict[str, Any]]:
+    """Pick a compact set of high-value KPI numbers for quick report scanning."""
+    flattened: List[Dict[str, Any]] = []
+    for test_key, payload in latest_kpis.items():
+        metrics = payload.get("metrics", {})
+        if not isinstance(metrics, dict):
+            continue
+        for metric_name, value in metrics.items():
+            if isinstance(value, bool):
+                continue
+            if isinstance(value, (int, float)):
+                flattened.append(
+                    {"test": test_key, "metric": metric_name, "value": float(value)}
+                )
+
+    if not flattened:
+        return []
+
+    priorities: List[Tuple[str, bool]] = [
+        ("throughput_tokens_per_sec", True),
+        ("samples_per_sec", True),
+        ("aggregate_fps", True),
+        ("bandwidth_gbps", True),
+        ("p95_latency_ms", False),
+        ("mean_latency_ms", False),
+        ("page_faults_per_sec", False),
+        ("cpu_mean_util_pct", False),
+        ("gpu_mean_util_pct", True),
+    ]
+
+    selected: List[Dict[str, Any]] = []
+    used = set()
+
+    for key_hint, high_is_good in priorities:
+        matches = [x for x in flattened if key_hint in x["metric"] and (x["test"], x["metric"]) not in used]
+        if not matches:
+            continue
+        best = max(matches, key=lambda x: x["value"]) if high_is_good else min(matches, key=lambda x: x["value"])
+        selected.append(best)
+        used.add((best["test"], best["metric"]))
+        if len(selected) >= limit:
+            return selected
+
+    for x in sorted(flattened, key=lambda v: abs(v["value"]), reverse=True):
+        key = (x["test"], x["metric"])
+        if key in used:
+            continue
+        selected.append(x)
+        used.add(key)
+        if len(selected) >= limit:
+            break
+
+    return selected
 
 
 def _render_status(status: str) -> str:
@@ -187,6 +313,8 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
     if not rows:
         return
 
+    latest_kpis = _load_latest_kpis()
+
     statuses = [v["status"] for v in rows.values()]
     passed = statuses.count("PASS")
     failed = statuses.count("FAIL")
@@ -197,6 +325,16 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
         (nodeid, row)
         for nodeid, row in sorted(rows.items())
         if row.get("status") == "SKIP"
+    ]
+    failed_rows = [
+        (nodeid, row)
+        for nodeid, row in sorted(rows.items())
+        if row.get("status") == "FAIL"
+    ]
+    passed_rows = [
+        (nodeid, row)
+        for nodeid, row in sorted(rows.items())
+        if row.get("status") == "PASS"
     ]
 
     highlights = [
@@ -225,27 +363,139 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
         "",
         f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"Pytest command line: {' '.join(config.invocation_params.args)}",
+        f"KPI source file: {_kpi_output_path()}",
+        "",
+        "<style>",
+        ".report-scroll { overflow-x: auto; resize: horizontal; border: 1px solid #d0d7de; border-radius: 6px; padding: 6px; }",
+        ".report-table { border-collapse: collapse; width: 100%; min-width: 1400px; table-layout: auto; font-size: 12px; }",
+        ".report-table th, .report-table td { border: 1px solid #d0d7de; padding: 6px 8px; vertical-align: top; }",
+        ".report-table th { background: #f6f8fa; position: sticky; top: 0; z-index: 1; }",
+        ".cell-wrap { white-space: normal; word-break: break-word; max-width: 540px; }",
+        "</style>",
         "",
         "## Highlights",
         "",
         *highlights,
         "",
+    ]
+
+    top_kpis = _pick_top_kpis(latest_kpis, limit=5)
+    lines.extend([
+        "## Top 5 KPIs",
+        "",
+    ])
+    if top_kpis:
+        lines.extend([
+            "| KPI | Value | Test |",
+            "|---|---|---|",
+        ])
+        for item in top_kpis:
+            lines.append(
+                f"| {_md_escape(item['metric'])} | {_md_escape(f'{item['value']:.3f}')} | {_md_escape(item['test'])} |"
+            )
+    else:
+        lines.append("- No numeric KPI values available for this run.")
+
+    lines.extend([
+        "",
+        "## Issues Summary",
+        "",
+    ])
+
+    if failed_rows:
+        lines.extend([
+            "| Type | Test | Reason |",
+            "|---|---|---|",
+        ])
+        for nodeid, row in failed_rows[:20]:
+            lines.append(
+                f"| {_color_badge('FAIL', '#cc1f1a')} | {_md_escape(nodeid)} | {_md_escape(_extract_reason(row.get('result', '')))} |"
+            )
+    else:
+        lines.append(f"- {_color_badge('PASS', '#1b8a3b')}: No failures detected.")
+
+    if skipped_rows:
+        lines.extend([
+            "",
+            "### Skipped Cases",
+            "",
+            "| Type | Test | Reason |",
+            "|---|---|---|",
+        ])
+        for nodeid, row in skipped_rows[:20]:
+            lines.append(
+                f"| {_color_badge('SKIP', '#1f6feb')} | {_md_escape(nodeid)} | {_md_escape(_extract_reason(row.get('result', '')))} |"
+            )
+
+    lines.extend([
+        "",
+        "## Success Summary",
+        "",
+        f"- {_color_badge('PASS', '#1b8a3b')}: Successful testcases: {passed}",
+    ])
+
+    if passed_rows:
+        lines.extend([
+            "",
+            "| Test | Success Case |",
+            "|---|---|",
+        ])
+        for nodeid, row in passed_rows[:10]:
+            lines.append(
+                f"| {_md_escape(nodeid)} | {_md_escape(_extract_reason(row.get('result', '')))} |"
+            )
+
+    lines.extend([
+        "",
+        "## KPI Summary",
+        "",
+    ])
+
+    if latest_kpis:
+        lines.extend([
+            "| Test Key | KPI Metrics |",
+            "|---|---|",
+        ])
+        for test_key in sorted(latest_kpis.keys()):
+            metrics = latest_kpis[test_key].get("metrics", {})
+            lines.append(
+                f"| {_md_escape(test_key)} | {_md_escape(_compact_metrics(metrics, max_items=8))} |"
+            )
+    else:
+        lines.append("- No KPI records found for this run. Ensure workload tests called KPI recorder.")
+
+    lines.extend([
+        "",
         "## Execution Status Table",
         "",
-        "| Test | Purpose | Result | Status | Analysis |",
-        "|---|---|---|---|---|",
-    ]
+        "<div class=\"report-scroll\">",
+        "<table class=\"report-table\">",
+        "<thead><tr><th style=\"min-width: 380px;\">Test</th><th style=\"min-width: 360px;\">Purpose</th><th style=\"min-width: 360px;\">Result</th><th style=\"min-width: 100px;\">Status</th><th style=\"min-width: 300px;\">Analysis</th><th style=\"min-width: 380px;\">KPI</th><th style=\"min-width: 320px;\">Reason / Success Case / Issue</th></tr></thead>",
+        "<tbody>",
+    ])
 
     for nodeid in sorted(rows):
         row = rows[nodeid]
+        test_key = _normalize_test_key(nodeid)
+        kpi_metrics = latest_kpis.get(test_key, {}).get("metrics", {})
+        reason = _extract_reason(row.get("result", ""))
         lines.append(
-            "| "
-            f"{_md_escape(nodeid)} | "
-            f"{_md_escape(row['purpose'])} | "
-            f"{_render_result_text(row['result'])} | "
-            f"{_render_status(row['status'])} | "
-            f"{_md_escape(row['analysis'])} |"
+            "<tr>"
+            f"<td><div class=\"cell-wrap\">{_md_escape(nodeid)}</div></td>"
+            f"<td><div class=\"cell-wrap\">{_md_escape(row['purpose'])}</div></td>"
+            f"<td><div class=\"cell-wrap\">{_render_result_text(row['result'])}</div></td>"
+            f"<td>{_render_status(row['status'])}</td>"
+            f"<td><div class=\"cell-wrap\">{_md_escape(row['analysis'])}</div></td>"
+            f"<td><div class=\"cell-wrap\">{_md_escape(_compact_metrics(kpi_metrics, max_items=6))}</div></td>"
+            f"<td><div class=\"cell-wrap\">{_md_escape(reason)}</div></td>"
+            "</tr>"
         )
+
+    lines.extend([
+        "</tbody>",
+        "</table>",
+        "</div>",
+    ])
 
     if skipped_rows:
         lines.extend([
@@ -287,6 +537,7 @@ _multiprocessing = _try_import("multiprocessing")
 # ---------------------------------------------------------------------------
 
 def pytest_configure(config):
+    _configure_default_env()
     config.addinivalue_line("markers", "cpu: tests that exercise CPU compute")
     config.addinivalue_line("markers", "memory: tests that exercise the memory subsystem")
     config.addinivalue_line("markers", "gpu: tests that require NVIDIA GPU(s)")
@@ -303,6 +554,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "power_validation: power and thermal tests")
     config.addinivalue_line("markers", "nccl_validation: NCCL and inter-GPU communication tests")
     config.addinivalue_line("markers", "workload_acceptance: workload acceptance tests")
+    config.addinivalue_line("markers", "rdma_validation: RDMA/MMIO/FENCE/DMA functional validation tests")
     setattr(config, "_exec_report_rows", {})
     setattr(config, "_node_validation_report_rows", {})
 

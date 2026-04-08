@@ -1442,12 +1442,17 @@ def _run_hf_causal_latency_workload(
         )
     except Exception as exc:
         if force_local_only:
-            pytest.skip(
-                f"Large model {model_id} not found in local HF cache. "
-                "Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to download remotely. "
-                f"Details: {exc}"
+            logger.warning(
+                "Large model %s not found in local cache (%s). Falling back to remote download.",
+                model_id,
+                exc,
             )
-        raise
+            os.environ["HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD"] = "1"
+            force_local_only = False
+            tokenizer = _hf_from_pretrained(AutoTokenizer, model_id)
+            logger.info("Remote tokenizer download enabled for %s", model_id)
+        else:
+            raise
     logger.info("Tokenizer load completed in %.1fs", time.perf_counter() - tok_t0)
 
     if tokenizer.pad_token is None:
@@ -1481,12 +1486,18 @@ def _run_hf_causal_latency_workload(
         logger.info("Model load completed in %.1fs", time.perf_counter() - model_t0)
     except Exception as exc:
         if force_local_only:
-            pytest.skip(
-                f"Large model {model_id} not available locally (model weights missing). "
-                "Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to enable remote download. "
-                f"Details: {exc}"
+            logger.warning(
+                "Large model %s weights not available locally (%s). Falling back to remote download.",
+                model_id,
+                exc,
             )
-        pytest.skip(f"Model load failed for {model_id}: {exc}")
+            os.environ["HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD"] = "1"
+            model_kwargs.pop("local_files_only", None)
+            model_t0 = time.perf_counter()
+            model = _hf_from_pretrained(AutoModelForCausalLM, model_id, **model_kwargs)
+            logger.info("Remote model download/load completed in %.1fs", time.perf_counter() - model_t0)
+        else:
+            pytest.skip(f"Model load failed for {model_id}: {exc}")
 
     if not use_quantized_load:
         model = model.to(device)

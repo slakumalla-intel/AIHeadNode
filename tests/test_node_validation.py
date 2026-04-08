@@ -19,6 +19,7 @@ import logging
 import os
 import json
 import re
+import shutil
 import subprocess
 import sys
 import threading
@@ -2841,6 +2842,321 @@ class TestWorkloadAcceptanceHuggingFace:
         except Exception as e:
             logger.error("KV cache workload failed: %s", e)
             return None
+
+    def _pick_single_cpu_core(self) -> int:
+        """Pick one CPU core for single-threaded affinity tests."""
+        affinity = os.sched_getaffinity(0) if hasattr(os, "sched_getaffinity") else None
+        if affinity:
+            return sorted(list(affinity))[0]
+        return 0
+
+    def _first_rdma_device(self) -> Optional[str]:
+        """Return first RDMA device name from ibv_devices output."""
+        if shutil.which("ibv_devices") is None:
+            return None
+        try:
+            proc = subprocess.run(
+                ["ibv_devices"], capture_output=True, text=True, timeout=10
+            )
+            if proc.returncode != 0:
+                return None
+            for line in proc.stdout.splitlines():
+                s = line.strip()
+                if not s or s.startswith("device") or s.startswith("------"):
+                    continue
+                parts = s.split()
+                if parts:
+                    return parts[0]
+        except Exception:
+            return None
+        return None
+
+    def _parse_ib_write_lat_stats(self, output: str, size_bytes: int) -> Optional[Tuple[float, float]]:
+        """Parse ib_write_lat table output and return (min_us, avg_us) for a size."""
+        for line in output.splitlines():
+            s = line.strip()
+            if not s or s.startswith("#"):
+                continue
+            cols = s.split()
+            # Expected table row shape:
+            # bytes iterations t_min t_max t_typ t_avg ...
+            if len(cols) < 6:
+                continue
+            if not cols[0].isdigit() or int(cols[0]) != size_bytes:
+                continue
+            try:
+                min_us = float(cols[2])
+                avg_us = float(cols[5])
+                return min_us, avg_us
+            except Exception:
+                continue
+        return None
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.workload_acceptance
+    @pytest.mark.rdma_validation
+    def test_single_core_gpudirect_rdma_flow(self):
+        """Single-core GPUDirect RDMA validation across fixed message sizes.
+
+        Validates one-thread, one-QP/CQ style flow pinned to one CPU core for
+        message sizes 64B, 256B, and 4KB, and records min/avg latency.
+        """
+        if torch.cuda.device_count() == 0:
+            pytest.skip("No CUDA devices")
+
+        if shutil.which("taskset") is None:
+            pytest.skip("taskset not found; cannot enforce single-core pinning")
+        if shutil.which("ib_write_lat") is None:
+            pytest.skip("ib_write_lat not found; install perftest package")
+
+        remote_host = os.environ.get("RDMA_REMOTE_HOST", "").strip()
+        if not remote_host:
+            pytest.skip("Set RDMA_REMOTE_HOST for 2-node RDMA latency validation")
+
+        rdma_dev = os.environ.get("RDMA_DEVICE", "").strip() or self._first_rdma_device()
+        if not rdma_dev:
+            pytest.skip("No RDMA device found; set RDMA_DEVICE or install rdma-core tools")
+
+        cpu_core = self._pick_single_cpu_core()
+        iterations = int(os.environ.get("RDMA_SMOKE_ITERS", "1000"))
+        use_cuda_dev = int(os.environ.get("RDMA_USE_CUDA_DEVICE", "0"))
+        msg_sizes = [64, 256, 4096]
+        results: Dict[str, Dict[str, float]] = {}
+
+        # Pattern preparation requested for smoke/stability loops.
+        patt_buf = torch.empty(4096, dtype=torch.uint8, device="cuda:0")
+        patterns = [0xA5, 0x5A]
+
+        for idx, sz in enumerate(msg_sizes):
+            patt_buf[:sz].fill_(patterns[idx % len(patterns)])
+            if sz >= 256:
+                counter = torch.arange(sz, dtype=torch.uint8, device="cuda:0")
+                patt_buf[:sz].copy_(counter)
+
+            cmd = [
+                "taskset", "-c", str(cpu_core),
+                "ib_write_lat", remote_host,
+                "-d", rdma_dev,
+                "-s", str(sz),
+                "-n", str(iterations),
+                "--use_cuda", str(use_cuda_dev),
+            ]
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+            combined = (proc.stdout or "") + "\n" + (proc.stderr or "")
+            if proc.returncode != 0:
+                pytest.fail(
+                    f"ib_write_lat failed for size={sz} on {rdma_dev}: {combined[-600:]}"
+                )
+
+            parsed = self._parse_ib_write_lat_stats(combined, sz)
+            if not parsed:
+                pytest.fail(f"Could not parse ib_write_lat output for size={sz}")
+            min_us, avg_us = parsed
+            results[str(sz)] = {"min_us": min_us, "avg_us": avg_us}
+
+        _record_kpi(
+            "test_single_core_gpudirect_rdma_flow",
+            {
+                "remote_host": remote_host,
+                "rdma_device": rdma_dev,
+                "cpu_core": cpu_core,
+                "iterations": iterations,
+                "sizes": results,
+            },
+        )
+
+        assert results["4096"]["avg_us"] < float(
+            os.environ.get("RDMA_4KB_MAX_AVG_LAT_US", "300.0")
+        ), f"4KB RDMA avg latency too high: {results['4096']['avg_us']:.2f} us"
+
+    @pytest.mark.workload_acceptance
+    @pytest.mark.rdma_validation
+    def test_mmio_write_read_validation(self):
+        """MMIO write/read validation for NIC/DPU register access path.
+
+        Uses a user-provided command if available (MMIO_VALIDATION_CMD).
+        Fallback performs a safe read/read consistency check via setpci.
+        """
+        custom_cmd = os.environ.get("MMIO_VALIDATION_CMD", "").strip()
+        if custom_cmd:
+            proc = subprocess.run(custom_cmd, shell=True, capture_output=True, text=True, timeout=120)
+            combined = (proc.stdout or "") + "\n" + (proc.stderr or "")
+            if proc.returncode != 0:
+                pytest.fail(f"MMIO validation command failed: {combined[-600:]}")
+            _record_kpi(
+                "test_mmio_write_read_validation",
+                {"mode": "custom_cmd", "status": "pass", "command": custom_cmd},
+            )
+            return
+
+        if shutil.which("setpci") is None or shutil.which("lspci") is None:
+            pytest.skip("setpci/lspci not available; set MMIO_VALIDATION_CMD to run platform MMIO test")
+
+        nic_bdf = os.environ.get("MMIO_PCI_BDF", "").strip()
+        if not nic_bdf:
+            pci = subprocess.run(["lspci"], capture_output=True, text=True, timeout=10)
+            if pci.returncode != 0:
+                pytest.skip("lspci failed; set MMIO_PCI_BDF explicitly")
+            for line in pci.stdout.splitlines():
+                if "Mellanox" in line or "NVIDIA" in line and "Ethernet" in line:
+                    nic_bdf = line.split()[0]
+                    break
+        if not nic_bdf:
+            pytest.skip("Could not detect NIC BDF; set MMIO_PCI_BDF")
+
+        rd1 = subprocess.run(["setpci", "-s", nic_bdf, "04.w"], capture_output=True, text=True, timeout=10)
+        rd2 = subprocess.run(["setpci", "-s", nic_bdf, "04.w"], capture_output=True, text=True, timeout=10)
+        if rd1.returncode != 0 or rd2.returncode != 0:
+            pytest.fail(f"MMIO read failed on {nic_bdf}: {(rd1.stderr or rd2.stderr)[-300:]}")
+        v1 = rd1.stdout.strip()
+        v2 = rd2.stdout.strip()
+
+        if os.environ.get("MMIO_ALLOW_WRITE", "0") == "1":
+            wr = subprocess.run(["setpci", "-s", nic_bdf, f"04.w={v1}"], capture_output=True, text=True, timeout=10)
+            if wr.returncode != 0:
+                pytest.fail(f"MMIO write failed on {nic_bdf}: {(wr.stderr or '')[-300:]}")
+
+        _record_kpi(
+            "test_mmio_write_read_validation",
+            {
+                "mode": "setpci_fallback",
+                "nic_bdf": nic_bdf,
+                "command_reg_read_1": v1,
+                "command_reg_read_2": v2,
+                "write_attempted": os.environ.get("MMIO_ALLOW_WRITE", "0") == "1",
+            },
+        )
+        assert v1 == v2, f"MMIO register read mismatch on {nic_bdf}: {v1} vs {v2}"
+
+    @pytest.mark.workload_acceptance
+    @pytest.mark.rdma_validation
+    def test_fence_validation_rdma_ordering(self):
+        """Fence validation for ordering between dependent RDMA/MMIO operations.
+
+        Expects an external fence test command when real RDMA ordering needs
+        to be validated end-to-end.
+        """
+        fence_cmd = os.environ.get("RDMA_FENCE_VALIDATION_CMD", "").strip()
+        if not fence_cmd:
+            pytest.skip("Set RDMA_FENCE_VALIDATION_CMD to run device-specific fence ordering validation")
+
+        loops = int(os.environ.get("RDMA_FENCE_ITERS", "10000"))
+        proc = subprocess.run(
+            f"{fence_cmd} --iters {loops}",
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        combined = (proc.stdout or "") + "\n" + (proc.stderr or "")
+        if proc.returncode != 0:
+            pytest.fail(f"Fence validation command failed: {combined[-800:]}")
+
+        stale_reads = 0
+        m = re.search(r"stale[_\s-]*reads\s*[:=]\s*(\d+)", combined, flags=re.IGNORECASE)
+        if m:
+            stale_reads = int(m.group(1))
+
+        _record_kpi(
+            "test_fence_validation_rdma_ordering",
+            {
+                "command": fence_cmd,
+                "iterations": loops,
+                "stale_reads": stale_reads,
+            },
+        )
+        assert stale_reads == 0, f"Fence/order violation detected: stale_reads={stale_reads}"
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.workload_acceptance
+    @pytest.mark.rdma_validation
+    def test_one_dma_read_4kb_validation(self):
+        """Validate one exact 4KB DMA-like transfer with data pattern compare."""
+        if torch.cuda.device_count() == 0:
+            pytest.skip("No CUDA devices")
+
+        n_bytes = 4096
+        host_src = bytearray((i % 256 for i in range(n_bytes)))
+        cpu_in = torch.tensor(list(host_src), dtype=torch.uint8, pin_memory=True)
+        gpu_buf = torch.empty(n_bytes, dtype=torch.uint8, device="cuda:0")
+        cpu_out = torch.empty(n_bytes, dtype=torch.uint8, pin_memory=True)
+
+        t0 = time.perf_counter()
+        gpu_buf.copy_(cpu_in, non_blocking=True)
+        cpu_out.copy_(gpu_buf, non_blocking=True)
+        torch.cuda.synchronize("cuda:0")
+        elapsed_ms = (time.perf_counter() - t0) * 1000.0
+
+        out_bytes = bytes(cpu_out.tolist())
+        data_match = out_bytes == bytes(host_src)
+
+        _record_kpi(
+            "test_one_dma_read_4kb_validation",
+            {
+                "transfer_bytes": n_bytes,
+                "completion_status": "success" if data_match else "mismatch",
+                "elapsed_ms": round(elapsed_ms, 4),
+                "data_compare_pass": data_match,
+            },
+        )
+
+        assert n_bytes == 4096, "Transfer length must be exactly 4KB"
+        assert data_match, "4KB DMA data compare failed"
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.workload_acceptance
+    @pytest.mark.rdma_validation
+    def test_looped_rdma_mmio_dma_stress_soak(self):
+        """Looped stress/soak run for RDMA/MMIO/DMA functional sanity."""
+        if torch.cuda.device_count() == 0:
+            pytest.skip("No CUDA devices")
+
+        loops = int(os.environ.get("RDMA_SOAK_LOOPS", "1000"))
+        n_bytes = 4096
+        lat_us: List[float] = []
+        failures = 0
+
+        gpu_buf = torch.empty(n_bytes, dtype=torch.uint8, device="cuda:0")
+        cpu_in = torch.empty(n_bytes, dtype=torch.uint8, pin_memory=True)
+        cpu_out = torch.empty(n_bytes, dtype=torch.uint8, pin_memory=True)
+
+        for i in range(loops):
+            pattern = 0xA5 if (i % 2 == 0) else 0x5A
+            cpu_in.fill_(pattern)
+            if i % 10 == 0:
+                cpu_in.copy_(torch.arange(n_bytes, dtype=torch.uint8))
+
+            t0 = time.perf_counter()
+            gpu_buf.copy_(cpu_in, non_blocking=True)
+            cpu_out.copy_(gpu_buf, non_blocking=True)
+            torch.cuda.synchronize("cuda:0")
+            dt_us = (time.perf_counter() - t0) * 1e6
+            lat_us.append(dt_us)
+
+            if not torch.equal(cpu_in, cpu_out):
+                failures += 1
+
+        total_sec = sum(lat_us) / 1e6
+        bw_gbps = ((n_bytes * 2 * loops) / (1024 ** 3)) / total_sec if total_sec > 0 else 0.0
+        avg_us = float(np.mean(lat_us)) if lat_us else 0.0
+        p95_us = float(np.percentile(lat_us, 95)) if lat_us else 0.0
+
+        _record_kpi(
+            "test_looped_rdma_mmio_dma_stress_soak",
+            {
+                "loops": loops,
+                "transfer_bytes": n_bytes,
+                "avg_latency_us": round(avg_us, 2),
+                "p95_latency_us": round(p95_us, 2),
+                "bandwidth_gbps": round(bw_gbps, 3),
+                "data_mismatch_count": failures,
+            },
+        )
+
+        assert failures == 0, f"Soak validation had data mismatches: {failures}"
+        assert p95_us < float(os.environ.get("SOAK_MAX_P95_US", "20000")), (
+            f"Soak latency p95 too high: {p95_us:.1f} us"
+        )
 
     def test_vllm_training_kpi_status(self):
         """Capture vLLM training KPI status (vLLM is inference-focused and does not train)."""

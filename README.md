@@ -53,6 +53,8 @@ tests/
 | `nvlink` | NVLink 4.0 GPU-to-GPU bandwidth tests |
 | `pcie` | PCIe 5.0 host↔device bandwidth tests |
 | `bottleneck` | Roofline analysis and bottleneck identification |
+| `workload_acceptance` | End-to-end ML workload validation (inference, training, vision) |
+| `node_validation` | High-level node health and performance acceptance tests |
 | `slow` | Tests that take > 30 s |
 
 ---
@@ -124,6 +126,140 @@ pytest -m "not slow" --tb=line -q
 
 ---
 
+## Workload Acceptance Tests
+
+The suite includes comprehensive end-to-end ML workload validation:
+
+- **LLM Inference Latency** (`test_hf_causal_lm_inference_latency_enterprise_workloads`):
+  Measures sustained inference throughput and latency for enterprise models (Llama 7B/70B, Qwen 72B, DeepSeek-R1).
+
+- **vLLM Data-Pipeline Saturation** (`test_vllm_data_pipeline_saturation_inference_prefill`):
+  Validates GPU/CPU utilization during vLLM prefill workload with monitoring of utilization metrics.
+
+- **KV Cache Offload** (`test_predictable_memory_orchestration_kv_cache_offload`):
+  Tests graceful KV cache offload to host DDR under high-context workloads.
+  Measures throughput degradation, latency impact, and page faults.
+  Captures PCIe bandwidth utilization for memory orchestration.
+
+- **Vision Workloads**:
+  - YOLO object detection (`test_vision_object_detection_yolo_fps`): FPS and CPU utilization.
+  - Diffusers image generation (`test_vision_image_generation_diffusers_throughput`): Image throughput.
+
+- **HuggingFace Training** (`test_hf_encoder_training_throughput`):
+  Baseline transformer training throughput on H100 hardware.
+
+### Running Workload Acceptance Tests
+
+```bash
+# Run all workload acceptance tests with Linux Bash script (recommended)
+./run_workload_acceptance.sh
+
+# Run with custom configuration
+./run_workload_acceptance.sh --kv-context-length 16384 --kv-batch-size 8 --min-duration-sec 600
+
+# Skip large models (faster iteration)
+./run_workload_acceptance.sh --skip-large-models
+
+# Run via pytest directly
+pytest -m workload_acceptance -vv --log-cli-level=INFO
+```
+
+---
+
+## Workload Environment Variables
+
+All workload tests support configuration via environment variables with sensible defaults.
+See [`.env.example`](.env.example) for a comprehensive reference.
+
+### Key Configuration Variables
+
+#### HuggingFace & Large Models
+
+```bash
+HF_ENABLE_LARGE_MODELS=1              # Enable 70B+ model workloads
+HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 # Auto-download from hub
+HF_LLAMA_7B_MODEL=meta-llama/Llama-2-7b-hf
+HF_LLAMA_70B_MODEL=meta-llama/Llama-2-70b-hf
+HF_QWEN_70B_MODEL=Qwen/Qwen-72B
+HF_DEEPSEEK_R1_QUANT_MODEL=deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+```
+
+#### KV Cache Offload
+
+```bash
+VLLM_KV_OFFLOAD_MODEL=meta-llama/Llama-2-7b-hf
+VLLM_KV_CONTEXT_LENGTH=8192           # Context length (4K-32K)
+VLLM_KV_BATCH_SIZE=4                  # Batch size
+VLLM_KV_NUM_PROMPTS=10                # Number of prompts
+VLLM_GPU_MEMORY_UTIL=0.7              # Lower = forces earlier offload
+VLLM_CPU_OFFLOAD_GB=128               # Host DDR offload size
+```
+
+#### Vision Workloads (YOLO)
+
+```bash
+YOLO_DETECT_MODEL=yolov8x.pt          # Model variant (n=nano, x=large)
+YOLO_DETECT_BATCH=128                 # Inference batch size
+YOLO_DETECT_IMGSZ=640                 # Image size for inference
+```
+
+#### PyTorch & CUDA
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1,2,3          # GPU device IDs
+CUDA_DEVICE_ORDER=PCI_BUS_ID          # Consistent ordering
+TORCH_HOME=~/.cache/torch             # PyTorch cache
+```
+
+### Configuration Methods (in precedence order)
+
+1. **Environment variables** (highest priority) — set before running tests:
+   ```bash
+   export VLLM_KV_CONTEXT_LENGTH=16384
+   pytest -m workload_acceptance
+   ```
+
+2. **Bash script arguments** (default-friendly):
+  ```bash
+  ./run_workload_acceptance.sh --kv-context-length 16384
+   ```
+
+3. **`.env` file** — copy `.env.example` to `.env` and customize:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your settings
+   pytest -m workload_acceptance
+   ```
+
+4. **conftest.py defaults** (lowest priority) — built-in sensible defaults
+
+### Example Workflows
+
+#### Test KV cache offload with large context
+
+```bash
+export VLLM_KV_OFFLOAD_MODEL=meta-llama/Llama-2-70b-hf
+export VLLM_KV_CONTEXT_LENGTH=32768
+export VLLM_KV_BATCH_SIZE=8
+pytest -m workload_acceptance tests/test_node_validation.py::TestNodeValidation::test_predictable_memory_orchestration_kv_cache_offload -vv
+```
+
+#### Quick YOLO validation with small model
+
+```bash
+export YOLO_DETECT_MODEL=yolov8n.pt
+export YOLO_AGGREGATE_FPS_TARGET=50
+pytest -m workload_acceptance tests/test_node_validation.py::TestNodeValidation::test_vision_object_detection_yolo_fps -vv
+```
+
+#### Enterprise workloads with long inference duration
+
+```bash
+./run_workload_acceptance.sh --min-duration-sec 900
+```
+
+---
+
 ## Test Coverage Summary
 
 | File | Test Classes | Total Tests |
@@ -133,4 +269,5 @@ pytest -m "not slow" --tb=line -q
 | `test_gpu_validation.py` | 15 | ~35 |
 | `test_interconnect_validation.py` | 12 | ~30 |
 | `test_bottleneck_analysis.py` | 10 | ~25 |
-| **Total** | **64** | **~155** |
+| `test_node_validation.py` | 1 | ~20 (workload acceptance) |
+| **Total** | **65** | **~175** |

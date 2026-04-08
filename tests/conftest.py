@@ -31,6 +31,95 @@ _REPORT_PATH = Path(__file__).resolve().parents[1] / "TESTCASE_EXECUTION_FINAL_R
 _NODE_VALIDATION_REPORT_PATH = Path(__file__).resolve().parents[1] / "NODE_VALIDATION_REPORT.md"
 
 
+# ---------------------------------------------------------------------------
+# Environment Variable Defaults (pytest_configure hook)
+# ---------------------------------------------------------------------------
+def pytest_configure(config: pytest.Config) -> None:
+    """Set environment variable defaults for all workload tests."""
+    
+    # =========================================================================
+    # HuggingFace & Large Model Configuration
+    # =========================================================================
+    os.environ.setdefault("HF_ENABLE_LARGE_MODELS", "1")
+    os.environ.setdefault("HF_HOME", str(Path.home() / ".cache" / "huggingface"))
+    os.environ.setdefault("HUGGINGFACE_HUB_CACHE", str(Path.home() / ".cache" / "huggingface" / "hub"))
+    os.environ.setdefault("HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD", "1")
+    
+    # Model IDs
+    os.environ.setdefault("HF_LLAMA_7B_MODEL", "meta-llama/Llama-2-7b-hf")
+    os.environ.setdefault("HF_LLAMA_70B_MODEL", "meta-llama/Llama-2-70b-hf")
+    os.environ.setdefault("HF_QWEN_70B_MODEL", "Qwen/Qwen-72B")
+    os.environ.setdefault("HF_DEEPSEEK_R1_QUANT_MODEL", "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B")
+    os.environ.setdefault("HF_INFERENCE_MODEL", "meta-llama/Llama-2-7b-hf")
+    os.environ.setdefault("HF_TRAINING_MODEL", "bert-base-uncased")
+    os.environ.setdefault("HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC", "300")
+    
+    # =========================================================================
+    # KV Cache Offload Configuration
+    # =========================================================================
+    os.environ.setdefault("VLLM_KV_OFFLOAD_MODEL", "meta-llama/Llama-2-7b-hf")
+    os.environ.setdefault("VLLM_KV_CONTEXT_LENGTH", "8192")
+    os.environ.setdefault("VLLM_KV_BATCH_SIZE", "4")
+    os.environ.setdefault("VLLM_KV_NUM_PROMPTS", "10")
+    os.environ.setdefault("VLLM_KV_MAX_TOKENS", "512")
+    os.environ.setdefault("VLLM_GPU_MEMORY_UTIL", "0.7")
+    os.environ.setdefault("VLLM_CPU_OFFLOAD_GB", "128")
+
+    # =========================================================================
+    # RDMA / MMIO / DMA Validation Configuration
+    # =========================================================================
+    os.environ.setdefault("RDMA_SMOKE_ITERS", "1000")
+    os.environ.setdefault("RDMA_USE_CUDA_DEVICE", "0")
+    os.environ.setdefault("RDMA_4KB_MAX_AVG_LAT_US", "300.0")
+    os.environ.setdefault("RDMA_SOAK_LOOPS", "1000")
+    os.environ.setdefault("SOAK_MAX_P95_US", "20000")
+    
+    # =========================================================================
+    # Vision Workload Configuration (YOLO)
+    # =========================================================================
+    os.environ.setdefault("YOLO_DETECT_MODEL", "yolov8x.pt")
+    os.environ.setdefault("YOLO_DETECT_BATCH", "128")
+    os.environ.setdefault("YOLO_DETECT_IMGSZ", "640")
+    os.environ.setdefault("YOLO_DETECT_SOURCE", "https://ultralytics.com/images/bus.jpg")
+    os.environ.setdefault("YOLO_DETECT_TIMEOUT_SEC", "240")
+    os.environ.setdefault("YOLO_CPU_SAMPLE_INTERVAL_SEC", "0.5")
+    os.environ.setdefault("YOLO_AGGREGATE_FPS_TARGET", "100")
+    
+    # =========================================================================
+    # Vision Workload Configuration (Diffusers)
+    # =========================================================================
+    os.environ.setdefault("DIFFUSERS_NUM_IMAGES", "50")
+    os.environ.setdefault("DIFFUSERS_HEIGHT", "512")
+    os.environ.setdefault("DIFFUSERS_WIDTH", "512")
+    os.environ.setdefault("DIFFUSERS_BATCH_SIZE", "4")
+    
+    # =========================================================================
+    # PyTorch & CUDA Configuration
+    # =========================================================================
+    os.environ.setdefault("TORCH_HOME", str(Path.home() / ".cache" / "torch"))
+    os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0,1,2,3")
+    os.environ.setdefault("CUDA_DEVICE_ORDER", "PCI_BUS_ID")
+    
+    # =========================================================================
+    # KPI & Test Configuration
+    # =========================================================================
+    os.environ.setdefault("NODE_VALIDATION_KPI_FILE", "artifacts/node_validation_kpis.jsonl")
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
+    os.environ.setdefault("PYTEST_TIMEOUT", "600")
+    
+    logger.info(
+        "Environment variables configured:\n"
+        "  HF_ENABLE_LARGE_MODELS=%s\n"
+        "  VLLM_KV_CONTEXT_LENGTH=%s\n"
+        "  YOLO_DETECT_BATCH=%s\n"
+        "  CUDA_VISIBLE_DEVICES=%s",
+        os.environ.get("HF_ENABLE_LARGE_MODELS"),
+        os.environ.get("VLLM_KV_CONTEXT_LENGTH"),
+        os.environ.get("YOLO_DETECT_BATCH"),
+        os.environ.get("CUDA_VISIBLE_DEVICES"),
+    )
+
+
 def _md_escape(value: Any) -> str:
     return str(value).replace("|", "\\|").replace("\n", " ").strip()
 

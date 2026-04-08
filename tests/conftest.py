@@ -78,6 +78,12 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
     skipped = statuses.count("SKIP")
     total = len(statuses)
 
+    skipped_rows = [
+        (nodeid, row)
+        for nodeid, row in sorted(rows.items())
+        if row.get("status") == "SKIP"
+    ]
+
     highlights = [
         f"- Total testcases captured: {total}",
         f"- Passed: {passed}",
@@ -121,6 +127,20 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
             f"{_md_escape(row['status'])} | "
             f"{_md_escape(row['analysis'])} |"
         )
+
+    if skipped_rows:
+        lines.extend([
+            "",
+            "## Skipped Tests",
+            "",
+            "| Test | Skip Reason |",
+            "|---|---|",
+        ])
+        for nodeid, row in skipped_rows:
+            reason = row.get("result", "")
+            if reason.startswith("SKIPPED:"):
+                reason = reason.split("SKIPPED:", 1)[-1].strip()
+            lines.append(f"| {_md_escape(nodeid)} | {_md_escape(reason)} |")
 
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     logger.info("Wrote final testcase report: %s", report_path)

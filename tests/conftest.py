@@ -197,6 +197,25 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     _write_final_report(session.config, is_node_validation=False)
     _write_final_report(session.config, is_node_validation=True)
 
+    # Best-effort cleanup: terminate any child processes left by workload tests.
+    if _multiprocessing is not None:
+        try:
+            children = _multiprocessing.active_children()
+            for proc in children:
+                try:
+                    proc.terminate()
+                except Exception:
+                    pass
+            for proc in children:
+                try:
+                    proc.join(timeout=3)
+                except Exception:
+                    pass
+            if children:
+                logger.info("Cleaned up %d child process(es) at pytest session end", len(children))
+        except Exception:
+            pass
+
 
 # ---------------------------------------------------------------------------
 # Session-scoped fixtures

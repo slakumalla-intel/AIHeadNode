@@ -1414,8 +1414,42 @@ def _run_hf_causal_latency_workload(
         pytest.skip("No CUDA devices")
 
     device = torch.device("cuda:0")
+
+    # Very large models (e.g., 70B/72B) can spend a long time downloading or
+    # CPU-side deserializing shards. By default, require local cache for these
+    # to avoid runs appearing stuck. Override with HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1.
+    model_id_l = model_id.lower()
+    is_very_large_model = any(tag in model_id_l for tag in ("70b", "72b", "65b", "34b"))
+    allow_remote_large = os.environ.get("HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD", "0").lower() in {
+        "1", "true", "yes", "on"
+    }
+    force_local_only = is_very_large_model and not allow_remote_large
+
     logger.info("Loading %s for causal-LM latency workload …", model_id)
-    tokenizer = _hf_from_pretrained(AutoTokenizer, model_id)
+    if force_local_only:
+        logger.info(
+            "Large model local-cache mode enabled for %s. "
+            "Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to allow remote download.",
+            model_id,
+        )
+
+    tok_t0 = time.perf_counter()
+    try:
+        tokenizer = _hf_from_pretrained(
+            AutoTokenizer,
+            model_id,
+            **({"local_files_only": True} if force_local_only else {}),
+        )
+    except Exception as exc:
+        if force_local_only:
+            pytest.skip(
+                f"Large model {model_id} not found in local HF cache. "
+                "Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to download remotely. "
+                f"Details: {exc}"
+            )
+        raise
+    logger.info("Tokenizer load completed in %.1fs", time.perf_counter() - tok_t0)
+
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -1438,9 +1472,20 @@ def _run_hf_causal_latency_workload(
     if not use_quantized_load:
         model_kwargs["torch_dtype"] = torch.float16
 
+    if force_local_only:
+        model_kwargs["local_files_only"] = True
+
     try:
+        model_t0 = time.perf_counter()
         model = _hf_from_pretrained(AutoModelForCausalLM, model_id, **model_kwargs)
+        logger.info("Model load completed in %.1fs", time.perf_counter() - model_t0)
     except Exception as exc:
+        if force_local_only:
+            pytest.skip(
+                f"Large model {model_id} not available locally (model weights missing). "
+                "Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to enable remote download. "
+                f"Details: {exc}"
+            )
         pytest.skip(f"Model load failed for {model_id}: {exc}")
 
     if not use_quantized_load:

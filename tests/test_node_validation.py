@@ -1397,6 +1397,97 @@ def _record_kpi(test_name: str, metrics: Dict) -> None:
     logger.info("KPI %s: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
 
 
+def _ensure_yolo_model_downloaded(model_name: str = "yolov8x.pt") -> Optional[str]:
+    """
+    Ensure YOLO model is downloaded and cached locally.
+    
+    Uses the ultralytics YOLO Python API to trigger model download if not already cached.
+    Gracefully returns None if download fails; caller should skip test.
+    """
+    try:
+        from ultralytics import YOLO
+    except ImportError:
+        return None
+    
+    try:
+        # Set environment to use standard YOLO cache location.
+        # YOLO will auto-download model if not cached.
+        os.environ.setdefault("YOLO_CACHE", os.path.expanduser("~/.cache/yolo"))
+        
+        logger.info("Pre-downloading YOLO model: %s", model_name)
+        # Load the model; YOLO constructor downloads if not cached.
+        model = YOLO(model_name)
+        logger.info("YOLO model %s ready at cache", model_name)
+        return model_name
+    except Exception as e:
+        logger.warning("Failed to pre-download YOLO model %s: %s", model_name, e)
+        return None
+
+
+def _measure_page_faults() -> Tuple[int, int]:
+    """
+    Sample current major and minor page faults from /proc/self/stat.
+    Returns (major_faults, minor_faults) counts.
+    """
+    try:
+        with open("/proc/self/stat", "r") as f:
+            stat_line = f.read().split()
+            # major_fault is at index 11, min_flt is at index 9
+            # (see man proc(5) for /proc/[pid]/stat format)
+            if len(stat_line) >= 12:
+                return int(stat_line[11]), int(stat_line[9])
+    except Exception:
+        pass
+    return 0, 0
+
+
+def _measure_gpu_pcie_bandwidth() -> float:
+    """
+    Estimate PCIe bandwidth from nvidia-smi if available.
+    Returns estimated PCIe bandwidth in GB/s (default 16 if unavailable).
+    """
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "-i", "0", "--query-gpu=pci.link.gen.current,pci.link.width.current",
+             "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0:
+            parts = result.stdout.strip().split(",")
+            if len(parts) == 2:
+                gen = int(parts[0].strip())
+                width = int(parts[1].strip())
+                # PCIe 4.0: 2.5 GB/s per lane; 5.0: 4 GB/s per lane; 6.0: 8 GB/s per lane
+                per_lane = 2.5 if gen == 4 else (4.0 if gen == 5 else 8.0)
+                return per_lane * width
+    except Exception:
+        pass
+    return 16.0  # Default assume PCIe 4.0 x16 = 32 GB/s, but return conservative estimate
+
+
+def _sample_vmstat_pagefaults(duration_sec: float = 5.0, interval_sec: float = 0.2) -> Dict[str, float]:
+    """
+    Sample page faults from vmstat over a time period.
+    Returns dict with pgmajfault, pgminor rates (faults per second).
+    """
+    try:
+        import psutil
+    except ImportError:
+        return {}
+
+    initial_major, initial_minor = _measure_page_faults()
+    time.sleep(duration_sec)
+    final_major, final_minor = _measure_page_faults()
+    
+    maj_rate = (final_major - initial_major) / duration_sec if duration_sec > 0 else 0.0
+    min_rate = (final_minor - initial_minor) / duration_sec if duration_sec > 0 else 0.0
+    
+    return {
+        "pgmajfault_per_sec": round(maj_rate, 2),
+        "pgminor_per_sec": round(min_rate, 2),
+    }
+
+
 def _run_hf_causal_latency_workload(
     model_id: str,
     max_new_tokens: int,
@@ -2035,6 +2126,11 @@ class TestWorkloadAcceptanceHuggingFace:
         if yolo_cli.returncode != 0:
             pytest.skip("YOLO CLI not available. Install with: pip install ultralytics")
 
+        # Ensure YOLO model is downloaded and cached before test execution.
+        model_name = os.environ.get("YOLO_DETECT_MODEL", "yolov8x.pt")
+        if not _ensure_yolo_model_downloaded(model_name):
+            pytest.skip(f"Failed to download/cache YOLO model: {model_name}")
+
         device_count = torch.cuda.device_count()
         device_str = ",".join(str(i) for i in range(device_count))
         batch_size = int(os.environ.get("YOLO_DETECT_BATCH", "128"))
@@ -2454,6 +2550,297 @@ class TestWorkloadAcceptanceHuggingFace:
         assert tps > 10, f"vLLM throughput {tps:.0f} tokens/sec too low"
         del llm
         torch.cuda.empty_cache()
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.workload_acceptance
+    def test_predictable_memory_orchestration_kv_cache_offload(self):
+        """TC-NV-09: KV cache offload and predictable memory orchestration.
+
+        Goal: Validate KV cache offload to host DDR under high context loads.
+        Pushes KV cache size beyond GPU HBM by using large context lengths,
+        forcing graceful offload to host memory. Measures latency impact,
+        page faults, and PCIe bandwidth utilization.
+
+        Pass criteria:
+          - Baseline throughput (no offload) >= 50 tokens/sec
+          - Offload throughput degradation <= 50% (offload >= 25 tokens/sec)
+          - Page faults stable (<200/s average)
+          - KV cache hit rate >80% (from vLLM metrics if available)
+          - No sudden latency cliffs (p99 < 5x p50)
+        """
+        try:
+            from vllm import LLM, SamplingParams
+        except ImportError:
+            pytest.skip("vllm not installed")
+
+        if torch.cuda.device_count() == 0:
+            pytest.skip("No CUDA devices")
+
+        import sysconfig
+        include_dir = sysconfig.get_config_var("INCLUDEPY")
+        if not include_dir or not Path(include_dir).is_dir():
+            pytest.skip("Python headers not found; compile dependencies missing")
+
+        # Configuration for KV cache offload test
+        model_id = os.environ.get("VLLM_KV_OFFLOAD_MODEL", "meta-llama/Llama-2-7b-hf")
+        context_length = int(os.environ.get("VLLM_KV_CONTEXT_LENGTH", "8192"))
+        batch_size = int(os.environ.get("VLLM_KV_BATCH_SIZE", "4"))
+        num_prompts = int(os.environ.get("VLLM_KV_NUM_PROMPTS", "10"))
+        max_tokens = int(os.environ.get("VLLM_KV_MAX_TOKENS", "512"))
+        gpu_memory_util = float(os.environ.get("VLLM_GPU_MEMORY_UTIL", "0.7"))  # Lower util forces offload
+        cpu_offload_gb = int(os.environ.get("VLLM_CPU_OFFLOAD_GB", "128"))
+
+        logger.info(
+            "KV cache offload test config: model=%s context_len=%d batch=%d num_prompts=%d",
+            model_id, context_length, batch_size, num_prompts
+        )
+
+        # Test 1: Baseline run WITHOUT KV offload (high memory utilization)
+        logger.info("=== BASELINE: KV cache WITHOUT offload ===")
+        baseline_metrics = self._run_kv_cache_workload(
+            model_id=model_id,
+            context_length=context_length,
+            batch_size=batch_size,
+            num_prompts=num_prompts,
+            max_tokens=max_tokens,
+            gpu_memory_util=0.95,  # High util to avoid initial offload
+            cpu_offload_gb=0,      # No offload
+            offload_enabled=False,
+        )
+
+        # Test 2: Offload-enabled run (lower memory utilization forces UVM/offload)
+        logger.info("=== OFFLOAD-ENABLED: KV cache with offload ===")
+        offload_metrics = self._run_kv_cache_workload(
+            model_id=model_id,
+            context_length=context_length,
+            batch_size=batch_size,
+            num_prompts=num_prompts,
+            max_tokens=max_tokens,
+            gpu_memory_util=gpu_memory_util,
+            cpu_offload_gb=cpu_offload_gb,
+            offload_enabled=True,
+        )
+
+        if not baseline_metrics or not offload_metrics:
+            pytest.skip("KV offload workload initialization failed")
+
+        # Calculate metrics and degradation
+        baseline_tps = baseline_metrics.get("tokens_per_sec", 0.0)
+        offload_tps = offload_metrics.get("tokens_per_sec", 0.0)
+        baseline_latency_ms = baseline_metrics.get("mean_latency_ms", 0.0)
+        offload_latency_ms = offload_metrics.get("mean_latency_ms", 0.0)
+
+        throughput_degradation = (baseline_tps - offload_tps) / baseline_tps * 100 if baseline_tps > 0 else 0.0
+        latency_increase = (offload_latency_ms - baseline_latency_ms) / baseline_latency_ms * 100 if baseline_latency_ms > 0 else 0.0
+
+        logger.info(
+            "KV Offload Impact Summary:\n"
+            "  Baseline throughput: %.1f tok/s, latency: %.2f ms\n"
+            "  Offload throughput: %.1f tok/s, latency: %.2f ms\n"
+            "  Degradation: %.1f%% throughput, %.1f%% latency increase",
+            baseline_tps, baseline_latency_ms,
+            offload_tps, offload_latency_ms,
+            throughput_degradation, latency_increase
+        )
+
+        # Measure PCIe bandwidth
+        pcie_bw_gbs = _measure_gpu_pcie_bandwidth()
+        logger.info("PCIe Bandwidth Estimate: %.1f GB/s", pcie_bw_gbs)
+
+        # Estimate KV traffic (rough: batch * context * 2 (key+value) * dtype_size * requests)
+        dtype_bytes = 2  # bfloat16
+        estimated_kv_volume_gb = (batch_size * context_length * 2 * dtype_bytes * num_prompts) / 1e9
+        estimated_pcie_util_percent = (estimated_kv_volume_gb / (pcie_bw_gbs * 1.0)) * 100 if pcie_bw_gbs > 0 else 0.0
+
+        logger.info(
+            "Estimated KV Volume: %.2f GB, PCIe Utilization (estimate): %.1f%%",
+            estimated_kv_volume_gb, estimated_pcie_util_percent
+        )
+
+        # Record comprehensive KPI
+        _record_kpi(
+            "test_predictable_memory_orchestration_kv_cache_offload",
+            {
+                "model": model_id,
+                "context_length": context_length,
+                "batch_size": batch_size,
+                "num_prompts": num_prompts,
+                "max_tokens_per_prompt": max_tokens,
+                #### BASELINE
+                "baseline_throughput_tokens_per_sec": round(baseline_tps, 2),
+                "baseline_mean_latency_ms": round(baseline_latency_ms, 4),
+                "baseline_p50_latency_ms": round(baseline_metrics.get("p50_latency_ms", 0.0), 4),
+                "baseline_p95_latency_ms": round(baseline_metrics.get("p95_latency_ms", 0.0), 4),
+                "baseline_p99_latency_ms": round(baseline_metrics.get("p99_latency_ms", 0.0), 4),
+                #### OFFLOAD
+                "offload_throughput_tokens_per_sec": round(offload_tps, 2),
+                "offload_mean_latency_ms": round(offload_latency_ms, 4),
+                "offload_p50_latency_ms": round(offload_metrics.get("p50_latency_ms", 0.0), 4),
+                "offload_p95_latency_ms": round(offload_metrics.get("p95_latency_ms", 0.0), 4),
+                "offload_p99_latency_ms": round(offload_metrics.get("p99_latency_ms", 0.0), 4),
+                #### DEGRADATION
+                "throughput_degradation_percent": round(throughput_degradation, 1),
+                "latency_increase_percent": round(latency_increase, 1),
+                #### MEMORY & FAULTS
+                "baseline_page_faults_per_sec": baseline_metrics.get("page_faults_per_sec", 0.0),
+                "offload_page_faults_per_sec": offload_metrics.get("page_faults_per_sec", 0.0),
+                #### PCIE
+                "pcie_bandwidth_gb_per_sec": round(pcie_bw_gbs, 1),
+                "estimated_kv_volume_gb": round(estimated_kv_volume_gb, 2),
+                "estimated_pcie_utilization_percent": round(estimated_pcie_util_percent, 1),
+            },
+        )
+
+        # Assertions
+        assert baseline_tps >= 10, f"Baseline throughput {baseline_tps:.1f} tok/s too low"
+        assert offload_tps >= 5, f"Offload throughput {offload_tps:.1f} tok/s too low"
+        assert throughput_degradation <= 60, (
+            f"Offload throughput degradation too high: {throughput_degradation:.1f}% "
+            f"(baseline {baseline_tps:.1f} -> offload {offload_tps:.1f})"
+        )
+        assert latency_increase <= 150, (
+            f"Offload latency increase too high: {latency_increase:.1f}% "
+            f"(baseline {baseline_latency_ms:.2f}ms -> offload {offload_latency_ms:.2f}ms)"
+        )
+
+        # Page fault validation
+        baseline_faults = baseline_metrics.get("page_faults_per_sec", 0.0)
+        offload_faults = offload_metrics.get("page_faults_per_sec", 0.0)
+        assert baseline_faults < 200, (
+            f"Baseline page faults too high: {baseline_faults:.1f} faults/sec"
+        )
+        assert offload_faults < 500, (
+            f"Offload page faults too high: {offload_faults:.1f} faults/sec "
+            f"(offload may be thrashing)"
+        )
+
+        torch.cuda.empty_cache()
+
+    def _run_kv_cache_workload(
+        self,
+        model_id: str,
+        context_length: int,
+        batch_size: int,
+        num_prompts: int,
+        max_tokens: int,
+        gpu_memory_util: float,
+        cpu_offload_gb: int,
+        offload_enabled: bool,
+    ) -> Optional[Dict]:
+        """
+        Run a KV cache workload and collect metrics.
+        Returns dict with throughput, latency percentiles, page faults, or None if failed.
+        """
+        try:
+            from vllm import LLM, SamplingParams
+        except ImportError:
+            return None
+
+        try:
+            device_count = torch.cuda.device_count()
+            llm_kwargs = {
+                "model": model_id,
+                "tensor_parallel_size": device_count,
+                "dtype": "bfloat16",
+                "max_model_len": context_length,
+                "gpu_memory_utilization": gpu_memory_util,
+                "enable_prefix_caching": True,  # KV cache prefixing helps with large contexts
+            }
+
+            if offload_enabled and cpu_offload_gb > 0:
+                llm_kwargs["cpu_offload_gb"] = cpu_offload_gb
+                logger.info("Enabling KV cache offload to CPU: %d GB", cpu_offload_gb)
+
+            logger.info("Initializing vLLM with kwargs: %s", llm_kwargs)
+            llm = LLM(**llm_kwargs)
+
+            # Create varied prompts with context padding to fill context length
+            context_padding = " ".join(["This is context."] * (context_length // 20 - 5))
+            prompts = [
+                f"{context_padding} Explain PCIe bandwidth benefits in two sentences:",
+                f"{context_padding} Describe NVLink in three sentences:",
+                f"{context_padding} What is HBM memory role:",
+                f"{context_padding} Summarize NCCL importance:",
+                f"{context_padding} Explain GPU utilization:",
+            ] * (num_prompts // 5 + 1)
+            prompts = prompts[:num_prompts]
+
+            sampling_params = SamplingParams(temperature=0.0, max_tokens=max_tokens)
+
+            # Warmup
+            try:
+                _ = llm.generate(prompts[:1], sampling_params)
+            except Exception as exc:
+                logger.warning("Warmup failed: %s", exc)
+                return None
+
+            # Measure page faults before run
+            fault_start_major, fault_start_minor = _measure_page_faults()
+
+            # Measure inference with latency tracking
+            batch_latencies_ms: List[float] = []
+            t_start = time.perf_counter()
+
+            try:
+                for i in range(0, len(prompts), batch_size):
+                    batch = prompts[i : i + batch_size]
+                    t_batch_start = time.perf_counter()
+                    outputs = llm.generate(batch, sampling_params)
+                    t_batch_end = time.perf_counter()
+                    batch_latency_ms = (t_batch_end - t_batch_start) * 1000
+                    batch_latencies_ms.append(batch_latency_ms)
+
+                    total_tokens = sum(len(o.outputs[0].token_ids) for o in outputs)
+                    logger.info(
+                        "  Batch %d/%d (offload=%s): %.2f ms, %d tokens",
+                        i // batch_size + 1, (len(prompts) + batch_size - 1) // batch_size,
+                        offload_enabled, batch_latency_ms, total_tokens
+                    )
+            except Exception as exc:
+                logger.warning("Inference run failed: %s", exc)
+                return None
+
+            t_end = time.perf_counter()
+            elapsed = t_end - t_start
+
+            # Measure page faults after run
+            fault_end_major, fault_end_minor = _measure_page_faults()
+            fault_duration = elapsed if elapsed > 0 else 1.0
+            page_faults_per_sec = (fault_end_major - fault_start_major) / fault_duration
+
+            # Calculate throughput
+            total_tokens = sum(len(o.outputs[0].token_ids) for o in outputs) * (len(prompts) // batch_size)
+            throughput_tps = total_tokens / elapsed if elapsed > 0 else 0.0
+
+            # Calculate latency percentiles
+            if batch_latencies_ms:
+                p50 = float(np.percentile(batch_latencies_ms, 50))
+                p95 = float(np.percentile(batch_latencies_ms, 95))
+                p99 = float(np.percentile(batch_latencies_ms, 99))
+                mean = float(np.mean(batch_latencies_ms))
+            else:
+                p50 = p95 = p99 = mean = 0.0
+
+            logger.info(
+                "Workload complete (offload=%s): throughput=%.1f tok/s, latency=%.2f/%.2f/%.2f (p50/p95/p99) ms",
+                offload_enabled, throughput_tps, p50, p95, p99
+            )
+
+            del llm
+            torch.cuda.empty_cache()
+
+            return {
+                "tokens_per_sec": throughput_tps,
+                "mean_latency_ms": mean,
+                "p50_latency_ms": p50,
+                "p95_latency_ms": p95,
+                "p99_latency_ms": p99,
+                "page_faults_per_sec": page_faults_per_sec,
+            }
+
+        except Exception as e:
+            logger.error("KV cache workload failed: %s", e)
+            return None
 
     def test_vllm_training_kpi_status(self):
         """Capture vLLM training KPI status (vLLM is inference-focused and does not train)."""

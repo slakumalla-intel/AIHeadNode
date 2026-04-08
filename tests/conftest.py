@@ -35,6 +35,12 @@ def _md_escape(value: Any) -> str:
     return str(value).replace("|", "\\|").replace("\n", " ").strip()
 
 
+def _color_badge(text: str, color: str) -> str:
+    """Return colored HTML badge for markdown reports."""
+    safe = _md_escape(text)
+    return f"<span style=\"color:{color};font-weight:700\">{safe}</span>"
+
+
 def _purpose_from_item(item: pytest.Item) -> str:
     doc = getattr(item.obj, "__doc__", None)
     if not doc:
@@ -63,6 +69,26 @@ def _status_result_analysis(report: pytest.TestReport) -> Tuple[str, str, str]:
     return "FAIL", f"FAILED: {fail_msg}", "Check assertion thresholds and benchmark environment consistency."
 
 
+def _render_status(status: str) -> str:
+    if status == "PASS":
+        return _color_badge("PASS", "#1b8a3b")
+    if status == "FAIL":
+        return _color_badge("FAIL", "#cc1f1a")
+    if status == "SKIP":
+        return _color_badge("SKIP", "#1f6feb")
+    return _md_escape(status)
+
+
+def _render_result_text(result: str) -> str:
+    if result.startswith("PASS"):
+        return _color_badge(result, "#1b8a3b")
+    if result.startswith("FAILED"):
+        return _color_badge(result, "#cc1f1a")
+    if result.startswith("SKIPPED"):
+        return _color_badge(result, "#1f6feb")
+    return _md_escape(result)
+
+
 def _write_final_report(config: pytest.Config, is_node_validation: bool = False) -> None:
     """Write final report to appropriate file based on test category."""
     report_dict_attr = "_node_validation_report_rows" if is_node_validation else "_exec_report_rows"
@@ -85,15 +111,19 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
     ]
 
     highlights = [
-        f"- Total testcases captured: {total}",
-        f"- Passed: {passed}",
-        f"- Failed: {failed}",
-        f"- Skipped: {skipped}",
+        f"- {_color_badge('INFO', '#1f6feb')}: Total testcases captured: {total}",
+        f"- {_color_badge('PASS', '#1b8a3b')}: {passed}",
+        f"- {_color_badge('FAIL', '#cc1f1a')}: {failed}",
+        f"- {_color_badge('SKIP', '#1f6feb')}: {skipped}",
     ]
     if failed:
-        highlights.append("- Attention required: One or more testcase failures were detected.")
+        highlights.append(
+            f"- {_color_badge('FAIL', '#cc1f1a')}: Attention required - one or more testcase failures were detected."
+        )
     else:
-        highlights.append("- No testcase failures detected in this run.")
+        highlights.append(
+            f"- {_color_badge('PASS', '#1b8a3b')}: No testcase failures detected in this run."
+        )
 
     report_title = (
         "# AI Head Node — Node Validation Report"
@@ -123,8 +153,8 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
             "| "
             f"{_md_escape(nodeid)} | "
             f"{_md_escape(row['purpose'])} | "
-            f"{_md_escape(row['result'])} | "
-            f"{_md_escape(row['status'])} | "
+            f"{_render_result_text(row['result'])} | "
+            f"{_render_status(row['status'])} | "
             f"{_md_escape(row['analysis'])} |"
         )
 

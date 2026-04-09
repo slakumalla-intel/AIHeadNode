@@ -83,16 +83,28 @@ def _configure_default_env() -> None:
     os.environ.setdefault("YOLO_DETECT_IMGSZ", "640")
     os.environ.setdefault("YOLO_DETECT_SOURCE", "https://ultralytics.com/images/bus.jpg")
     os.environ.setdefault("YOLO_DETECT_TIMEOUT_SEC", "240")
+    os.environ.setdefault("YOLO_IMAGES_PER_GPU", "256")
+    os.environ.setdefault("YOLO_HALF_PRECISION", "1")
+    os.environ.setdefault("YOLO_GPU_COUNT", "4")
     os.environ.setdefault("YOLO_CPU_SAMPLE_INTERVAL_SEC", "0.5")
-    os.environ.setdefault("YOLO_AGGREGATE_FPS_TARGET", "100")
+    os.environ.setdefault("YOLO_AGGREGATE_FPS_TARGET", "200")
+    os.environ.setdefault("YOLO_CPU_UTIL_TARGET", "50")
     
     # =========================================================================
     # Vision Workload Configuration (Diffusers)
     # =========================================================================
-    os.environ.setdefault("DIFFUSERS_NUM_IMAGES", "50")
+    os.environ.setdefault("DIFFUSERS_MODEL_ID", "stabilityai/sd-turbo")
+    os.environ.setdefault("DIFFUSERS_NUM_IMAGES", "32")
+    os.environ.setdefault("DIFFUSERS_IMAGES_PER_GPU", os.environ.get("DIFFUSERS_NUM_IMAGES", "32"))
     os.environ.setdefault("DIFFUSERS_HEIGHT", "512")
     os.environ.setdefault("DIFFUSERS_WIDTH", "512")
-    os.environ.setdefault("DIFFUSERS_BATCH_SIZE", "4")
+    os.environ.setdefault("DIFFUSERS_STEPS", "1")
+    os.environ.setdefault("DIFFUSERS_GUIDANCE_SCALE", "0.0")
+    os.environ.setdefault("DIFFUSERS_WARMUP", "2")
+    os.environ.setdefault("DIFFUSERS_GPU_COUNT", "4")
+    os.environ.setdefault("DIFFUSERS_MASTER_PORT", "29501")
+    os.environ.setdefault("DIFFUSERS_GENERATE_TIMEOUT_SEC", "600")
+    os.environ.setdefault("DIFFUSERS_TARGET_IMG_PER_SEC", "10.0")
     
     # =========================================================================
     # PyTorch & CUDA Configuration

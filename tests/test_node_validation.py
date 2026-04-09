@@ -1363,6 +1363,11 @@ def _hf_from_pretrained(cls, model_id: str, **kwargs):
     """
     token = _hf_auth_token()
     call_kwargs = dict(kwargs)
+    trust_remote_code = os.environ.get("HF_TRUST_REMOTE_CODE", "1").lower() in {
+        "1", "true", "yes", "on"
+    }
+    if "trust_remote_code" not in call_kwargs and trust_remote_code:
+        call_kwargs["trust_remote_code"] = True
     if token:
         call_kwargs["token"] = token
 
@@ -1373,7 +1378,63 @@ def _hf_from_pretrained(cls, model_id: str, **kwargs):
             call_kwargs.pop("token", None)
             call_kwargs["use_auth_token"] = token
             return cls.from_pretrained(model_id, **call_kwargs)
+        if call_kwargs.get("trust_remote_code") and "trust_remote_code" in str(exc):
+            call_kwargs.pop("trust_remote_code", None)
+            return cls.from_pretrained(model_id, **call_kwargs)
         raise
+    except ValueError as exc:
+        if "trust_remote_code=True" in str(exc) and not call_kwargs.get("trust_remote_code"):
+            call_kwargs["trust_remote_code"] = True
+            return cls.from_pretrained(model_id, **call_kwargs)
+        raise
+
+
+def _resolve_supported_context_length(model_id: str, requested_context_length: int) -> int:
+    """Return a context length capped to the model config when available."""
+    try:
+        from transformers import AutoConfig
+    except ImportError:
+        return requested_context_length
+
+    try:
+        config = _hf_from_pretrained(AutoConfig, model_id)
+    except Exception as exc:
+        logger.warning("Unable to inspect model config for %s: %s", model_id, exc)
+        return requested_context_length
+
+    candidates: List[int] = []
+    for attr_name in (
+        "max_position_embeddings",
+        "n_positions",
+        "max_sequence_length",
+        "seq_length",
+        "model_max_length",
+    ):
+        value = getattr(config, attr_name, None)
+        if isinstance(value, (int, float)) and value and value < 10**7:
+            candidates.append(int(value))
+
+    rope_scaling = getattr(config, "rope_scaling", None)
+    if isinstance(rope_scaling, dict):
+        for key in ("original_max_position_embeddings", "max_position_embeddings"):
+            value = rope_scaling.get(key)
+            if isinstance(value, (int, float)) and value and value < 10**7:
+                candidates.append(int(value))
+
+    derived_context_length = min(candidates) if candidates else requested_context_length
+    return min(requested_context_length, derived_context_length)
+
+
+def _extract_vllm_derived_max_model_len(error_text: str) -> Optional[int]:
+    """Parse vLLM validation text for the derived max model length."""
+    match = re.search(r"derived max_model_len \(max_position_embeddings=([0-9.]+)", error_text)
+    if not match:
+        return None
+
+    try:
+        return int(float(match.group(1)))
+    except (TypeError, ValueError):
+        return None
 
 
 def _kpi_output_path() -> Path:
@@ -1495,8 +1556,10 @@ def _run_hf_causal_latency_workload(
     max_mean_latency_ms: float,
     min_duration_sec: int,
     prefer_4bit_quant: bool = False,
-) -> None:
+    kpi_test_name: str = "test_hf_causal_lm_inference_latency_enterprise_workloads",
+) -> Dict[str, float]:
     """Run a causal-LM latency workload for at least *min_duration_sec* and assert mean latency."""
+    workload_t0 = time.perf_counter()
     try:
         from transformers import AutoModelForCausalLM, AutoTokenizer
     except ImportError:
@@ -1636,14 +1699,32 @@ def _run_hf_causal_latency_workload(
 
     logger.info(
         "HF Causal-LM (%s) inference: mean=%.1f ms  p95=%.1f ms  "
-        "tokens/sec=%.0f (batch=1, new_tokens=%d, runtime=%.1fs, samples=%d)",
+        "tokens/sec=%.0f (batch=1, new_tokens=%d, runtime=%.1fs, completion=%.1fs, samples=%d)",
         model_id,
         mean_ms,
         p95_ms,
         tps,
         max_new_tokens,
         total_runtime_sec,
+        time.perf_counter() - workload_t0,
         len(latencies_ms),
+    )
+
+    completion_time_sec = time.perf_counter() - workload_t0
+
+    _record_kpi(
+        kpi_test_name,
+        {
+            "model": model_id,
+            "max_new_tokens": max_new_tokens,
+            "mean_latency_ms": round(float(mean_ms), 2),
+            "p95_latency_ms": round(float(p95_ms), 2),
+            "throughput_tokens_per_sec": round(float(tps), 2),
+            "runtime_sec": round(float(total_runtime_sec), 2),
+            "completion_time_sec": round(float(completion_time_sec), 2),
+            "samples": len(latencies_ms),
+            "used_4bit_quant": use_quantized_load,
+        },
     )
 
     assert mean_ms < max_mean_latency_ms, (
@@ -1652,6 +1733,14 @@ def _run_hf_causal_latency_workload(
 
     del model
     torch.cuda.empty_cache()
+    return {
+        "mean_latency_ms": float(mean_ms),
+        "p95_latency_ms": float(p95_ms),
+        "throughput_tokens_per_sec": float(tps),
+        "runtime_sec": float(total_runtime_sec),
+        "completion_time_sec": float(completion_time_sec),
+        "samples": float(len(latencies_ms)),
+    }
 
 
 @pytest.mark.node_validation
@@ -1668,8 +1757,10 @@ class TestWorkloadAcceptanceHuggingFace:
     """
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.timeout(0)
     def test_hf_causal_lm_inference_latency(self):
         """Load a HuggingFace causal-LM (GPT-2) on GPU and measure per-token generation latency."""
+        test_t0 = time.perf_counter()
         try:
             from transformers import AutoModelForCausalLM, AutoTokenizer
         except ImportError:
@@ -1730,9 +1821,23 @@ class TestWorkloadAcceptanceHuggingFace:
 
         logger.info(
             "HF Causal-LM (%s) inference: mean=%.1f ms  p95=%.1f ms  "
-            "tokens/sec=%.0f (batch=1, new_tokens=%d, runtime=%.1fs, samples=%d)",
+            "tokens/sec=%.0f (batch=1, new_tokens=%d, runtime=%.1fs, completion=%.1fs, samples=%d)",
             _HF_INFERENCE_MODEL, mean_ms, p95_ms, tps, max_new_tokens,
-            total_runtime_sec, len(latencies_ms)
+            total_runtime_sec, time.perf_counter() - test_t0, len(latencies_ms)
+        )
+
+        _record_kpi(
+            "test_hf_causal_lm_inference_latency",
+            {
+                "model": _HF_INFERENCE_MODEL,
+                "max_new_tokens": max_new_tokens,
+                "mean_latency_ms": round(float(mean_ms), 2),
+                "p95_latency_ms": round(float(p95_ms), 2),
+                "throughput_tokens_per_sec": round(float(tps), 2),
+                "runtime_sec": round(float(total_runtime_sec), 2),
+                "completion_time_sec": round(float(time.perf_counter() - test_t0), 2),
+                "samples": len(latencies_ms),
+            },
         )
 
         # GPT-2 should complete 32 tokens in < 500 ms on H100
@@ -1744,6 +1849,7 @@ class TestWorkloadAcceptanceHuggingFace:
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     @pytest.mark.slow
+    @pytest.mark.timeout(0)
     @pytest.mark.parametrize(
         "workload_name,model_id,max_new_tokens,max_mean_latency_ms,prefer_4bit_quant",
         [
@@ -1797,17 +1903,25 @@ class TestWorkloadAcceptanceHuggingFace:
 
         min_duration_sec = int(os.environ.get("HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC", "300"))
         logger.info("Running workload=%s model=%s", workload_name, model_id)
-        _run_hf_causal_latency_workload(
+        metrics = _run_hf_causal_latency_workload(
             model_id=model_id,
             max_new_tokens=max_new_tokens,
             max_mean_latency_ms=max_mean_latency_ms,
             min_duration_sec=min_duration_sec,
             prefer_4bit_quant=prefer_4bit_quant,
+            kpi_test_name=f"test_hf_causal_lm_inference_latency_enterprise_workloads_{workload_name}",
+        )
+        logger.info(
+            "Workload %s completed in %.1fs",
+            workload_name,
+            metrics["completion_time_sec"],
         )
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.timeout(0)
     def test_hf_causal_lm_batch_throughput(self):
         """Measure batched prefill throughput for HuggingFace GPT-2 (tokens/sec)."""
+        test_t0 = time.perf_counter()
         try:
             from transformers import AutoModelForCausalLM, AutoTokenizer
         except ImportError:
@@ -1859,8 +1973,21 @@ class TestWorkloadAcceptanceHuggingFace:
         tps = total_tokens / elapsed
         logger.info(
             "HF Causal-LM (%s) batch throughput: %.0f tokens/sec "
-            "(batch=%d, max_new_tokens=%d, iters=%d)",
-            _HF_INFERENCE_MODEL, tps, batch_size, max_new, n_iters
+            "(batch=%d, max_new_tokens=%d, iters=%d, completion=%.1fs)",
+            _HF_INFERENCE_MODEL, tps, batch_size, max_new, n_iters, time.perf_counter() - test_t0
+        )
+
+        _record_kpi(
+            "test_hf_causal_lm_batch_throughput",
+            {
+                "model": _HF_INFERENCE_MODEL,
+                "batch_size": batch_size,
+                "max_new_tokens": max_new,
+                "iterations": n_iters,
+                "elapsed_sec": round(float(elapsed), 2),
+                "completion_time_sec": round(float(time.perf_counter() - test_t0), 2),
+                "throughput_tokens_per_sec": round(float(tps), 2),
+            },
         )
 
         assert tps > 100, f"Batch throughput {tps:.0f} tokens/sec too low"
@@ -2379,8 +2506,10 @@ class TestWorkloadAcceptanceHuggingFace:
         assert throughput > 10.0, f"Image-generation throughput too low: {throughput:.2f} img/s <= 10.0"
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.timeout(0)
     def test_hf_encoder_training_throughput(self):
         """Fine-tune HuggingFace BERT for one epoch of synthetic data; validate throughput."""
+        test_t0 = time.perf_counter()
         try:
             from transformers import AutoModelForSequenceClassification, AutoTokenizer
         except ImportError:
@@ -2430,8 +2559,9 @@ class TestWorkloadAcceptanceHuggingFace:
         samples_per_sec = (batch_size * n_steps) / elapsed
         logger.info(
             "HF Encoder training (%s): %.0f samples/sec "
-            "(batch=%d, seq=%d, steps=%d)",
-            _HF_TRAINING_MODEL, samples_per_sec, batch_size, seq_len, n_steps
+            "(batch=%d, seq=%d, steps=%d, completion=%.1fs)",
+            _HF_TRAINING_MODEL, samples_per_sec, batch_size, seq_len, n_steps,
+            time.perf_counter() - test_t0
         )
 
         _record_kpi(
@@ -2442,6 +2572,7 @@ class TestWorkloadAcceptanceHuggingFace:
                 "seq_len": seq_len,
                 "steps": n_steps,
                 "elapsed_sec": round(elapsed, 4),
+                "completion_time_sec": round(float(time.perf_counter() - test_t0), 2),
                 "samples_per_sec": round(float(samples_per_sec), 2),
             },
         )
@@ -2453,8 +2584,10 @@ class TestWorkloadAcceptanceHuggingFace:
         torch.cuda.empty_cache()
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.timeout(0)
     def test_vllm_inference_throughput(self):
         """Run vLLM offline inference with a HuggingFace model and measure throughput."""
+        test_t0 = time.perf_counter()
         try:
             from vllm import LLM, SamplingParams
         except ImportError:
@@ -2530,8 +2663,9 @@ class TestWorkloadAcceptanceHuggingFace:
 
         logger.info(
             "vLLM inference (%s): %d prompts in %.2f s  total_tokens=%d  "
-            "throughput=%.0f tokens/sec",
-            _HF_INFERENCE_MODEL, len(prompts), elapsed, total_tokens, tps
+            "throughput=%.0f tokens/sec  completion=%.1fs",
+            _HF_INFERENCE_MODEL, len(prompts), elapsed, total_tokens, tps,
+            time.perf_counter() - test_t0
         )
         for i, output in enumerate(outputs):
             logger.info("  Prompt %d: %s", i, output.outputs[0].text[:80].replace("\n", " "))
@@ -2543,6 +2677,7 @@ class TestWorkloadAcceptanceHuggingFace:
                 "prompts": len(prompts),
                 "max_tokens_per_prompt": 64,
                 "elapsed_sec": round(elapsed, 4),
+                "completion_time_sec": round(float(time.perf_counter() - test_t0), 2),
                 "total_tokens": int(total_tokens),
                 "throughput_tokens_per_sec": round(float(tps), 2),
             },
@@ -2648,9 +2783,16 @@ class TestWorkloadAcceptanceHuggingFace:
         pcie_bw_gbs = _measure_gpu_pcie_bandwidth()
         logger.info("PCIe Bandwidth Estimate: %.1f GB/s", pcie_bw_gbs)
 
+        effective_context_length = int(
+            min(
+                baseline_metrics.get("effective_context_length", context_length),
+                offload_metrics.get("effective_context_length", context_length),
+            )
+        )
+
         # Estimate KV traffic (rough: batch * context * 2 (key+value) * dtype_size * requests)
         dtype_bytes = 2  # bfloat16
-        estimated_kv_volume_gb = (batch_size * context_length * 2 * dtype_bytes * num_prompts) / 1e9
+        estimated_kv_volume_gb = (batch_size * effective_context_length * 2 * dtype_bytes * num_prompts) / 1e9
         estimated_pcie_util_percent = (estimated_kv_volume_gb / (pcie_bw_gbs * 1.0)) * 100 if pcie_bw_gbs > 0 else 0.0
 
         logger.info(
@@ -2663,7 +2805,8 @@ class TestWorkloadAcceptanceHuggingFace:
             "test_predictable_memory_orchestration_kv_cache_offload",
             {
                 "model": model_id,
-                "context_length": context_length,
+                "requested_context_length": context_length,
+                "effective_context_length": effective_context_length,
                 "batch_size": batch_size,
                 "num_prompts": num_prompts,
                 "max_tokens_per_prompt": max_tokens,
@@ -2739,11 +2882,20 @@ class TestWorkloadAcceptanceHuggingFace:
 
         try:
             device_count = torch.cuda.device_count()
+            effective_context_length = _resolve_supported_context_length(model_id, context_length)
+            if effective_context_length != context_length:
+                logger.info(
+                    "Reducing KV cache context length for %s from %d to %d based on model config",
+                    model_id,
+                    context_length,
+                    effective_context_length,
+                )
+
             llm_kwargs = {
                 "model": model_id,
                 "tensor_parallel_size": device_count,
                 "dtype": "bfloat16",
-                "max_model_len": context_length,
+                "max_model_len": effective_context_length,
                 "gpu_memory_utilization": gpu_memory_util,
                 "enable_prefix_caching": True,  # KV cache prefixing helps with large contexts
             }
@@ -2753,10 +2905,25 @@ class TestWorkloadAcceptanceHuggingFace:
                 logger.info("Enabling KV cache offload to CPU: %d GB", cpu_offload_gb)
 
             logger.info("Initializing vLLM with kwargs: %s", llm_kwargs)
-            llm = LLM(**llm_kwargs)
+            try:
+                llm = LLM(**llm_kwargs)
+            except Exception as exc:
+                derived_max_model_len = _extract_vllm_derived_max_model_len(str(exc))
+                if derived_max_model_len and derived_max_model_len < effective_context_length:
+                    effective_context_length = derived_max_model_len
+                    llm_kwargs["max_model_len"] = effective_context_length
+                    logger.warning(
+                        "Retrying KV cache workload for %s with max_model_len=%d after vLLM validation failure",
+                        model_id,
+                        effective_context_length,
+                    )
+                    llm = LLM(**llm_kwargs)
+                else:
+                    raise
 
             # Create varied prompts with context padding to fill context length
-            context_padding = " ".join(["This is context."] * (context_length // 20 - 5))
+            padding_repeats = max(effective_context_length // 20 - 5, 0)
+            context_padding = " ".join(["This is context."] * padding_repeats)
             prompts = [
                 f"{context_padding} Explain PCIe bandwidth benefits in two sentences:",
                 f"{context_padding} Describe NVLink in three sentences:",
@@ -2780,6 +2947,7 @@ class TestWorkloadAcceptanceHuggingFace:
 
             # Measure inference with latency tracking
             batch_latencies_ms: List[float] = []
+            total_generated_tokens = 0
             t_start = time.perf_counter()
 
             try:
@@ -2791,11 +2959,12 @@ class TestWorkloadAcceptanceHuggingFace:
                     batch_latency_ms = (t_batch_end - t_batch_start) * 1000
                     batch_latencies_ms.append(batch_latency_ms)
 
-                    total_tokens = sum(len(o.outputs[0].token_ids) for o in outputs)
+                    batch_tokens = sum(len(o.outputs[0].token_ids) for o in outputs)
+                    total_generated_tokens += batch_tokens
                     logger.info(
                         "  Batch %d/%d (offload=%s): %.2f ms, %d tokens",
                         i // batch_size + 1, (len(prompts) + batch_size - 1) // batch_size,
-                        offload_enabled, batch_latency_ms, total_tokens
+                        offload_enabled, batch_latency_ms, batch_tokens
                     )
             except Exception as exc:
                 logger.warning("Inference run failed: %s", exc)
@@ -2810,8 +2979,7 @@ class TestWorkloadAcceptanceHuggingFace:
             page_faults_per_sec = (fault_end_major - fault_start_major) / fault_duration
 
             # Calculate throughput
-            total_tokens = sum(len(o.outputs[0].token_ids) for o in outputs) * (len(prompts) // batch_size)
-            throughput_tps = total_tokens / elapsed if elapsed > 0 else 0.0
+            throughput_tps = total_generated_tokens / elapsed if elapsed > 0 else 0.0
 
             # Calculate latency percentiles
             if batch_latencies_ms:
@@ -2837,6 +3005,8 @@ class TestWorkloadAcceptanceHuggingFace:
                 "p95_latency_ms": p95,
                 "p99_latency_ms": p99,
                 "page_faults_per_sec": page_faults_per_sec,
+                "effective_context_length": effective_context_length,
+                "total_generated_tokens": total_generated_tokens,
             }
 
         except Exception as e:

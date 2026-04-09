@@ -16,8 +16,10 @@ Can be executed separately with:
 """
 
 import logging
+import multiprocessing as mp
 import os
 import json
+import queue
 import re
 import shutil
 import subprocess
@@ -28,6 +30,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+from urllib.parse import urlparse
+from urllib.request import urlopen
 
 import numpy as np
 
@@ -1459,6 +1463,203 @@ def _record_kpi(test_name: str, metrics: Dict) -> None:
     logger.info("KPI %s: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
 
 
+def _ensure_directory(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def _download_file(url: str, destination: Path) -> Path:
+    _ensure_directory(destination.parent)
+    if destination.exists():
+        return destination
+
+    with urlopen(url, timeout=60) as response:
+        destination.write_bytes(response.read())
+    return destination
+
+
+def _resolve_vision_input_source(source: str) -> Path:
+    if re.match(r"^https?://", source, flags=re.IGNORECASE):
+        parsed = urlparse(source)
+        file_name = Path(parsed.path).name or "vision_input.bin"
+        return _download_file(source, Path("artifacts") / "vision_inputs" / file_name)
+
+    source_path = Path(source).expanduser()
+    if not source_path.exists():
+        raise FileNotFoundError(f"Vision input source not found: {source_path}")
+    return source_path
+
+
+def _cpu_monitor(stop_event: threading.Event, interval_sec: float, samples: List[float]) -> None:
+    try:
+        import psutil
+    except ImportError:
+        return
+
+    psutil.cpu_percent(interval=None)
+    while not stop_event.is_set():
+        samples.append(psutil.cpu_percent(interval=interval_sec))
+
+
+def _yolo_worker(
+    gpu_id: int,
+    model_name: str,
+    image_path: str,
+    images_per_gpu: int,
+    batch_size: int,
+    imgsz: int,
+    half: bool,
+    result_queue,
+) -> None:
+    try:
+        from ultralytics import YOLO
+
+        torch.cuda.set_device(gpu_id)
+        model = YOLO(model_name)
+
+        warmup_sources = [image_path] * max(1, min(batch_size, 8))
+        _ = model.predict(
+            source=warmup_sources,
+            imgsz=imgsz,
+            batch=min(batch_size, len(warmup_sources)),
+            half=half,
+            device=gpu_id,
+            verbose=False,
+            save=False,
+        )
+        torch.cuda.synchronize(gpu_id)
+
+        sources = [image_path] * images_per_gpu
+        t0 = time.perf_counter()
+        _ = model.predict(
+            source=sources,
+            imgsz=imgsz,
+            batch=min(batch_size, len(sources)),
+            half=half,
+            device=gpu_id,
+            verbose=False,
+            save=False,
+        )
+        torch.cuda.synchronize(gpu_id)
+        elapsed = time.perf_counter() - t0
+        fps = images_per_gpu / elapsed if elapsed > 0 else 0.0
+
+        result_queue.put(
+            {
+                "gpu": gpu_id,
+                "status": "ok",
+                "images": images_per_gpu,
+                "elapsed": elapsed,
+                "fps": fps,
+            }
+        )
+    except Exception as exc:
+        result_queue.put(
+            {
+                "gpu": gpu_id,
+                "status": "error",
+                "error": str(exc),
+            }
+        )
+    finally:
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+
+def _dist_setup(rank: int, world_size: int, master_port: int) -> None:
+    import torch.distributed as dist
+
+    os.environ["MASTER_ADDR"] = "127.0.0.1"
+    os.environ["MASTER_PORT"] = str(master_port)
+    dist.init_process_group("nccl", rank=rank, world_size=world_size)
+    torch.cuda.set_device(rank)
+
+
+def _dist_cleanup() -> None:
+    try:
+        import torch.distributed as dist
+    except ImportError:
+        return
+
+    if dist.is_available() and dist.is_initialized():
+        dist.destroy_process_group()
+
+
+def _diffusion_worker(rank: int, world_size: int, master_port: int, cfg: Dict, result_queue) -> None:
+    pipe = None
+    try:
+        import torch.distributed as dist
+        from diffusers import AutoPipelineForText2Image
+
+        _dist_setup(rank, world_size, master_port)
+        device = f"cuda:{rank}"
+
+        pipe_kwargs: Dict = {"torch_dtype": torch.float16}
+        if cfg.get("variant"):
+            pipe_kwargs["variant"] = cfg["variant"]
+        token = _hf_auth_token()
+        if token:
+            pipe_kwargs["token"] = token
+
+        try:
+            pipe = AutoPipelineForText2Image.from_pretrained(cfg["model"], **pipe_kwargs)
+        except Exception:
+            pipe_kwargs.pop("variant", None)
+            pipe = AutoPipelineForText2Image.from_pretrained(cfg["model"], **pipe_kwargs)
+
+        pipe = pipe.to(device)
+        pipe.set_progress_bar_config(disable=True)
+
+        for _ in range(cfg["warmup"]):
+            _ = pipe(
+                prompt=cfg["prompt"],
+                negative_prompt=cfg["negative_prompt"] or None,
+                num_inference_steps=cfg["steps"],
+                guidance_scale=cfg["guidance_scale"],
+                height=cfg["height"],
+                width=cfg["width"],
+            )
+
+        dist.barrier()
+        torch.cuda.synchronize(rank)
+        start = time.perf_counter()
+
+        for _ in range(cfg["images_per_gpu"]):
+            _ = pipe(
+                prompt=cfg["prompt"],
+                negative_prompt=cfg["negative_prompt"] or None,
+                num_inference_steps=cfg["steps"],
+                guidance_scale=cfg["guidance_scale"],
+                height=cfg["height"],
+                width=cfg["width"],
+            )
+
+        torch.cuda.synchronize(rank)
+        dist.barrier()
+        elapsed = time.perf_counter() - start
+        ips = cfg["images_per_gpu"] / elapsed if elapsed > 0 else 0.0
+
+        gathered: List[Optional[Dict]] = [None for _ in range(world_size)]
+        dist.all_gather_object(
+            gathered,
+            {
+                "rank": rank,
+                "images": cfg["images_per_gpu"],
+                "elapsed": elapsed,
+                "ips": ips,
+            },
+        )
+
+        if rank == 0:
+            result_queue.put({"status": "ok", "per_rank": gathered})
+    except Exception as exc:
+        result_queue.put({"status": "error", "rank": rank, "error": str(exc)})
+    finally:
+        del pipe
+        _dist_cleanup()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+
 def _ensure_yolo_model_downloaded(model_name: str = "yolov8x.pt") -> Optional[str]:
     """
     Ensure YOLO model is downloaded and cached locally.
@@ -2244,103 +2445,137 @@ class TestWorkloadAcceptanceHuggingFace:
         except ImportError:
             pytest.skip("psutil not installed")
 
-        if torch.cuda.device_count() == 0:
-            pytest.skip("No CUDA devices")
+        try:
+            import ultralytics  # noqa: F401
+        except ImportError:
+            pytest.skip("ultralytics not installed")
 
-        # Ultralytics CLI must be available (pip install ultralytics).
-        yolo_cli = subprocess.run(
-            ["yolo", "help"], capture_output=True, text=True, timeout=10
-        )
-        if yolo_cli.returncode != 0:
-            pytest.skip("YOLO CLI not available. Install with: pip install ultralytics")
+        visible_gpus = torch.cuda.device_count()
+        required_gpus = int(os.environ.get("YOLO_GPU_COUNT", "4"))
+        if visible_gpus < required_gpus:
+            pytest.skip(
+                f"YOLO workload requires {required_gpus} CUDA GPUs; found {visible_gpus}"
+            )
 
-        # Ensure YOLO model is downloaded and cached before test execution.
         model_name = os.environ.get("YOLO_DETECT_MODEL", "yolov8x.pt")
         if not _ensure_yolo_model_downloaded(model_name):
             pytest.skip(f"Failed to download/cache YOLO model: {model_name}")
 
-        device_count = torch.cuda.device_count()
-        device_str = ",".join(str(i) for i in range(device_count))
+        source = os.environ.get("YOLO_DETECT_SOURCE", "https://ultralytics.com/images/bus.jpg")
+        try:
+            image_path = _resolve_vision_input_source(source)
+        except Exception as exc:
+            pytest.skip(f"Failed to prepare YOLO input source: {exc}")
+
+        ctx = mp.get_context("spawn")
+        gpu_ids = list(range(required_gpus))
+        images_per_gpu = int(os.environ.get("YOLO_IMAGES_PER_GPU", "256"))
         batch_size = int(os.environ.get("YOLO_DETECT_BATCH", "128"))
         imgsz = int(os.environ.get("YOLO_DETECT_IMGSZ", "640"))
-        src = os.environ.get("YOLO_DETECT_SOURCE", "https://ultralytics.com/images/bus.jpg")
+        half = os.environ.get("YOLO_HALF_PRECISION", "1").lower() in {"1", "true", "yes", "on"}
         timeout_sec = int(os.environ.get("YOLO_DETECT_TIMEOUT_SEC", "240"))
         cpu_sample_interval_sec = float(os.environ.get("YOLO_CPU_SAMPLE_INTERVAL_SEC", "0.5"))
-        # Default target scales with GPU count: 25 FPS/GPU corresponds to 200 FPS on 8 GPUs.
-        fps_target = float(os.environ.get("YOLO_AGGREGATE_FPS_TARGET", str(25 * device_count)))
-
-        cmd = [
-            "yolo",
-            "detect",
-            "predict",
-            "model=yolov8x.pt",
-            f"source={src}",
-            f"device={device_str}",
-            f"batch={batch_size}",
-            f"imgsz={imgsz}",
-            "half=True",
-            "save=False",
-            "verbose=True",
-        ]
-        logger.info("Running YOLO workload: %s", " ".join(cmd))
-
-        cpu_samples: List[float] = []
-        t_start = time.perf_counter()
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
-        try:
-            while proc.poll() is None and (time.perf_counter() - t_start) < timeout_sec:
-                cpu_samples.append(psutil.cpu_percent(interval=cpu_sample_interval_sec))
-
-            if proc.poll() is None:
-                proc.terminate()
-                try:
-                    proc.wait(timeout=10)
-                except subprocess.TimeoutExpired:
-                    proc.kill()
-
-            stdout, stderr = proc.communicate(timeout=10)
-        except Exception:
-            if proc.poll() is None:
-                proc.kill()
-            raise
-
-        runtime_sec = time.perf_counter() - t_start
-        combined = (stdout or "") + "\n" + (stderr or "")
-        if proc.returncode not in (0, None):
-            pytest.skip(f"YOLO workload command failed (exit={proc.returncode}): {combined[-500:]}")
-
-        # Parse speed lines, e.g. "Speed: 0.8ms preprocess, 2.1ms inference, 0.4ms postprocess per image"
-        speed_matches = re.findall(
-            r"Speed:\s*([0-9]*\.?[0-9]+)ms\s*preprocess,\s*([0-9]*\.?[0-9]+)ms\s*inference,\s*([0-9]*\.?[0-9]+)ms\s*postprocess",
-            combined,
-            flags=re.IGNORECASE,
-        )
-        if not speed_matches:
-            pytest.skip("Could not parse YOLO speed output for FPS computation")
-
-        # Use average over all reported speed lines to reduce one-off jitter.
-        preprocess_ms = float(np.mean([float(x[0]) for x in speed_matches]))
-        inference_ms = float(np.mean([float(x[1]) for x in speed_matches]))
-        postprocess_ms = float(np.mean([float(x[2]) for x in speed_matches]))
-        per_image_ms = preprocess_ms + inference_ms + postprocess_ms
-        if per_image_ms <= 0:
-            pytest.skip("Invalid YOLO per-image latency parsed from output")
-
-        # Aggregate FPS estimate from per-image timing and batch size.
-        fps_aggregate = batch_size * (1000.0 / per_image_ms)
-        cpu_mean = float(np.mean(cpu_samples)) if cpu_samples else 0.0
-        cpu_p95 = float(np.percentile(cpu_samples, 95)) if cpu_samples else 0.0
-        cpu_under_50_ratio = (
-            sum(1 for x in cpu_samples if x < 50.0) / len(cpu_samples) if cpu_samples else 0.0
-        )
+        fps_target = float(os.environ.get("YOLO_AGGREGATE_FPS_TARGET", "200"))
+        cpu_target = float(os.environ.get("YOLO_CPU_UTIL_TARGET", "50"))
 
         logger.info(
-            "YOLO object detection workload: runtime=%.1fs  per_image=%.2f ms  aggregate_fps=%.1f  "
-            "cpu_mean=%.1f%% cpu_p95=%.1f%%",
-            runtime_sec,
-            per_image_ms,
-            fps_aggregate,
+            "Running YOLO workload: model=%s gpus=%s images_per_gpu=%d batch=%d imgsz=%d half=%s source=%s",
+            model_name,
+            gpu_ids,
+            images_per_gpu,
+            batch_size,
+            imgsz,
+            half,
+            image_path,
+        )
+
+        cpu_samples: List[float] = []
+        stop_event = threading.Event()
+        monitor = threading.Thread(
+            target=_cpu_monitor,
+            args=(stop_event, cpu_sample_interval_sec, cpu_samples),
+            daemon=True,
+        )
+        monitor.start()
+
+        result_queue = ctx.Queue()
+        processes = []
+        wall_start = time.perf_counter()
+        for gpu_id in gpu_ids:
+            process = ctx.Process(
+                target=_yolo_worker,
+                args=(
+                    gpu_id,
+                    model_name,
+                    str(image_path),
+                    images_per_gpu,
+                    batch_size,
+                    imgsz,
+                    half,
+                    result_queue,
+                ),
+            )
+            process.start()
+            processes.append(process)
+
+        deadline = wall_start + timeout_sec
+        for process in processes:
+            remaining = max(deadline - time.perf_counter(), 0.0)
+            process.join(timeout=remaining)
+
+        timed_out = [process.pid for process in processes if process.is_alive()]
+        if timed_out:
+            for process in processes:
+                if process.is_alive():
+                    process.terminate()
+            for process in processes:
+                process.join(timeout=5)
+            stop_event.set()
+            monitor.join(timeout=2)
+            pytest.fail(f"YOLO workload timed out waiting for workers: {timed_out}")
+
+        stop_event.set()
+        monitor.join(timeout=2)
+        wall_end = time.perf_counter()
+
+        results = []
+        while len(results) < len(processes):
+            try:
+                results.append(result_queue.get_nowait())
+            except queue.Empty:
+                break
+
+        if len(results) != len(processes):
+            pytest.fail(
+                f"YOLO workload collected {len(results)} worker results for {len(processes)} processes"
+            )
+
+        errors = [result for result in results if result.get("status") != "ok"]
+        if errors:
+            pytest.fail(f"YOLO worker failure: {errors}")
+
+        results = sorted(results, key=lambda result: result["gpu"])
+        total_images = sum(result["images"] for result in results)
+        makespan_sec = wall_end - wall_start
+        aggregate_fps = total_images / makespan_sec if makespan_sec > 0 else 0.0
+        cpu_mean = float(np.mean(cpu_samples)) if cpu_samples else 0.0
+        cpu_p95 = float(np.percentile(cpu_samples, 95)) if cpu_samples else 0.0
+        per_gpu_mean_fps = float(np.mean([result["fps"] for result in results])) if results else 0.0
+        per_gpu_min_fps = float(min(result["fps"] for result in results)) if results else 0.0
+
+        for result in results:
+            logger.info(
+                "YOLO GPU %d: images=%d elapsed=%.3fs fps=%.2f",
+                result["gpu"],
+                result["images"],
+                result["elapsed"],
+                result["fps"],
+            )
+
+        logger.info(
+            "YOLO object detection workload: makespan=%.1fs aggregate_fps=%.1f cpu_mean=%.1f%% cpu_p95=%.1f%%",
+            makespan_sec,
+            aggregate_fps,
             cpu_mean,
             cpu_p95,
         )
@@ -2348,162 +2583,178 @@ class TestWorkloadAcceptanceHuggingFace:
         _record_kpi(
             "test_vision_object_detection_yolo_fps",
             {
-                "runtime_sec": round(runtime_sec, 2),
+                "model": model_name,
+                "gpu_count": required_gpus,
+                "images_per_gpu": images_per_gpu,
+                "total_images": total_images,
+                "makespan_sec": round(makespan_sec, 3),
                 "batch": batch_size,
                 "imgsz": imgsz,
-                "per_image_ms": round(per_image_ms, 4),
-                "aggregate_fps": round(fps_aggregate, 2),
+                "aggregate_fps": round(aggregate_fps, 2),
                 "aggregate_fps_target": round(fps_target, 2),
                 "cpu_mean_util_pct": round(cpu_mean, 2),
                 "cpu_p95_util_pct": round(cpu_p95, 2),
-                "cpu_under_50_ratio": round(cpu_under_50_ratio, 3),
-                "gpu_devices": device_str,
+                "cpu_target_util_pct": round(cpu_target, 2),
+                "per_gpu_mean_fps": round(per_gpu_mean_fps, 2),
+                "per_gpu_min_fps": round(per_gpu_min_fps, 2),
             },
         )
 
-        assert fps_aggregate >= fps_target, (
-            f"YOLO aggregate FPS too low: {fps_aggregate:.1f} < target {fps_target:.1f}"
+        assert aggregate_fps >= fps_target, (
+            f"YOLO aggregate FPS too low: {aggregate_fps:.1f} < target {fps_target:.1f}"
         )
-        assert cpu_under_50_ratio >= 0.8, (
-            f"CPU utilization too high for sustained period: under-50%% ratio={cpu_under_50_ratio:.2f}"
+        assert cpu_mean < cpu_target, (
+            f"YOLO CPU utilization too high: mean {cpu_mean:.1f}% >= target {cpu_target:.1f}%"
         )
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     @pytest.mark.workload_acceptance
     def test_vision_image_generation_diffusers_throughput(self):
-        """TC-NV-08d: Vision workload (image generation) via Diffusers command.
+        """TC-NV-08d: Vision workload (image generation) via distributed Diffusers.
 
-        Goal: validate stable image generation throughput.
-        Default command:
-          torchrun generate.py
+        Goal: validate stable 4-GPU image generation throughput.
         Pass criteria:
-          - Throughput > 10 images/sec
+          - Aggregate throughput > 10 images/sec
         """
-        cmd_str = os.environ.get("DIFFUSERS_GENERATE_CMD", "torchrun generate.py")
-        script_path = Path("generate.py")
-        use_inline_fallback = "generate.py" in cmd_str and not script_path.exists()
+        try:
+            import diffusers  # noqa: F401
+        except ImportError:
+            pytest.skip("diffusers not installed")
 
-        timeout_sec = int(os.environ.get("DIFFUSERS_GENERATE_TIMEOUT_SEC", "300"))
-        throughput = None
-        mode = "external_command"
+        visible_gpus = torch.cuda.device_count()
+        world_size = int(os.environ.get("DIFFUSERS_GPU_COUNT", "4"))
+        if visible_gpus < world_size:
+            pytest.skip(
+                f"Diffusers workload requires {world_size} CUDA GPUs; found {visible_gpus}"
+            )
 
-        if use_inline_fallback:
-            mode = "inline_diffusers_fallback"
+        ctx = mp.get_context("spawn")
+        timeout_sec = int(os.environ.get("DIFFUSERS_GENERATE_TIMEOUT_SEC", "600"))
+        master_port = int(os.environ.get("DIFFUSERS_MASTER_PORT", "29501"))
+        model_id = os.environ.get("DIFFUSERS_MODEL_ID", "stabilityai/sd-turbo")
+        images_per_gpu = int(os.environ.get("DIFFUSERS_IMAGES_PER_GPU", os.environ.get("DIFFUSERS_NUM_IMAGES", "32")))
+        steps = int(os.environ.get("DIFFUSERS_STEPS", "1"))
+        guidance_scale = float(os.environ.get("DIFFUSERS_GUIDANCE_SCALE", "0.0"))
+        height = int(os.environ.get("DIFFUSERS_HEIGHT", "512"))
+        width = int(os.environ.get("DIFFUSERS_WIDTH", "512"))
+        warmup = int(os.environ.get("DIFFUSERS_WARMUP", "2"))
+        throughput_target = float(os.environ.get("DIFFUSERS_TARGET_IMG_PER_SEC", "10.0"))
+        prompt = os.environ.get(
+            "DIFFUSERS_PROMPT",
+            "A futuristic AI data center with GPUs, ultra detailed",
+        )
+        negative_prompt = os.environ.get("DIFFUSERS_NEGATIVE_PROMPT", "")
+
+        cfg = {
+            "model": model_id,
+            "prompt": prompt,
+            "negative_prompt": negative_prompt,
+            "images_per_gpu": images_per_gpu,
+            "steps": steps,
+            "guidance_scale": guidance_scale,
+            "height": height,
+            "width": width,
+            "warmup": warmup,
+            "variant": "fp16",
+        }
+
+        logger.info(
+            "Running Diffusers distributed workload: model=%s world_size=%d images_per_gpu=%d steps=%d guidance=%.2f size=%dx%d",
+            model_id,
+            world_size,
+            images_per_gpu,
+            steps,
+            guidance_scale,
+            height,
+            width,
+        )
+
+        result_queue = ctx.Queue()
+        processes = []
+        start = time.perf_counter()
+        for rank in range(world_size):
+            process = ctx.Process(
+                target=_diffusion_worker,
+                args=(rank, world_size, master_port, cfg, result_queue),
+            )
+            process.start()
+            processes.append(process)
+
+        deadline = start + timeout_sec
+        for process in processes:
+            remaining = max(deadline - time.perf_counter(), 0.0)
+            process.join(timeout=remaining)
+
+        timed_out = [process.pid for process in processes if process.is_alive()]
+        if timed_out:
+            for process in processes:
+                if process.is_alive():
+                    process.terminate()
+            for process in processes:
+                process.join(timeout=5)
+            pytest.fail(f"Diffusers workload timed out waiting for workers: {timed_out}")
+
+        results = []
+        while True:
             try:
-                from diffusers import StableDiffusionPipeline
-            except ImportError:
-                mode = "torch_imagegen_proxy_fallback"
-                logger.warning(
-                    "generate.py and diffusers unavailable; using torch image-generation proxy workload"
-                )
-                num_images = int(os.environ.get("TORCH_PROXY_NUM_IMAGES", "128"))
-                height = int(os.environ.get("TORCH_PROXY_HEIGHT", "512"))
-                width = int(os.environ.get("TORCH_PROXY_WIDTH", "512"))
-                try:
-                    device = torch.device("cuda:0")
-                    # Warmup
-                    x = torch.randn(8, 3, height, width, device=device)
-                    _ = torch.nn.functional.avg_pool2d(x, kernel_size=3, stride=1, padding=1)
-                    torch.cuda.synchronize(device)
+                results.append(result_queue.get_nowait())
+            except queue.Empty:
+                break
 
-                    t0 = time.perf_counter()
-                    produced = 0
-                    while produced < num_images:
-                        b = min(8, num_images - produced)
-                        x = torch.randn(b, 3, height, width, device=device)
-                        y = torch.nn.functional.avg_pool2d(x, kernel_size=3, stride=1, padding=1)
-                        _ = torch.tanh(y)
-                        produced += b
-                    torch.cuda.synchronize(device)
-                    elapsed = time.perf_counter() - t0
-                    throughput = num_images / elapsed if elapsed > 0 else None
-                except Exception as exc:
-                    pytest.skip(f"Torch image-generation proxy fallback failed: {exc}")
+        errors = [result for result in results if result.get("status") == "error"]
+        if errors:
+            pytest.fail(f"Diffusers worker failure: {errors}")
 
-                logger.info("Torch image-generation proxy throughput: %.2f img/s", throughput)
-                _record_kpi(
-                    "test_vision_image_generation_diffusers_throughput",
-                    {
-                        "mode": mode,
-                        "throughput_img_per_sec": round(float(throughput), 3) if throughput else None,
-                        "num_images": num_images,
-                        "height": height,
-                        "width": width,
-                    },
-                )
+        success = next((result for result in results if result.get("status") == "ok"), None)
+        if success is None:
+            pytest.fail("Diffusers workload finished without aggregated rank results")
 
-                assert throughput is not None and throughput > 10.0, (
-                    f"Image-generation throughput too low: {throughput} img/s <= 10.0"
-                )
-                return
+        rows = sorted(success["per_rank"], key=lambda item: item["rank"])
+        total_images = sum(row["images"] for row in rows)
+        makespan_sec = max(row["elapsed"] for row in rows) if rows else 0.0
+        aggregate_img_per_sec = total_images / makespan_sec if makespan_sec > 0 else 0.0
+        per_rank_mean_ips = float(np.mean([row["ips"] for row in rows])) if rows else 0.0
+        per_rank_min_ips = float(min(row["ips"] for row in rows)) if rows else 0.0
 
-            model_id = os.environ.get("DIFFUSERS_MODEL_ID", "runwayml/stable-diffusion-v1-5")
-            prompt = os.environ.get("DIFFUSERS_PROMPT", "A modern AI datacenter with H100 GPUs")
-            num_images = int(os.environ.get("DIFFUSERS_NUM_IMAGES", "16"))
-            steps = int(os.environ.get("DIFFUSERS_STEPS", "20"))
-
+        for row in rows:
             logger.info(
-                "Running inline Diffusers benchmark: model=%s images=%d steps=%d",
-                model_id,
-                num_images,
-                steps,
+                "Diffusers GPU %d: images=%d elapsed=%.3fs img_per_sec=%.3f",
+                row["rank"],
+                row["images"],
+                row["elapsed"],
+                row["ips"],
             )
 
-            try:
-                pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
-                pipe = pipe.to("cuda:0")
-                # Warmup
-                _ = pipe(prompt, num_inference_steps=steps, guidance_scale=7.5)
-                torch.cuda.synchronize("cuda:0")
+        logger.info(
+            "Diffusers image-generation workload: total_images=%d makespan=%.3fs aggregate_img_per_sec=%.3f",
+            total_images,
+            makespan_sec,
+            aggregate_img_per_sec,
+        )
 
-                t0 = time.perf_counter()
-                for _ in range(num_images):
-                    _ = pipe(prompt, num_inference_steps=steps, guidance_scale=7.5)
-                torch.cuda.synchronize("cuda:0")
-                elapsed = time.perf_counter() - t0
-                throughput = num_images / elapsed if elapsed > 0 else None
-            except Exception as exc:
-                pytest.skip(f"Inline Diffusers benchmark failed: {exc}")
-        else:
-            logger.info("Running Diffusers image-generation workload: %s", cmd_str)
-            result = subprocess.run(
-                cmd_str,
-                shell=True,
-                capture_output=True,
-                text=True,
-                timeout=timeout_sec,
-                env=os.environ.copy(),
-            )
-            output = (result.stdout or "") + "\n" + (result.stderr or "")
-            if result.returncode != 0:
-                pytest.skip(f"Diffusers generation command failed (exit={result.returncode}): {output[-500:]}")
-
-            # Parse throughput from output patterns like "12.3 img/s" or "throughput=12.3".
-            patterns = [
-                r"([0-9]*\.?[0-9]+)\s*img/s",
-                r"throughput\s*[:=]\s*([0-9]*\.?[0-9]+)",
-                r"images_per_second\s*[:=]\s*([0-9]*\.?[0-9]+)",
-            ]
-            for pat in patterns:
-                m = re.search(pat, output, flags=re.IGNORECASE)
-                if m:
-                    throughput = float(m.group(1))
-                    break
-
-            if throughput is None:
-                pytest.skip("Could not parse image-generation throughput from command output")
-
-        logger.info("Diffusers image-generation throughput: %.2f img/s", throughput)
         _record_kpi(
             "test_vision_image_generation_diffusers_throughput",
             {
-                "mode": mode,
-                "command": cmd_str,
-                "throughput_img_per_sec": round(throughput, 3),
+                "model": model_id,
+                "world_size": world_size,
+                "images_per_gpu": images_per_gpu,
+                "total_images": total_images,
+                "steps": steps,
+                "guidance_scale": guidance_scale,
+                "height": height,
+                "width": width,
+                "warmup": warmup,
+                "makespan_sec": round(makespan_sec, 3),
+                "throughput_img_per_sec": round(aggregate_img_per_sec, 3),
+                "throughput_target_img_per_sec": round(throughput_target, 3),
+                "per_rank_mean_img_per_sec": round(per_rank_mean_ips, 3),
+                "per_rank_min_img_per_sec": round(per_rank_min_ips, 3),
             },
         )
 
-        assert throughput > 10.0, f"Image-generation throughput too low: {throughput:.2f} img/s <= 10.0"
+        assert aggregate_img_per_sec > throughput_target, (
+            f"Image-generation throughput too low: {aggregate_img_per_sec:.3f} img/s <= {throughput_target:.3f}"
+        )
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     @pytest.mark.timeout(0)

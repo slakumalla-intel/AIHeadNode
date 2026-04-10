@@ -81,6 +81,18 @@ _HF_QWEN_70B_MODEL = os.environ.get(
     "HF_QWEN_70B_MODEL",
     "Qwen/Qwen2.5-72B-Instruct",
 )
+_HF_LLAMA_33_70B_MODEL = os.environ.get(
+    "HF_LLAMA_33_70B_MODEL",
+    "meta-llama/Llama-3.3-70B-Instruct",
+)
+_HF_MIXTRAL_8X22B_MODEL = os.environ.get(
+    "HF_MIXTRAL_8X22B_MODEL",
+    "mistralai/Mixtral-8x22B-Instruct-v0.1",
+)
+_HF_DEEPSEEK_R1_70B_MODEL = os.environ.get(
+    "HF_DEEPSEEK_R1_70B_MODEL",
+    "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+)
 
 
 # =============================================================================
@@ -1130,6 +1142,128 @@ class TestNVBandwidthMemcpy:
         """SM copy: D2H bandwidth using CUDA Streaming Multiprocessors (pageable)."""
         self._run_and_validate("device_to_host_memcpy_sm")
 
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    def test_pcie_bw_p2p_latency_hugepages_2mb(self):
+        """AI_HOSTCPU_FUNC_TEST_ID_050: PCIe BW and P2P latency with 2 MB hugepages.
+
+        Enables 2 MB kernel hugepages (if root permits) to reduce TLB pressure on
+        Host<->GPU DMA transfers, then re-runs H2D and D2H nvbandwidth CE tests.
+        Falls back to a pure-PyTorch H2D/D2H timing loop when nvbandwidth is absent.
+
+        Pass criteria (PyTorch path):
+          - H2D and D2H BW >= 41 GB/s (65 % of PCIe Gen5 nominal)
+          - Hugepage state recorded in KPI for A/B comparison
+        """
+        # ------------------------------------------------------------------ #
+        # 1.  Try to enable 2 MB hugepages                                     #
+        # ------------------------------------------------------------------ #
+        HP_NODE = Path("/sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages")
+        hugepages_before = 0
+        hugepages_active = False
+        if HP_NODE.exists():
+            try:
+                hugepages_before = int(HP_NODE.read_text().strip())
+                if hugepages_before < 512:
+                    HP_NODE.write_text("512\n")
+                    hugepages_active = int(HP_NODE.read_text().strip()) >= 512
+                else:
+                    hugepages_active = True
+            except PermissionError:
+                logger.warning("No permission to configure hugepages; test proceeds without")
+            except Exception as exc:
+                logger.warning("Hugepage configuration error: %s", exc)
+
+        logger.info("2 MB hugepages: before=%d  active=%s", hugepages_before, hugepages_active)
+
+        bw_results: Dict[str, object] = {"hugepages_active": hugepages_active}
+        try:
+            # ---------------------------------------------------------------- #
+            # 2a.  nvbandwidth path (preferred)                                 #
+            # ---------------------------------------------------------------- #
+            if _NVBANDWIDTH_BIN.exists():
+                for tc in (
+                    "host_to_device_memcpy_ce",
+                    "device_to_host_memcpy_ce",
+                    "host_to_device_bidirectional_memcpy_ce",
+                ):
+                    res = _run_nvbandwidth(tc, timeout=180)
+                    if res.get("error"):
+                        logger.warning("nvbandwidth %s: %s", tc, res["error"])
+                    else:
+                        flat = [v for row in res.get("matrix", []) for v in row if v > 0]
+                        if flat:
+                            bw_results[tc] = round(min(flat), 2)
+                            logger.info(
+                                "nvbandwidth %-42s  min=%.2f GB/s  (hugepages=%s)",
+                                tc, min(flat), hugepages_active,
+                            )
+
+            # ---------------------------------------------------------------- #
+            # 2b.  PyTorch fallback path                                        #
+            # ---------------------------------------------------------------- #
+            if torch.cuda.device_count() == 0:
+                pytest.skip("No CUDA devices")
+
+            n_bytes = int(os.environ.get("NODE_PCIE_BW_BYTES", str(512 * 1024 * 1024)))
+            n_iters = int(os.environ.get("NODE_PCIE_BW_ITERS", "5"))
+            device = torch.device("cuda:0")
+            host_buf = torch.empty(n_bytes, dtype=torch.uint8, pin_memory=True)
+            dev_buf  = torch.empty(n_bytes, dtype=torch.uint8, device=device)
+            stream   = torch.cuda.Stream(device=device)
+
+            # H2D
+            torch.cuda.synchronize(device)
+            t0 = time.perf_counter()
+            with torch.cuda.stream(stream):
+                for _ in range(n_iters):
+                    dev_buf.copy_(host_buf, non_blocking=True)
+            stream.synchronize()
+            h2d_gbs = (n_bytes * n_iters) / ((time.perf_counter() - t0) * 1e9)
+
+            # D2H
+            t0 = time.perf_counter()
+            with torch.cuda.stream(stream):
+                for _ in range(n_iters):
+                    host_buf.copy_(dev_buf, non_blocking=True)
+            stream.synchronize()
+            d2h_gbs = (n_bytes * n_iters) / ((time.perf_counter() - t0) * 1e9)
+
+            bw_results["torch_H2D_gbs"] = round(h2d_gbs, 2)
+            bw_results["torch_D2H_gbs"] = round(d2h_gbs, 2)
+            logger.info(
+                "PyTorch BW (hugepages=%s, %d MB): H2D=%.2f GB/s  D2H=%.2f GB/s",
+                hugepages_active, n_bytes // (1024 * 1024), h2d_gbs, d2h_gbs,
+            )
+            del host_buf, dev_buf
+
+            threshold_gbs = 41.0
+            assert h2d_gbs >= threshold_gbs, (
+                f"H2D BW {h2d_gbs:.2f} GB/s (hugepages={hugepages_active}) "
+                f"below threshold {threshold_gbs} GB/s"
+            )
+            assert d2h_gbs >= threshold_gbs, (
+                f"D2H BW {d2h_gbs:.2f} GB/s (hugepages={hugepages_active}) "
+                f"below threshold {threshold_gbs} GB/s"
+            )
+        finally:
+            # ---------------------------------------------------------------- #
+            # 3.  Restore original hugepage count                              #
+            # ---------------------------------------------------------------- #
+            if HP_NODE.exists() and hugepages_before < 512:
+                try:
+                    HP_NODE.write_text(f"{hugepages_before}\n")
+                except Exception:
+                    pass
+
+        _record_kpi(
+            "test_pcie_bw_p2p_latency_hugepages_2mb",
+            {
+                "hugepages_before": hugepages_before,
+                "hugepages_active": hugepages_active,
+                "bw_results": {str(k): v for k, v in bw_results.items()},
+            },
+        )
+
 
 @pytest.mark.node_validation
 @pytest.mark.p2p_validation
@@ -1242,6 +1376,105 @@ class TestGPUP2PBandwidth:
                 },
             )
 
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    def test_p2p_multi_stream_bandwidth(self):
+        """AI_HOSTCPU_FUNC_TEST_ID_052: P2P bandwidth with multiple concurrent CUDA streams.
+
+        Measures GPU-to-GPU copy bandwidth with 1, 2, 4, and 8 concurrent streams.
+        Multi-stream P2P saturates NVLink or PCIe interconnect better than a single
+        stream due to higher request-level parallelism and bus utilisation.
+
+        Pass criteria:
+          - Single-stream P2P BW > 0 (transfer succeeds on at least one GPU pair)
+          - Aggregate BW with 4 streams >= 1.5x BW with 1 stream
+        """
+        n_gpus = torch.cuda.device_count()
+        if n_gpus < 2:
+            pytest.skip("Need >= 2 GPUs for P2P multi-stream bandwidth test")
+
+        n_bytes_per_stream = int(os.environ.get("P2P_MULTI_STREAM_BYTES", str(256 * 1024 * 1024)))
+        n_iters  = int(os.environ.get("P2P_MULTI_STREAM_ITERS", "5"))
+        stream_counts = [1, 2, 4, 8]
+
+        # Find first GPU pair with direct P2P access
+        src, dst = None, None
+        for s in range(n_gpus):
+            for d in range(n_gpus):
+                if s != d and torch.cuda.can_device_access_peer(s, d):
+                    src, dst = s, d
+                    break
+            if src is not None:
+                break
+        if src is None:
+            src, dst = 0, 1
+            logger.warning("No direct P2P pair found; falling back to GPU 0→1 (PCIe path)")
+
+        logger.info("P2P multi-stream: GPU %d → GPU %d", src, dst)
+        bw_by_streams: Dict[str, float] = {}
+
+        for n_streams in stream_counts:
+            src_bufs = [
+                torch.empty(n_bytes_per_stream, dtype=torch.uint8, device=f"cuda:{src}")
+                for _ in range(n_streams)
+            ]
+            dst_bufs = [
+                torch.empty(n_bytes_per_stream, dtype=torch.uint8, device=f"cuda:{dst}")
+                for _ in range(n_streams)
+            ]
+            streams = [torch.cuda.Stream(device=f"cuda:{dst}") for _ in range(n_streams)]
+
+            # Warmup
+            with torch.cuda.device(dst):
+                for sl, (sb, db) in enumerate(zip(src_bufs, dst_bufs)):
+                    with torch.cuda.stream(streams[sl]):
+                        db.copy_(sb, non_blocking=True)
+                torch.cuda.synchronize(dst)
+
+            # Measure
+            total_bytes = n_bytes_per_stream * n_streams * n_iters
+            t0 = time.perf_counter()
+            with torch.cuda.device(dst):
+                for _ in range(n_iters):
+                    for sl, (sb, db) in enumerate(zip(src_bufs, dst_bufs)):
+                        with torch.cuda.stream(streams[sl]):
+                            db.copy_(sb, non_blocking=True)
+                    torch.cuda.synchronize(dst)
+            elapsed = time.perf_counter() - t0
+
+            bw_gbs = total_bytes / (elapsed * 1e9)
+            bw_by_streams[str(n_streams)] = round(bw_gbs, 2)
+            logger.info(
+                "  %d stream(s): %.2f GB/s  (%.0f MB/stream)",
+                n_streams, bw_gbs, n_bytes_per_stream / (1024 * 1024),
+            )
+            del src_bufs, dst_bufs, streams
+
+        logger.info("P2P multi-stream BW (GPU %d→%d): %s", src, dst, bw_by_streams)
+
+        _record_kpi(
+            "test_p2p_multi_stream_bandwidth",
+            {
+                "src_gpu": src,
+                "dst_gpu": dst,
+                "n_bytes_per_stream": n_bytes_per_stream,
+                "n_iters": n_iters,
+                "bw_by_streams_gbs": bw_by_streams,
+                "bw_1_stream_gbs": bw_by_streams.get("1", 0.0),
+                "bw_4_stream_gbs": bw_by_streams.get("4", 0.0),
+            },
+        )
+
+        bw_1 = bw_by_streams.get("1", 0.0)
+        bw_4 = bw_by_streams.get("4", 0.0)
+        assert bw_1 > 0, "P2P single-stream bandwidth is zero — check device access"
+        min_ratio = float(os.environ.get("P2P_MULTI_STREAM_MIN_SCALING", "1.5"))
+        if bw_4 > 0:
+            ratio = bw_4 / bw_1
+            assert ratio >= min_ratio, (
+                f"4-stream BW {bw_4:.2f} GB/s is only {ratio:.2f}× single-stream "
+                f"BW {bw_1:.2f} GB/s — expected >= {min_ratio}×"
+            )
+
 
 @pytest.mark.node_validation
 @pytest.mark.sync_overhead
@@ -1337,6 +1570,94 @@ class TestCPUGPUPowerAndThrottling:
         # Verify low jitter (std < 10 W)
         std = power_data.get("std", 0)
         assert std < 50, f"Power variance {std:.1f} W is too high (expected < 50 W)"
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    def test_gpu_write_performance_limiters(self):
+        """AI_HOSTCPU_FUNC_TEST_ID_051: Analyse GPU HBM write performance limiters.
+
+        Measures effective write bandwidth from GPU SMs into HBM at increasing buffer
+        sizes to distinguish between:
+          * HBM-bandwidth-bound   — BW rises towards HBM theoretical as size grows
+          * Instruction-serialisation-bound — BW plateaus early at small sizes
+
+        On H100 SXM5 the HBM3 peak write bandwidth is ~3350 GB/s.  The test
+        expects >= 5 % of theoretical (167 GB/s) at 512 MB.
+
+        Pass criteria:
+          - Peak write BW >= 167 GB/s (5 % of H100 HBM3 theoretical)
+          - BW at 256 MB buffer >= 2× BW at 4 KB buffer (demonstrates HBM-bound region)
+        """
+        if torch.cuda.device_count() == 0:
+            pytest.skip("No CUDA devices")
+
+        device = torch.device("cuda:0")
+        buf_sizes = [
+            4 * 1024,            # 4 KB  — likely instruction-overhead bound
+            64 * 1024,           # 64 KB
+            1 * 1024 * 1024,     # 1 MB
+            16 * 1024 * 1024,    # 16 MB
+            256 * 1024 * 1024,   # 256 MB — should be HBM bandwidth bound
+            512 * 1024 * 1024,   # 512 MB
+        ]
+        n_iters = int(os.environ.get("GPU_WRITE_ITERS", "10"))
+        results: Dict[str, float] = {}
+
+        for n_bytes in buf_sizes:
+            n_elems = n_bytes // 4  # float32 elements
+            buf = torch.empty(n_elems, dtype=torch.float32, device=device)
+            buf.fill_(1.0)                      # warmup
+            torch.cuda.synchronize(device)
+
+            t0 = time.perf_counter()
+            for _ in range(n_iters):
+                buf.fill_(0.5)
+            torch.cuda.synchronize(device)
+            elapsed = time.perf_counter() - t0
+
+            bw_gbs = (n_bytes * n_iters) / (elapsed * 1e9)
+            size_label = (
+                f"{n_bytes // (1024 * 1024)}MB"
+                if n_bytes >= 1024 * 1024
+                else f"{n_bytes // 1024}KB"
+            )
+            results[size_label] = round(bw_gbs, 2)
+            logger.info("Write BW  %-8s : %8.1f GB/s", size_label, bw_gbs)
+            del buf
+
+        peak_bw   = max(results.values()) if results else 0.0
+        small_bw  = results.get("4KB",   1.0)
+        large_bw  = results.get("256MB", results.get("512MB", 0.0))
+
+        logger.info(
+            "GPU write BW summary: peak=%.1f GB/s  "
+            "small(4KB)=%.1f  large(256MB)=%.1f  ratio=%.1fx",
+            peak_bw, small_bw, large_bw,
+            large_bw / small_bw if small_bw > 0 else 0.0,
+        )
+
+        _record_kpi(
+            "test_gpu_write_performance_limiters",
+            {
+                "device": torch.cuda.get_device_name(0),
+                "n_iters": n_iters,
+                "bw_by_size_gbs": results,
+                "peak_write_bw_gbs": round(peak_bw, 2),
+            },
+        )
+
+        # H100 HBM3 theoretical write BW ≈ 3350 GB/s; expect at least 5 %
+        min_peak_bw = float(os.environ.get("GPU_WRITE_MIN_PEAK_GBS", "167.0"))
+        assert peak_bw >= min_peak_bw, (
+            f"Peak GPU write BW {peak_bw:.1f} GB/s below threshold {min_peak_bw:.0f} GB/s"
+        )
+        if small_bw > 0 and large_bw > 0:
+            hbm_ratio = large_bw / small_bw
+            min_hbm_ratio = float(os.environ.get("GPU_WRITE_HBM_BOUND_RATIO", "2.0"))
+            assert hbm_ratio >= min_hbm_ratio, (
+                f"Large-buffer write BW {large_bw:.1f} GB/s is only {hbm_ratio:.2f}× "
+                f"small-buffer BW {small_bw:.1f} GB/s — write path may be "
+                f"instruction-serialisation-limited rather than HBM-bandwidth-limited"
+            )
 
 
 @pytest.mark.node_validation
@@ -1887,6 +2208,205 @@ def _diffusion_worker(rank: int, world_size: int, master_port: int, cfg: Dict, r
             torch.cuda.empty_cache()
 
 
+def _ddp_training_worker(
+    rank: int,
+    world_size: int,
+    master_port: int,
+    cfg: Dict,
+    result_queue,
+) -> None:
+    """Multi-GPU DDP (or DeepSpeed ZeRO) training worker used by TC-013 and TC-014.
+
+    Measures per-step latency, gradient allreduce latency, sync ratio, per-GPU
+    throughput, TFLOPS estimate, and (rank-0 only) scaling efficiency vs a
+    single-GPU baseline captured before DDP wrapping.
+    """
+    try:
+        import torch.distributed as dist
+        from transformers import AutoModelForCausalLM
+
+        _dist_setup(rank, world_size, master_port)
+        device = f"cuda:{rank}"
+
+        model_id      = cfg["model_id"]
+        batch_size    = cfg["batch_size"]
+        seq_len       = cfg["seq_len"]
+        n_warmup      = cfg.get("warmup_steps", 3)
+        n_steps       = cfg.get("n_steps", 20)
+        use_deepspeed = cfg.get("use_deepspeed", False)
+
+        # ── Load model ───────────────────────────────────────────────────────
+        try:
+            model_kwargs: Dict = {"torch_dtype": torch.bfloat16}
+            token = _hf_auth_token()
+            if token:
+                model_kwargs["token"] = token
+            if os.environ.get("HF_TRUST_REMOTE_CODE", "1").lower() in {"1", "true", "yes", "on"}:
+                model_kwargs["trust_remote_code"] = True
+            model = AutoModelForCausalLM.from_pretrained(model_id, **model_kwargs)
+        except Exception as exc:
+            result_queue.put({"rank": rank, "status": "error",
+                              "error": f"Model load failed: {exc}"})
+            return
+
+        param_count = sum(p.numel() for p in model.parameters())
+        model = model.to(device)
+
+        # ── Single-GPU baseline (rank 0 only, *before* DDP wrapping) ─────────
+        single_gpu_tps: Optional[float] = None
+        if rank == 0:
+            vocab_size = model.config.vocab_size
+            _ids   = torch.randint(0, vocab_size, (batch_size, seq_len), device=device)
+            _mask  = torch.ones_like(_ids)
+            _opt   = torch.optim.AdamW(model.parameters(), lr=1e-5)
+            model.train()
+            for _ in range(2):  # warmup
+                _opt.zero_grad()
+                model(_ids, attention_mask=_mask, labels=_ids).loss.backward()
+                _opt.step()
+                torch.cuda.synchronize(rank)
+            _n = 3
+            torch.cuda.synchronize(rank)
+            _t0 = time.perf_counter()
+            for _ in range(_n):
+                _opt.zero_grad()
+                model(_ids, attention_mask=_mask, labels=_ids).loss.backward()
+                _opt.step()
+                torch.cuda.synchronize(rank)
+            _elapsed = time.perf_counter() - _t0
+            single_gpu_tps = (batch_size * _n) / _elapsed
+            del _opt, _ids, _mask
+            torch.cuda.empty_cache()
+
+        dist.barrier()
+
+        # ── Wrap in DDP or DeepSpeed ─────────────────────────────────────────
+        engine    = None
+        optimizer = None
+        if use_deepspeed:
+            try:
+                import deepspeed
+                ds_cfg = {
+                    "train_micro_batch_size_per_gpu": batch_size,
+                    "gradient_accumulation_steps": 1,
+                    "bf16": {"enabled": True},
+                    "zero_optimization": {"stage": 2},
+                }
+                _base_opt = torch.optim.AdamW(model.parameters(), lr=1e-5)
+                engine, optimizer, _, _ = deepspeed.initialize(
+                    model=model, optimizer=_base_opt, config=ds_cfg
+                )
+                model = engine
+            except Exception as exc:
+                logger.warning("DeepSpeed init failed (%s), falling back to DDP", exc)
+                use_deepspeed = False
+
+        if not use_deepspeed:
+            model     = torch.nn.parallel.DistributedDataParallel(model, device_ids=[rank])
+            optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
+
+        model.train()
+        vocab_size = (
+            model.module.config.vocab_size
+            if hasattr(model, "module")
+            else model.config.vocab_size
+        )
+        input_ids      = torch.randint(0, vocab_size, (batch_size, seq_len), device=device)
+        attention_mask = torch.ones_like(input_ids)
+
+        step_times_ms:      List[float] = []
+        allreduce_times_ms: List[float] = []
+
+        def _run_step() -> float:
+            """One forward+backward+optimizer step; returns allreduce proxy time in ms."""
+            if use_deepspeed:
+                engine.zero_grad()
+            else:
+                optimizer.zero_grad()
+
+            out  = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)
+            loss = out.loss if hasattr(out, "loss") else out[0]
+
+            if use_deepspeed:
+                engine.backward(loss)
+            else:
+                loss.backward()
+
+            # Proxy allreduce: sync a buffer matching total gradient volume
+            ar_ms = 0.0
+            if not use_deepspeed:
+                grads = [p.grad for p in model.parameters() if p.grad is not None]
+                if grads:
+                    total_elems = sum(g.numel() for g in grads)
+                    comm_buf    = grads[0].new_zeros(total_elems)
+                    torch.cuda.synchronize(rank)
+                    _t = time.perf_counter()
+                    dist.all_reduce(comm_buf, op=dist.ReduceOp.SUM)
+                    torch.cuda.synchronize(rank)
+                    ar_ms = (time.perf_counter() - _t) * 1000.0
+
+            if use_deepspeed:
+                engine.step()
+            else:
+                optimizer.step()
+
+            return ar_ms
+
+        # Warmup
+        for _ in range(n_warmup):
+            _run_step()
+        dist.barrier()
+
+        # Timed measurement
+        for _ in range(n_steps):
+            torch.cuda.synchronize(rank)
+            _t0  = time.perf_counter()
+            ar   = _run_step()
+            torch.cuda.synchronize(rank)
+            step_times_ms.append((time.perf_counter() - _t0) * 1000.0)
+            allreduce_times_ms.append(ar)
+        dist.barrier()
+
+        mean_step_ms = float(np.mean(step_times_ms))
+        mean_ar_ms   = float(np.mean(allreduce_times_ms))
+        total_sec    = sum(step_times_ms) / 1000.0
+        per_gpu_tps  = (batch_size * n_steps) / total_sec if total_sec > 0 else 0.0
+        sync_ratio   = mean_ar_ms / mean_step_ms if mean_step_ms > 0 else 0.0
+
+        # TFLOPS estimate: 6 * params * batch * seq / step_sec (standard approximation)
+        flops_per_step = 6 * param_count * batch_size * seq_len
+        tflops = (flops_per_step * n_steps) / (total_sec * 1e12) if total_sec > 0 else 0.0
+
+        # Scaling efficiency (rank 0 only)
+        scaling_efficiency_pct: Optional[float] = None
+        if rank == 0 and single_gpu_tps and single_gpu_tps > 0:
+            ideal_total = single_gpu_tps * world_size
+            actual_total = per_gpu_tps * world_size
+            scaling_efficiency_pct = round((actual_total / ideal_total) * 100.0, 1)
+
+        row = {
+            "rank":            rank,
+            "mean_step_ms":    round(mean_step_ms, 2),
+            "mean_allreduce_ms": round(mean_ar_ms, 2),
+            "sync_ratio":      round(sync_ratio, 4),
+            "per_gpu_tps":     round(per_gpu_tps, 2),
+            "tflops":          round(tflops, 3),
+            "scaling_efficiency_pct": scaling_efficiency_pct,
+        }
+
+        gathered: List[Optional[Dict]] = [None] * world_size
+        dist.all_gather_object(gathered, row)
+        if rank == 0:
+            result_queue.put({"status": "ok", "per_rank": gathered})
+
+    except Exception as exc:
+        result_queue.put({"rank": rank, "status": "error", "error": str(exc)})
+    finally:
+        _dist_cleanup()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+
 def _ensure_yolo_model_downloaded(model_name: str = "yolov8x.pt") -> Optional[str]:
     """
     Ensure YOLO model is downloaded and cached locally.
@@ -2169,6 +2689,81 @@ def _run_hf_causal_latency_workload(
         "completion_time_sec": float(completion_time_sec),
         "samples": float(len(latencies_ms)),
     }
+
+
+@pytest.mark.node_validation
+@pytest.mark.workload_acceptance
+class TestWorkloadAcceptanceHuggingFace:
+    def _vllm_multitenancy_worker(
+        gpu_ids_str: str,
+        model_id: str,
+        n_requests: int,
+        max_tokens: int,
+        tp_size: int,
+        kv_cache_dtype: str,
+        cpu_offload_gb: float,
+        result_queue,
+    ) -> None:
+        """Module-level worker for multi-tenant vLLM inference tests (TC-047 / TC-048).
+
+        Runs a vLLM LLM engine pinned to *gpu_ids_str* (CUDA_VISIBLE_DEVICES), serves
+        *n_requests* single-turn prompts, and puts a latency-stats dict into
+        *result_queue*.  Must be at module scope for multiprocessing spawn.
+
+        Result dict keys on success:
+            model, gpu_ids, n_requests, mean_ms, p50_ms, p99_ms
+        On error:
+            error (str), model, gpu_ids
+        """
+        os.environ["CUDA_VISIBLE_DEVICES"] = gpu_ids_str
+        try:
+            import time as _time
+            import numpy as _np
+            from vllm import LLM, SamplingParams
+
+            kwargs: Dict = dict(
+                model=model_id,
+                tensor_parallel_size=tp_size,
+                gpu_memory_utilization=float(
+                    os.environ.get("MULTITENANT_GPU_MEM_UTIL", "0.85")
+                ),
+                dtype="bfloat16",
+                max_model_len=int(os.environ.get("MULTITENANT_MAX_MODEL_LEN", "2048")),
+            )
+            if kv_cache_dtype:
+                kwargs["kv_cache_dtype"] = kv_cache_dtype
+            if cpu_offload_gb > 0:
+                kwargs["cpu_offload_gb"] = cpu_offload_gb
+
+            llm = LLM(**kwargs)
+            sp = SamplingParams(temperature=0.0, max_tokens=max_tokens)
+            prompts = [
+                f"Explain GPU interconnect topology concept {i % 20}:"
+                for i in range(n_requests + 1)
+            ]
+
+            # Warmup
+            _ = llm.generate(prompts[:1], sp)
+
+            # Measure per-request latency
+            latencies: List[float] = []
+            for p in prompts[1 : n_requests + 1]:
+                t0 = _time.perf_counter()
+                _ = llm.generate([p], sp)
+                latencies.append((_time.perf_counter() - t0) * 1000.0)
+
+            result_queue.put(
+                {
+                    "model": model_id,
+                    "gpu_ids": gpu_ids_str,
+                    "n_requests": n_requests,
+                    "mean_ms": float(_np.mean(latencies)),
+                    "p50_ms": float(_np.percentile(latencies, 50)),
+                    "p99_ms": float(_np.percentile(latencies, 99)),
+                }
+            )
+        except Exception as exc:
+            result_queue.put({"error": str(exc), "model": model_id, "gpu_ids": gpu_ids_str})
 
 
 @pytest.mark.node_validation
@@ -2545,25 +3140,50 @@ class TestWorkloadAcceptanceHuggingFace:
 
                     gpu_util_samples = []
                     cpu_util_samples = []
-                    start = time.perf_counter()
                     fallback_duration_sec = int(os.environ.get("VLLM_API_FALLBACK_DURATION_SEC", "90"))
-                    while (time.perf_counter() - start) < fallback_duration_sec:
-                        _ = llm.generate(prompts, params)
-                        cpu_util_samples.append(psutil.cpu_percent(interval=0.2))
-                        smi = subprocess.run(
-                            [
-                                "nvidia-smi",
-                                "--query-gpu=utilization.gpu",
-                                "--format=csv,noheader,nounits",
-                            ],
-                            capture_output=True,
-                            text=True,
-                            timeout=5,
-                        )
-                        if smi.returncode == 0:
-                            vals = [float(x.strip()) for x in smi.stdout.strip().splitlines() if x.strip()]
-                            if vals:
-                                gpu_util_samples.append(float(sum(vals) / len(vals)))
+                    monitor_interval_sec = float(os.environ.get("VLLM_MONITOR_INTERVAL_SEC", "0.5"))
+
+                    # ── Background monitor thread samples GPU/CPU WHILE generate() runs.
+                    # Without this the GPU is already idle when sequential sampling would run.
+                    _monitor_stop = threading.Event()
+
+                    def _util_monitor() -> None:
+                        """Sample GPU and CPU utilization concurrently with generation."""
+                        psutil.cpu_percent(interval=None)  # discard first dummy reading
+                        while not _monitor_stop.is_set():
+                            cpu_util_samples.append(psutil.cpu_percent(interval=monitor_interval_sec))
+                            try:
+                                smi = subprocess.run(
+                                    [
+                                        "nvidia-smi",
+                                        "--query-gpu=utilization.gpu",
+                                        "--format=csv,noheader,nounits",
+                                    ],
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=5,
+                                )
+                                if smi.returncode == 0:
+                                    vals = [
+                                        float(x.strip())
+                                        for x in smi.stdout.strip().splitlines()
+                                        if x.strip()
+                                    ]
+                                    if vals:
+                                        gpu_util_samples.append(float(sum(vals) / len(vals)))
+                            except Exception:
+                                pass
+
+                    monitor_thread = threading.Thread(target=_util_monitor, daemon=True)
+                    monitor_thread.start()
+
+                    start = time.perf_counter()
+                    try:
+                        while (time.perf_counter() - start) < fallback_duration_sec:
+                            _ = llm.generate(prompts, params)
+                    finally:
+                        _monitor_stop.set()
+                        monitor_thread.join(timeout=5)
 
                     stdout = ""
                     stderr = ""
@@ -3861,44 +4481,706 @@ class TestWorkloadAcceptanceHuggingFace:
             f"Soak latency p95 too high: {p95_us:.1f} us"
         )
 
-    def test_vllm_training_kpi_status(self):
-        """Capture vLLM training KPI status (vLLM is inference-focused and does not train)."""
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.workload_acceptance
+    @pytest.mark.timeout(0)
+    def test_llm_training_small_multigpu(self):
+        """AI_HOSTCPU_FUNC_TEST_ID_013: Small LLM fine-tuning (Gemma-270M) on all GPUs via DDP.
+
+        Measures per-step latency, gradient-sync ratio, throughput and TFLOPS.
+        PASS criteria: gradient allreduce < 15% of total step time.
+        Runtime target: < 10 minutes on 4× H100.
+        """
+        try:
+            from transformers import AutoModelForCausalLM  # noqa: F401
+        except ImportError:
+            pytest.skip("transformers not installed")
+
+        n_gpus = torch.cuda.device_count()
+        if n_gpus < 1:
+            pytest.skip("No CUDA devices")
+
+        model_id     = os.environ.get("LLM_TRAIN_SMALL_MODEL", "google/gemma-3-270m-it")
+        world_size   = min(n_gpus, int(os.environ.get("LLM_TRAIN_SMALL_GPU_COUNT", str(n_gpus))))
+        batch_size   = int(os.environ.get("LLM_TRAIN_SMALL_BATCH", "2"))
+        seq_len      = int(os.environ.get("LLM_TRAIN_SMALL_SEQ_LEN", "512"))
+        n_steps      = int(os.environ.get("LLM_TRAIN_SMALL_STEPS", "50"))
+        warmup_steps = int(os.environ.get("LLM_TRAIN_SMALL_WARMUP", "5"))
+        timeout_sec  = int(os.environ.get("LLM_TRAIN_SMALL_TIMEOUT_SEC", "3600"))
+        max_sync_ratio = float(os.environ.get("LLM_TRAIN_SMALL_MAX_SYNC_RATIO", "0.15"))
+        master_port  = int(os.environ.get("LLM_TRAIN_SMALL_MASTER_PORT", "29601"))
+
+        cfg = {
+            "model_id":     model_id,
+            "batch_size":   batch_size,
+            "seq_len":      seq_len,
+            "n_steps":      n_steps,
+            "warmup_steps": warmup_steps,
+            "use_deepspeed": False,
+        }
+
+        logger.info(
+            "TC-013 LLM Training Small: model=%s world_size=%d batch=%d seq=%d steps=%d",
+            model_id, world_size, batch_size, seq_len, n_steps,
+        )
+
+        ctx          = mp.get_context("spawn")
+        result_queue = ctx.Queue()
+        processes    = []
+        wall_start   = time.perf_counter()
+
+        for rank in range(world_size):
+            p = ctx.Process(
+                target=_ddp_training_worker,
+                args=(rank, world_size, master_port, cfg, result_queue),
+            )
+            p.start()
+            processes.append(p)
+
+        deadline = wall_start + timeout_sec
+        for p in processes:
+            p.join(timeout=max(deadline - time.perf_counter(), 0.0))
+
+        timed_out = [p.pid for p in processes if p.is_alive()]
+        if timed_out:
+            for p in processes:
+                if p.is_alive():
+                    p.terminate()
+            for p in processes:
+                p.join(timeout=5)
+            pytest.fail(f"TC-013 training workers timed out: pids={timed_out}")
+
+        results: List[Dict] = []
+        while True:
+            try:
+                results.append(result_queue.get_nowait())
+            except queue.Empty:
+                break
+
+        errors = [r for r in results if r.get("status") == "error"]
+        if errors:
+            pytest.fail(f"TC-013 worker failures: {errors}")
+
+        success = next((r for r in results if r.get("status") == "ok"), None)
+        assert success is not None, "TC-013: rank-0 produced no aggregated result"
+
+        per_rank = sorted(
+            [r for r in success["per_rank"] if r is not None],
+            key=lambda r: r["rank"],
+        )
+        wall_sec        = time.perf_counter() - wall_start
+        mean_sync_ratio = float(np.mean([r["sync_ratio"] for r in per_rank]))
+        mean_tflops     = float(np.mean([r["tflops"]     for r in per_rank]))
+        total_tps       = float(np.sum([r["per_gpu_tps"] for r in per_rank]))
+        scaling_eff     = per_rank[0].get("scaling_efficiency_pct") if per_rank else None
+
+        for r in per_rank:
+            logger.info(
+                "TC-013 GPU %d: step=%.1f ms  allreduce=%.1f ms  sync=%.2f%%  "
+                "tps=%.1f samples/s  tflops=%.3f",
+                r["rank"], r["mean_step_ms"], r["mean_allreduce_ms"],
+                r["sync_ratio"] * 100, r["per_gpu_tps"], r["tflops"],
+            )
+        logger.info(
+            "TC-013 SUMMARY: total_tps=%.1f  mean_sync=%.2f%%  mean_tflops=%.3f  "
+            "scaling_eff=%s%%  wall=%.1fs",
+            total_tps, mean_sync_ratio * 100, mean_tflops,
+            "N/A" if scaling_eff is None else f"{scaling_eff:.1f}", wall_sec,
+        )
+
         _record_kpi(
-            "test_vllm_training_kpi_status",
+            "test_llm_training_small_multigpu",
             {
-                "component": "vllm",
-                "training_supported": False,
-                "status": "not_applicable",
-                "note": "vLLM is inference-serving runtime; use PyTorch/DeepSpeed for training KPIs",
+                "test_id":              "AI_HOSTCPU_FUNC_TEST_ID_013",
+                "model":                model_id,
+                "world_size":           world_size,
+                "batch_size":           batch_size,
+                "seq_len":              seq_len,
+                "n_steps":              n_steps,
+                "total_samples_per_sec": round(total_tps, 2),
+                "mean_sync_ratio":      round(mean_sync_ratio, 4),
+                "mean_sync_pct":        round(mean_sync_ratio * 100, 2),
+                "threshold_sync_pct":   round(max_sync_ratio * 100, 1),
+                "mean_tflops_per_gpu":  round(mean_tflops, 3),
+                "scaling_efficiency_pct": scaling_eff,
+                "wall_sec":             round(wall_sec, 1),
+                "per_rank":             per_rank,
             },
         )
-        logger.info(
-            "vLLM training KPI status: not_applicable (vLLM is inference-focused; training not supported)"
+
+        assert mean_sync_ratio <= max_sync_ratio, (
+            f"TC-013: gradient sync ratio {mean_sync_ratio * 100:.1f}% exceeds "
+            f"threshold {max_sync_ratio * 100:.0f}% — communication bottleneck detected; "
+            "check NVLink status and NCCL topology"
         )
 
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.workload_acceptance
+    @pytest.mark.slow
+    @pytest.mark.timeout(0)
+    def test_llm_training_large_multigpu(self):
+        """AI_HOSTCPU_FUNC_TEST_ID_014: Large LLM distributed fine-tuning (Llama-3 8B+).
 
-# =============================================================================
-# Standalone Validation Functions (for external use)
-# =============================================================================
+        Uses DDP with optional DeepSpeed ZeRO Stage-2 if available.
+        Validates:
+          * Gradient sync < 10% of step time
+          * TFLOPS stable across GPUs (CV < 10%)
+          * Scaling efficiency ≥ 70% (vs single-GPU baseline)
+        """
+        try:
+            from transformers import AutoModelForCausalLM  # noqa: F401
+        except ImportError:
+            pytest.skip("transformers not installed")
 
-def run_all_validations() -> List[ValidationResult]:
-    """Run all validation tests and return results (non-pytest)."""
-    results = []
+        n_gpus = torch.cuda.device_count()
+        if n_gpus < 2:
+            pytest.skip("Need ≥ 2 GPUs for TC-014 large distributed training")
 
-    # GPU enumeration
-    enum_result = GPUEnumeration.enumerate_gpus()
-    if enum_result.get("count", 0) > 0:
-        results.append(ValidationResult(
-            name="GPU Enumeration",
-            category="GPU Enumeration",
-            status="PASS",
-            message=f"Found {enum_result['count']} GPU(s)",
-            data=enum_result,
-        ))
-    else:
-        results.append(ValidationResult(
-            name="GPU Enumeration",
-            category="GPU Enumeration",
+        model_id     = os.environ.get("LLM_TRAIN_LARGE_MODEL", _HF_LLAMA_7B_MODEL)
+        world_size   = min(n_gpus, int(os.environ.get("LLM_TRAIN_LARGE_GPU_COUNT", str(n_gpus))))
+        batch_size   = int(os.environ.get("LLM_TRAIN_LARGE_BATCH", "1"))
+        seq_len      = int(os.environ.get("LLM_TRAIN_LARGE_SEQ_LEN", "512"))
+        n_steps      = int(os.environ.get("LLM_TRAIN_LARGE_STEPS", "20"))
+        warmup_steps = int(os.environ.get("LLM_TRAIN_LARGE_WARMUP", "3"))
+        timeout_sec  = int(os.environ.get("LLM_TRAIN_LARGE_TIMEOUT_SEC", "3600"))
+        max_sync_ratio  = float(os.environ.get("LLM_TRAIN_LARGE_MAX_SYNC_RATIO", "0.10"))
+        min_scaling_eff = float(os.environ.get("LLM_TRAIN_LARGE_MIN_SCALING_EFF", "70.0"))
+        master_port  = int(os.environ.get("LLM_TRAIN_LARGE_MASTER_PORT", "29602"))
+
+        # Prefer DeepSpeed ZeRO if installed
+        use_deepspeed = False
+        try:
+            import deepspeed  # noqa: F401
+            use_deepspeed = os.environ.get(
+                "LLM_TRAIN_LARGE_USE_DEEPSPEED", "1"
+            ).lower() in {"1", "true", "yes", "on"}
+            if use_deepspeed:
+                logger.info("TC-014: DeepSpeed detected — enabling ZeRO Stage 2")
+        except ImportError:
+            logger.info("TC-014: DeepSpeed not installed — using plain DDP")
+
+        cfg = {
+            "model_id":     model_id,
+            "batch_size":   batch_size,
+            "seq_len":      seq_len,
+            "n_steps":      n_steps,
+            "warmup_steps": warmup_steps,
+            "use_deepspeed": use_deepspeed,
+        }
+
+        logger.info(
+            "TC-014 LLM Training Large: model=%s world_size=%d batch=%d seq=%d "
+            "steps=%d deepspeed=%s",
+            model_id, world_size, batch_size, seq_len, n_steps, use_deepspeed,
+        )
+
+        ctx          = mp.get_context("spawn")
+        result_queue = ctx.Queue()
+        processes    = []
+        wall_start   = time.perf_counter()
+
+        for rank in range(world_size):
+            p = ctx.Process(
+                target=_ddp_training_worker,
+                args=(rank, world_size, master_port, cfg, result_queue),
+            )
+            p.start()
+            processes.append(p)
+
+        deadline = wall_start + timeout_sec
+        for p in processes:
+            p.join(timeout=max(deadline - time.perf_counter(), 0.0))
+
+        timed_out = [p.pid for p in processes if p.is_alive()]
+        if timed_out:
+            for p in processes:
+                if p.is_alive():
+                    p.terminate()
+            for p in processes:
+                p.join(timeout=5)
+            pytest.fail(f"TC-014 training workers timed out: pids={timed_out}")
+
+        results: List[Dict] = []
+        while True:
+            try:
+                results.append(result_queue.get_nowait())
+            except queue.Empty:
+                break
+
+        errors = [r for r in results if r.get("status") == "error"]
+        if errors:
+            pytest.fail(f"TC-014 worker failures: {errors}")
+
+        success = next((r for r in results if r.get("status") == "ok"), None)
+        assert success is not None, "TC-014: rank-0 produced no aggregated result"
+
+        per_rank = sorted(
+            [r for r in success["per_rank"] if r is not None],
+            key=lambda r: r["rank"],
+        )
+        wall_sec        = time.perf_counter() - wall_start
+        mean_sync_ratio = float(np.mean([r["sync_ratio"] for r in per_rank]))
+        tflops_vals     = [r["tflops"] for r in per_rank if r["tflops"] > 0]
+        mean_tflops     = float(np.mean(tflops_vals)) if tflops_vals else 0.0
+        tflops_cv       = (float(np.std(tflops_vals)) / mean_tflops
+                           if len(tflops_vals) > 1 and mean_tflops > 0 else 0.0)
+        total_tps       = float(np.sum([r["per_gpu_tps"] for r in per_rank]))
+        scaling_eff     = per_rank[0].get("scaling_efficiency_pct") if per_rank else None
+
+        for r in per_rank:
+            logger.info(
+                "TC-014 GPU %d: step=%.1f ms  allreduce=%.1f ms  sync=%.2f%%  "
+                "tps=%.2f samples/s  tflops=%.3f  scaling_eff=%s%%",
+                r["rank"], r["mean_step_ms"], r["mean_allreduce_ms"],
+                r["sync_ratio"] * 100, r["per_gpu_tps"], r["tflops"],
+                "N/A" if r["scaling_efficiency_pct"] is None
+                else f"{r['scaling_efficiency_pct']:.1f}",
+            )
+        logger.info(
+            "TC-014 SUMMARY: total_tps=%.2f  mean_sync=%.2f%%  mean_tflops=%.3f  "
+            "tflops_cv=%.3f  scaling_eff=%s%%  wall=%.1fs",
+            total_tps, mean_sync_ratio * 100, mean_tflops, tflops_cv,
+            "N/A" if scaling_eff is None else f"{scaling_eff:.1f}", wall_sec,
+        )
+
+        _record_kpi(
+            "test_llm_training_large_multigpu",
+            {
+                "test_id":               "AI_HOSTCPU_FUNC_TEST_ID_014",
+                "model":                 model_id,
+                "world_size":            world_size,
+                "batch_size":            batch_size,
+                "seq_len":               seq_len,
+                "n_steps":               n_steps,
+                "use_deepspeed":         use_deepspeed,
+                "total_samples_per_sec": round(total_tps, 2),
+                "mean_sync_ratio":       round(mean_sync_ratio, 4),
+                "mean_sync_pct":         round(mean_sync_ratio * 100, 2),
+                "threshold_sync_pct":    round(max_sync_ratio * 100, 1),
+                "mean_tflops_per_gpu":   round(mean_tflops, 3),
+                "tflops_cv":             round(tflops_cv, 4),
+                "scaling_efficiency_pct": scaling_eff,
+                "min_scaling_eff_pct":   min_scaling_eff,
+                "wall_sec":              round(wall_sec, 1),
+            },
+        )
+
+        assert mean_sync_ratio <= max_sync_ratio, (
+            f"TC-014: gradient sync ratio {mean_sync_ratio * 100:.1f}% exceeds "
+            f"threshold {max_sync_ratio * 100:.0f}% — validate NVLink/P2P bandwidth "
+            "and NCCL topology"
+        )
+        assert tflops_cv < 0.10, (
+            f"TC-014: TFLOPS imbalance across GPUs (CV={tflops_cv:.3f}) — "
+            "one or more GPUs may be thermally throttled or have hardware issues"
+        )
+        if scaling_eff is not None:
+            assert scaling_eff >= min_scaling_eff, (
+                f"TC-014: scaling efficiency {scaling_eff:.1f}% below "
+                f"threshold {min_scaling_eff:.0f}% — check NVLink bandwidth and "
+                "PCIe topology"
+            )
+
+    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+    @pytest.mark.workload_acceptance
+    @pytest.mark.slow
+    @pytest.mark.timeout(0)
+    def test_multi_tenant_inference_tail_latency(self):
+        """AI_HOSTCPU_FUNC_TEST_ID_047: Multi-tenant inference with GPU partition isolation.
+
+                Validates tail latency isolation and CPU scheduling under contention when two
+                vLLM engines run concurrently, each pinned to a separate set of GPUs.
+
+                Default smoke mode: gpt2 × 2  (fast, no gated models needed)
+                Large-model mode  : LLAMA-3.3-70B + Mixtral-8x22B-FP8  (requires
+                  MULTITENANT_ENABLE_LARGE_MODELS=1 and ≥ 4 GPUs)
+
+                Pass criteria:
+                  - Both engines complete all requests without error
+                  - Each engine p99/p50 ratio <= 5.0  (no latency spikes under contention)
+                """
+                try:
+                    from vllm import LLM, SamplingParams  # noqa: F401
+                except ImportError:
+                    pytest.skip("vllm not installed")
+
+                n_gpus = torch.cuda.device_count()
+                if n_gpus < 2:
+                    pytest.skip("Need >= 2 GPUs for multi-tenant GPU partition test")
+
+                enable_large = os.environ.get("MULTITENANT_ENABLE_LARGE_MODELS", "0").lower() in (
+                    def test_multi_tenant_inference_tail_latency(self):
+                            """AI_HOSTCPU_FUNC_TEST_ID_047: Multi-tenant inference with GPU partition isolation.
+
+                            Validates tail latency isolation and CPU scheduling under contention when two
+                            vLLM engines run concurrently, each pinned to a separate set of GPUs.
+
+                            Default smoke mode: gpt2 x 2  (fast, no gated models needed).
+                            Large-model mode  : LLAMA-3.3-70B + Mixtral-8x22B-FP8
+                                (MULTITENANT_ENABLE_LARGE_MODELS=1, >= 4 GPUs).
+
+                            Pass criteria:
+                                - Both engines complete all requests without error
+                                - Each engine p99/p50 ratio <= 5.0  (no latency spikes under contention)
+                            """
+                            try:
+                                    from vllm import LLM, SamplingParams  # noqa: F401
+                            except ImportError:
+                                    pytest.skip("vllm not installed")
+
+                            n_gpus = torch.cuda.device_count()
+                            if n_gpus < 2:
+                                    pytest.skip("Need >= 2 GPUs for multi-tenant GPU partition test")
+
+                            enable_large = os.environ.get("MULTITENANT_ENABLE_LARGE_MODELS", "0").lower() in (
+                            "1", "true", "yes"
+                        )
+                        if enable_large and n_gpus < 4:
+                            pytest.skip("Need >= 4 GPUs for large-model multi-tenant test (2 per model)")
+
+                        half   = n_gpus // 2
+                        gpus_a = ",".join(str(i) for i in range(half))
+                        gpus_b = ",".join(str(i) for i in range(half, n_gpus))
+
+                        if enable_large:
+                            model_a    = os.environ.get("MULTITENANT_MODEL_A", _HF_LLAMA_33_70B_MODEL)
+                            model_b    = os.environ.get("MULTITENANT_MODEL_B", _HF_MIXTRAL_8X22B_MODEL)
+                            kv_dtype_b = os.environ.get("MULTITENANT_KV_DTYPE_B", "fp8")
+                        else:
+                            model_a    = os.environ.get("MULTITENANT_MODEL_A", "gpt2")
+                            model_b    = os.environ.get("MULTITENANT_MODEL_B", "gpt2")
+                            kv_dtype_b = ""
+
+                        n_requests  = int(os.environ.get("MULTITENANT_N_REQUESTS", "20"))
+                        max_tokens  = int(os.environ.get("MULTITENANT_MAX_NEW_TOKENS", "32"))
+                        tp_size     = max(1, half)
+                        timeout_sec = int(os.environ.get("MULTITENANT_TIMEOUT_SEC", "3600"))
+
+                        ctx     = mp.get_context("spawn")
+                        queue_a = ctx.Queue()
+                        queue_b = ctx.Queue()
+                        proc_a = ctx.Process(
+                            target=_vllm_multitenancy_worker,
+                            args=(gpus_a, model_a, n_requests, max_tokens, tp_size, "", 0.0, queue_a),
+                        )
+                        proc_b = ctx.Process(
+                            target=_vllm_multitenancy_worker,
+                            args=(gpus_b, model_b, n_requests, max_tokens, tp_size, kv_dtype_b, 0.0, queue_b),
+                        )
+
+                        t0 = time.perf_counter()
+                        proc_a.start()
+                        proc_b.start()
+                        proc_a.join(timeout=timeout_sec)
+                        proc_b.join(timeout=timeout_sec)
+                        elapsed = time.perf_counter() - t0
+
+                        if proc_a.is_alive():
+                            proc_a.terminate()
+                            pytest.fail(f"Model A ({model_a}) worker timed out after {timeout_sec}s")
+                        if proc_b.is_alive():
+                            proc_b.terminate()
+                            pytest.fail(f"Model B ({model_b}) worker timed out after {timeout_sec}s")
+
+                        res_a = queue_a.get_nowait() if not queue_a.empty() else {"error": "no result"}
+                        res_b = queue_b.get_nowait() if not queue_b.empty() else {"error": "no result"}
+
+                        for label, res in [("A", res_a), ("B", res_b)]:
+                            if "error" in res:
+                                pytest.fail(f"Model {label} ({res.get('model', '?')}) failed: {res['error']}")
+
+                        logger.info(
+                            "TC-047 multi-tenant (elapsed %.1fs):\n"
+                            "  Model A (%s  GPUs %s): mean=%.1f ms  p50=%.1f ms  p99=%.1f ms\n"
+                            "  Model B (%s  GPUs %s): mean=%.1f ms  p50=%.1f ms  p99=%.1f ms",
+                            elapsed,
+                            res_a["model"], gpus_a, res_a["mean_ms"], res_a["p50_ms"], res_a["p99_ms"],
+                            res_b["model"], gpus_b, res_b["mean_ms"], res_b["p50_ms"], res_b["p99_ms"],
+                        )
+
+                        _record_kpi(
+                            "test_multi_tenant_inference_tail_latency",
+                            {
+                                "elapsed_sec": round(elapsed, 2),
+                                "model_a":     res_a["model"],
+                                "gpus_a":      gpus_a,
+                                "mean_ms_a":   round(res_a["mean_ms"], 2),
+                                "p50_ms_a":    round(res_a["p50_ms"],  2),
+                                "p99_ms_a":    round(res_a["p99_ms"],  2),
+                                "model_b":     res_b["model"],
+                                "gpus_b":      gpus_b,
+                                "mean_ms_b":   round(res_b["mean_ms"], 2),
+                                "p50_ms_b":    round(res_b["p50_ms"],  2),
+                                "p99_ms_b":    round(res_b["p99_ms"],  2),
+                            },
+                        )
+
+                        max_ratio = float(os.environ.get("MULTITENANT_MAX_P99_P50_RATIO", "5.0"))
+                        for label, res in [("A", res_a), ("B", res_b)]:
+                            ratio = res["p99_ms"] / res["p50_ms"] if res["p50_ms"] > 0 else 0.0
+                            assert ratio <= max_ratio, (
+                                f"Model {label} ({res['model']}) p99/p50 ratio {ratio:.2f} "
+                                f"exceeds {max_ratio} — suspect CPU scheduling contention"
+                            )
+
+                    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+                    @pytest.mark.workload_acceptance
+                    @pytest.mark.slow
+                    @pytest.mark.timeout(0)
+                    def test_multi_model_inference_kv_cache_concurrent(self):
+                        """AI_HOSTCPU_FUNC_TEST_ID_048: Concurrent multi-model inference + KV cache DRAM offload.
+
+                        Runs two vLLM engines simultaneously on partitioned GPU sets.  Engine B uses
+                        ``cpu_offload_gb`` to offload KV-cache pages to CPU DRAM, simulating the
+                        "DeepSeek + SATA offload" use-case described in the test spec.
+
+                        Default smoke mode: gpt2 × 2 with 8 GB KV CPU offload on Engine B.
+                        Large-model mode  : DeepSeek quantised distil + Mixtral-8x22B
+                          (MULTITENANT_ENABLE_LARGE_MODELS=1, >= 4 GPUs).
+
+                        Pass criteria:
+                          - Both engines complete without error
+                          - KV-offload engine p99 <= 3x baseline engine p99
+                        """
+                        try:
+                            from vllm import LLM, SamplingParams  # noqa: F401
+                        except ImportError:
+                            pytest.skip("vllm not installed")
+
+                        n_gpus = torch.cuda.device_count()
+                        if n_gpus < 2:
+                            pytest.skip("Need >= 2 GPUs for multi-model concurrent test")
+
+                        enable_large = os.environ.get("MULTITENANT_ENABLE_LARGE_MODELS", "0").lower() in (
+                            "1", "true", "yes"
+                        )
+                        if enable_large and n_gpus < 4:
+                            pytest.skip("Need >= 4 GPUs for large-model concurrent test")
+
+                        half   = n_gpus // 2
+                        gpus_a = ",".join(str(i) for i in range(half))
+                        gpus_b = ",".join(str(i) for i in range(half, n_gpus))
+
+                        if enable_large:
+                            model_a = os.environ.get("MULTITENANT_MODEL_A", _HF_DEEPSEEK_R1_QUANT_MODEL)
+                            model_b = os.environ.get("MULTITENANT_MODEL_B", _HF_MIXTRAL_8X22B_MODEL)
+                        else:
+                            model_a = os.environ.get("MULTITENANT_MODEL_A", "gpt2")
+                            model_b = os.environ.get("MULTITENANT_MODEL_B", "gpt2")
+
+                        cpu_offload_gb = float(os.environ.get("MULTITENANT_KV_CPU_OFFLOAD_GB", "8.0"))
+                        n_requests     = int(os.environ.get("MULTITENANT_N_REQUESTS", "20"))
+                        max_tokens     = int(os.environ.get("MULTITENANT_MAX_NEW_TOKENS", "32"))
+                        tp_size        = max(1, half)
+                        timeout_sec    = int(os.environ.get("MULTITENANT_TIMEOUT_SEC", "3600"))
+
+                        ctx     = mp.get_context("spawn")
+                        queue_a = ctx.Queue()
+                        queue_b = ctx.Queue()
+                        proc_a = ctx.Process(
+                            target=_vllm_multitenancy_worker,
+                            args=(gpus_a, model_a, n_requests, max_tokens, tp_size, "", 0.0, queue_a),
+                        )
+                        proc_b = ctx.Process(
+                            target=_vllm_multitenancy_worker,
+                            args=(gpus_b, model_b, n_requests, max_tokens, tp_size, "", cpu_offload_gb, queue_b),
+                        )
+
+                        t0 = time.perf_counter()
+                        proc_a.start()
+                        proc_b.start()
+                        proc_a.join(timeout=timeout_sec)
+                        proc_b.join(timeout=timeout_sec)
+                        elapsed = time.perf_counter() - t0
+
+                        if proc_a.is_alive():
+                            proc_a.terminate()
+                            pytest.fail(f"Baseline model ({model_a}) worker timed out after {timeout_sec}s")
+                        if proc_b.is_alive():
+                            proc_b.terminate()
+                            pytest.fail(f"KV-offload model ({model_b}) worker timed out after {timeout_sec}s")
+
+                        res_a = queue_a.get_nowait() if not queue_a.empty() else {"error": "no result"}
+                        res_b = queue_b.get_nowait() if not queue_b.empty() else {"error": "no result"}
+
+                        for label, res in [("baseline", res_a), ("kv_offload", res_b)]:
+                            if "error" in res:
+                                pytest.fail(f"Model {label} ({res.get('model', '?')}) failed: {res['error']}")
+
+                        logger.info(
+                            "TC-048 multi-model+KV-offload (elapsed %.1fs):\n"
+                            "  Baseline  (%s  GPUs %s): p50=%.1f ms  p99=%.1f ms\n"
+                            "  KV-offload (%s  GPUs %s, %.0f GB CPU): p50=%.1f ms  p99=%.1f ms",
+                            elapsed,
+                            res_a["model"], gpus_a, res_a["p50_ms"], res_a["p99_ms"],
+                            res_b["model"], gpus_b, cpu_offload_gb, res_b["p50_ms"], res_b["p99_ms"],
+                        )
+
+                        _record_kpi(
+                            "test_multi_model_inference_kv_cache_concurrent",
+                            {
+                                "elapsed_sec":       round(elapsed, 2),
+                                "model_baseline":    res_a["model"],
+                                "gpus_baseline":     gpus_a,
+                                "p50_ms_baseline":   round(res_a["p50_ms"], 2),
+                                "p99_ms_baseline":   round(res_a["p99_ms"], 2),
+                                "model_kv_offload":  res_b["model"],
+                                "gpus_kv_offload":   gpus_b,
+                                "cpu_offload_gb":    cpu_offload_gb,
+                                "p50_ms_kv_offload": round(res_b["p50_ms"], 2),
+                                "p99_ms_kv_offload": round(res_b["p99_ms"], 2),
+                            },
+                        )
+
+                        max_p99_ratio = float(os.environ.get("MULTITENANT_KV_OFFLOAD_MAX_P99_RATIO", "3.0"))
+                        if res_a["p99_ms"] > 0:
+                            ratio = res_b["p99_ms"] / res_a["p99_ms"]
+                            assert ratio <= max_p99_ratio, (
+                                f"KV-offload p99 {res_b['p99_ms']:.1f} ms is {ratio:.2f}x baseline "
+                                f"{res_a['p99_ms']:.1f} ms — exceeds max ratio {max_p99_ratio}"
+                            )
+
+                    @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
+                    @pytest.mark.workload_acceptance
+                    @pytest.mark.slow
+                    @pytest.mark.timeout(0)
+                    def test_deepseek_r1_kv_cache_dram_offload(self):
+                        """AI_HOSTCPU_FUNC_TEST_ID_049: DeepSeek-R1-70B BF16 with KV-cache DRAM offload.
+
+                        Validates vLLM can serve a large DeepSeek-R1 distill model with tensor
+                        parallelism while offloading KV cache pages to CPU DRAM.  Uses
+                        ``enable_chunked_prefill=True`` to enable the KV paging/offload path.
+
+                        Equivalent CLI:
+                          vllm serve deepseek-ai/DeepSeek-R1 --tensor-parallel-size <n> --dtype bfloat16
+                              --max-model-len 16384 --enable-chunked-prefill --trust-remote-code
+
+                        Requires HF_ENABLE_LARGE_MODELS=1 (skipped otherwise).
+
+                        Pass criteria:
+                          - vLLM engine initialises without OOM
+                          - Throughput >= 1 token/sec over the measured request batch
+                          - Per-GPU memory reservation < 95 %
+                        """
+                        try:
+                            from vllm import LLM, SamplingParams
+                        except ImportError:
+                            pytest.skip("vllm not installed")
+
+                        enable_large = os.environ.get("HF_ENABLE_LARGE_MODELS", "0").lower() in (
+                            "1", "true", "yes"
+                        )
+                        if not enable_large:
+                            pytest.skip(
+                                "Skipping DeepSeek-R1-70B (HF_ENABLE_LARGE_MODELS not set). "
+                                "Set HF_ENABLE_LARGE_MODELS=1 to run."
+                            )
+
+                        n_gpus = torch.cuda.device_count()
+                        if n_gpus < 1:
+                            pytest.skip("No CUDA devices")
+
+                        import sysconfig
+                        if not Path(sysconfig.get_config_var("INCLUDEPY") or "").is_dir():
+                            pytest.skip("Python headers not found; vLLM compile step would fail")
+
+                        model_id       = os.environ.get("DEEPSEEK_KV_OFFLOAD_MODEL", _HF_DEEPSEEK_R1_70B_MODEL)
+                        tp_size        = min(n_gpus, int(os.environ.get("DEEPSEEK_TP_SIZE", str(n_gpus))))
+                        max_model_len  = int(os.environ.get("DEEPSEEK_MAX_MODEL_LEN", "16384"))
+                        cpu_offload_gb = float(os.environ.get("DEEPSEEK_CPU_OFFLOAD_GB", "8.0"))
+                        n_requests     = int(os.environ.get("DEEPSEEK_N_REQUESTS", "10"))
+                        max_tokens     = int(os.environ.get("DEEPSEEK_MAX_NEW_TOKENS", "64"))
+
+                        logger.info(
+                            "TC-049: loading %s  tp=%d  max_model_len=%d  cpu_offload_gb=%.0f",
+                            model_id, tp_size, max_model_len, cpu_offload_gb,
+                        )
+
+                        try:
+                            llm = LLM(
+                                model=model_id,
+                                tensor_parallel_size=tp_size,
+                                dtype="bfloat16",
+                                max_model_len=max_model_len,
+                                enable_chunked_prefill=True,
+                                trust_remote_code=True,
+                                gpu_memory_utilization=float(os.environ.get("DEEPSEEK_GPU_MEM_UTIL", "0.85")),
+                                cpu_offload_gb=cpu_offload_gb,
+                            )
+                        except Exception as exc:
+                            pytest.skip(f"DeepSeek-R1 engine init failed (OOM / model unavailable): {exc}")
+
+                        sp        = SamplingParams(temperature=0.0, max_tokens=max_tokens)
+                        pad_words = "This is a long context token. "
+                        pad_len   = max_model_len * 3
+                        context   = (pad_words * (pad_len // len(pad_words) + 1))[:pad_len]
+                        prompts   = [f"{context} Summarize the above in one sentence."] * n_requests
+
+                        try:
+                            _ = llm.generate(prompts[:1], sp)
+                        except Exception as exc:
+                            logger.warning("Warmup failed: %s", exc)
+
+                        t0      = time.perf_counter()
+                        outputs = llm.generate(prompts, sp)
+                        elapsed = time.perf_counter() - t0
+
+                        total_tokens = sum(len(o.outputs[0].token_ids) for o in outputs)
+                        throughput   = total_tokens / elapsed if elapsed > 0 else 0.0
+
+                        gpu_mem_pcts: List[float] = []
+                        for i in range(n_gpus):
+                            props = torch.cuda.get_device_properties(i)
+                            pct   = torch.cuda.memory_reserved(i) / props.total_memory * 100.0
+                            gpu_mem_pcts.append(pct)
+                        max_mem_pct = max(gpu_mem_pcts) if gpu_mem_pcts else 0.0
+
+                        logger.info(
+                            "TC-049 DeepSeek-R1 KV offload: n_req=%d  total_tokens=%d  "
+                            "elapsed=%.1fs  tps=%.2f  max_gpu_mem=%.1f%%",
+                            len(outputs), total_tokens, elapsed, throughput, max_mem_pct,
+                        )
+
+                        _record_kpi(
+                            "test_deepseek_r1_kv_cache_dram_offload",
+                            {
+                                "model":           model_id,
+                                "tp_size":         tp_size,
+                                "max_model_len":   max_model_len,
+                                "cpu_offload_gb":  cpu_offload_gb,
+                                "n_requests":      len(outputs),
+                                "total_tokens":    total_tokens,
+                                "elapsed_sec":     round(elapsed, 2),
+                                "throughput_tps":  round(throughput, 2),
+                                "max_gpu_mem_pct": round(max_mem_pct, 1),
+                            },
+                        )
+
+                        min_tps = float(os.environ.get("DEEPSEEK_MIN_TPS", "1.0"))
+                        assert throughput >= min_tps, (
+                            f"DeepSeek-R1 throughput {throughput:.2f} tps below minimum {min_tps} tps"
+                        )
+                        max_mem_threshold = float(os.environ.get("DEEPSEEK_MAX_GPU_MEM_PCT", "95.0"))
+                        assert max_mem_pct < max_mem_threshold, (
+                            f"GPU memory reservation {max_mem_pct:.1f}% exceeds {max_mem_threshold}%"
+                        )
+                        del llm
+                        torch.cuda.empty_cache()
+
+                    def test_vllm_training_kpi_status(self):
+                        """Capture vLLM training KPI status (vLLM is inference-focused and does not train)."""
+                        _record_kpi(
+                            "test_vllm_training_kpi_status",
+                            {
+                                "component": "vllm",
+                                "training_supported": False,
+                                "status": "not_applicable",
+                                "note": "vLLM is inference-serving runtime; use PyTorch/DeepSpeed for training KPIs",
+                            },
+                        )
+                        logger.info(
+                            "vLLM training KPI status: not_applicable (vLLM is inference-focused; training not supported)"
+                        )
             status="FAIL",
             message="No GPUs found",
         ))

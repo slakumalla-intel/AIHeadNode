@@ -98,11 +98,70 @@ set_default_env VLLM_BASELINE_GPU_MEMORY_UTIL "0.9"
 set_default_env VLLM_GPU_MEMORY_UTIL "0.7"
 set_default_env VLLM_CPU_OFFLOAD_GB "128"
 
+# TC-013: Small LLM training (AI_HOSTCPU_FUNC_TEST_ID_013)
+set_default_env LLM_TRAIN_SMALL_MODEL "google/gemma-3-270m-it"
+set_default_env LLM_TRAIN_SMALL_BATCH "2"
+set_default_env LLM_TRAIN_SMALL_SEQ_LEN "512"
+set_default_env LLM_TRAIN_SMALL_STEPS "50"
+set_default_env LLM_TRAIN_SMALL_WARMUP "5"
+set_default_env LLM_TRAIN_SMALL_MAX_SYNC_RATIO "0.15"
+set_default_env LLM_TRAIN_SMALL_TIMEOUT_SEC "3600"
+set_default_env LLM_TRAIN_SMALL_MASTER_PORT "29601"
+
+# TC-014: Large LLM training (AI_HOSTCPU_FUNC_TEST_ID_014)
+set_default_env LLM_TRAIN_LARGE_MODEL "${HF_LLAMA_7B_MODEL:-meta-llama/Meta-Llama-3-8B}"
+set_default_env LLM_TRAIN_LARGE_BATCH "1"
+set_default_env LLM_TRAIN_LARGE_SEQ_LEN "512"
+set_default_env LLM_TRAIN_LARGE_STEPS "20"
+set_default_env LLM_TRAIN_LARGE_WARMUP "3"
+set_default_env LLM_TRAIN_LARGE_MAX_SYNC_RATIO "0.10"
+set_default_env LLM_TRAIN_LARGE_MIN_SCALING_EFF "70.0"
+set_default_env LLM_TRAIN_LARGE_USE_DEEPSPEED "1"
+set_default_env LLM_TRAIN_LARGE_TIMEOUT_SEC "3600"
+set_default_env LLM_TRAIN_LARGE_MASTER_PORT "29602"
+
 set_default_env RDMA_SMOKE_ITERS "1000"
 set_default_env RDMA_USE_CUDA_DEVICE "0"
 set_default_env RDMA_4KB_MAX_AVG_LAT_US "300.0"
 set_default_env RDMA_SOAK_LOOPS "1000"
 set_default_env SOAK_MAX_P95_US "20000"
+
+# TC-047 / TC-048: multi-tenant inference -------------------------------------
+set_default_env MULTITENANT_ENABLE_LARGE_MODELS "0"
+set_default_env MULTITENANT_MODEL_A             "gpt2"
+set_default_env MULTITENANT_MODEL_B             "gpt2"
+set_default_env MULTITENANT_N_REQUESTS          "20"
+set_default_env MULTITENANT_MAX_NEW_TOKENS      "32"
+set_default_env MULTITENANT_GPU_MEM_UTIL        "0.85"
+set_default_env MULTITENANT_MAX_MODEL_LEN       "2048"
+set_default_env MULTITENANT_KV_DTYPE_B          ""
+set_default_env MULTITENANT_KV_CPU_OFFLOAD_GB   "8.0"
+set_default_env MULTITENANT_MAX_P99_P50_RATIO   "5.0"
+set_default_env MULTITENANT_KV_OFFLOAD_MAX_P99_RATIO "3.0"
+set_default_env MULTITENANT_TIMEOUT_SEC         "3600"
+
+# TC-049: DeepSeek-R1-70B KV DRAM offload ------------------------------------
+set_default_env DEEPSEEK_KV_OFFLOAD_MODEL       "deepseek-ai/DeepSeek-R1-Distill-Llama-70B"
+set_default_env DEEPSEEK_TP_SIZE                "4"
+set_default_env DEEPSEEK_MAX_MODEL_LEN          "16384"
+set_default_env DEEPSEEK_CPU_OFFLOAD_GB         "8.0"
+set_default_env DEEPSEEK_GPU_MEM_UTIL           "0.85"
+set_default_env DEEPSEEK_N_REQUESTS             "10"
+set_default_env DEEPSEEK_MAX_NEW_TOKENS         "64"
+set_default_env DEEPSEEK_MIN_TPS                "1.0"
+set_default_env DEEPSEEK_MAX_GPU_MEM_PCT        "95.0"
+
+# TC-050: PCIe BW with 2 MB hugepages (reuses NODE_PCIE_BW_BYTES / NODE_PCIE_BW_ITERS)
+
+# TC-051: GPU write performance limiters -------------------------------------
+set_default_env GPU_WRITE_ITERS                 "10"
+set_default_env GPU_WRITE_MIN_PEAK_GBS          "167.0"
+set_default_env GPU_WRITE_HBM_BOUND_RATIO       "2.0"
+
+# TC-052: P2P multi-stream bandwidth -----------------------------------------
+set_default_env P2P_MULTI_STREAM_BYTES          "268435456"
+set_default_env P2P_MULTI_STREAM_ITERS          "5"
+set_default_env P2P_MULTI_STREAM_MIN_SCALING    "1.5"
 
 set_default_env YOLO_DETECT_MODEL "yolov8x.pt"
 export YOLO_DETECT_BATCH="$YOLO_BATCH_SIZE"

@@ -2352,6 +2352,8 @@ def _ddp_training_worker(
         import torch.distributed as dist
         from transformers import AutoModelForCausalLM
 
+        os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
         _dist_setup(rank, world_size, master_port)
         device = f"cuda:{rank}"
 
@@ -2361,10 +2363,16 @@ def _ddp_training_worker(
         n_warmup      = cfg.get("warmup_steps", 3)
         n_steps       = cfg.get("n_steps", 20)
         use_deepspeed = cfg.get("use_deepspeed", False)
+        deepspeed_zero_stage = int(cfg.get("deepspeed_zero_stage", 2))
+        require_model_sharding = bool(cfg.get("require_model_sharding", False))
+        collect_single_gpu_baseline = bool(cfg.get("collect_single_gpu_baseline", True))
 
         # ── Load model ───────────────────────────────────────────────────────
         try:
-            model_kwargs: Dict = {"torch_dtype": torch.bfloat16}
+            model_kwargs: Dict = {
+                "torch_dtype": torch.bfloat16,
+                "low_cpu_mem_usage": True,
+            }
             token = _hf_auth_token()
             if token:
                 model_kwargs["token"] = token
@@ -2381,7 +2389,7 @@ def _ddp_training_worker(
 
         # ── Single-GPU baseline (rank 0 only, *before* DDP wrapping) ─────────
         single_gpu_tps: Optional[float] = None
-        if rank == 0:
+        if rank == 0 and collect_single_gpu_baseline:
             vocab_size = model.config.vocab_size
             _ids   = torch.randint(0, vocab_size, (batch_size, seq_len), device=device)
             _mask  = torch.ones_like(_ids)
@@ -2417,16 +2425,55 @@ def _ddp_training_worker(
                     "train_micro_batch_size_per_gpu": batch_size,
                     "gradient_accumulation_steps": 1,
                     "bf16": {"enabled": True},
-                    "zero_optimization": {"stage": 2},
+                    "zero_optimization": {
+                        "stage": deepspeed_zero_stage,
+                        "contiguous_gradients": True,
+                        "overlap_comm": True,
+                        "reduce_scatter": True,
+                    },
                 }
+                if deepspeed_zero_stage >= 3:
+                    ds_cfg["zero_optimization"].update(
+                        {
+                            "stage3_prefetch_bucket_size": 5e7,
+                            "stage3_param_persistence_threshold": 1e5,
+                            "stage3_max_live_parameters": 1e9,
+                            "stage3_max_reuse_distance": 1e9,
+                        }
+                    )
                 _base_opt = torch.optim.AdamW(model.parameters(), lr=1e-5)
                 engine, optimizer, _, _ = deepspeed.initialize(
                     model=model, optimizer=_base_opt, config=ds_cfg
                 )
                 model = engine
             except Exception as exc:
+                if require_model_sharding:
+                    result_queue.put(
+                        {
+                            "rank": rank,
+                            "status": "error",
+                            "error": (
+                                "DeepSpeed ZeRO sharding is required for this test but initialization failed: "
+                                f"{exc}"
+                            ),
+                        }
+                    )
+                    return
                 logger.warning("DeepSpeed init failed (%s), falling back to DDP", exc)
                 use_deepspeed = False
+
+        if require_model_sharding and not use_deepspeed:
+            result_queue.put(
+                {
+                    "rank": rank,
+                    "status": "error",
+                    "error": (
+                        "TC-014 large multi-GPU training requires model sharding across GPUs. "
+                        "Plain DDP replicates the full model on every GPU. Install/configure DeepSpeed and enable ZeRO-3."
+                    ),
+                }
+            )
+            return
 
         if not use_deepspeed:
             model     = torch.nn.parallel.DistributedDataParallel(model, device_ids=[rank])
@@ -4748,7 +4795,7 @@ class TestWorkloadAcceptanceHuggingFace:
     def test_llm_training_large_multigpu(self):
         """AI_HOSTCPU_FUNC_TEST_ID_014: Large LLM distributed fine-tuning (Llama-3 8B+).
 
-        Uses DDP with optional DeepSpeed ZeRO Stage-2 if available.
+                Uses actual multi-GPU model sharding via DeepSpeed ZeRO for large models.
         Validates:
           * Gradient sync < 10% of step time
           * TFLOPS stable across GPUs (CV < 10%)
@@ -4773,8 +4820,9 @@ class TestWorkloadAcceptanceHuggingFace:
         max_sync_ratio  = float(os.environ.get("LLM_TRAIN_LARGE_MAX_SYNC_RATIO", "0.10"))
         min_scaling_eff = float(os.environ.get("LLM_TRAIN_LARGE_MIN_SCALING_EFF", "70.0"))
         master_port  = int(os.environ.get("LLM_TRAIN_LARGE_MASTER_PORT", "29602"))
+        deepspeed_zero_stage = int(os.environ.get("LLM_TRAIN_LARGE_ZERO_STAGE", "3"))
 
-        # Prefer DeepSpeed ZeRO if installed
+        # Large-model training must use sharded execution rather than replicated DDP.
         use_deepspeed = False
         try:
             import deepspeed  # noqa: F401
@@ -4782,9 +4830,20 @@ class TestWorkloadAcceptanceHuggingFace:
                 "LLM_TRAIN_LARGE_USE_DEEPSPEED", "1"
             ).lower() in {"1", "true", "yes", "on"}
             if use_deepspeed:
-                logger.info("TC-014: DeepSpeed detected — enabling ZeRO Stage 2")
+                logger.info(
+                    "TC-014: DeepSpeed detected — enabling ZeRO Stage %d for model sharding",
+                    deepspeed_zero_stage,
+                )
         except ImportError:
-            logger.info("TC-014: DeepSpeed not installed — using plain DDP")
+            pytest.skip(
+                "TC-014 large multi-GPU training requires DeepSpeed for model sharding across GPUs."
+            )
+
+        if not use_deepspeed:
+            pytest.skip(
+                "TC-014 large multi-GPU training is configured to require model sharding. "
+                "Set LLM_TRAIN_LARGE_USE_DEEPSPEED=1 and install DeepSpeed."
+            )
 
         cfg = {
             "model_id":     model_id,
@@ -4793,12 +4852,16 @@ class TestWorkloadAcceptanceHuggingFace:
             "n_steps":      n_steps,
             "warmup_steps": warmup_steps,
             "use_deepspeed": use_deepspeed,
+            "deepspeed_zero_stage": deepspeed_zero_stage,
+            "require_model_sharding": True,
+            "collect_single_gpu_baseline": False,
         }
 
         logger.info(
             "TC-014 LLM Training Large: model=%s world_size=%d batch=%d seq=%d "
-            "steps=%d deepspeed=%s",
+            "steps=%d deepspeed=%s zero_stage=%d",
             model_id, world_size, batch_size, seq_len, n_steps, use_deepspeed,
+            deepspeed_zero_stage,
         )
 
         ctx          = mp.get_context("spawn")

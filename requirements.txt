@@ -14,6 +14,7 @@ transformers-stream-generator>=0.0.5
 # torch>=2.1.0
 # pynvml>=11.5.0
 # vllm>=0.18.1
+deepspeed>=0.15.0
 ultralytics>=8.3.0
 diffusers>=0.31.0
 # NOTE: vLLM may compile native helpers at runtime and requires Python dev headers

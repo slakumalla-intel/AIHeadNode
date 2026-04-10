@@ -848,6 +848,21 @@ class TestGPUEnumerationAndTopology:
         logger.info(f"GPU enumeration: {result['count']} GPU(s) found")
         for gpu in result.get("gpus", []):
             logger.info(f"  GPU {gpu['index']}: {gpu['name']} ({gpu['pci_bus_id']})")
+        _record_kpi(
+            "test_gpu_enumeration",
+            {
+                "gpu_count": result.get("count", 0),
+                "gpus": [
+                    {
+                        "index": gpu.get("index"),
+                        "name": gpu.get("name"),
+                        "pci_bus_id": gpu.get("pci_bus_id"),
+                        "driver_version": gpu.get("driver_version"),
+                    }
+                    for gpu in result.get("gpus", [])
+                ],
+            },
+        )
 
     def test_pcie_topology_discovery(self):
         """TC-NV-01b: Validate GPU placement via nvidia-smi topo -m and print negotiated PCIe link speed/width."""
@@ -882,6 +897,8 @@ class TestGPUEnumerationAndTopology:
 
         # ── 2. GPU placement matrix via nvidia-smi topo -m ──────────────────
         matrix_result = GPUEnumeration.get_topo_matrix()
+        nvlink_pair_count = 0
+        pcie_pair_count = 0
         if matrix_result.get("error"):
             logger.warning("nvidia-smi topo -m: %s", matrix_result['error'])
         else:
@@ -901,14 +918,28 @@ class TestGPUEnumerationAndTopology:
 
             link_summary = ["\n", "  GPU INTERCONNECT SUMMARY (from topo -m)", "  " + "-" * 50]
             if nvlink_pairs:
+                nvlink_pair_count = len(nvlink_pairs)
                 link_summary.append(f"  NVLink pairs  ({len(nvlink_pairs)}):")
                 for src, dst, lt in nvlink_pairs:
                     link_summary.append(f"    GPU{src} <-> GPU{dst} : {lt}")
             if pcie_pairs:
+                pcie_pair_count = len(pcie_pairs)
                 link_summary.append(f"  PCIe-only pairs ({len(pcie_pairs)}):")
                 for src, dst, lt in pcie_pairs:
                     link_summary.append(f"    GPU{src} <-> GPU{dst} : {lt}")
             logger.info("\n".join(link_summary))
+
+        _record_kpi(
+            "test_pcie_topology_discovery",
+            {
+                "gpu_entries": len(topo_result.get("topology", [])),
+                "downgraded_gpu_count": len(downgraded_gpus),
+                "downgraded_gpus": downgraded_gpus,
+                "nvlink_pair_count": nvlink_pair_count,
+                "pcie_pair_count": pcie_pair_count,
+                "matrix_error": matrix_result.get("error"),
+            },
+        )
 
         # ── 3. Assertions ───────────────────────────────────────────────────
         assert not downgraded_gpus, (
@@ -925,6 +956,14 @@ class TestGPUEnumerationAndTopology:
             enum_result.get("gpus", []),
             topo_result.get("topology", [])
         )
+        _record_kpi(
+            "test_topology_consistency",
+            {
+                "valid": bool(valid),
+                "gpu_count": len(enum_result.get("gpus", [])),
+                "topology_count": len(topo_result.get("topology", [])),
+            },
+        )
         assert valid, message
         logger.info(message)
 
@@ -940,14 +979,31 @@ class TestPCIeBandwidthDirect:
         n_gpus = torch.cuda.device_count()
         assert n_gpus > 0, "No CUDA devices found"
         threshold_gbs = 63.0 * 0.65  # 65% of PCIe Gen5×16 theoretical
+        n_iters = int(os.environ.get("NODE_PCIE_BW_ITERS", "8"))
+        n_bytes = int(os.environ.get("NODE_PCIE_BW_BYTES", str(1024**3)))
+        per_gpu_bw: List[float] = []
 
         for gpu_idx in range(n_gpus):
-            bw = measure_h2d_bandwidth(device_idx=gpu_idx, n_bytes=1024**3, n_iters=5)
+            bw = measure_h2d_bandwidth(device_idx=gpu_idx, n_bytes=n_bytes, n_iters=n_iters)
+            per_gpu_bw.append(float(bw))
             efficiency = (bw / 63.0) * 100
             logger.info(f"GPU {gpu_idx} H2D BW: {bw:.1f} GB/s ({efficiency:.1f}% of 63 GB/s)")
             assert bw >= threshold_gbs, (
                 f"GPU {gpu_idx} H2D BW ({bw:.1f} GB/s) below threshold {threshold_gbs:.1f} GB/s"
             )
+
+        _record_kpi(
+            "test_h2d_bandwidth_all_gpus",
+            {
+                "gpu_count": n_gpus,
+                "n_bytes": n_bytes,
+                "n_iters": n_iters,
+                "threshold_gbs": threshold_gbs,
+                "min_gbs": round(float(min(per_gpu_bw)), 2),
+                "mean_gbs": round(float(np.mean(per_gpu_bw)), 2),
+                "per_gpu_gbs": [round(x, 2) for x in per_gpu_bw],
+            },
+        )
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_d2h_bandwidth_all_gpus(self):
@@ -955,14 +1011,31 @@ class TestPCIeBandwidthDirect:
         n_gpus = torch.cuda.device_count()
         assert n_gpus > 0, "No CUDA devices found"
         threshold_gbs = 63.0 * 0.65
+        n_iters = int(os.environ.get("NODE_PCIE_BW_ITERS", "8"))
+        n_bytes = int(os.environ.get("NODE_PCIE_BW_BYTES", str(1024**3)))
+        per_gpu_bw: List[float] = []
 
         for gpu_idx in range(n_gpus):
-            bw = measure_d2h_bandwidth(device_idx=gpu_idx, n_bytes=1024**3, n_iters=5)
+            bw = measure_d2h_bandwidth(device_idx=gpu_idx, n_bytes=n_bytes, n_iters=n_iters)
+            per_gpu_bw.append(float(bw))
             efficiency = (bw / 63.0) * 100
             logger.info(f"GPU {gpu_idx} D2H BW: {bw:.1f} GB/s ({efficiency:.1f}% of 63 GB/s)")
             assert bw >= threshold_gbs, (
                 f"GPU {gpu_idx} D2H BW ({bw:.1f} GB/s) below threshold {threshold_gbs:.1f} GB/s"
             )
+
+        _record_kpi(
+            "test_d2h_bandwidth_all_gpus",
+            {
+                "gpu_count": n_gpus,
+                "n_bytes": n_bytes,
+                "n_iters": n_iters,
+                "threshold_gbs": threshold_gbs,
+                "min_gbs": round(float(min(per_gpu_bw)), 2),
+                "mean_gbs": round(float(np.mean(per_gpu_bw)), 2),
+                "per_gpu_gbs": [round(x, 2) for x in per_gpu_bw],
+            },
+        )
 
 
 @pytest.mark.node_validation
@@ -1015,6 +1088,16 @@ class TestNVBandwidthMemcpy:
             "%s  min=%.1f GB/s  mean=%.1f GB/s  threshold=%.1f GB/s",
             testcase, min_bw, mean_bw, threshold
         )
+        _record_kpi(
+            f"test_nvbandwidth_{testcase}",
+            {
+                "testcase": testcase,
+                "num_values": len(values),
+                "min_bw_gbs": round(float(min_bw), 2),
+                "mean_bw_gbs": round(float(mean_bw), 2),
+                "threshold_gbs": round(float(threshold), 2),
+            },
+        )
         assert min_bw >= threshold, (
             f"{testcase}: min BW {min_bw:.1f} GB/s below threshold {threshold:.1f} GB/s"
         )
@@ -1062,7 +1145,8 @@ class TestGPUP2PBandwidth:
         if not _P2P_LATENCY_BIN.exists():
             pytest.skip(f"p2pBandwidthLatencyTest not found at {_P2P_LATENCY_BIN}")
 
-        res = _run_p2p_latency_test(timeout=180)
+        timeout_sec = int(os.environ.get("NODE_P2P_BINARY_TIMEOUT_SEC", "240"))
+        res = _run_p2p_latency_test(timeout=timeout_sec)
         if res["error"]:
             pytest.skip(f"p2pBandwidthLatencyTest error: {res['error']}")
 
@@ -1093,6 +1177,20 @@ class TestGPUP2PBandwidth:
         min_threshold = 40.0
         off_diag_bw = bidir or unidir
         assert off_diag_bw, "No inter-GPU bandwidth values parsed"
+        _record_kpi(
+            "test_p2p_bandwidth_latency_binary",
+            {
+                "timeout_sec": timeout_sec,
+                "min_threshold_gbs": min_threshold,
+                "bidir_min_gbs": round(float(min(bidir)), 2) if bidir else None,
+                "bidir_mean_gbs": round(float(sum(bidir) / len(bidir)), 2) if bidir else None,
+                "unidir_min_gbs": round(float(min(unidir)), 2) if unidir else None,
+                "unidir_mean_gbs": round(float(sum(unidir) / len(unidir)), 2) if unidir else None,
+                "latency_min_us": round(float(min(latency)), 2) if latency else None,
+                "latency_mean_us": round(float(sum(latency) / len(latency)), 2) if latency else None,
+                "num_offdiag_samples": len(off_diag_bw),
+            },
+        )
         failing = [v for v in off_diag_bw if v < min_threshold]
         assert not failing, (
             f"{len(failing)} P2P bandwidth values below {min_threshold} GB/s: "
@@ -1107,9 +1205,12 @@ class TestGPUP2PBandwidth:
             pytest.skip("Need ≥ 2 GPUs for P2P test")
 
         min_threshold = 40.0
+        n_iters = int(os.environ.get("NODE_P2P_TORCH_ITERS", "8"))
+        n_bytes = int(os.environ.get("NODE_P2P_TORCH_BYTES", str(1024**3)))
         header = ["\n", "=" * 60, "  PyTorch P2P Bandwidth Matrix (GB/s)", "=" * 60]
         header.append(f"  {'':6}" + "".join(f"  GPU{d:<3}" for d in range(n_gpus)))
         rows = []
+        measured_bw: List[float] = []
         for src in range(n_gpus):
             row_vals = []
             for dst in range(n_gpus):
@@ -1117,15 +1218,29 @@ class TestGPUP2PBandwidth:
                     row_vals.append("  ---  ")
                 else:
                     bw = measure_p2p_bandwidth(src_device=src, dst_device=dst,
-                                              n_bytes=1024**3, n_iters=5)
+                                              n_bytes=n_bytes, n_iters=n_iters)
                     row_vals.append(f"{bw:7.1f}")
                     if bw > 0:
+                        measured_bw.append(float(bw))
                         assert bw >= min_threshold, (
                             f"P2P BW GPU{src}->GPU{dst} ({bw:.1f} GB/s) "
                             f"below minimum {min_threshold:.1f} GB/s"
                         )
             rows.append(f"  GPU{src}   " + "".join(row_vals))
         logger.info("\n".join(header + rows + ["=" * 60]))
+        if measured_bw:
+            _record_kpi(
+                "test_p2p_bandwidth_pytorch_fallback",
+                {
+                    "gpu_count": n_gpus,
+                    "n_bytes": n_bytes,
+                    "n_iters": n_iters,
+                    "min_threshold_gbs": min_threshold,
+                    "min_gbs": round(float(min(measured_bw)), 2),
+                    "mean_gbs": round(float(np.mean(measured_bw)), 2),
+                    "samples": len(measured_bw),
+                },
+            )
 
 
 @pytest.mark.node_validation
@@ -1136,12 +1251,26 @@ class TestCPUGPULaunchAndSyncOverhead:
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_kernel_launch_latency_stats(self):
         """Measure kernel launch latency distribution (min/p50/p95/p99/max)."""
-        stats = measure_kernel_launch_latency(device_idx=0, n_samples=100)
+        n_samples = int(os.environ.get("NODE_KERNEL_LAUNCH_SAMPLES", "200"))
+        stats = measure_kernel_launch_latency(device_idx=0, n_samples=n_samples)
         assert stats, "Kernel launch measurement failed"
 
         logger.info("Kernel launch latency (microseconds):")
         for key in ["min", "p50", "mean", "p95", "p99", "max"]:
             logger.info(f"  {key:5s}: {stats[key]:8.2f} µs")
+
+        _record_kpi(
+            "test_kernel_launch_latency_stats",
+            {
+                "samples": n_samples,
+                "min_us": round(float(stats["min"]), 3),
+                "p50_us": round(float(stats["p50"]), 3),
+                "mean_us": round(float(stats["mean"]), 3),
+                "p95_us": round(float(stats["p95"]), 3),
+                "p99_us": round(float(stats["p99"]), 3),
+                "max_us": round(float(stats["max"]), 3),
+            },
+        )
 
         # Typical kernel launch latency: 1-10 microseconds
         assert stats["p50"] < 100, f"Median kernel launch latency {stats['p50']:.1f} µs seems high"
@@ -1149,12 +1278,26 @@ class TestCPUGPULaunchAndSyncOverhead:
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_synchronize_overhead_stats(self):
         """Measure cudaDeviceSynchronize() overhead distribution."""
-        stats = measure_synchronize_overhead(device_idx=0, n_samples=100)
+        n_samples = int(os.environ.get("NODE_SYNC_OVERHEAD_SAMPLES", "200"))
+        stats = measure_synchronize_overhead(device_idx=0, n_samples=n_samples)
         assert stats, "Synchronize measurement failed"
 
         logger.info("cudaDeviceSynchronize() overhead (microseconds):")
         for key in ["min", "p50", "mean", "p95", "p99", "max"]:
             logger.info(f"  {key:5s}: {stats[key]:8.2f} µs")
+
+        _record_kpi(
+            "test_synchronize_overhead_stats",
+            {
+                "samples": n_samples,
+                "min_us": round(float(stats["min"]), 3),
+                "p50_us": round(float(stats["p50"]), 3),
+                "mean_us": round(float(stats["mean"]), 3),
+                "p95_us": round(float(stats["p95"]), 3),
+                "p99_us": round(float(stats["p99"]), 3),
+                "max_us": round(float(stats["max"]), 3),
+            },
+        )
 
         # Typical sync overhead: 1-50 microseconds
         assert stats["p95"] < 1000, f"P95 sync overhead {stats['p95']:.1f} µs seems high"
@@ -1168,7 +1311,8 @@ class TestCPUGPUPowerAndThrottling:
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_sustained_gpu_power_stability(self):
         """Run sustained GPU workload and verify stable power (low variance)."""
-        power_data = measure_power_profile(duration_sec=15)
+        duration_sec = int(os.environ.get("NODE_POWER_PROFILE_DURATION_SEC", "30"))
+        power_data = measure_power_profile(duration_sec=duration_sec)
         if not power_data:
             pytest.skip("Could not measure power profile")
 
@@ -1177,6 +1321,18 @@ class TestCPUGPUPowerAndThrottling:
         logger.info(f"  Mean:  {power_data.get('mean', 0):.1f} W")
         logger.info(f"  Max:   {power_data.get('max', 0):.1f} W")
         logger.info(f"  Std:   {power_data.get('std', 0):.1f} W")
+
+        _record_kpi(
+            "test_sustained_gpu_power_stability",
+            {
+                "duration_sec": duration_sec,
+                "samples": int(power_data.get("samples", 0)),
+                "min_w": round(float(power_data.get("min", 0.0)), 2),
+                "mean_w": round(float(power_data.get("mean", 0.0)), 2),
+                "max_w": round(float(power_data.get("max", 0.0)), 2),
+                "std_w": round(float(power_data.get("std", 0.0)), 2),
+            },
+        )
 
         # Verify low jitter (std < 10 W)
         std = power_data.get("std", 0)
@@ -1202,6 +1358,13 @@ class TestNCCLAndNVLinkValidation:
         logger.info("\nNVLink status:\n%s", nvlink_info.get("status", "(none)"))
         if nvlink_info.get("capabilities"):
             logger.info("\nNVLink capabilities:\n%s", nvlink_info["capabilities"])
+        _record_kpi(
+            "test_nvlink_status",
+            {
+                "available": bool(nvlink_info.get("available", False)),
+                "status_excerpt": (nvlink_info.get("status", "") or "")[:500],
+            },
+        )
         # Non-fatal: node may be PCIe-only
         if not nvlink_info["available"]:
             logger.warning("NVLink not detected — system may be PCIe-only interconnect")
@@ -1210,6 +1373,13 @@ class TestNCCLAndNVLinkValidation:
         """Verify NCCL is accessible (via torch or test binary)."""
         available, message = check_nccl_availability()
         logger.info("NCCL availability: %s", message)
+        _record_kpi(
+            "test_nccl_availability",
+            {
+                "available": bool(available),
+                "message": message,
+            },
+        )
         if not available:
             pytest.skip(message)
 
@@ -1221,13 +1391,14 @@ class TestNCCLAndNVLinkValidation:
         if n_gpus < 2:
             pytest.skip("Need ≥ 2 GPUs for NCCL collective test")
 
+        iters = int(os.environ.get("NODE_NCCL_ITERS", "30"))
         res = _run_nccl_test(
             "all_reduce_perf",
             n_gpus=n_gpus,
             min_bytes="1M",
             max_bytes="1G",
             step_factor=4,
-            iters=20,
+            iters=iters,
         )
         if res["error"] and "not found" in res["error"]:
             pytest.skip(f"all_reduce_perf binary: {res['error']}")
@@ -1246,6 +1417,17 @@ class TestNCCLAndNVLinkValidation:
             "AllReduce busbw — peak=%.1f GB/s  mean=%.1f GB/s  threshold=%.1f GB/s",
             peak_busbw, sum(busbw)/len(busbw), min_busbw
         )
+        _record_kpi(
+            "test_nccl_all_reduce_perf",
+            {
+                "gpu_count": n_gpus,
+                "iters": iters,
+                "peak_busbw_gbs": round(float(peak_busbw), 2),
+                "mean_busbw_gbs": round(float(sum(busbw) / len(busbw)), 2),
+                "threshold_gbs": min_busbw,
+                "samples": len(busbw),
+            },
+        )
         assert peak_busbw >= min_busbw, (
             f"AllReduce peak busbw {peak_busbw:.1f} GB/s below threshold {min_busbw:.1f} GB/s"
         )
@@ -1258,9 +1440,11 @@ class TestNCCLAndNVLinkValidation:
         if n_gpus < 2:
             pytest.skip("Need ≥ 2 GPUs")
 
+        iters = int(os.environ.get("NODE_NCCL_ITERS", "30"))
+
         res = _run_nccl_test(
             "all_gather_perf", n_gpus=n_gpus,
-            min_bytes="1M", max_bytes="256M", step_factor=4, iters=20
+            min_bytes="1M", max_bytes="256M", step_factor=4, iters=iters
         )
         if res["error"] and "not found" in res["error"]:
             pytest.skip(f"all_gather_perf binary: {res['error']}")
@@ -1271,6 +1455,16 @@ class TestNCCLAndNVLinkValidation:
             pytest.skip("Could not parse all_gather_perf output")
         peak = max(busbw)
         logger.info("AllGather peak busbw: %.1f GB/s", peak)
+        _record_kpi(
+            "test_nccl_all_gather_perf",
+            {
+                "gpu_count": n_gpus,
+                "iters": iters,
+                "peak_busbw_gbs": round(float(peak), 2),
+                "mean_busbw_gbs": round(float(sum(busbw) / len(busbw)), 2),
+                "samples": len(busbw),
+            },
+        )
         assert peak >= 30.0, f"AllGather busbw {peak:.1f} GB/s too low"
 
     def test_nccl_reduce_scatter_perf(self):
@@ -1281,9 +1475,11 @@ class TestNCCLAndNVLinkValidation:
         if n_gpus < 2:
             pytest.skip("Need ≥ 2 GPUs")
 
+        iters = int(os.environ.get("NODE_NCCL_ITERS", "30"))
+
         res = _run_nccl_test(
             "reduce_scatter_perf", n_gpus=n_gpus,
-            min_bytes="1M", max_bytes="256M", step_factor=4, iters=20
+            min_bytes="1M", max_bytes="256M", step_factor=4, iters=iters
         )
         if res["error"] and "not found" in res["error"]:
             pytest.skip(f"reduce_scatter_perf binary: {res['error']}")
@@ -1294,6 +1490,16 @@ class TestNCCLAndNVLinkValidation:
             pytest.skip("Could not parse reduce_scatter_perf output")
         peak = max(busbw)
         logger.info("ReduceScatter peak busbw: %.1f GB/s", peak)
+        _record_kpi(
+            "test_nccl_reduce_scatter_perf",
+            {
+                "gpu_count": n_gpus,
+                "iters": iters,
+                "peak_busbw_gbs": round(float(peak), 2),
+                "mean_busbw_gbs": round(float(sum(busbw) / len(busbw)), 2),
+                "samples": len(busbw),
+            },
+        )
         assert peak >= 30.0, f"ReduceScatter busbw {peak:.1f} GB/s too low"
 
     def test_nccl_p2p_perf(self):
@@ -1304,9 +1510,11 @@ class TestNCCLAndNVLinkValidation:
         if n_gpus < 2:
             pytest.skip("Need ≥ 2 GPUs")
 
+        iters = int(os.environ.get("NODE_NCCL_ITERS", "30"))
+
         res = _run_nccl_test(
             "sendrecv_perf", n_gpus=n_gpus,
-            min_bytes="1M", max_bytes="256M", step_factor=4, iters=20
+            min_bytes="1M", max_bytes="256M", step_factor=4, iters=iters
         )
         if res["error"] and "not found" in res["error"]:
             pytest.skip(f"sendrecv_perf binary: {res['error']}")
@@ -1317,6 +1525,16 @@ class TestNCCLAndNVLinkValidation:
             pytest.skip("Could not parse sendrecv_perf output")
         peak = max(busbw)
         logger.info("SendRecv peak busbw: %.1f GB/s", peak)
+        _record_kpi(
+            "test_nccl_p2p_perf",
+            {
+                "gpu_count": n_gpus,
+                "iters": iters,
+                "peak_busbw_gbs": round(float(peak), 2),
+                "mean_busbw_gbs": round(float(sum(busbw) / len(busbw)), 2),
+                "samples": len(busbw),
+            },
+        )
         assert peak >= 30.0, f"NCCL sendrecv busbw {peak:.1f} GB/s too low"
 
     def test_nccl_deterministic_init_variance(self):
@@ -1342,6 +1560,15 @@ class TestNCCLAndNVLinkValidation:
         mean_algbw = sum(algbw) / len(algbw)
         logger.info(
             "NCCL 8-byte AllReduce (50 iters): algbw mean=%.3f GB/s", mean_algbw
+        )
+        _record_kpi(
+            "test_nccl_deterministic_init_variance",
+            {
+                "gpu_count": n_gpus,
+                "iterations": 50,
+                "mean_algbw_gbs": round(float(mean_algbw), 4),
+                "samples": len(algbw),
+            },
         )
         logger.info("Full output:\n%s", res["raw"].strip())
 

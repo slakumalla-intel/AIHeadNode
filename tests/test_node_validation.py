@@ -987,22 +987,41 @@ class TestPCIeBandwidthDirect:
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_h2d_bandwidth_all_gpus(self):
-        """Measure H2D bandwidth for all GPUs and validate ≥ 65% of PCIe theoretical (63 GB/s)."""
+        """Measure H2D bandwidth for all GPUs and validate >= 65% of PCIe theoretical (63 GB/s).
+
+        Boundary handling:
+          - Uses NODE_PCIE_BW_BOUNDARY_GBS (default 1.0) to mark near-threshold values.
+          - Collects all GPU measurements first, then fails once with full diagnostics.
+        """
         n_gpus = torch.cuda.device_count()
         assert n_gpus > 0, "No CUDA devices found"
         threshold_gbs = 63.0 * 0.65  # 65% of PCIe Gen5×16 theoretical
+        boundary_gbs = float(os.environ.get("NODE_PCIE_BW_BOUNDARY_GBS", "1.0"))
         n_iters = int(os.environ.get("NODE_PCIE_BW_ITERS", "8"))
         n_bytes = int(os.environ.get("NODE_PCIE_BW_BYTES", str(1024**3)))
         per_gpu_bw: List[float] = []
+        failing: List[str] = []
+        borderline: List[str] = []
 
         for gpu_idx in range(n_gpus):
             bw = measure_h2d_bandwidth(device_idx=gpu_idx, n_bytes=n_bytes, n_iters=n_iters)
             per_gpu_bw.append(float(bw))
             efficiency = (bw / 63.0) * 100
             logger.info(f"GPU {gpu_idx} H2D BW: {bw:.1f} GB/s ({efficiency:.1f}% of 63 GB/s)")
-            assert bw >= threshold_gbs, (
-                f"GPU {gpu_idx} H2D BW ({bw:.1f} GB/s) below threshold {threshold_gbs:.1f} GB/s"
-            )
+            if bw <= 0:
+                failing.append(
+                    f"GPU {gpu_idx}: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)"
+                )
+                continue
+            if bw < threshold_gbs:
+                delta = threshold_gbs - bw
+                if delta <= boundary_gbs:
+                    borderline.append(
+                        f"GPU {gpu_idx}: {bw:.2f} GB/s ({delta:.2f} below threshold, boundary band)"
+                    )
+                failing.append(
+                    f"GPU {gpu_idx}: {bw:.2f} GB/s < {threshold_gbs:.2f} GB/s"
+                )
 
         _record_kpi(
             "test_h2d_bandwidth_all_gpus",
@@ -1011,30 +1030,61 @@ class TestPCIeBandwidthDirect:
                 "n_bytes": n_bytes,
                 "n_iters": n_iters,
                 "threshold_gbs": threshold_gbs,
+                "boundary_gbs": boundary_gbs,
                 "min_gbs": round(float(min(per_gpu_bw)), 2),
                 "mean_gbs": round(float(np.mean(per_gpu_bw)), 2),
                 "per_gpu_gbs": [round(x, 2) for x in per_gpu_bw],
+                "failing_gpus": failing,
+                "borderline_gpus": borderline,
             },
         )
 
+        if failing:
+            details = "\n".join(failing)
+            pytest.fail(
+                "H2D PCIe bandwidth validation failed.\n"
+                f"threshold={threshold_gbs:.2f} GB/s, boundary={boundary_gbs:.2f} GB/s, "
+                f"min={min(per_gpu_bw):.2f} GB/s, mean={float(np.mean(per_gpu_bw)):.2f} GB/s\n"
+                f"Per-GPU failures:\n{details}"
+            )
+
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_d2h_bandwidth_all_gpus(self):
-        """Measure D2H bandwidth for all GPUs and validate ≥ 65% of PCIe theoretical."""
+        """Measure D2H bandwidth for all GPUs and validate >= 65% of PCIe theoretical.
+
+        Boundary handling:
+          - Uses NODE_PCIE_BW_BOUNDARY_GBS (default 1.0) to mark near-threshold values.
+          - Collects all GPU measurements first, then fails once with full diagnostics.
+        """
         n_gpus = torch.cuda.device_count()
         assert n_gpus > 0, "No CUDA devices found"
         threshold_gbs = 63.0 * 0.65
+        boundary_gbs = float(os.environ.get("NODE_PCIE_BW_BOUNDARY_GBS", "1.0"))
         n_iters = int(os.environ.get("NODE_PCIE_BW_ITERS", "8"))
         n_bytes = int(os.environ.get("NODE_PCIE_BW_BYTES", str(1024**3)))
         per_gpu_bw: List[float] = []
+        failing: List[str] = []
+        borderline: List[str] = []
 
         for gpu_idx in range(n_gpus):
             bw = measure_d2h_bandwidth(device_idx=gpu_idx, n_bytes=n_bytes, n_iters=n_iters)
             per_gpu_bw.append(float(bw))
             efficiency = (bw / 63.0) * 100
             logger.info(f"GPU {gpu_idx} D2H BW: {bw:.1f} GB/s ({efficiency:.1f}% of 63 GB/s)")
-            assert bw >= threshold_gbs, (
-                f"GPU {gpu_idx} D2H BW ({bw:.1f} GB/s) below threshold {threshold_gbs:.1f} GB/s"
-            )
+            if bw <= 0:
+                failing.append(
+                    f"GPU {gpu_idx}: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)"
+                )
+                continue
+            if bw < threshold_gbs:
+                delta = threshold_gbs - bw
+                if delta <= boundary_gbs:
+                    borderline.append(
+                        f"GPU {gpu_idx}: {bw:.2f} GB/s ({delta:.2f} below threshold, boundary band)"
+                    )
+                failing.append(
+                    f"GPU {gpu_idx}: {bw:.2f} GB/s < {threshold_gbs:.2f} GB/s"
+                )
 
         _record_kpi(
             "test_d2h_bandwidth_all_gpus",
@@ -1043,11 +1093,23 @@ class TestPCIeBandwidthDirect:
                 "n_bytes": n_bytes,
                 "n_iters": n_iters,
                 "threshold_gbs": threshold_gbs,
+                "boundary_gbs": boundary_gbs,
                 "min_gbs": round(float(min(per_gpu_bw)), 2),
                 "mean_gbs": round(float(np.mean(per_gpu_bw)), 2),
                 "per_gpu_gbs": [round(x, 2) for x in per_gpu_bw],
+                "failing_gpus": failing,
+                "borderline_gpus": borderline,
             },
         )
+
+        if failing:
+            details = "\n".join(failing)
+            pytest.fail(
+                "D2H PCIe bandwidth validation failed.\n"
+                f"threshold={threshold_gbs:.2f} GB/s, boundary={boundary_gbs:.2f} GB/s, "
+                f"min={min(per_gpu_bw):.2f} GB/s, mean={float(np.mean(per_gpu_bw)):.2f} GB/s\n"
+                f"Per-GPU failures:\n{details}"
+            )
 
 
 @pytest.mark.node_validation
@@ -1333,47 +1395,88 @@ class TestGPUP2PBandwidth:
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_p2p_bandwidth_pytorch_fallback(self):
-        """PyTorch direct P2P measurement for all GPU pairs (sanity check)."""
+        """PyTorch direct P2P measurement for all GPU pairs with explicit diagnostics."""
         n_gpus = torch.cuda.device_count()
         if n_gpus < 2:
             pytest.skip("Need ≥ 2 GPUs for P2P test")
 
-        min_threshold = 40.0
+        min_threshold = float(os.environ.get("NODE_P2P_MIN_GBS", "40.0"))
         n_iters = int(os.environ.get("NODE_P2P_TORCH_ITERS", "8"))
         n_bytes = int(os.environ.get("NODE_P2P_TORCH_BYTES", str(1024**3)))
         header = ["\n", "=" * 60, "  PyTorch P2P Bandwidth Matrix (GB/s)", "=" * 60]
         header.append(f"  {'':6}" + "".join(f"  GPU{d:<3}" for d in range(n_gpus)))
         rows = []
         measured_bw: List[float] = []
+        failing_pairs: List[str] = []
+        inaccessible_pairs: List[str] = []
+        attempted_pairs = 0
+        measured_pairs = 0
+
         for src in range(n_gpus):
             row_vals = []
             for dst in range(n_gpus):
                 if src == dst:
                     row_vals.append("  ---  ")
                 else:
+                    attempted_pairs += 1
+                    if not torch.cuda.can_device_access_peer(src, dst):
+                        inaccessible_pairs.append(f"GPU{src}->GPU{dst}")
+                        row_vals.append("  N/A  ")
+                        continue
+
                     bw = measure_p2p_bandwidth(src_device=src, dst_device=dst,
                                               n_bytes=n_bytes, n_iters=n_iters)
                     row_vals.append(f"{bw:7.1f}")
                     if bw > 0:
+                        measured_pairs += 1
                         measured_bw.append(float(bw))
-                        assert bw >= min_threshold, (
-                            f"P2P BW GPU{src}->GPU{dst} ({bw:.1f} GB/s) "
-                            f"below minimum {min_threshold:.1f} GB/s"
+                        if bw < min_threshold:
+                            failing_pairs.append(
+                                f"GPU{src}->GPU{dst}: {bw:.1f} GB/s < {min_threshold:.1f} GB/s"
+                            )
+                    else:
+                        failing_pairs.append(
+                            f"GPU{src}->GPU{dst}: 0.0 GB/s (measurement failed; see warnings)"
                         )
+
             rows.append(f"  GPU{src}   " + "".join(row_vals))
+
         logger.info("\n".join(header + rows + ["=" * 60]))
-        if measured_bw:
-            _record_kpi(
-                "test_p2p_bandwidth_pytorch_fallback",
-                {
-                    "gpu_count": n_gpus,
-                    "n_bytes": n_bytes,
-                    "n_iters": n_iters,
-                    "min_threshold_gbs": min_threshold,
-                    "min_gbs": round(float(min(measured_bw)), 2),
-                    "mean_gbs": round(float(np.mean(measured_bw)), 2),
-                    "samples": len(measured_bw),
-                },
+
+        kpi_payload = {
+            "gpu_count": n_gpus,
+            "n_bytes": n_bytes,
+            "n_iters": n_iters,
+            "min_threshold_gbs": min_threshold,
+            "attempted_pairs": attempted_pairs,
+            "measured_pairs": measured_pairs,
+            "inaccessible_pairs": len(inaccessible_pairs),
+            "failing_pairs": len(failing_pairs),
+            "min_gbs": round(float(min(measured_bw)), 2) if measured_bw else None,
+            "mean_gbs": round(float(np.mean(measured_bw)), 2) if measured_bw else None,
+        }
+        _record_kpi("test_p2p_bandwidth_pytorch_fallback", kpi_payload)
+
+        if measured_pairs == 0:
+            if inaccessible_pairs and len(inaccessible_pairs) == attempted_pairs:
+                pytest.skip(
+                    "No peer-accessible GPU pairs for PyTorch P2P fallback test. "
+                    "All pairs report no P2P access."
+                )
+            pytest.fail(
+                "P2P fallback measured 0 valid pairs. "
+                f"attempted_pairs={attempted_pairs}, inaccessible_pairs={len(inaccessible_pairs)}."
+            )
+
+        if failing_pairs:
+            summary = "\n".join(failing_pairs[:16])
+            if len(failing_pairs) > 16:
+                summary += f"\n... and {len(failing_pairs) - 16} more failing pairs"
+            pytest.fail(
+                "P2P bandwidth fallback validation failed.\n"
+                f"threshold={min_threshold:.1f} GB/s, measured_pairs={measured_pairs}, "
+                f"inaccessible_pairs={len(inaccessible_pairs)}\n"
+                f"Failures:\n{summary}"
             )
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")

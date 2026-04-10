@@ -1496,86 +1496,110 @@ class TestGPUP2PBandwidth:
             pytest.skip("Need >= 2 GPUs for P2P multi-stream bandwidth test")
 
         n_bytes_per_stream = int(os.environ.get("P2P_MULTI_STREAM_BYTES", str(256 * 1024 * 1024)))
-        n_iters  = int(os.environ.get("P2P_MULTI_STREAM_ITERS", "5"))
+        n_iters = int(os.environ.get("P2P_MULTI_STREAM_ITERS", "5"))
         stream_counts = [1, 2, 4, 8]
+        min_ratio = float(os.environ.get("P2P_MULTI_STREAM_MIN_SCALING", "1.5"))
+        max_pairs = int(os.environ.get("P2P_MULTI_STREAM_MAX_PAIRS", "0"))  # 0 => all pairs
 
-        # Find first GPU pair with direct P2P access
-        src, dst = None, None
+        peer_pairs: List[Tuple[int, int]] = []
         for s in range(n_gpus):
             for d in range(n_gpus):
                 if s != d and torch.cuda.can_device_access_peer(s, d):
-                    src, dst = s, d
-                    break
-            if src is not None:
-                break
-        if src is None:
-            src, dst = 0, 1
-            logger.warning("No direct P2P pair found; falling back to GPU 0→1 (PCIe path)")
+                    peer_pairs.append((s, d))
 
-        logger.info("P2P multi-stream: GPU %d → GPU %d", src, dst)
-        bw_by_streams: Dict[str, float] = {}
+        if not peer_pairs:
+            pytest.skip("No peer-accessible GPU pairs found for P2P multi-stream bandwidth test")
 
-        for n_streams in stream_counts:
-            src_bufs = [
-                torch.empty(n_bytes_per_stream, dtype=torch.uint8, device=f"cuda:{src}")
-                for _ in range(n_streams)
-            ]
-            dst_bufs = [
-                torch.empty(n_bytes_per_stream, dtype=torch.uint8, device=f"cuda:{dst}")
-                for _ in range(n_streams)
-            ]
-            streams = [torch.cuda.Stream(device=f"cuda:{dst}") for _ in range(n_streams)]
+        if max_pairs > 0:
+            peer_pairs = peer_pairs[:max_pairs]
 
-            # Warmup
-            with torch.cuda.device(dst):
-                for sl, (sb, db) in enumerate(zip(src_bufs, dst_bufs)):
-                    with torch.cuda.stream(streams[sl]):
-                        db.copy_(sb, non_blocking=True)
-                torch.cuda.synchronize(dst)
+        all_pair_results: Dict[str, Dict[str, float]] = {}
+        failing_pairs: List[str] = []
 
-            # Measure
-            total_bytes = n_bytes_per_stream * n_streams * n_iters
-            t0 = time.perf_counter()
-            with torch.cuda.device(dst):
-                for _ in range(n_iters):
+        for src, dst in peer_pairs:
+            logger.info("P2P multi-stream: GPU %d -> GPU %d", src, dst)
+            bw_by_streams: Dict[str, float] = {}
+
+            for n_streams in stream_counts:
+                src_bufs = [
+                    torch.empty(n_bytes_per_stream, dtype=torch.uint8, device=f"cuda:{src}")
+                    for _ in range(n_streams)
+                ]
+                dst_bufs = [
+                    torch.empty(n_bytes_per_stream, dtype=torch.uint8, device=f"cuda:{dst}")
+                    for _ in range(n_streams)
+                ]
+                streams = [torch.cuda.Stream(device=f"cuda:{dst}") for _ in range(n_streams)]
+
+                # Warmup
+                with torch.cuda.device(dst):
                     for sl, (sb, db) in enumerate(zip(src_bufs, dst_bufs)):
                         with torch.cuda.stream(streams[sl]):
                             db.copy_(sb, non_blocking=True)
                     torch.cuda.synchronize(dst)
-            elapsed = time.perf_counter() - t0
 
-            bw_gbs = total_bytes / (elapsed * 1e9)
-            bw_by_streams[str(n_streams)] = round(bw_gbs, 2)
-            logger.info(
-                "  %d stream(s): %.2f GB/s  (%.0f MB/stream)",
-                n_streams, bw_gbs, n_bytes_per_stream / (1024 * 1024),
-            )
-            del src_bufs, dst_bufs, streams
+                # Measure
+                total_bytes = n_bytes_per_stream * n_streams * n_iters
+                t0 = time.perf_counter()
+                with torch.cuda.device(dst):
+                    for _ in range(n_iters):
+                        for sl, (sb, db) in enumerate(zip(src_bufs, dst_bufs)):
+                            with torch.cuda.stream(streams[sl]):
+                                db.copy_(sb, non_blocking=True)
+                        torch.cuda.synchronize(dst)
+                elapsed = time.perf_counter() - t0
 
-        logger.info("P2P multi-stream BW (GPU %d→%d): %s", src, dst, bw_by_streams)
+                bw_gbs = total_bytes / (elapsed * 1e9)
+                bw_by_streams[str(n_streams)] = round(bw_gbs, 2)
+                logger.info(
+                    "  %d stream(s): %.2f GB/s  (%.0f MB/stream)",
+                    n_streams, bw_gbs, n_bytes_per_stream / (1024 * 1024),
+                )
+                del src_bufs, dst_bufs, streams
+
+            bw_1 = bw_by_streams.get("1", 0.0)
+            bw_4 = bw_by_streams.get("4", 0.0)
+            ratio = (bw_4 / bw_1) if bw_1 > 0 else 0.0
+
+            pair_key = f"{src}->{dst}"
+            all_pair_results[pair_key] = {
+                "bw_1_stream_gbs": round(float(bw_1), 2),
+                "bw_4_stream_gbs": round(float(bw_4), 2),
+                "ratio_4_over_1": round(float(ratio), 3),
+                "bw_by_streams_gbs": bw_by_streams,
+            }
+
+            if bw_1 <= 0:
+                failing_pairs.append(f"GPU{src}->GPU{dst}: 1-stream BW is 0.0 GB/s")
+            elif bw_4 > 0 and ratio < min_ratio:
+                failing_pairs.append(
+                    f"GPU{src}->GPU{dst}: 4-stream BW {bw_4:.2f} GB/s is {ratio:.2f}x of "
+                    f"1-stream BW {bw_1:.2f} GB/s (< {min_ratio:.2f}x)"
+                )
+
+            logger.info("P2P multi-stream BW (GPU %d->%d): %s", src, dst, bw_by_streams)
 
         _record_kpi(
             "test_p2p_multi_stream_bandwidth",
             {
-                "src_gpu": src,
-                "dst_gpu": dst,
+                "tested_pair_count": len(peer_pairs),
+                "tested_pairs": [f"{s}->{d}" for s, d in peer_pairs],
                 "n_bytes_per_stream": n_bytes_per_stream,
                 "n_iters": n_iters,
-                "bw_by_streams_gbs": bw_by_streams,
-                "bw_1_stream_gbs": bw_by_streams.get("1", 0.0),
-                "bw_4_stream_gbs": bw_by_streams.get("4", 0.0),
+                "min_scaling_ratio": min_ratio,
+                "per_pair": all_pair_results,
+                "failing_pairs": failing_pairs,
             },
         )
 
-        bw_1 = bw_by_streams.get("1", 0.0)
-        bw_4 = bw_by_streams.get("4", 0.0)
-        assert bw_1 > 0, "P2P single-stream bandwidth is zero — check device access"
-        min_ratio = float(os.environ.get("P2P_MULTI_STREAM_MIN_SCALING", "1.5"))
-        if bw_4 > 0:
-            ratio = bw_4 / bw_1
-            assert ratio >= min_ratio, (
-                f"4-stream BW {bw_4:.2f} GB/s is only {ratio:.2f}× single-stream "
-                f"BW {bw_1:.2f} GB/s — expected >= {min_ratio}×"
+        if failing_pairs:
+            details = "\n".join(failing_pairs[:20])
+            if len(failing_pairs) > 20:
+                details += f"\n... and {len(failing_pairs) - 20} more failing pair(s)"
+            pytest.fail(
+                "P2P multi-stream scaling validation failed.\n"
+                f"tested_pairs={len(peer_pairs)}, min_scaling_ratio={min_ratio:.2f}\n"
+                f"Failures:\n{details}"
             )
 
 

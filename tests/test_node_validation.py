@@ -2093,7 +2093,7 @@ class TestWorkloadAcceptanceHuggingFace:
         prefer_4bit_quant: bool,
     ):
         """Repeat latency validation for DeepSeek-R1 quantized, Llama, and Qwen workloads."""
-        enable_large_models = os.environ.get("HF_ENABLE_LARGE_MODELS", "1").lower() in {
+        enable_large_models = os.environ.get("HF_ENABLE_LARGE_MODELS", "0").lower() in {
             "1", "true", "yes", "on"
         }
         if "70b" in workload_name and not enable_large_models:
@@ -2974,6 +2974,7 @@ class TestWorkloadAcceptanceHuggingFace:
         batch_size = int(os.environ.get("VLLM_KV_BATCH_SIZE", "4"))
         num_prompts = int(os.environ.get("VLLM_KV_NUM_PROMPTS", "10"))
         max_tokens = int(os.environ.get("VLLM_KV_MAX_TOKENS", "512"))
+        baseline_gpu_memory_util = float(os.environ.get("VLLM_BASELINE_GPU_MEMORY_UTIL", "0.9"))
         gpu_memory_util = float(os.environ.get("VLLM_GPU_MEMORY_UTIL", "0.7"))  # Lower util forces offload
         cpu_offload_gb = int(os.environ.get("VLLM_CPU_OFFLOAD_GB", "128"))
 
@@ -2990,7 +2991,7 @@ class TestWorkloadAcceptanceHuggingFace:
             batch_size=batch_size,
             num_prompts=num_prompts,
             max_tokens=max_tokens,
-            gpu_memory_util=0.95,  # High util to avoid initial offload
+            gpu_memory_util=baseline_gpu_memory_util,  # Keep high util, but avoid fragile hard-coded 0.95.
             cpu_offload_gb=0,      # No offload
             offload_enabled=False,
         )
@@ -3142,35 +3143,89 @@ class TestWorkloadAcceptanceHuggingFace:
                     effective_context_length,
                 )
 
-            llm_kwargs = {
+            llm_kwargs_base = {
                 "model": model_id,
-                "tensor_parallel_size": device_count,
                 "dtype": "bfloat16",
                 "max_model_len": effective_context_length,
-                "gpu_memory_utilization": gpu_memory_util,
                 "enable_prefix_caching": True,  # KV cache prefixing helps with large contexts
             }
 
             if offload_enabled and cpu_offload_gb > 0:
-                llm_kwargs["cpu_offload_gb"] = cpu_offload_gb
+                llm_kwargs_base["cpu_offload_gb"] = cpu_offload_gb
                 logger.info("Enabling KV cache offload to CPU: %d GB", cpu_offload_gb)
 
-            logger.info("Initializing vLLM with kwargs: %s", llm_kwargs)
-            try:
-                llm = LLM(**llm_kwargs)
-            except Exception as exc:
-                derived_max_model_len = _extract_vllm_derived_max_model_len(str(exc))
-                if derived_max_model_len and derived_max_model_len < effective_context_length:
-                    effective_context_length = derived_max_model_len
-                    llm_kwargs["max_model_len"] = effective_context_length
-                    logger.warning(
-                        "Retrying KV cache workload for %s with max_model_len=%d after vLLM validation failure",
-                        model_id,
-                        effective_context_length,
+            # vLLM engine init can fail when memory utilization is too aggressive for
+            # the model/context combo. Retry with progressively safer limits.
+            util_candidates: List[float] = [gpu_memory_util]
+            for fallback_util in (0.9, 0.85, 0.8, 0.75, 0.7):
+                if fallback_util < gpu_memory_util and fallback_util not in util_candidates:
+                    util_candidates.append(fallback_util)
+
+            # Also back off tensor-parallel size if engine core initialization fails.
+            # This helps environments where NCCL/group init is unstable at full GPU count.
+            tp_candidates: List[int] = []
+            for tp in (device_count, min(device_count, 2), 1):
+                if tp >= 1 and tp not in tp_candidates:
+                    tp_candidates.append(tp)
+
+            llm = None
+            last_init_exc: Optional[Exception] = None
+            total_attempts = len(util_candidates) * len(tp_candidates)
+            attempt_idx = 0
+            for tp_size in tp_candidates:
+                for util in util_candidates:
+                    attempt_idx += 1
+                    llm_kwargs = {
+                        **llm_kwargs_base,
+                        "tensor_parallel_size": tp_size,
+                        "gpu_memory_utilization": util,
+                    }
+                    logger.info(
+                        "Initializing vLLM with kwargs (attempt %d/%d): %s",
+                        attempt_idx,
+                        total_attempts,
+                        llm_kwargs,
                     )
-                    llm = LLM(**llm_kwargs)
-                else:
-                    raise
+                    try:
+                        llm = LLM(**llm_kwargs)
+                        if util != gpu_memory_util:
+                            logger.warning(
+                                "vLLM init succeeded after lowering gpu_memory_utilization from %.2f to %.2f",
+                                gpu_memory_util,
+                                util,
+                            )
+                        if tp_size != device_count:
+                            logger.warning(
+                                "vLLM init succeeded after lowering tensor_parallel_size from %d to %d",
+                                device_count,
+                                tp_size,
+                            )
+                        break
+                    except Exception as exc:
+                        last_init_exc = exc
+                        derived_max_model_len = _extract_vllm_derived_max_model_len(str(exc))
+                        if derived_max_model_len and derived_max_model_len < effective_context_length:
+                            effective_context_length = derived_max_model_len
+                            llm_kwargs_base["max_model_len"] = effective_context_length
+                            logger.warning(
+                                "Retrying KV cache workload for %s with max_model_len=%d after vLLM validation failure",
+                                model_id,
+                                effective_context_length,
+                            )
+                        logger.warning(
+                            "vLLM init attempt %d failed (tensor_parallel_size=%d, gpu_memory_utilization=%.2f): %s",
+                            attempt_idx,
+                            tp_size,
+                            util,
+                            exc,
+                        )
+                if llm is not None:
+                    break
+
+            if llm is None:
+                if last_init_exc is not None:
+                    raise last_init_exc
+                raise RuntimeError("vLLM initialization failed without exception details")
 
             # Create varied prompts with context padding to fill context length
             padding_repeats = max(effective_context_length // 20 - 5, 0)

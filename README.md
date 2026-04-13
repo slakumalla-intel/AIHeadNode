@@ -152,6 +152,47 @@ Reference file for env configuration:
 
 - `.env.example`
 
+## Automatic Linux Defaults (Workload Path)
+
+Workload preflight now supports Linux-first automatic setup behavior in
+`tests/test_node_validation.py`:
+
+- Large-model workloads are enabled by default:
+	- `HF_ENABLE_LARGE_MODELS=1` (default)
+- Remote model download is enabled by default when local cache is missing:
+	- `HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1` (default)
+- Workload dependency auto-install is enabled by default on Linux:
+	- `NODE_WORKLOAD_AUTO_INSTALL=1` (Linux default)
+
+Auto-install attempts use the active Python interpreter (`python -m pip install`)
+and can install missing workload dependencies before strict preflight checks:
+
+- Required / common: `transformers`
+- Large-model path: `accelerate`
+- Optional workload components: `vllm`, `ultralytics`, `diffusers`, `psutil`
+
+Override controls:
+
+```bash
+# Disable dependency auto-install
+export NODE_WORKLOAD_AUTO_INSTALL=0
+
+# Change per-package auto-install timeout (seconds)
+export NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC=1800
+
+# Disable large-model execution gate
+export HF_ENABLE_LARGE_MODELS=0
+
+# Force local-only large-model behavior
+export HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=0
+```
+
+Notes:
+
+- If `accelerate` is unavailable, quantized/device-map model load paths fall back
+	to non-quantized load behavior with a warning when possible.
+- Gated Hugging Face repositories may still require `HF_TOKEN`.
+
 ## Reports and KPI Artifacts
 
 Generated outputs include:

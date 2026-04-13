@@ -124,10 +124,15 @@ pytest -m nccl_validation -vv
 
 **Workload Acceptance:**
 ```powershell
-./run_workload_acceptance.ps1
-# Include 70B models intentionally:
-./run_workload_acceptance.ps1 -IncludeLargeModels
+./run_workload_acceptance.sh
+# Skip 70B/72B models intentionally:
+./run_workload_acceptance.sh --skip-large-models
 ```
+
+Default workload behavior (Linux path):
+- `HF_ENABLE_LARGE_MODELS=1`
+- `HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1`
+- `NODE_WORKLOAD_AUTO_INSTALL=1` (`NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC=1800`)
 
 ### Run with custom output:
 ```powershell

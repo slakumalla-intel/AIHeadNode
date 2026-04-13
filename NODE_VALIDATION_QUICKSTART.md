@@ -41,9 +41,14 @@ pytest -m gpu_enumeration -vv          # GPU discovery
 pytest -m pcie_validation -vv          # PCIe bandwidth
 pytest -m p2p_validation -vv           # GPU P2P
 pytest -m nccl_validation -vv          # NCCL checks
-./run_workload_acceptance.ps1          # Inference/training (70B disabled by default)
-./run_workload_acceptance.ps1 -IncludeLargeModels   # Enable 70B workloads
+./run_workload_acceptance.sh           # Linux workload acceptance (large models enabled by default)
+./run_workload_acceptance.sh --skip-large-models   # Disable 70B/72B workloads
 ```
+
+Linux workload defaults:
+- `HF_ENABLE_LARGE_MODELS=1`
+- `HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1`
+- `NODE_WORKLOAD_AUTO_INSTALL=1` (with `NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC=1800`)
 
 ---
 

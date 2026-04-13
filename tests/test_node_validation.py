@@ -16,6 +16,7 @@ Can be executed separately with:
 """
 
 import logging
+import importlib.util
 import multiprocessing as mp
 import os
 import json
@@ -53,7 +54,9 @@ logger = logging.getLogger(__name__)
 # Binary / workload paths  (edit here if paths change)
 # =============================================================================
 
-_NVBANDWIDTH_BIN    = Path("/root/workloads/nvbandwidth/nvbandwidth")
+_NVBANDWIDTH_BIN    = Path(
+    os.environ.get("NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth")
+)
 _P2P_LATENCY_BIN    = Path(
     "/root/workloads/cuda-samples/Samples/5_Domain_Specific"
     "/p2pBandwidthLatencyTest/p2pBandwidthLatencyTest"
@@ -62,7 +65,10 @@ _NCCL_TESTS_DIR     = Path("/root/workloads/nccl-tests/build")
 
 # HuggingFace model IDs used for inference / training acceptance tests.
 # Swap to a locally cached path if internet access is unavailable on the node.
-_HF_INFERENCE_MODEL = "gpt2"          # small causal-LM, ~500 MB
+_HF_INFERENCE_MODEL = os.environ.get(
+    "HF_INFERENCE_MODEL",
+    "openai-community/gpt2",
+)  # small causal-LM, ~500 MB
 _HF_TRAINING_MODEL  = "bert-base-uncased"  # encoder, fast fine-tune loop
 
 _HF_DEEPSEEK_R1_QUANT_MODEL = os.environ.get(
@@ -93,6 +99,11 @@ _HF_DEEPSEEK_R1_70B_MODEL = os.environ.get(
     "HF_DEEPSEEK_R1_70B_MODEL",
     "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
 )
+
+# Default to running large-model workloads and allowing remote fetches unless
+# explicitly disabled by environment overrides.
+os.environ.setdefault("HF_ENABLE_LARGE_MODELS", "1")
+os.environ.setdefault("HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD", "1")
 
 
 # =============================================================================
@@ -601,6 +612,23 @@ def measure_power_profile(duration_sec: int = 30) -> Dict[str, float]:
 # nvbandwidth helper — run one test-case and return per-GPU bandwidth table
 # =============================================================================
 
+def _resolve_nvbandwidth_binary() -> Optional[Path]:
+    """Resolve nvbandwidth executable from either a direct file path or root directory."""
+    if _NVBANDWIDTH_BIN.is_file():
+        return _NVBANDWIDTH_BIN
+
+    if _NVBANDWIDTH_BIN.is_dir():
+        candidates = [
+            _NVBANDWIDTH_BIN / "nvbandwidth",
+            _NVBANDWIDTH_BIN / "build" / "nvbandwidth",
+            _NVBANDWIDTH_BIN / "bin" / "nvbandwidth",
+        ]
+        for candidate in candidates:
+            if candidate.is_file():
+                return candidate
+
+    return None
+
 def _run_nvbandwidth(testcase: str, timeout: int = 120) -> Dict:
     """Run a single nvbandwidth test-case and parse the bandwidth matrix.
 
@@ -613,12 +641,13 @@ def _run_nvbandwidth(testcase: str, timeout: int = 120) -> Dict:
       "matrix"     : list[list[float]]  – row-major bandwidth matrix
       "error"      : str | None
     """
-    if not _NVBANDWIDTH_BIN.exists():
+    nvbandwidth_bin = _resolve_nvbandwidth_binary()
+    if nvbandwidth_bin is None:
         return {"testcase": testcase, "raw": "", "values": [],
-                "matrix": [], "error": f"{_NVBANDWIDTH_BIN} not found"}
+                "matrix": [], "error": f"nvbandwidth binary not found from {_NVBANDWIDTH_BIN}"}
     try:
         result = subprocess.run(
-            [str(_NVBANDWIDTH_BIN), "-t", testcase],
+            [str(nvbandwidth_bin), "-t", testcase],
             capture_output=True, text=True, timeout=timeout,
             env={**os.environ, "CUDA_VISIBLE_DEVICES": ",".join(
                 str(i) for i in range(4))},  # expose all GPUs
@@ -1139,8 +1168,8 @@ class TestNVBandwidthMemcpy:
 
     def _run_and_validate(self, testcase: str) -> None:
         """Run nvbandwidth for *testcase*, log the full matrix, assert threshold."""
-        if not _NVBANDWIDTH_BIN.exists():
-            pytest.skip(f"nvbandwidth not found at {_NVBANDWIDTH_BIN}")
+        if _resolve_nvbandwidth_binary() is None:
+            pytest.skip(f"nvbandwidth binary not found from {_NVBANDWIDTH_BIN}")
 
         res = _run_nvbandwidth(testcase)
         if res["error"]:
@@ -1242,7 +1271,7 @@ class TestNVBandwidthMemcpy:
             # ---------------------------------------------------------------- #
             # 2a.  nvbandwidth path (preferred)                                 #
             # ---------------------------------------------------------------- #
-            if _NVBANDWIDTH_BIN.exists():
+            if _resolve_nvbandwidth_binary() is not None:
                 for tc in (
                     "host_to_device_memcpy_ce",
                     "device_to_host_memcpy_ce",
@@ -2034,6 +2063,62 @@ def _hf_auth_token() -> Optional[str]:
     return token or None
 
 
+def _module_available(module_name: str) -> bool:
+    """Return True when a Python module can be imported in this environment."""
+    try:
+        return importlib.util.find_spec(module_name) is not None
+    except Exception:
+        return False
+
+
+def _env_flag(name: str, default: str = "0") -> bool:
+    """Parse common boolean environment variable values."""
+    return os.environ.get(name, default).lower() in {"1", "true", "yes", "on"}
+
+
+def _auto_install_python_packages(package_specs: List[str]) -> Dict[str, str]:
+    """Attempt pip installs in the current interpreter; returns package->status."""
+    results: Dict[str, str] = {}
+    if not package_specs:
+        return results
+
+    timeout_sec = int(os.environ.get("NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC", "1800"))
+    for package_spec in package_specs:
+        cmd = [sys.executable, "-m", "pip", "install", package_spec]
+        try:
+            res = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout_sec,
+            )
+            if res.returncode == 0:
+                results[package_spec] = "installed"
+            else:
+                tail = (res.stderr or res.stdout or "").strip().splitlines()
+                results[package_spec] = (
+                    f"failed: {tail[-1]}" if tail else f"failed: exit {res.returncode}"
+                )
+        except Exception as exc:
+            results[package_spec] = f"failed: {exc}"
+    return results
+
+
+@contextmanager
+def _temporary_logger_levels(levels: Dict[str, int]):
+    """Temporarily override logger levels and restore after scope exits."""
+    previous_levels: Dict[str, int] = {}
+    for logger_name, level in levels.items():
+        target = logging.getLogger(logger_name)
+        previous_levels[logger_name] = target.level
+        target.setLevel(level)
+    try:
+        yield
+    finally:
+        for logger_name, level in previous_levels.items():
+            logging.getLogger(logger_name).setLevel(level)
+
+
 def _hf_from_pretrained(cls, model_id: str, **kwargs):
     """Load HF assets with auth fallback for mixed transformers versions.
 
@@ -2050,22 +2135,39 @@ def _hf_from_pretrained(cls, model_id: str, **kwargs):
     if token:
         call_kwargs["token"] = token
 
-    try:
-        return cls.from_pretrained(model_id, **call_kwargs)
-    except TypeError as exc:
-        if token and "token" in str(exc):
-            call_kwargs.pop("token", None)
-            call_kwargs["use_auth_token"] = token
+    verbose_http = os.environ.get("HF_VERBOSE_HTTP", "0").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    suppressed_loggers = (
+        {
+            "httpx": logging.WARNING,
+            "httpcore": logging.WARNING,
+            "huggingface_hub": logging.WARNING,
+        }
+        if not verbose_http
+        else {}
+    )
+
+    with _temporary_logger_levels(suppressed_loggers):
+        try:
             return cls.from_pretrained(model_id, **call_kwargs)
-        if call_kwargs.get("trust_remote_code") and "trust_remote_code" in str(exc):
-            call_kwargs.pop("trust_remote_code", None)
-            return cls.from_pretrained(model_id, **call_kwargs)
-        raise
-    except ValueError as exc:
-        if "trust_remote_code=True" in str(exc) and not call_kwargs.get("trust_remote_code"):
-            call_kwargs["trust_remote_code"] = True
-            return cls.from_pretrained(model_id, **call_kwargs)
-        raise
+        except TypeError as exc:
+            if token and "token" in str(exc):
+                call_kwargs.pop("token", None)
+                call_kwargs["use_auth_token"] = token
+                return cls.from_pretrained(model_id, **call_kwargs)
+            if call_kwargs.get("trust_remote_code") and "trust_remote_code" in str(exc):
+                call_kwargs.pop("trust_remote_code", None)
+                return cls.from_pretrained(model_id, **call_kwargs)
+            raise
+        except ValueError as exc:
+            if "trust_remote_code=True" in str(exc) and not call_kwargs.get("trust_remote_code"):
+                call_kwargs["trust_remote_code"] = True
+                return cls.from_pretrained(model_id, **call_kwargs)
+            raise
 
 
 def _resolve_supported_context_length(model_id: str, requested_context_length: int) -> int:
@@ -2738,6 +2840,14 @@ def _run_hf_causal_latency_workload(
     model_kwargs: Dict = {}
     use_quantized_load = False
     if prefer_4bit_quant:
+        if not _module_available("accelerate"):
+            logger.warning(
+                "accelerate not installed; disabling 4-bit/device_map path for %s",
+                model_id,
+            )
+            prefer_4bit_quant = False
+        
+    if prefer_4bit_quant:
         try:
             from transformers import BitsAndBytesConfig
             model_kwargs["quantization_config"] = BitsAndBytesConfig(
@@ -2945,13 +3055,113 @@ class TestWorkloadAcceptanceHuggingFace:
 class TestWorkloadAcceptanceHuggingFace:
     """TC-NV-08: Workload acceptance using HuggingFace Transformer models.
 
-    Inference model : _HF_INFERENCE_MODEL (default: gpt2)
+    Inference model : _HF_INFERENCE_MODEL (default: openai-community/gpt2)
     Training model  : _HF_TRAINING_MODEL  (default: bert-base-uncased)
 
     The tests use the 'transformers' library directly on GPU.  Set
     _HF_INFERENCE_MODEL / _HF_TRAINING_MODEL to a local cached path if the
     node has no internet access.
     """
+
+    def test_workload_preflight_requirements(self):
+        """Preflight checker for workload acceptance dependencies and env toggles.
+
+        Set NODE_WORKLOAD_PREFLIGHT_STRICT=1 to fail fast on missing requirements.
+        """
+        strict = os.environ.get("NODE_WORKLOAD_PREFLIGHT_STRICT", "0").lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
+
+        if not _HAS_TORCH:
+            pytest.skip("torch not installed")
+        if torch.cuda.device_count() == 0:
+            pytest.skip("No CUDA devices")
+
+        blockers: List[str] = []
+        notes: List[str] = []
+
+        # Linux default: auto-install missing workload deps in current env.
+        auto_install_default = "1" if sys.platform.startswith("linux") else "0"
+        auto_install = _env_flag("NODE_WORKLOAD_AUTO_INSTALL", auto_install_default)
+
+        enable_large_models = os.environ.get("HF_ENABLE_LARGE_MODELS", "1").lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
+
+        if auto_install:
+            install_plan: List[str] = []
+            if not _module_available("transformers"):
+                install_plan.append("transformers")
+            if enable_large_models and not _module_available("accelerate"):
+                install_plan.append("accelerate")
+
+            optional_pkg_map = {
+                "vllm": "vllm",
+                "ultralytics": "ultralytics",
+                "diffusers": "diffusers",
+                "psutil": "psutil",
+            }
+            for module_name, package_name in optional_pkg_map.items():
+                if not _module_available(module_name):
+                    install_plan.append(package_name)
+
+            if install_plan:
+                logger.info(
+                    "Workload preflight auto-install enabled; installing missing packages: %s",
+                    ", ".join(install_plan),
+                )
+                install_results = _auto_install_python_packages(install_plan)
+                for pkg, status in install_results.items():
+                    logger.info("auto-install %s: %s", pkg, status)
+
+        if not _module_available("transformers"):
+            blockers.append("Missing package: transformers (required for HF workload tests)")
+        if enable_large_models and not _module_available("accelerate"):
+            blockers.append(
+                "Missing package: accelerate (required by large/quantized HF model loads using device_map)"
+            )
+
+        token = _hf_auth_token()
+        if enable_large_models and not token:
+            notes.append(
+                "HF_ENABLE_LARGE_MODELS=1 but HF_TOKEN is not set; gated models may fail or skip"
+            )
+
+        optional_components = {
+            "vllm": "required for vLLM saturation/throughput tests",
+            "ultralytics": "required for YOLO vision workload test",
+            "diffusers": "required for distributed image-generation test",
+            "psutil": "required for CPU-utilization telemetry in workload tests",
+        }
+        for module_name, reason in optional_components.items():
+            if not _module_available(module_name):
+                notes.append(f"Missing optional package: {module_name} ({reason})")
+
+        logger.info("Workload preflight: strict=%s, large_models=%s", strict, enable_large_models)
+        if blockers:
+            logger.warning("Workload preflight blockers (%d):", len(blockers))
+            for item in blockers:
+                logger.warning("  - %s", item)
+        else:
+            logger.info("Workload preflight blockers: none")
+
+        if notes:
+            logger.info("Workload preflight notes (%d):", len(notes))
+            for item in notes:
+                logger.info("  - %s", item)
+
+        if strict and blockers:
+            pytest.fail(
+                "Workload preflight failed in strict mode. "
+                "Resolve blockers or set NODE_WORKLOAD_PREFLIGHT_STRICT=0.\n"
+                + "\n".join(blockers)
+            )
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     @pytest.mark.timeout(0)
@@ -3089,7 +3299,7 @@ class TestWorkloadAcceptanceHuggingFace:
         prefer_4bit_quant: bool,
     ):
         """Repeat latency validation for DeepSeek-R1 quantized, Llama, and Qwen workloads."""
-        enable_large_models = os.environ.get("HF_ENABLE_LARGE_MODELS", "0").lower() in {
+        enable_large_models = os.environ.get("HF_ENABLE_LARGE_MODELS", "1").lower() in {
             "1", "true", "yes", "on"
         }
         if "70b" in workload_name and not enable_large_models:

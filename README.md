@@ -137,6 +137,17 @@ Defaults:
 
 - KPI file: `artifacts/performance_suite_kpis.jsonl`
 - Catalog-only behavior can be enabled via runner option or `PERF_EXECUTE_CASES=0`
+- Command timeout defaults to `PERF_CMD_TIMEOUT_SEC=1800`
+- `vllm serve` commands automatically add `--gpu-memory-utilization` using
+	`PERF_VLLM_GPU_MEMORY_UTILIZATION` (default `0.70`) when not already set
+- Invalid `--dtype float8` cases are rewritten to use
+	`PERF_VLLM_FP8_DTYPE_FALLBACK` (default `bfloat16`) plus `--quantization fp8`
+- `./build/<nccl-test>` commands are automatically resolved from
+	`PERF_NCCL_TESTS_DIR` (default `/root/workloads/nccl-tests/build`)
+- `nvbandwidth` commands are automatically resolved from `PERF_NVBANDWIDTH_BIN`
+	(default `/root/workloads/nvbandwidth` or `NVBANDWIDTH_BIN` when already set)
+- vLLM benchmark module lookup can be overridden with
+	`PERF_VLLM_BENCHMARK_MODULE`
 
 ## Workload Acceptance Controls
 

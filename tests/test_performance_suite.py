@@ -36,6 +36,20 @@ import pytest
 logger = logging.getLogger(__name__)
 
 
+def _configure_performance_env_defaults() -> None:
+    """Set safe default environment values for performance-case execution."""
+    os.environ.setdefault("PERF_CMD_TIMEOUT_SEC", "1800")
+    os.environ.setdefault("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")
+    os.environ.setdefault("PERF_NVBANDWIDTH_BIN", os.environ.get("NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth"))
+    os.environ.setdefault("PERF_NCCL_TESTS_DIR", "/root/workloads/nccl-tests/build")
+    os.environ.setdefault("PERF_VLLM_GPU_MEMORY_UTILIZATION", "0.70")
+    os.environ.setdefault("PERF_VLLM_FP8_DTYPE_FALLBACK", "bfloat16")
+    os.environ.setdefault("PERF_VLLM_BENCHMARK_MODULE", "vllm.benchmarks.benchmark_serving")
+
+
+_configure_performance_env_defaults()
+
+
 @dataclass(frozen=True)
 class PerformanceCase:
     case_id: str
@@ -64,6 +78,7 @@ def _record_kpi(case_id: str, metrics: Dict) -> None:
     }
     with out_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, default=str) + "\n")
+    logger.info("KPI %s: %s", case_id, json.dumps(metrics, default=str, sort_keys=True))
 
 
 def _selected_case_ids() -> Optional[set]:
@@ -81,13 +96,44 @@ def _is_selected(case_id: str) -> bool:
 def _binary_exists(token: str) -> bool:
     # Treat "python3" as "python" on Windows-style shells too.
     candidate = "python" if token == "python3" else token
+    if "/" in candidate or "\\" in candidate:
+        path_candidate = Path(candidate)
+        return path_candidate.exists() and os.access(path_candidate, os.X_OK)
     return shutil.which(candidate) is not None
+
+
+def _resolve_nvbandwidth_binary() -> Optional[str]:
+    """Resolve nvbandwidth from an explicit binary path or a standard source tree root."""
+    configured = Path(os.environ.get("PERF_NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth"))
+    if configured.is_file() and os.access(configured, os.X_OK):
+        return str(configured)
+
+    if configured.is_dir():
+        for candidate in (
+            configured / "nvbandwidth",
+            configured / "build" / "nvbandwidth",
+            configured / "bin" / "nvbandwidth",
+        ):
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                return str(candidate)
+
+    return shutil.which("nvbandwidth")
+
+
+def _resolve_nccl_test_binary(token: str) -> Optional[str]:
+    """Resolve nccl-tests binaries when commands still point at ./build/<binary>."""
+    binary_name = Path(token).name
+    nccl_dir = Path(os.environ.get("PERF_NCCL_TESTS_DIR", "/root/workloads/nccl-tests/build"))
+    candidate = nccl_dir / binary_name
+    if candidate.is_file() and os.access(candidate, os.X_OK):
+        return str(candidate)
+    return None
 
 
 def _required_binaries_from_commands(commands: List[str]) -> List[str]:
     bins: List[str] = []
     for cmd in commands:
-        parts = shlex.split(cmd)
+        parts = shlex.split(_prepare_command(cmd))
         if not parts:
             continue
         first = parts[0]
@@ -105,10 +151,63 @@ def _normalize_command(command: str) -> str:
     return command
 
 
+def _prepare_command(command: str) -> str:
+    """Rewrite commands to use auto-derived paths and safe runtime defaults."""
+    normalized = _normalize_command(command)
+    try:
+        parts = shlex.split(normalized)
+    except ValueError:
+        return normalized
+
+    if not parts:
+        return normalized
+
+    if parts[0] == "nvbandwidth":
+        resolved_nvbandwidth = _resolve_nvbandwidth_binary()
+        if resolved_nvbandwidth:
+            parts[0] = resolved_nvbandwidth
+
+    for idx, token in enumerate(parts):
+        if token.startswith("./build/"):
+            resolved_nccl = _resolve_nccl_test_binary(token)
+            if resolved_nccl:
+                parts[idx] = resolved_nccl
+
+    if len(parts) >= 3 and parts[0] in {"python", "python3"} and parts[1] == "-m":
+        if parts[2] == "vllm.benchmarks.benchmark_serving":
+            parts[2] = os.environ.get(
+                "PERF_VLLM_BENCHMARK_MODULE",
+                "vllm.benchmarks.benchmark_serving",
+            )
+
+    if len(parts) >= 2 and parts[0] == "vllm" and parts[1] == "serve":
+        if "--gpu-memory-utilization" not in parts:
+            parts.extend(
+                [
+                    "--gpu-memory-utilization",
+                    os.environ.get("PERF_VLLM_GPU_MEMORY_UTILIZATION", "0.70"),
+                ]
+            )
+
+        if "--dtype" in parts:
+            dtype_index = parts.index("--dtype")
+            if dtype_index + 1 < len(parts) and parts[dtype_index + 1].lower() == "float8":
+                parts[dtype_index + 1] = os.environ.get(
+                    "PERF_VLLM_FP8_DTYPE_FALLBACK",
+                    "bfloat16",
+                )
+                if "--quantization" not in parts:
+                    parts.extend(["--quantization", "fp8"])
+
+    return shlex.join(parts)
+
+
 def _run_command(command: str, timeout_sec: int) -> Dict:
     start = time.perf_counter()
+    prepared_command = _prepare_command(command)
+    logger.info("Executing performance command: %s", prepared_command)
     result = subprocess.run(
-        _normalize_command(command),
+        prepared_command,
         shell=True,
         text=True,
         capture_output=True,
@@ -117,6 +216,7 @@ def _run_command(command: str, timeout_sec: int) -> Dict:
     elapsed = time.perf_counter() - start
     return {
         "command": command,
+        "executed_command": prepared_command,
         "returncode": result.returncode,
         "elapsed_sec": round(elapsed, 3),
         "stdout_tail": (result.stdout or "")[-4000:],
@@ -560,8 +660,19 @@ def test_performance_case_suite(case: PerformanceCase):
         command_results.append(result)
         if result["returncode"] != 0:
             _record_kpi(case.case_id, {"mode": "execution", "status": "failed", "results": command_results})
+            logger.error(
+                "Performance case %s failed. command=%s executed_command=%s returncode=%s\nstderr_tail:\n%s\nstdout_tail:\n%s",
+                case.case_id,
+                command,
+                result["executed_command"],
+                result["returncode"],
+                result["stderr_tail"],
+                result["stdout_tail"],
+            )
             pytest.fail(
                 f"Command failed for {case.case_id}: {command}\n"
+                f"executed_command:\n{result['executed_command']}\n"
+                f"returncode: {result['returncode']}\n"
                 f"stderr_tail:\n{result['stderr_tail']}\nstdout_tail:\n{result['stdout_tail']}"
             )
 

@@ -117,19 +117,39 @@ def _configure_default_env() -> None:
     # KPI & Test Configuration
     # =========================================================================
     os.environ.setdefault("NODE_VALIDATION_KPI_FILE", "artifacts/node_validation_kpis.jsonl")
+    os.environ.setdefault("NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth")
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
     os.environ.setdefault("PYTEST_TIMEOUT", "600")
+
+    # =========================================================================
+    # Performance Suite Configuration
+    # =========================================================================
+    os.environ.setdefault("PERF_CMD_TIMEOUT_SEC", "1800")
+    os.environ.setdefault("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")
+    os.environ.setdefault("PERF_NVBANDWIDTH_BIN", os.environ.get("NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth"))
+    os.environ.setdefault("PERF_NCCL_TESTS_DIR", "/root/workloads/nccl-tests/build")
+    os.environ.setdefault("PERF_VLLM_GPU_MEMORY_UTILIZATION", "0.70")
+    os.environ.setdefault("PERF_VLLM_FP8_DTYPE_FALLBACK", "bfloat16")
+    os.environ.setdefault("PERF_VLLM_BENCHMARK_MODULE", "vllm.benchmarks.benchmark_serving")
     
     logger.info(
         "Environment variables configured:\n"
         "  HF_ENABLE_LARGE_MODELS=%s\n"
         "  VLLM_KV_CONTEXT_LENGTH=%s\n"
         "  YOLO_DETECT_BATCH=%s\n"
-        "  CUDA_VISIBLE_DEVICES=%s",
+        "  CUDA_VISIBLE_DEVICES=%s\n"
+        "  NVBANDWIDTH_BIN=%s\n"
+        "  PERF_CMD_TIMEOUT_SEC=%s\n"
+        "  PERF_NCCL_TESTS_DIR=%s\n"
+        "  PERF_VLLM_GPU_MEMORY_UTILIZATION=%s",
         os.environ.get("HF_ENABLE_LARGE_MODELS"),
         os.environ.get("VLLM_KV_CONTEXT_LENGTH"),
         os.environ.get("YOLO_DETECT_BATCH"),
         os.environ.get("CUDA_VISIBLE_DEVICES"),
+        os.environ.get("NVBANDWIDTH_BIN"),
+        os.environ.get("PERF_CMD_TIMEOUT_SEC"),
+        os.environ.get("PERF_NCCL_TESTS_DIR"),
+        os.environ.get("PERF_VLLM_GPU_MEMORY_UTILIZATION"),
     )
 
 
@@ -184,36 +204,73 @@ def _normalize_test_key(value: str) -> str:
     return key
 
 
-def _load_latest_kpis() -> Dict[str, Dict[str, Any]]:
-    """Load latest KPI payload per test name from JSONL, if available."""
-    out: Dict[str, Dict[str, Any]] = {}
-    kpi_path = _kpi_output_path()
-    if not kpi_path.exists():
-        return out
+def _parameterized_test_key(value: str) -> Optional[str]:
+    raw = value.strip()
+    if "[" not in raw or "]" not in raw:
+        return None
+    return raw.split("[", 1)[1].rsplit("]", 1)[0].strip() or None
 
-    try:
-        with kpi_path.open("r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    payload = json.loads(line)
-                except Exception:
-                    continue
-                test_name = str(payload.get("test", "")).strip()
-                if not test_name:
-                    continue
-                metrics = payload.get("metrics", {})
-                if not isinstance(metrics, dict):
-                    metrics = {"value": metrics}
-                out[_normalize_test_key(test_name)] = {
-                    "timestamp": payload.get("timestamp", ""),
-                    "metrics": metrics,
-                }
-    except Exception as exc:
-        logger.warning("Unable to parse KPI JSONL %s: %s", kpi_path, exc)
+
+def _kpi_paths() -> List[Path]:
+    paths = [
+        Path(os.environ.get("NODE_VALIDATION_KPI_FILE", "artifacts/node_validation_kpis.jsonl")),
+        Path(os.environ.get("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")),
+    ]
+    deduped: List[Path] = []
+    seen = set()
+    for path in paths:
+        key = str(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(path)
+    return deduped
+
+
+def _load_latest_kpis() -> Dict[str, Dict[str, Any]]:
+    """Load latest KPI payload per test name or performance case ID from JSONL."""
+    out: Dict[str, Dict[str, Any]] = {}
+    for kpi_path in _kpi_paths():
+        if not kpi_path.exists():
+            continue
+
+        try:
+            with kpi_path.open("r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        payload = json.loads(line)
+                    except Exception:
+                        continue
+                    test_name = str(payload.get("test") or payload.get("case_id") or "").strip()
+                    if not test_name:
+                        continue
+                    metrics = payload.get("metrics", {})
+                    if not isinstance(metrics, dict):
+                        metrics = {"value": metrics}
+                    record = {
+                        "timestamp": payload.get("timestamp", ""),
+                        "metrics": metrics,
+                    }
+                    out[test_name] = record
+                    out[_normalize_test_key(test_name)] = record
+        except Exception as exc:
+            logger.warning("Unable to parse KPI JSONL %s: %s", kpi_path, exc)
     return out
+
+
+def _lookup_kpi_metrics(nodeid: str, latest_kpis: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+    candidates = [nodeid, _normalize_test_key(nodeid)]
+    param_key = _parameterized_test_key(nodeid)
+    if param_key:
+        candidates.insert(1, param_key)
+    for key in candidates:
+        metrics = latest_kpis.get(key, {}).get("metrics", {})
+        if metrics:
+            return metrics
+    return {}
 
 
 def _extract_reason(result: str) -> str:
@@ -375,7 +432,7 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
         "",
         f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"Pytest command line: {' '.join(config.invocation_params.args)}",
-        f"KPI source file: {_kpi_output_path()}",
+        f"KPI source files: {', '.join(str(path) for path in _kpi_paths())}",
         "",
         "<style>",
         ".report-scroll { overflow-x: auto; resize: horizontal; border: 1px solid #d0d7de; border-radius: 6px; padding: 6px; }",
@@ -488,8 +545,7 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
 
     for nodeid in sorted(rows):
         row = rows[nodeid]
-        test_key = _normalize_test_key(nodeid)
-        kpi_metrics = latest_kpis.get(test_key, {}).get("metrics", {})
+        kpi_metrics = _lookup_kpi_metrics(nodeid, latest_kpis)
         reason = _extract_reason(row.get("result", ""))
         lines.append(
             "<tr>"

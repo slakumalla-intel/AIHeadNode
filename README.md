@@ -159,40 +159,6 @@ The workload runner exposes common knobs:
 ./run_workload_acceptance.sh --skip-large-models
 ```
 
-### Full Workload Run (All Workload Tests)
-
-Use this when you want the complete workload acceptance flow, including
-large-model tests and remote model download fallback.
-
-```bash
-# 1) Activate env
-source .venv/bin/activate
-
-# 2) Enable full workload path
-export HF_ENABLE_LARGE_MODELS=1
-export HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1
-export NODE_WORKLOAD_AUTO_INSTALL=1
-export NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC=1800
-
-# Optional but recommended for gated Hugging Face models
-# export HF_TOKEN=<your_token>
-
-# 3) Run full workload acceptance script
-./run_workload_acceptance.sh
-```
-
-Alternative direct pytest command (same workload marker):
-
-```bash
-HF_ENABLE_LARGE_MODELS=1 \
-HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 \
-NODE_WORKLOAD_AUTO_INSTALL=1 \
-pytest -m workload_acceptance -vv tests/test_node_validation.py
-```
-
-Tip: full workload runs can take a long time (especially 70B/72B model paths).
-If you only want a fast validation pass, add `--skip-large-models`.
-
 Reference file for env configuration:
 
 - `.env.example`

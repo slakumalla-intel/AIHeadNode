@@ -81,6 +81,43 @@ def _record_kpi(case_id: str, metrics: Dict) -> None:
     logger.info("KPI %s: %s", case_id, json.dumps(metrics, default=str, sort_keys=True))
 
 
+def _env_flag(name: str, default: str = "0") -> bool:
+    return os.environ.get(name, default).lower() in {"1", "true", "yes", "on"}
+
+
+def _auto_install_python_packages(package_specs: List[str]) -> Dict[str, str]:
+    results: Dict[str, str] = {}
+    if not package_specs:
+        return results
+
+    timeout_sec = int(os.environ.get("PERF_AUTO_INSTALL_TIMEOUT_SEC", "1800"))
+    for package_spec in package_specs:
+        cmd = [
+            os.environ.get("PYTHON", "python3"),
+            "-m",
+            "pip",
+            "install",
+            package_spec,
+        ]
+        try:
+            res = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout_sec,
+            )
+            if res.returncode == 0:
+                results[package_spec] = "installed"
+            else:
+                tail = (res.stderr or res.stdout or "").strip().splitlines()
+                results[package_spec] = (
+                    f"failed: {tail[-1]}" if tail else f"failed: exit {res.returncode}"
+                )
+        except Exception as exc:
+            results[package_spec] = f"failed: {exc}"
+    return results
+
+
 def _selected_case_ids() -> Optional[set]:
     raw = os.environ.get("PERF_CASE_IDS", "").strip()
     if not raw:
@@ -185,6 +222,51 @@ def _prepare_command(command: str) -> str:
         if resolved_nvbandwidth:
             parts[0] = resolved_nvbandwidth
 
+    if Path(parts[0]).name == "nvbandwidth":
+        normalized_parts: List[str] = [parts[0]]
+        idx = 1
+        while idx < len(parts):
+            token = parts[idx]
+
+            # Legacy form: -n <iters> -> -i <iters>
+            if token == "-n" and idx + 1 < len(parts):
+                normalized_parts.extend(["-i", parts[idx + 1]])
+                idx += 2
+                continue
+
+            # Legacy form: -s <size> -> -b <MiB>; keep bare -s as skipVerification
+            if token == "-s":
+                if idx + 1 < len(parts) and not parts[idx + 1].startswith("-"):
+                    size_token = parts[idx + 1].strip().upper()
+                    m = re.fullmatch(r"(\d+)([KMG])", size_token)
+                    if m:
+                        size_value = int(m.group(1))
+                        unit = m.group(2)
+                        if unit == "G":
+                            size_mib = size_value * 1024
+                        elif unit == "M":
+                            size_mib = size_value
+                        else:
+                            size_mib = max(1, size_value // 1024)
+                        normalized_parts.extend(["-b", str(size_mib)])
+                        idx += 2
+                        continue
+                normalized_parts.append("-s")
+                idx += 1
+                continue
+
+            # Legacy form: -m pinned/pageable -> drop; v0.8 uses -m only as --useMean
+            if token == "-m" and idx + 1 < len(parts):
+                maybe_mode = parts[idx + 1].lower()
+                if maybe_mode in {"pinned", "pageable", "ce", "sm"}:
+                    idx += 2
+                    continue
+
+            normalized_parts.append(token)
+            idx += 1
+
+        parts = normalized_parts
+
     for idx, token in enumerate(parts):
         if token.startswith("./build/"):
             resolved_nccl = _resolve_nccl_test_binary(token)
@@ -251,7 +333,17 @@ def _extract_nccl_busbw(raw: str) -> List[float]:
         tokens = stripped.split()
         if len(tokens) >= 8 and tokens[0].isdigit():
             try:
-                busbw.append(float(tokens[7]))
+                # nccl-tests lines may include out-of-place and in-place columns.
+                # Pick the best available bus bandwidth value among known positions.
+                candidates: List[float] = []
+                for pos in (7, 10):
+                    if pos < len(tokens):
+                        try:
+                            candidates.append(float(tokens[pos]))
+                        except ValueError:
+                            pass
+                if candidates:
+                    busbw.append(max(candidates))
             except ValueError:
                 pass
     return busbw
@@ -261,7 +353,18 @@ def _benchmark_tokenizer_micro(case_id: str) -> Dict:
     try:
         from transformers import AutoTokenizer
     except ImportError:
-        pytest.skip("transformers not installed")
+        auto_install_default = "1" if sys.platform.startswith("linux") else "0"
+        auto_install = _env_flag("PERF_AUTO_INSTALL", auto_install_default)
+        if auto_install:
+            logger.info("transformers not installed; attempting auto-install for %s", case_id)
+            install_results = _auto_install_python_packages(["transformers"])
+            logger.info("PERF auto-install results: %s", install_results)
+            try:
+                from transformers import AutoTokenizer
+            except ImportError:
+                pytest.skip("transformers not installed")
+        else:
+            pytest.skip("transformers not installed")
 
     model_id = os.environ.get("PERF_TOKENIZER_MODEL", "meta-llama/Llama-3.1-8B")
     lens = [int(x) for x in os.environ.get("PERF_TOKENIZER_LENS", "128,512,2048,8192").split(",")]

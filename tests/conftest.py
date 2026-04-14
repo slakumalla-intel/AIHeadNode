@@ -193,6 +193,36 @@ def _report_section_for_item(item: pytest.Item) -> str:
     return "Other"
 
 
+def _report_domain_for_item(item: pytest.Item) -> str:
+    marker_names = {marker.name for marker in item.iter_markers()}
+    file_name = Path(str(item.fspath)).name.lower()
+    nodeid_lower = item.nodeid.lower()
+
+    if "mlperf" in marker_names or "mlperf" in nodeid_lower:
+        return "MLPerf"
+    if "workload_acceptance" in marker_names:
+        return "Workload Acceptance"
+    if "bottleneck" in marker_names:
+        return "Bottleneck"
+    if file_name == "test_performance_suite.py":
+        return "Performance"
+    if "cpu" in marker_names or file_name == "test_cpu_validation.py":
+        return "CPU"
+    if "gpu" in marker_names or file_name == "test_gpu_validation.py":
+        return "GPU"
+    if "memory" in marker_names or file_name == "test_memory_validation.py":
+        return "Memory"
+    if (
+        "pcie" in marker_names
+        or "nvlink" in marker_names
+        or file_name == "test_interconnect_validation.py"
+    ):
+        return "Interconnect"
+    if "node_validation" in marker_names or file_name == "test_node_validation.py":
+        return "Node Validation"
+    return "Other"
+
+
 def _status_result_analysis(report: pytest.TestReport) -> Tuple[str, str, str]:
     if report.outcome == "passed":
         return "PASS", f"PASS ({report.duration:.3f}s)", "Executed successfully; acceptance criteria met."
@@ -463,6 +493,39 @@ def _write_final_report(config: pytest.Config) -> None:
             )
         )
 
+    domain_order = [
+        "CPU",
+        "GPU",
+        "Interconnect",
+        "Memory",
+        "Node Validation",
+        "Workload Acceptance",
+        "Bottleneck",
+        "Performance",
+        "MLPerf",
+        "Other",
+    ]
+    domain_rows: Dict[str, List[Tuple[str, Dict[str, str]]]] = {domain: [] for domain in domain_order}
+    for nodeid, row in rows.items():
+        domain = row.get("domain", "Other")
+        if domain not in domain_rows:
+            domain_rows[domain] = []
+        domain_rows[domain].append((nodeid, row))
+
+    domain_summaries: List[Tuple[str, int, int, int, int]] = []
+    for domain in domain_order:
+        entries = domain_rows.get(domain, [])
+        domain_statuses = [row.get("status", "") for _, row in entries]
+        domain_summaries.append(
+            (
+                domain,
+                len(entries),
+                domain_statuses.count("PASS"),
+                domain_statuses.count("FAIL"),
+                domain_statuses.count("SKIP"),
+            )
+        )
+
     highlights = [
         f"- {_color_badge('INFO', '#1f6feb')}: Total testcases captured: {total}",
         f"- {_color_badge('INFO', '#1f6feb')}: Tests executed (pass + fail): {executed}",
@@ -514,6 +577,17 @@ def _write_final_report(config: pytest.Config) -> None:
     ]
 
     lines.extend([
+        "## Domain Summary",
+        "",
+        "| Domain | Testcases | Passed | Failed | Skipped |",
+        "|---|---:|---:|---:|---:|",
+    ])
+    for domain, domain_total, domain_passed, domain_failed, domain_skipped in domain_summaries:
+        lines.append(
+            f"| {_md_escape(domain)} | {domain_total} | {domain_passed} | {domain_failed} | {domain_skipped} |"
+        )
+
+    lines.extend([
         "## Brief Issues",
         "",
     ])
@@ -521,12 +595,12 @@ def _write_final_report(config: pytest.Config) -> None:
     issue_rows = failed_rows + skipped_rows
     if issue_rows:
         lines.extend([
-            "| Section | Test | Status | Issue |",
-            "|---|---|---|---|",
+            "| Domain | Section | Test | Status | Issue |",
+            "|---|---|---|---|---|",
         ])
         for nodeid, row in issue_rows[:25]:
             lines.append(
-                f"| {_md_escape(row.get('section', 'Other'))} | {_md_escape(nodeid)} | {_render_status(row.get('status', ''))} | {_md_escape(_extract_reason(row.get('result', '')))} |"
+                f"| {_md_escape(row.get('domain', 'Other'))} | {_md_escape(row.get('section', 'Other'))} | {_md_escape(nodeid)} | {_render_status(row.get('status', ''))} | {_md_escape(_extract_reason(row.get('result', '')))} |"
             )
     else:
         lines.append(f"- {_color_badge('PASS', '#1b8a3b')}: No failures or skips detected.")
@@ -683,6 +757,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
     if report.when == "call" or (report.when == "setup" and report.outcome in {"failed", "skipped"}):
         status, result, analysis = _status_result_analysis(report)
         rows[nodeid] = {
+            "domain": _report_domain_for_item(item),
             "section": _report_section_for_item(item),
             "purpose": _purpose_from_item(item),
             "result": result,

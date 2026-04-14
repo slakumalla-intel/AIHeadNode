@@ -1,110 +1,105 @@
-# Quick Start: Node Validation Tests
+# Quick Start: Node Validation (Linux)
 
-## 30-Second TL;DR
+## 1-Minute Start
 
-```powershell
+```bash
 cd AIHeadNode
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 pytest -m node_validation -vv
 ```
 
-Check the generated `TESTCASE_EXECUTION_FINAL_REPORT.md` for results.
+Check:
 
----
+- `TESTCASE_EXECUTION_FINAL_REPORT.md`
+- `artifacts/node_validation_kpis.jsonl`
 
-## What Gets Tested?
+## What This Covers
 
-✓ GPU enumeration & PCIe topology  
-✓ PCIe H2D/D2H bandwidth (all GPUs)  
-✓ Pinned vs pageable memory performance  
-✓ GPU-to-GPU P2P bandwidth  
-✓ Kernel launch latency  
-✓ Sync overhead  
-✓ Power stability  
-✓ NCCL initialization  
-✓ Basic inference/training workloads
+- GPU enumeration and PCIe topology checks
+- PCIe host-device bandwidth validation
+- pinned vs pageable transfer validation
+- GPU peer-to-peer bandwidth checks
+- launch and synchronization overhead checks
+- power and thermal coupling checks
+- NCCL validation checks
+- workload acceptance tests (model- and dependency-gated)
 
----
+## Recommended Execution Paths
 
-## Report Location
+Run full staged flow:
 
-**Main Report**: `TESTCASE_EXECUTION_FINAL_REPORT.md`  
-**Auto-updated**: Every time you run pytest for this repository
-
----
-
-## Key Test Markers
-
-Run tests by category:
-
-```powershell
-pytest -m gpu_enumeration -vv          # GPU discovery
-pytest -m pcie_validation -vv          # PCIe bandwidth
-pytest -m p2p_validation -vv           # GPU P2P
-pytest -m nccl_validation -vv          # NCCL checks
-./run_workload_acceptance.sh           # Linux workload acceptance (large models enabled by default)
-./run_workload_acceptance.sh --skip-large-models   # Disable 70B/72B workloads
+```bash
+./run_all_validation_tests.sh
 ```
 
-Linux workload defaults:
+Run workload acceptance only:
+
+```bash
+./run_workload_acceptance.sh
+```
+
+Run only node validation tests:
+
+```bash
+pytest -m node_validation -vv tests/test_node_validation.py
+```
+
+## Key Markers
+
+```bash
+pytest -m gpu_enumeration -vv tests/test_node_validation.py
+pytest -m pcie_validation -vv tests/test_node_validation.py
+pytest -m p2p_validation -vv tests/test_node_validation.py
+pytest -m nccl_validation -vv tests/test_node_validation.py
+pytest -m workload_acceptance -vv tests/test_node_validation.py
+```
+
+## Save Console Logs
+
+Save pytest logger output to file:
+
+```bash
+pytest -m workload_acceptance -vv --log-file=node_validation.log --log-file-level=INFO
+```
+
+Save full console output:
+
+```bash
+pytest -m workload_acceptance -vv 2>&1 | tee node_validation_full.log
+```
+
+## Important Defaults
+
+Large-model workload defaults:
+
 - `HF_ENABLE_LARGE_MODELS=1`
 - `HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1`
-- `NODE_WORKLOAD_AUTO_INSTALL=1` (with `NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC=1800`)
+- `NODE_WORKLOAD_AUTO_INSTALL=1` on Linux
 
----
+Useful overrides:
 
-## Expected Pass Criteria
-
-| Test | Min Threshold | Typical Value |
-|---|---|---|
-| PCIe H2D BW | 41 GB/s (65% of 63) | 55–62 GB/s |
-| PCIe D2H BW | 41 GB/s (65% of 63) | 55–62 GB/s |
-| NVLink P2P BW | 240 GB/s | 350–400 GB/s |
-| Kernel Launch Latency (p50) | < 100 µs | 1–10 µs |
-| Power Variance | < 50W | < 10W |
-
----
-
-## Files Modified
-
-1. **tests/test_node_validation.py** — NEW test suite
-2. **tests/conftest.py** — Updated for dual-report generation
-3. **pytest.ini** — Added node_validation markers
-4. **TESTCASE_EXECUTION_FINAL_REPORT.md** — consolidated execution report
-5. **NODE_VALIDATION_IMPLEMENTATION.md** — This guide
-
----
-
-## Troubleshooting
-
-| Problem | Fix |
-|---|---|
-| "nvidia-smi not found" | Install NVIDIA drivers |
-| "torch not available" | `pip install torch` |
-| P2P tests skip | Need 2+ GPUs on same PCIe switch |
-| Power tests fail | Reduce background load |
-
----
-
-## Separate from Bottleneck Tests
-
-- Node validation: `pytest -m node_validation`
-- Bottleneck analysis: `pytest -m bottleneck`
-- Both: `pytest` (runs everything)
-
-Each generates its own report file.
-
----
-
-## Next: Run Your First Test
-
-```powershell
-cd c:\Users\slakumal\OneDrive\ -\ Intel\ Corporation\Documents\GitHub\AIHeadNode
-pytest tests/test_node_validation.py::TestGPUEnumerationAndTopology -vv
+```bash
+export HF_ENABLE_LARGE_MODELS=0
+export HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=0
+export HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC=300
+export NODE_WORKLOAD_AUTO_INSTALL=0
+export NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC=1800
 ```
 
-Then:
-```powershell
-pytest -m node_validation -vv
-```
+## Quick Troubleshooting
 
-View `TESTCASE_EXECUTION_FINAL_REPORT.md` for results.
+- If `nvidia-smi` is missing: install NVIDIA driver/toolkit on the node.
+- If `torch` is missing: install PyTorch in the active virtual environment.
+- If 70B/72B workloads appear stuck after tokenizer load: model shard loading is in progress; monitor `nvidia-smi` memory usage and process state.
+- If you want shorter enterprise latency tests: lower `HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC`.
+
+## Next Steps
+
+After node validation is stable, run performance and MLPerf flows:
+
+```bash
+pytest -vv tests/test_performance_suite.py -k test_performance_case_suite
+pytest -vv tests/test_mlperf_suite.py -k test_mlperf_case_suite
+```

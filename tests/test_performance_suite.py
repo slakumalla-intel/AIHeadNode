@@ -96,7 +96,7 @@ def _auto_install_python_packages(package_specs: List[str]) -> Dict[str, str]:
     timeout_sec = int(os.environ.get("PERF_AUTO_INSTALL_TIMEOUT_SEC", "1800"))
     for package_spec in package_specs:
         cmd = [
-            os.environ.get("PYTHON", "python3"),
+            sys.executable,
             "-m",
             "pip",
             "install",
@@ -118,6 +118,14 @@ def _auto_install_python_packages(package_specs: List[str]) -> Dict[str, str]:
                 )
         except Exception as exc:
             results[package_spec] = f"failed: {exc}"
+
+    # Refresh import caches so immediate post-install imports can resolve.
+    try:
+        import importlib
+
+        importlib.invalidate_caches()
+    except Exception:
+        pass
     return results
 
 

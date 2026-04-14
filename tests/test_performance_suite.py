@@ -85,7 +85,25 @@ def _selected_case_ids() -> Optional[set]:
     raw = os.environ.get("PERF_CASE_IDS", "").strip()
     if not raw:
         return None
-    return {x.strip() for x in raw.split(",") if x.strip()}
+
+    def _normalize_selector(token: str) -> str:
+        cleaned = token.strip().strip('"').strip("'")
+        if not cleaned:
+            return ""
+
+        full_match = re.fullmatch(r"AI_HOSTCPU_PERF_TEST_ID_(\d{1,3})", cleaned, flags=re.IGNORECASE)
+        if full_match:
+            return f"AI_HOSTCPU_PERF_TEST_ID_{int(full_match.group(1)):03d}"
+
+        short_match = re.fullmatch(r"\d{1,3}", cleaned)
+        if short_match:
+            return f"AI_HOSTCPU_PERF_TEST_ID_{int(cleaned):03d}"
+
+        return cleaned
+
+    normalized = {_normalize_selector(x) for x in raw.split(",") if x.strip()}
+    normalized.discard("")
+    return normalized
 
 
 def _is_selected(case_id: str) -> bool:

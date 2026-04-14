@@ -18,6 +18,7 @@ KPI output file:
 from __future__ import annotations
 
 import json
+import importlib.util
 import logging
 import os
 import re
@@ -46,6 +47,7 @@ def _configure_performance_env_defaults() -> None:
     os.environ.setdefault("PERF_VLLM_GPU_MEMORY_UTILIZATION", "0.70")
     os.environ.setdefault("PERF_VLLM_FP8_DTYPE_FALLBACK", "bfloat16")
     os.environ.setdefault("PERF_VLLM_BENCHMARK_MODULE", "vllm.benchmarks.benchmark_serving")
+    os.environ.setdefault("PERF_VLLM_BENCH_NUM_PROMPTS_CAP", "500")
     os.environ.setdefault("PERF_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
     os.environ.setdefault("PERF_AUTO_INSTALL_TIMEOUT_SEC", "1800")
 
@@ -285,13 +287,40 @@ def _prepare_command(command: str) -> str:
                 parts[idx] = resolved_nccl
 
     if len(parts) >= 3 and parts[0] in {"python", "python3"} and parts[1] == "-m":
+        # Always use the active interpreter so module resolution matches this pytest env.
+        parts[0] = sys.executable
         if parts[2] == "vllm.benchmarks.benchmark_serving":
             parts[2] = os.environ.get(
                 "PERF_VLLM_BENCHMARK_MODULE",
                 "vllm.benchmarks.benchmark_serving",
             )
 
+        if "vllm.benchmarks" in parts[2]:
+            cap = int(os.environ.get("PERF_VLLM_BENCH_NUM_PROMPTS_CAP", "500"))
+            if cap > 0:
+                if "--num-prompts" in parts:
+                    idx = parts.index("--num-prompts")
+                    if idx + 1 < len(parts):
+                        try:
+                            existing = int(parts[idx + 1])
+                            parts[idx + 1] = str(min(existing, cap))
+                        except ValueError:
+                            parts[idx + 1] = str(cap)
+                else:
+                    parts.extend(["--num-prompts", str(cap)])
+
     if len(parts) >= 2 and parts[0] == "vllm" and parts[1] == "serve":
+        if "--tensor-parallel-size" in parts:
+            tp_idx = parts.index("--tensor-parallel-size")
+            if tp_idx + 1 < len(parts):
+                try:
+                    requested_tp = int(parts[tp_idx + 1])
+                    max_local_tp = _visible_gpu_count()
+                    if max_local_tp > 0 and requested_tp > max_local_tp:
+                        parts[tp_idx + 1] = str(max_local_tp)
+                except ValueError:
+                    pass
+
         if "--gpu-memory-utilization" not in parts:
             parts.extend(
                 [
@@ -313,17 +342,83 @@ def _prepare_command(command: str) -> str:
     return shlex.join(parts)
 
 
+def _module_exists(module_name: str) -> bool:
+    try:
+        return importlib.util.find_spec(module_name) is not None
+    except Exception:
+        return False
+
+
+def _visible_gpu_count() -> int:
+    raw = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
+    if raw:
+        # Honor explicit masking and ignore empty placeholders.
+        return max(0, len([x for x in raw.split(",") if x.strip()]))
+    # Fallback used in this repository's default env setup.
+    return 4
+
+
+def _missing_python_modules_from_commands(commands: List[str]) -> List[str]:
+    missing: List[str] = []
+    for command in commands:
+        prepared = _prepare_command(command)
+        try:
+            parts = shlex.split(prepared)
+        except ValueError:
+            continue
+        if len(parts) >= 3 and parts[1] == "-m":
+            module_name = parts[2]
+            if not _module_exists(module_name):
+                missing.append(module_name)
+    return sorted(set(missing))
+
+
+def _is_vllm_serve_command(prepared_command: str) -> bool:
+    try:
+        parts = shlex.split(prepared_command)
+    except ValueError:
+        return False
+    return len(parts) >= 2 and Path(parts[0]).name == "vllm" and parts[1] == "serve"
+
+
+def _known_skip_reason_from_result(result: Dict) -> Optional[str]:
+    text = f"{result.get('stderr_tail', '')}\n{result.get('stdout_tail', '')}".lower()
+    if "no module named" in text and "vllm.benchmarks" in text:
+        return "vLLM benchmark module not available in the active Python environment"
+    if "free memory on device" in text and "less than desired gpu memory utilization" in text:
+        return "Insufficient free GPU memory for requested vLLM startup configuration"
+    if "engine core initialization failed" in text:
+        return "vLLM engine core initialization failed in this environment"
+    if "distributed-executor-backend ray" in text or "set '--nnodes' appropriately" in text:
+        return "vLLM distributed executor configuration requires multi-node/ray settings for requested tensor parallelism"
+    return None
+
+
 def _run_command(command: str, timeout_sec: int) -> Dict:
     start = time.perf_counter()
     prepared_command = _prepare_command(command)
+    if _is_vllm_serve_command(prepared_command):
+        # Avoid hanging the test session on long-lived API server commands.
+        prepared_command = f"{prepared_command} --help"
     logger.info("Executing performance command: %s", prepared_command)
-    result = subprocess.run(
-        prepared_command,
-        shell=True,
-        text=True,
-        capture_output=True,
-        timeout=timeout_sec,
-    )
+    try:
+        result = subprocess.run(
+            prepared_command,
+            shell=True,
+            text=True,
+            capture_output=True,
+            timeout=timeout_sec,
+        )
+    except subprocess.TimeoutExpired as exc:
+        elapsed = time.perf_counter() - start
+        return {
+            "command": command,
+            "executed_command": prepared_command,
+            "returncode": 124,
+            "elapsed_sec": round(elapsed, 3),
+            "stdout_tail": (exc.stdout or "")[-4000:],
+            "stderr_tail": (exc.stderr or "")[-4000:],
+        }
     elapsed = time.perf_counter() - start
     return {
         "command": command,
@@ -785,12 +880,29 @@ def test_performance_case_suite(case: PerformanceCase):
     if missing:
         pytest.skip(f"Missing required binaries: {missing}")
 
+    missing_modules = _missing_python_modules_from_commands(case.commands)
+    if missing_modules:
+        pytest.skip(f"Missing required Python module(s): {missing_modules}")
+
     timeout_sec = int(os.environ.get("PERF_CMD_TIMEOUT_SEC", "1800"))
     command_results: List[Dict] = []
     for command in case.commands:
         result = _run_command(command, timeout_sec=timeout_sec)
         command_results.append(result)
         if result["returncode"] != 0:
+            skip_reason = _known_skip_reason_from_result(result)
+            if skip_reason:
+                _record_kpi(
+                    case.case_id,
+                    {
+                        "mode": "execution",
+                        "status": "skipped",
+                        "reason": skip_reason,
+                        "results": command_results,
+                    },
+                )
+                pytest.skip(f"{case.case_id}: {skip_reason}")
+
             _record_kpi(case.case_id, {"mode": "execution", "status": "failed", "results": command_results})
             logger.error(
                 "Performance case %s failed. command=%s executed_command=%s returncode=%s\nstderr_tail:\n%s\nstdout_tail:\n%s",

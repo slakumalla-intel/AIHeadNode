@@ -2119,12 +2119,34 @@ def _temporary_logger_levels(levels: Dict[str, int]):
             logging.getLogger(logger_name).setLevel(level)
 
 
+def _ensure_transformers_compat_shims() -> None:
+    """Backfill symbols expected by some remote model code on mixed transformers versions."""
+    try:
+        import transformers  # type: ignore
+    except Exception:
+        return
+
+    if hasattr(transformers, "BeamSearchScorer"):
+        return
+
+    try:
+        from transformers.generation.beam_search import BeamSearchScorer  # type: ignore
+
+        setattr(transformers, "BeamSearchScorer", BeamSearchScorer)
+        logger.info("Applied transformers compatibility shim: BeamSearchScorer")
+    except Exception:
+        # Leave behavior unchanged if this symbol path is unavailable.
+        pass
+
+
 def _hf_from_pretrained(cls, model_id: str, **kwargs):
     """Load HF assets with auth fallback for mixed transformers versions.
 
     Uses token= for modern transformers, and falls back to use_auth_token=
     when running with older versions.
     """
+    _ensure_transformers_compat_shims()
+
     token = _hf_auth_token()
     call_kwargs = dict(kwargs)
     trust_remote_code = os.environ.get("HF_TRUST_REMOTE_CODE", "1").lower() in {

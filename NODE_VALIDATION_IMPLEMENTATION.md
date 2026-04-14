@@ -2,7 +2,7 @@
 
 ## Overview
 
-A comprehensive node validation and bring-up test suite has been added to validate hardware configuration, interconnects, and system readiness. These tests are separate from the existing bottleneck analysis suite and generate their own dedicated report.
+A comprehensive node validation and bring-up test suite has been added to validate hardware configuration, interconnects, and system readiness. These tests feed a single consolidated execution report shared with bottleneck, performance, and workload sections.
 
 ## Files Created and Modified
 
@@ -36,11 +36,10 @@ TestWorkloadAcceptanceBasic
 - Configurable thresholds and measurement parameters
 
 ### 2. **tests/conftest.py** (MODIFIED)
-Updated pytest configuration to support dual-report generation:
-- Added `_NODE_VALIDATION_REPORT_PATH` for node validation tests
-- Added `_node_validation_report_rows` dictionary to track node validation tests separately
-- Updated `pytest_runtest_makereport()` to detect `node_validation` marker and route tests to correct report
-- Updated `pytest_sessionfinish()` to write both reports
+Updated pytest configuration to support single-report generation:
+- Added a unified report row store for all pytest results
+- Updated `pytest_runtest_makereport()` to classify tests into report sections
+- Updated `pytest_sessionfinish()` to write one consolidated markdown report
 - Added new marker definitions in `pytest_configure()`
 
 ### 3. **pytest.ini** (MODIFIED)
@@ -55,10 +54,13 @@ Added new test markers:
 - `nccl_validation`: NCCL initialization
 - `workload_acceptance`: Inference/training acceptance
 
-### 4. **NODE_VALIDATION_REPORT.md** (NEW)
-Comprehensive template report with:
+### 4. **TESTCASE_EXECUTION_FINAL_REPORT.md**
+Consolidated markdown report with:
 - Auto-populated highlights (pass/fail/skip counts)
-- Execution status table
+- top summary counts for executed, passed, failed, and skipped tests
+- brief issues table near the top
+- grouped sections for Workload Acceptance, Node Validation, Bottleneck, Performance, and MLPerf
+- color-coded execution status tables
 - Test category descriptions and expected outputs
 - Common failure modes and remediation
 - Execution command examples
@@ -151,31 +153,25 @@ pytest -m node_validation --timeout=300 -vv
 
 ### Run BOTH suites (node validation + bottleneck analysis):
 ```powershell
-# This will generate both reports: NODE_VALIDATION_REPORT.md and TESTCASE_EXECUTION_FINAL_REPORT.md
+# This will generate the single consolidated report: TESTCASE_EXECUTION_FINAL_REPORT.md
 pytest tests/test_node_validation.py tests/test_bottleneck_analysis.py -vv
 ```
 
-## Report Files
-
-### NODE_VALIDATION_REPORT.md
-- **Location**: `AIHeadNode/NODE_VALIDATION_REPORT.md`
-- **Updated**: Automatically after each `pytest -m node_validation` run
-- **Content**: GPU/PCIe/bandwidth/power/NCCL tests only
-- **Columns**: Test | Purpose | Result | Status | Analysis
+## Report File
 
 ### TESTCASE_EXECUTION_FINAL_REPORT.md
 - **Location**: `AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md`
-- **Updated**: Automatically after each `pytest` run (excluding node_validation tests)
-- **Content**: Bottleneck analysis, roofline, multi-GPU scaling, etc.
-- **Columns**: Test | Purpose | Result | Status | Analysis
+- **Updated**: Automatically after each pytest run
+- **Content**: overall summary plus grouped sections for Workload Acceptance, Node Validation, Bottleneck, Performance, and MLPerf
+- **Columns**: Test | Purpose | Status | Result | Analysis | KPI | Reason / Success Case / Issue
 
 ## How It Works
 
 ### Test Routing Logic
 1. When pytest runs test_node_validation.py, each test has `@pytest.mark.node_validation`
-2. The `pytest_runtest_makereport()` hook detects this marker
-3. Test results go to `config._node_validation_report_rows` (instead of `config._exec_report_rows`)
-4. On session finish, both report dictionaries are written to separate files
+2. The `pytest_runtest_makereport()` hook classifies each test into a report section
+3. Test results go to a unified report dictionary for the full session
+4. On session finish, one consolidated report is written to `TESTCASE_EXECUTION_FINAL_REPORT.md`
 
 ### Graceful Degradation
 Tests use optional imports and skip/warn appropriately:
@@ -249,8 +245,8 @@ For H100 SXM5 systems:
 - name: Upload Report
   uses: actions/upload-artifact@v3
   with:
-    name: node-validation-report
-    path: NODE_VALIDATION_REPORT.md
+    name: ai-headnode-test-report
+    path: TESTCASE_EXECUTION_FINAL_REPORT.md
 ```
 
 ### Jenkins Example:
@@ -260,8 +256,8 @@ stage('Node Validation') {
     sh 'pytest -m node_validation -vv --json-report --json-report-file=node-validation.json'
     publishHTML([
       reportDir: 'htmlcov',
-      reportFiles: 'NODE_VALIDATION_REPORT.md',
-      reportName: 'Node Validation Report'
+      reportFiles: 'TESTCASE_EXECUTION_FINAL_REPORT.md',
+      reportName: 'AI Head Node Overall Test Report'
     ])
   }
 }
@@ -274,7 +270,7 @@ stage('Node Validation') {
    pytest -m node_validation -vv
    ```
 
-2. **Review NODE_VALIDATION_REPORT.md** for any failures
+2. **Review TESTCASE_EXECUTION_FINAL_REPORT.md** for any failures
 
 3. **Run specific failed categories** for deeper investigation:
    ```powershell

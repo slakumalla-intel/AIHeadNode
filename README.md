@@ -208,10 +208,17 @@ Notes:
 
 Generated outputs include:
 
-- `NODE_VALIDATION_REPORT.md`
 - `TESTCASE_EXECUTION_FINAL_REPORT.md`
 - `artifacts/node_validation_kpis.jsonl`
 - `artifacts/performance_suite_kpis.jsonl`
+
+`TESTCASE_EXECUTION_FINAL_REPORT.md` is the single consolidated markdown report for the full test run.
+It includes:
+
+- overall summary counts for executed, passed, failed, and skipped tests
+- a brief issues table near the top
+- grouped sections for Workload Acceptance, Node Validation, Bottleneck, Performance, and MLPerf
+- color-coded status rendering: pass in green, fail in red, skip in orange
 
 Default node KPI file can be overridden with:
 

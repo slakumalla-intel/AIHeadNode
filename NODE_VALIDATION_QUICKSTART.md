@@ -7,7 +7,7 @@ cd AIHeadNode
 pytest -m node_validation -vv
 ```
 
-Check the generated `NODE_VALIDATION_REPORT.md` for results.
+Check the generated `TESTCASE_EXECUTION_FINAL_REPORT.md` for results.
 
 ---
 
@@ -27,8 +27,8 @@ Check the generated `NODE_VALIDATION_REPORT.md` for results.
 
 ## Report Location
 
-**Main Report**: `NODE_VALIDATION_REPORT.md`  
-**Auto-updated**: Every time you run `pytest -m node_validation`
+**Main Report**: `TESTCASE_EXECUTION_FINAL_REPORT.md`  
+**Auto-updated**: Every time you run pytest for this repository
 
 ---
 
@@ -69,7 +69,7 @@ Linux workload defaults:
 1. **tests/test_node_validation.py** — NEW test suite
 2. **tests/conftest.py** — Updated for dual-report generation
 3. **pytest.ini** — Added node_validation markers
-4. **NODE_VALIDATION_REPORT.md** — NEW report template
+4. **TESTCASE_EXECUTION_FINAL_REPORT.md** — consolidated execution report
 5. **NODE_VALIDATION_IMPLEMENTATION.md** — This guide
 
 ---
@@ -107,4 +107,4 @@ Then:
 pytest -m node_validation -vv
 ```
 
-View `NODE_VALIDATION_REPORT.md` for results.
+View `TESTCASE_EXECUTION_FINAL_REPORT.md` for results.

@@ -29,7 +29,9 @@ logging.basicConfig(
 logger = logging.getLogger("ai_headnode_tests")
 
 _REPORT_PATH = Path(__file__).resolve().parents[1] / "TESTCASE_EXECUTION_FINAL_REPORT.md"
-_NODE_VALIDATION_REPORT_PATH = Path(__file__).resolve().parents[1] / "NODE_VALIDATION_REPORT.md"
+_LEGACY_REPORT_PATHS = [
+    Path(__file__).resolve().parents[1] / "NODE_VALIDATION_REPORT.md",
+]
 
 
 # ---------------------------------------------------------------------------
@@ -172,6 +174,23 @@ def _purpose_from_item(item: pytest.Item) -> str:
     if not doc:
         return item.name
     return " ".join(doc.strip().splitlines()).strip()
+
+
+def _report_section_for_item(item: pytest.Item) -> str:
+    marker_names = {marker.name for marker in item.iter_markers()}
+    nodeid_lower = item.nodeid.lower()
+
+    if "mlperf" in marker_names or "mlperf" in nodeid_lower:
+        return "MLPerf"
+    if Path(str(item.fspath)).name == "test_performance_suite.py":
+        return "Performance"
+    if "workload_acceptance" in marker_names:
+        return "Workload Acceptance"
+    if "bottleneck" in marker_names:
+        return "Bottleneck"
+    if "node_validation" in marker_names:
+        return "Node Validation"
+    return "Other"
 
 
 def _status_result_analysis(report: pytest.TestReport) -> Tuple[str, str, str]:
@@ -357,13 +376,18 @@ def _pick_top_kpis(latest_kpis: Dict[str, Dict[str, Any]], limit: int = 5) -> Li
     return selected
 
 
+def _status_sort_key(status: str) -> int:
+    order = {"FAIL": 0, "SKIP": 1, "PASS": 2}
+    return order.get(status, 9)
+
+
 def _render_status(status: str) -> str:
     if status == "PASS":
         return _color_badge("PASS", "#1b8a3b")
     if status == "FAIL":
         return _color_badge("FAIL", "#cc1f1a")
     if status == "SKIP":
-        return _color_badge("SKIP", "#1f6feb")
+        return _color_badge("SKIP", "#d97706")
     return _md_escape(status)
 
 
@@ -373,15 +397,14 @@ def _render_result_text(result: str) -> str:
     if result.startswith("FAILED"):
         return _color_badge(result, "#cc1f1a")
     if result.startswith("SKIPPED"):
-        return _color_badge(result, "#1f6feb")
+        return _color_badge(result, "#d97706")
     return _md_escape(result)
 
 
-def _write_final_report(config: pytest.Config, is_node_validation: bool = False) -> None:
-    """Write final report to appropriate file based on test category."""
-    report_dict_attr = "_node_validation_report_rows" if is_node_validation else "_exec_report_rows"
-    rows: Dict[str, Dict[str, str]] = getattr(config, report_dict_attr, {})
-    report_path = _NODE_VALIDATION_REPORT_PATH if is_node_validation else _REPORT_PATH
+def _write_final_report(config: pytest.Config) -> None:
+    """Write a single consolidated markdown report for the current pytest session."""
+    rows: Dict[str, Dict[str, str]] = getattr(config, "_overall_report_rows", {})
+    report_path = _REPORT_PATH
 
     if not rows:
         return
@@ -393,6 +416,7 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
     failed = statuses.count("FAIL")
     skipped = statuses.count("SKIP")
     total = len(statuses)
+    executed = passed + failed
 
     skipped_rows = [
         (nodeid, row)
@@ -410,11 +434,41 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
         if row.get("status") == "PASS"
     ]
 
+    section_order = [
+        "Workload Acceptance",
+        "Node Validation",
+        "Bottleneck",
+        "Performance",
+        "MLPerf",
+        "Other",
+    ]
+    section_rows: Dict[str, List[Tuple[str, Dict[str, str]]]] = {section: [] for section in section_order}
+    for nodeid, row in rows.items():
+        section = row.get("section", "Other")
+        if section not in section_rows:
+            section_rows[section] = []
+        section_rows[section].append((nodeid, row))
+
+    section_summaries: List[Tuple[str, int, int, int, int]] = []
+    for section in section_order:
+        entries = section_rows.get(section, [])
+        section_statuses = [row.get("status", "") for _, row in entries]
+        section_summaries.append(
+            (
+                section,
+                len(entries),
+                section_statuses.count("PASS"),
+                section_statuses.count("FAIL"),
+                section_statuses.count("SKIP"),
+            )
+        )
+
     highlights = [
         f"- {_color_badge('INFO', '#1f6feb')}: Total testcases captured: {total}",
+        f"- {_color_badge('INFO', '#1f6feb')}: Tests executed (pass + fail): {executed}",
         f"- {_color_badge('PASS', '#1b8a3b')}: {passed}",
         f"- {_color_badge('FAIL', '#cc1f1a')}: {failed}",
-        f"- {_color_badge('SKIP', '#1f6feb')}: {skipped}",
+        f"- {_color_badge('SKIP', '#d97706')}: {skipped}",
     ]
     if failed:
         highlights.append(
@@ -425,11 +479,7 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
             f"- {_color_badge('PASS', '#1b8a3b')}: No testcase failures detected in this run."
         )
 
-    report_title = (
-        "# AI Head Node — Node Validation Report"
-        if is_node_validation
-        else "# AI Head Node Testcase Execution Final Report"
-    )
+    report_title = "# AI Head Node Overall Test Execution Report"
 
     lines = [
         report_title,
@@ -444,16 +494,58 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
         ".report-table th, .report-table td { border: 1px solid #d0d7de; padding: 6px 8px; vertical-align: top; }",
         ".report-table th { background: #f6f8fa; position: sticky; top: 0; z-index: 1; }",
         ".cell-wrap { white-space: normal; word-break: break-word; max-width: 540px; }",
+        ".summary-table { border-collapse: collapse; width: 100%; max-width: 720px; }",
+        ".summary-table th, .summary-table td { border: 1px solid #d0d7de; padding: 6px 8px; }",
+        ".summary-table th { background: #f6f8fa; text-align: left; }",
         "</style>",
         "",
-        "## Highlights",
+        "## Summary",
         "",
         *highlights,
         "",
+        "| Metric | Count |",
+        "|---|---:|",
+        f"| Testcases captured | {total} |",
+        f"| Tests executed | {executed} |",
+        f"| Passed | {passed} |",
+        f"| Failed | {failed} |",
+        f"| Skipped | {skipped} |",
+        "",
     ]
+
+    lines.extend([
+        "## Brief Issues",
+        "",
+    ])
+
+    issue_rows = failed_rows + skipped_rows
+    if issue_rows:
+        lines.extend([
+            "| Section | Test | Status | Issue |",
+            "|---|---|---|---|",
+        ])
+        for nodeid, row in issue_rows[:25]:
+            lines.append(
+                f"| {_md_escape(row.get('section', 'Other'))} | {_md_escape(nodeid)} | {_render_status(row.get('status', ''))} | {_md_escape(_extract_reason(row.get('result', '')))} |"
+            )
+    else:
+        lines.append(f"- {_color_badge('PASS', '#1b8a3b')}: No failures or skips detected.")
+
+    lines.extend([
+        "",
+        "## Section Summary",
+        "",
+        "| Section | Testcases | Passed | Failed | Skipped |",
+        "|---|---:|---:|---:|---:|",
+    ])
+    for section, section_total, section_passed, section_failed, section_skipped in section_summaries:
+        lines.append(
+            f"| {_md_escape(section)} | {section_total} | {section_passed} | {section_failed} | {section_skipped} |"
+        )
 
     top_kpis = _pick_top_kpis(latest_kpis, limit=5)
     lines.extend([
+        "",
         "## Top 5 KPIs",
         "",
     ])
@@ -468,55 +560,6 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
             )
     else:
         lines.append("- No numeric KPI values available for this run.")
-
-    lines.extend([
-        "",
-        "## Issues Summary",
-        "",
-    ])
-
-    if failed_rows:
-        lines.extend([
-            "| Type | Test | Reason |",
-            "|---|---|---|",
-        ])
-        for nodeid, row in failed_rows[:20]:
-            lines.append(
-                f"| {_color_badge('FAIL', '#cc1f1a')} | {_md_escape(nodeid)} | {_md_escape(_extract_reason(row.get('result', '')))} |"
-            )
-    else:
-        lines.append(f"- {_color_badge('PASS', '#1b8a3b')}: No failures detected.")
-
-    if skipped_rows:
-        lines.extend([
-            "",
-            "### Skipped Cases",
-            "",
-            "| Type | Test | Reason |",
-            "|---|---|---|",
-        ])
-        for nodeid, row in skipped_rows[:20]:
-            lines.append(
-                f"| {_color_badge('SKIP', '#1f6feb')} | {_md_escape(nodeid)} | {_md_escape(_extract_reason(row.get('result', '')))} |"
-            )
-
-    lines.extend([
-        "",
-        "## Success Summary",
-        "",
-        f"- {_color_badge('PASS', '#1b8a3b')}: Successful testcases: {passed}",
-    ])
-
-    if passed_rows:
-        lines.extend([
-            "",
-            "| Test | Success Case |",
-            "|---|---|",
-        ])
-        for nodeid, row in passed_rows[:10]:
-            lines.append(
-                f"| {_md_escape(nodeid)} | {_md_escape(_extract_reason(row.get('result', '')))} |"
-            )
 
     lines.extend([
         "",
@@ -537,51 +580,48 @@ def _write_final_report(config: pytest.Config, is_node_validation: bool = False)
     else:
         lines.append("- No KPI records found for this run. Ensure workload tests called KPI recorder.")
 
-    lines.extend([
-        "",
-        "## Execution Status Table",
-        "",
-        "<div class=\"report-scroll\">",
-        "<table class=\"report-table\">",
-        "<thead><tr><th style=\"min-width: 380px;\">Test</th><th style=\"min-width: 360px;\">Purpose</th><th style=\"min-width: 360px;\">Result</th><th style=\"min-width: 100px;\">Status</th><th style=\"min-width: 300px;\">Analysis</th><th style=\"min-width: 380px;\">KPI</th><th style=\"min-width: 320px;\">Reason / Success Case / Issue</th></tr></thead>",
-        "<tbody>",
-    ])
-
-    for nodeid in sorted(rows):
-        row = rows[nodeid]
-        kpi_metrics = _lookup_kpi_metrics(nodeid, latest_kpis)
-        reason = _extract_reason(row.get("result", ""))
-        lines.append(
-            "<tr>"
-            f"<td><div class=\"cell-wrap\">{_md_escape(nodeid)}</div></td>"
-            f"<td><div class=\"cell-wrap\">{_md_escape(row['purpose'])}</div></td>"
-            f"<td><div class=\"cell-wrap\">{_render_result_text(row['result'])}</div></td>"
-            f"<td>{_render_status(row['status'])}</td>"
-            f"<td><div class=\"cell-wrap\">{_md_escape(row['analysis'])}</div></td>"
-            f"<td><div class=\"cell-wrap\">{_md_escape(_compact_metrics(kpi_metrics, max_items=6))}</div></td>"
-            f"<td><div class=\"cell-wrap\">{_md_escape(reason)}</div></td>"
-            "</tr>"
-        )
-
-    lines.extend([
-        "</tbody>",
-        "</table>",
-        "</div>",
-    ])
-
-    if skipped_rows:
+    for section in section_order:
+        entries = section_rows.get(section, [])
         lines.extend([
             "",
-            "## Skipped Tests",
+            f"## {section}",
             "",
-            "| Test | Skip Reason |",
-            "|---|---|",
         ])
-        for nodeid, row in skipped_rows:
-            reason = row.get("result", "")
-            if reason.startswith("SKIPPED:"):
-                reason = reason.split("SKIPPED:", 1)[-1].strip()
-            lines.append(f"| {_md_escape(nodeid)} | {_md_escape(reason)} |")
+
+        if not entries:
+            if section == "MLPerf":
+                lines.append("- No MLPerf tests captured in this run. This section is reserved for upcoming MLPerf coverage.")
+            else:
+                lines.append("- No tests captured in this section for the current run.")
+            continue
+
+        lines.extend([
+            "<div class=\"report-scroll\">",
+            "<table class=\"report-table\">",
+            "<thead><tr><th style=\"min-width: 380px;\">Test</th><th style=\"min-width: 360px;\">Purpose</th><th style=\"min-width: 100px;\">Status</th><th style=\"min-width: 360px;\">Result</th><th style=\"min-width: 300px;\">Analysis</th><th style=\"min-width: 380px;\">KPI</th><th style=\"min-width: 320px;\">Reason / Success Case / Issue</th></tr></thead>",
+            "<tbody>",
+        ])
+
+        for nodeid, row in sorted(entries, key=lambda item: (_status_sort_key(item[1].get("status", "")), item[0])):
+            kpi_metrics = _lookup_kpi_metrics(nodeid, latest_kpis)
+            reason = _extract_reason(row.get("result", ""))
+            lines.append(
+                "<tr>"
+                f"<td><div class=\"cell-wrap\">{_md_escape(nodeid)}</div></td>"
+                f"<td><div class=\"cell-wrap\">{_md_escape(row['purpose'])}</div></td>"
+                f"<td>{_render_status(row['status'])}</td>"
+                f"<td><div class=\"cell-wrap\">{_render_result_text(row['result'])}</div></td>"
+                f"<td><div class=\"cell-wrap\">{_md_escape(row['analysis'])}</div></td>"
+                f"<td><div class=\"cell-wrap\">{_md_escape(_compact_metrics(kpi_metrics, max_items=6))}</div></td>"
+                f"<td><div class=\"cell-wrap\">{_md_escape(reason)}</div></td>"
+                "</tr>"
+            )
+
+        lines.extend([
+            "</tbody>",
+            "</table>",
+            "</div>",
+        ])
 
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     logger.info("Wrote final testcase report: %s", report_path)
@@ -627,8 +667,8 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "nccl_validation: NCCL and inter-GPU communication tests")
     config.addinivalue_line("markers", "workload_acceptance: workload acceptance tests")
     config.addinivalue_line("markers", "rdma_validation: RDMA/MMIO/FENCE/DMA functional validation tests")
-    setattr(config, "_exec_report_rows", {})
-    setattr(config, "_node_validation_report_rows", {})
+    config.addinivalue_line("markers", "mlperf: MLPerf benchmark and compliance tests")
+    setattr(config, "_overall_report_rows", {})
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -636,18 +676,14 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
     outcome = yield
     report: pytest.TestReport = outcome.get_result()
 
-    # Determine if this is a node_validation test
-    is_node_validation = "node_validation" in [marker.name for marker in item.iter_markers()]
-
-    # Choose appropriate report rows dictionary
-    report_dict_attr = "_node_validation_report_rows" if is_node_validation else "_exec_report_rows"
-    rows: Dict[str, Dict[str, str]] = getattr(item.config, report_dict_attr)
+    rows: Dict[str, Dict[str, str]] = getattr(item.config, "_overall_report_rows")
     nodeid = item.nodeid
 
     # Prefer call-phase results. For setup-skip/fail without call, capture setup phase.
     if report.when == "call" or (report.when == "setup" and report.outcome in {"failed", "skipped"}):
         status, result, analysis = _status_result_analysis(report)
         rows[nodeid] = {
+            "section": _report_section_for_item(item),
             "purpose": _purpose_from_item(item),
             "result": result,
             "status": status,
@@ -656,9 +692,15 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
-    # Write both reports
-    _write_final_report(session.config, is_node_validation=False)
-    _write_final_report(session.config, is_node_validation=True)
+    _write_final_report(session.config)
+
+    for legacy_path in _LEGACY_REPORT_PATHS:
+        try:
+            if legacy_path.exists():
+                legacy_path.unlink()
+                logger.info("Removed legacy report file: %s", legacy_path)
+        except Exception as exc:
+            logger.warning("Unable to remove legacy report file %s: %s", legacy_path, exc)
 
     # Best-effort cleanup: terminate any child processes left by workload tests.
     if _multiprocessing is not None:

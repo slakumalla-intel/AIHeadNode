@@ -131,6 +131,8 @@ def _configure_default_env() -> None:
     os.environ.setdefault("PERF_VLLM_GPU_MEMORY_UTILIZATION", "0.70")
     os.environ.setdefault("PERF_VLLM_FP8_DTYPE_FALLBACK", "bfloat16")
     os.environ.setdefault("PERF_VLLM_BENCHMARK_MODULE", "vllm.benchmarks.benchmark_serving")
+    os.environ.setdefault("PERF_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
+    os.environ.setdefault("PERF_AUTO_INSTALL_TIMEOUT_SEC", "1800")
     
     logger.info(
         "Environment variables configured:\n"
@@ -140,6 +142,7 @@ def _configure_default_env() -> None:
         "  CUDA_VISIBLE_DEVICES=%s\n"
         "  NVBANDWIDTH_BIN=%s\n"
         "  PERF_CMD_TIMEOUT_SEC=%s\n"
+        "  PERF_AUTO_INSTALL=%s\n"
         "  PERF_NCCL_TESTS_DIR=%s\n"
         "  PERF_VLLM_GPU_MEMORY_UTILIZATION=%s",
         os.environ.get("HF_ENABLE_LARGE_MODELS"),
@@ -148,6 +151,7 @@ def _configure_default_env() -> None:
         os.environ.get("CUDA_VISIBLE_DEVICES"),
         os.environ.get("NVBANDWIDTH_BIN"),
         os.environ.get("PERF_CMD_TIMEOUT_SEC"),
+        os.environ.get("PERF_AUTO_INSTALL"),
         os.environ.get("PERF_NCCL_TESTS_DIR"),
         os.environ.get("PERF_VLLM_GPU_MEMORY_UTILIZATION"),
     )

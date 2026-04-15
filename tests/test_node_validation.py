@@ -1529,6 +1529,12 @@ class TestGPUP2PBandwidth:
         stream_counts = [1, 2, 4, 8]
         min_ratio = float(os.environ.get("P2P_MULTI_STREAM_MIN_SCALING", "1.5"))
         max_pairs = int(os.environ.get("P2P_MULTI_STREAM_MAX_PAIRS", "0"))  # 0 => all pairs
+        include_per_pair = os.environ.get("P2P_MULTI_STREAM_INCLUDE_PER_PAIR", "0").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
 
         peer_pairs: List[Tuple[int, int]] = []
         for s in range(n_gpus):
@@ -1544,6 +1550,7 @@ class TestGPUP2PBandwidth:
 
         all_pair_results: Dict[str, Dict[str, float]] = {}
         failing_pairs: List[str] = []
+        ratio_records: List[Tuple[str, float, float, float]] = []
 
         for src, dst in peer_pairs:
             logger.info("P2P multi-stream: GPU %d -> GPU %d", src, dst)
@@ -1597,6 +1604,7 @@ class TestGPUP2PBandwidth:
                 "ratio_4_over_1": round(float(ratio), 3),
                 "bw_by_streams_gbs": bw_by_streams,
             }
+            ratio_records.append((pair_key, float(ratio), float(bw_1), float(bw_4)))
 
             if bw_1 <= 0:
                 failing_pairs.append(f"GPU{src}->GPU{dst}: 1-stream BW is 0.0 GB/s")
@@ -1608,26 +1616,52 @@ class TestGPUP2PBandwidth:
 
             logger.info("P2P multi-stream BW (GPU %d->%d): %s", src, dst, bw_by_streams)
 
-        _record_kpi(
-            "test_p2p_multi_stream_bandwidth",
-            {
-                "tested_pair_count": len(peer_pairs),
-                "tested_pairs": [f"{s}->{d}" for s, d in peer_pairs],
-                "n_bytes_per_stream": n_bytes_per_stream,
-                "n_iters": n_iters,
-                "min_scaling_ratio": min_ratio,
-                "per_pair": all_pair_results,
-                "failing_pairs": failing_pairs,
-            },
+        valid_ratio_records = [r for r in ratio_records if r[2] > 0.0 and r[3] > 0.0]
+        min_ratio_observed = min((r[1] for r in valid_ratio_records), default=0.0)
+        avg_ratio_observed = (
+            sum(r[1] for r in valid_ratio_records) / len(valid_ratio_records)
+            if valid_ratio_records
+            else 0.0
         )
+        worst_pairs = sorted(valid_ratio_records, key=lambda r: r[1])[:3]
+        worst_pairs_summary = [
+            {
+                "pair": pair,
+                "ratio_4_over_1": round(ratio, 3),
+                "bw_1_stream_gbs": round(bw1, 2),
+                "bw_4_stream_gbs": round(bw4, 2),
+            }
+            for pair, ratio, bw1, bw4 in worst_pairs
+        ]
+
+        kpi_payload: Dict[str, Any] = {
+            "tested_pair_count": len(peer_pairs),
+            "n_bytes_per_stream": n_bytes_per_stream,
+            "n_iters": n_iters,
+            "required_min_scaling_ratio": min_ratio,
+            "observed_min_scaling_ratio": round(min_ratio_observed, 3),
+            "observed_avg_scaling_ratio": round(avg_ratio_observed, 3),
+            "failing_pair_count": len(failing_pairs),
+            "worst_pairs": worst_pairs_summary,
+        }
+        if include_per_pair:
+            kpi_payload["per_pair"] = all_pair_results
+
+        _record_kpi("test_p2p_multi_stream_bandwidth", kpi_payload)
 
         if failing_pairs:
-            details = "\n".join(failing_pairs[:20])
-            if len(failing_pairs) > 20:
-                details += f"\n... and {len(failing_pairs) - 20} more failing pair(s)"
+            details = "\n".join(failing_pairs[:6])
+            if len(failing_pairs) > 6:
+                details += f"\n... and {len(failing_pairs) - 6} more failing pair(s)"
+            worst_text = ", ".join(
+                f"{w['pair']}={w['ratio_4_over_1']:.3f}x" for w in worst_pairs_summary
+            ) or "none"
             pytest.fail(
                 "P2P multi-stream scaling validation failed.\n"
-                f"tested_pairs={len(peer_pairs)}, min_scaling_ratio={min_ratio:.2f}\n"
+                f"tested_pairs={len(peer_pairs)}, required_min_scaling_ratio={min_ratio:.2f}, "
+                f"observed_min_scaling_ratio={min_ratio_observed:.3f}, "
+                f"observed_avg_scaling_ratio={avg_ratio_observed:.3f}\n"
+                f"worst_pairs={worst_text}\n"
                 f"Failures:\n{details}"
             )
 

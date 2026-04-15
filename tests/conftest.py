@@ -148,6 +148,7 @@ def _configure_default_env() -> None:
     # =========================================================================
     os.environ.setdefault("PERF_CMD_TIMEOUT_SEC", "1800")
     os.environ.setdefault("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")
+    os.environ.setdefault("VLLM_PREFILL_KPI_FILE", "artifacts/vllm_prefill_kpis.jsonl")
     os.environ.setdefault("PERF_NVBANDWIDTH_BIN", os.environ.get("NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth"))
     os.environ.setdefault("PERF_NCCL_TESTS_DIR", "/root/workloads/nccl-tests/build")
     os.environ.setdefault("PERF_VLLM_GPU_MEMORY_UTILIZATION", "0.70")
@@ -204,6 +205,8 @@ def _report_section_for_item(item: pytest.Item) -> str:
         return "MLPerf"
     if Path(str(item.fspath)).name == "test_performance_suite.py":
         return "Performance"
+    if "vllm_prefill" in marker_names or Path(str(item.fspath)).name == "test_vllm_prefill_validation.py":
+        return "vLLM Prefill"
     if "workload_acceptance" in marker_names:
         return "Workload Acceptance"
     if "bottleneck" in marker_names:
@@ -271,6 +274,7 @@ def _kpi_paths() -> List[Path]:
     paths = [
         Path(os.environ.get("NODE_VALIDATION_KPI_FILE", "artifacts/node_validation_kpis.jsonl")),
         Path(os.environ.get("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")),
+        Path(os.environ.get("VLLM_PREFILL_KPI_FILE", "artifacts/vllm_prefill_kpis.jsonl")),
     ]
     deduped: List[Path] = []
     seen = set()

@@ -60,13 +60,33 @@ def _configure_default_env() -> None:
     # =========================================================================
     # KV Cache Offload Configuration
     # =========================================================================
-    os.environ.setdefault("VLLM_KV_OFFLOAD_MODEL", "meta-llama/Llama-2-7b-hf")
-    os.environ.setdefault("VLLM_KV_CONTEXT_LENGTH", "8192")
-    os.environ.setdefault("VLLM_KV_BATCH_SIZE", "4")
-    os.environ.setdefault("VLLM_KV_NUM_PROMPTS", "10")
-    os.environ.setdefault("VLLM_KV_MAX_TOKENS", "512")
-    os.environ.setdefault("VLLM_GPU_MEMORY_UTIL", "0.7")
-    os.environ.setdefault("VLLM_CPU_OFFLOAD_GB", "128")
+    # Use NODE_VLLM_* names so vLLM does not treat these as its own env vars.
+    # Migrate legacy VLLM_* names for backward compatibility, then remove them
+    # from the environment to avoid "Unknown vLLM environment variable" warnings.
+    kv_env_map = {
+        "VLLM_KV_OFFLOAD_MODEL": "NODE_VLLM_KV_OFFLOAD_MODEL",
+        "VLLM_KV_CONTEXT_LENGTH": "NODE_VLLM_KV_CONTEXT_LENGTH",
+        "VLLM_KV_BATCH_SIZE": "NODE_VLLM_KV_BATCH_SIZE",
+        "VLLM_KV_NUM_PROMPTS": "NODE_VLLM_KV_NUM_PROMPTS",
+        "VLLM_KV_MAX_TOKENS": "NODE_VLLM_KV_MAX_TOKENS",
+        "VLLM_BASELINE_GPU_MEMORY_UTIL": "NODE_VLLM_BASELINE_GPU_MEMORY_UTIL",
+        "VLLM_GPU_MEMORY_UTIL": "NODE_VLLM_GPU_MEMORY_UTIL",
+        "VLLM_CPU_OFFLOAD_GB": "NODE_VLLM_CPU_OFFLOAD_GB",
+    }
+    for legacy_name, new_name in kv_env_map.items():
+        legacy_value = os.environ.get(legacy_name)
+        if legacy_value and new_name not in os.environ:
+            os.environ[new_name] = legacy_value
+        os.environ.pop(legacy_name, None)
+
+    os.environ.setdefault("NODE_VLLM_KV_OFFLOAD_MODEL", "meta-llama/Llama-2-7b-hf")
+    os.environ.setdefault("NODE_VLLM_KV_CONTEXT_LENGTH", "8192")
+    os.environ.setdefault("NODE_VLLM_KV_BATCH_SIZE", "4")
+    os.environ.setdefault("NODE_VLLM_KV_NUM_PROMPTS", "10")
+    os.environ.setdefault("NODE_VLLM_KV_MAX_TOKENS", "512")
+    os.environ.setdefault("NODE_VLLM_BASELINE_GPU_MEMORY_UTIL", "0.9")
+    os.environ.setdefault("NODE_VLLM_GPU_MEMORY_UTIL", "0.7")
+    os.environ.setdefault("NODE_VLLM_CPU_OFFLOAD_GB", "128")
 
     # =========================================================================
     # RDMA / MMIO / DMA Validation Configuration
@@ -139,7 +159,7 @@ def _configure_default_env() -> None:
     logger.info(
         "Environment variables configured:\n"
         "  HF_ENABLE_LARGE_MODELS=%s\n"
-        "  VLLM_KV_CONTEXT_LENGTH=%s\n"
+        "  NODE_VLLM_KV_CONTEXT_LENGTH=%s\n"
         "  YOLO_DETECT_BATCH=%s\n"
         "  CUDA_VISIBLE_DEVICES=%s\n"
         "  NVBANDWIDTH_BIN=%s\n"
@@ -148,7 +168,7 @@ def _configure_default_env() -> None:
         "  PERF_NCCL_TESTS_DIR=%s\n"
         "  PERF_VLLM_GPU_MEMORY_UTILIZATION=%s",
         os.environ.get("HF_ENABLE_LARGE_MODELS"),
-        os.environ.get("VLLM_KV_CONTEXT_LENGTH"),
+        os.environ.get("NODE_VLLM_KV_CONTEXT_LENGTH"),
         os.environ.get("YOLO_DETECT_BATCH"),
         os.environ.get("CUDA_VISIBLE_DEVICES"),
         os.environ.get("NVBANDWIDTH_BIN"),
@@ -194,33 +214,16 @@ def _report_section_for_item(item: pytest.Item) -> str:
 
 
 def _report_domain_for_item(item: pytest.Item) -> str:
-    marker_names = {marker.name for marker in item.iter_markers()}
-    file_name = Path(str(item.fspath)).name.lower()
-    nodeid_lower = item.nodeid.lower()
+    # Keep reporting simple: all tests are grouped under a single functional domain.
+    return "Functional Validation"
 
-    if "mlperf" in marker_names or "mlperf" in nodeid_lower:
-        return "MLPerf"
-    if "workload_acceptance" in marker_names:
-        return "Workload Acceptance"
-    if "bottleneck" in marker_names:
-        return "Bottleneck"
-    if file_name == "test_performance_suite.py":
-        return "Performance"
-    if "cpu" in marker_names or file_name == "test_cpu_validation.py":
-        return "CPU"
-    if "gpu" in marker_names or file_name == "test_gpu_validation.py":
-        return "GPU"
-    if "memory" in marker_names or file_name == "test_memory_validation.py":
-        return "Memory"
-    if (
-        "pcie" in marker_names
-        or "nvlink" in marker_names
-        or file_name == "test_interconnect_validation.py"
-    ):
-        return "Interconnect"
-    if "node_validation" in marker_names or file_name == "test_node_validation.py":
-        return "Node Validation"
-    return "Other"
+
+def _display_test_name(nodeid: str) -> str:
+    """Return a concise testcase label (method name, preserving param suffix)."""
+    label = nodeid.strip()
+    if "::" in label:
+        label = label.split("::")[-1]
+    return label
 
 
 def _status_result_analysis(report: pytest.TestReport) -> Tuple[str, str, str]:
@@ -494,16 +497,7 @@ def _write_final_report(config: pytest.Config) -> None:
         )
 
     domain_order = [
-        "CPU",
-        "GPU",
-        "Interconnect",
-        "Memory",
-        "Node Validation",
-        "Workload Acceptance",
-        "Bottleneck",
-        "Performance",
-        "MLPerf",
-        "Other",
+        "Functional Validation",
     ]
     domain_rows: Dict[str, List[Tuple[str, Dict[str, str]]]] = {domain: [] for domain in domain_order}
     for nodeid, row in rows.items():
@@ -600,7 +594,7 @@ def _write_final_report(config: pytest.Config) -> None:
         ])
         for nodeid, row in issue_rows[:25]:
             lines.append(
-                f"| {_md_escape(row.get('domain', 'Other'))} | {_md_escape(row.get('section', 'Other'))} | {_md_escape(nodeid)} | {_render_status(row.get('status', ''))} | {_md_escape(_extract_reason(row.get('result', '')))} |"
+                f"| {_md_escape(row.get('domain', 'Functional Validation'))} | {_md_escape(row.get('section', 'Other'))} | {_md_escape(_display_test_name(nodeid))} | {_render_status(row.get('status', ''))} | {_md_escape(_extract_reason(row.get('result', '')))} |"
             )
     else:
         lines.append(f"- {_color_badge('PASS', '#1b8a3b')}: No failures or skips detected.")
@@ -681,7 +675,7 @@ def _write_final_report(config: pytest.Config) -> None:
             reason = _extract_reason(row.get("result", ""))
             lines.append(
                 "<tr>"
-                f"<td><div class=\"cell-wrap\">{_md_escape(nodeid)}</div></td>"
+                f"<td><div class=\"cell-wrap\">{_md_escape(_display_test_name(nodeid))}</div></td>"
                 f"<td><div class=\"cell-wrap\">{_md_escape(row['purpose'])}</div></td>"
                 f"<td>{_render_status(row['status'])}</td>"
                 f"<td><div class=\"cell-wrap\">{_render_result_text(row['result'])}</div></td>"

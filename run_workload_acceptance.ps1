@@ -51,13 +51,24 @@ Set-DefaultEnv "HF_TRAINING_MODEL" "bert-base-uncased"
 # =============================================================================
 # KV Cache Offload Configuration
 # =============================================================================
-Set-DefaultEnv "VLLM_KV_OFFLOAD_MODEL" "meta-llama/Llama-2-7b-hf"
-$env:VLLM_KV_CONTEXT_LENGTH = $KVCacheContextLength
-$env:VLLM_KV_BATCH_SIZE = $KVCacheBatchSize
-$env:VLLM_KV_NUM_PROMPTS = $KVCacheNumPrompts
-Set-DefaultEnv "VLLM_KV_MAX_TOKENS" "512"
-Set-DefaultEnv "VLLM_GPU_MEMORY_UTIL" "0.7"
-Set-DefaultEnv "VLLM_CPU_OFFLOAD_GB" "128"
+Set-DefaultEnv "NODE_VLLM_KV_OFFLOAD_MODEL" "meta-llama/Llama-2-7b-hf"
+$env:NODE_VLLM_KV_CONTEXT_LENGTH = $KVCacheContextLength
+$env:NODE_VLLM_KV_BATCH_SIZE = $KVCacheBatchSize
+$env:NODE_VLLM_KV_NUM_PROMPTS = $KVCacheNumPrompts
+Set-DefaultEnv "NODE_VLLM_KV_MAX_TOKENS" "512"
+Set-DefaultEnv "NODE_VLLM_BASELINE_GPU_MEMORY_UTIL" "0.9"
+Set-DefaultEnv "NODE_VLLM_GPU_MEMORY_UTIL" "0.7"
+Set-DefaultEnv "NODE_VLLM_CPU_OFFLOAD_GB" "128"
+
+# Remove legacy names to avoid vLLM unknown-environment warnings.
+Remove-Item Env:VLLM_KV_OFFLOAD_MODEL -ErrorAction SilentlyContinue
+Remove-Item Env:VLLM_KV_CONTEXT_LENGTH -ErrorAction SilentlyContinue
+Remove-Item Env:VLLM_KV_BATCH_SIZE -ErrorAction SilentlyContinue
+Remove-Item Env:VLLM_KV_NUM_PROMPTS -ErrorAction SilentlyContinue
+Remove-Item Env:VLLM_KV_MAX_TOKENS -ErrorAction SilentlyContinue
+Remove-Item Env:VLLM_BASELINE_GPU_MEMORY_UTIL -ErrorAction SilentlyContinue
+Remove-Item Env:VLLM_GPU_MEMORY_UTIL -ErrorAction SilentlyContinue
+Remove-Item Env:VLLM_CPU_OFFLOAD_GB -ErrorAction SilentlyContinue
 
 # RDMA / MMIO / DMA validation defaults
 Set-DefaultEnv "RDMA_SMOKE_ITERS" "1000"
@@ -132,13 +143,14 @@ Write-Host "  HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC:  $($env:HF_ENTERPRISE_LATE
 Write-Host ""
 
 Write-Host "KV Cache Offload Test:" -ForegroundColor Yellow
-Write-Host "  VLLM_KV_OFFLOAD_MODEL:                   $($env:VLLM_KV_OFFLOAD_MODEL)"
-Write-Host "  VLLM_KV_CONTEXT_LENGTH:                  $($env:VLLM_KV_CONTEXT_LENGTH)"
-Write-Host "  VLLM_KV_BATCH_SIZE:                      $($env:VLLM_KV_BATCH_SIZE)"
-Write-Host "  VLLM_KV_NUM_PROMPTS:                     $($env:VLLM_KV_NUM_PROMPTS)"
-Write-Host "  VLLM_KV_MAX_TOKENS:                      $($env:VLLM_KV_MAX_TOKENS)"
-Write-Host "  VLLM_GPU_MEMORY_UTIL:                    $($env:VLLM_GPU_MEMORY_UTIL)"
-Write-Host "  VLLM_CPU_OFFLOAD_GB:                     $($env:VLLM_CPU_OFFLOAD_GB)"
+Write-Host "  NODE_VLLM_KV_OFFLOAD_MODEL:              $($env:NODE_VLLM_KV_OFFLOAD_MODEL)"
+Write-Host "  NODE_VLLM_KV_CONTEXT_LENGTH:             $($env:NODE_VLLM_KV_CONTEXT_LENGTH)"
+Write-Host "  NODE_VLLM_KV_BATCH_SIZE:                 $($env:NODE_VLLM_KV_BATCH_SIZE)"
+Write-Host "  NODE_VLLM_KV_NUM_PROMPTS:                $($env:NODE_VLLM_KV_NUM_PROMPTS)"
+Write-Host "  NODE_VLLM_KV_MAX_TOKENS:                 $($env:NODE_VLLM_KV_MAX_TOKENS)"
+Write-Host "  NODE_VLLM_BASELINE_GPU_MEMORY_UTIL:      $($env:NODE_VLLM_BASELINE_GPU_MEMORY_UTIL)"
+Write-Host "  NODE_VLLM_GPU_MEMORY_UTIL:               $($env:NODE_VLLM_GPU_MEMORY_UTIL)"
+Write-Host "  NODE_VLLM_CPU_OFFLOAD_GB:                $($env:NODE_VLLM_CPU_OFFLOAD_GB)"
 Write-Host ""
 
 Write-Host "YOLO Vision Workload:" -ForegroundColor Yellow
@@ -160,7 +172,7 @@ Write-Host ""
 
 Write-Host "Tips:" -ForegroundColor Cyan
 Write-Host "  - Override defaults via environment variables before calling this script"
-Write-Host "  - Example: `$env:VLLM_KV_CONTEXT_LENGTH = '16384' before running"
+Write-Host "  - Example: `$env:NODE_VLLM_KV_CONTEXT_LENGTH = '16384' before running"
 Write-Host "  - Use -SkipLargeModels to disable 70B+ models"
 Write-Host "  - Use -KVCacheContextLength to customize KV cache test context length"
 Write-Host ""

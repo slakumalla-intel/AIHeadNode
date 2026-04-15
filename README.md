@@ -83,8 +83,12 @@ For staged validation:
 ./run_all_validation_tests.sh --performance-catalog-only
 ./run_all_validation_tests.sh --performance-case-ids 001,002,018
 ./run_all_validation_tests.sh --stop-on-failure
+./run_all_validation_tests.sh --skip-consolidated-report
 ./run_all_validation_tests.sh -- -s --log-cli-level=INFO
 ```
+
+By default, the staged runner executes a final consolidated pytest pass to refresh
+`TESTCASE_EXECUTION_FINAL_REPORT.md` with a single unified report snapshot.
 
 For workload acceptance:
 

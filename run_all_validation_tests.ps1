@@ -2,6 +2,7 @@ param(
     [switch]$PerformanceCatalogOnly,
     [string]$PerformanceCaseIds = "",
     [switch]$StopOnFailure,
+    [switch]$SkipConsolidatedReport,
     [string]$ExtraPytestArgs = ""
 )
 
@@ -68,6 +69,23 @@ try {
 
         if ($result.ExitCode -ne 0 -and $StopOnFailure) {
             break
+        }
+    }
+
+    if (-not $SkipConsolidatedReport) {
+        Write-Host ""
+        Write-Host "============================================================" -ForegroundColor Cyan
+        Write-Host "Refreshing consolidated markdown report" -ForegroundColor Cyan
+        $consolidatedCmd = "pytest -vv tests/test_bottleneck_analysis.py tests/test_node_validation.py tests/test_performance_suite.py $ExtraPytestArgs"
+        Write-Host "Command: $consolidatedCmd" -ForegroundColor DarkGray
+        Write-Host "============================================================" -ForegroundColor Cyan
+
+        & powershell -NoLogo -NoProfile -Command $consolidatedCmd
+        $consolidatedExitCode = $LASTEXITCODE
+        $results += [PSCustomObject]@{
+            Name = "Consolidated Report"
+            ExitCode = $consolidatedExitCode
+            DurationSec = "n/a"
         }
     }
 

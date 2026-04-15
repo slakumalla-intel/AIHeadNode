@@ -4,6 +4,7 @@ set -euo pipefail
 PERFORMANCE_CATALOG_ONLY=0
 PERFORMANCE_CASE_IDS=""
 STOP_ON_FAILURE=0
+WRITE_CONSOLIDATED_REPORT=1
 EXTRA_PYTEST_ARGS=()
 
 usage() {
@@ -19,6 +20,7 @@ Options:
   --performance-catalog-only     Do not execute performance commands (catalog mode)
   --performance-case-ids IDS     Comma-separated performance case IDs (e.g. 001,002,018)
   --stop-on-failure              Stop immediately when a stage fails
+  --skip-consolidated-report     Skip final consolidated report refresh pass
   -h, --help                     Show this help
 
 Any arguments after -- are passed through to each pytest invocation.
@@ -41,6 +43,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --stop-on-failure)
       STOP_ON_FAILURE=1
+      shift
+      ;;
+    --skip-consolidated-report)
+      WRITE_CONSOLIDATED_REPORT=0
       shift
       ;;
     -h|--help)
@@ -93,6 +99,7 @@ STAGE_COMMANDS=(
 
 RESULT_CODES=()
 RESULT_DURATIONS=()
+CONSOLIDATED_STATUS="SKIPPED"
 
 run_stage() {
   local stage_name="$1"
@@ -130,6 +137,25 @@ for i in "${!STAGE_NAMES[@]}"; do
   fi
 done
 
+if [[ "$WRITE_CONSOLIDATED_REPORT" -eq 1 ]]; then
+  echo
+  echo "============================================================"
+  echo "Refreshing consolidated markdown report"
+  echo "Command: pytest -vv tests/test_bottleneck_analysis.py tests/test_node_validation.py tests/test_performance_suite.py ${EXTRA_PYTEST_ARGS[*]:-}"
+  echo "============================================================"
+
+  set +e
+  bash -lc "pytest -vv tests/test_bottleneck_analysis.py tests/test_node_validation.py tests/test_performance_suite.py ${EXTRA_PYTEST_ARGS[*]:-}"
+  consolidated_exit_code=$?
+  set -e
+
+  if [[ "$consolidated_exit_code" -ne 0 ]]; then
+    CONSOLIDATED_STATUS="FAIL"
+  else
+    CONSOLIDATED_STATUS="PASS"
+  fi
+fi
+
 echo
 echo "==================== Overall Summary ===================="
 any_failed=0
@@ -141,6 +167,12 @@ for i in "${!RESULT_CODES[@]}"; do
   fi
   printf "%-24s %-6s %8ss\n" "${STAGE_NAMES[$i]}" "$status" "${RESULT_DURATIONS[$i]}"
 done
+if [[ "$WRITE_CONSOLIDATED_REPORT" -eq 1 ]]; then
+  if [[ "$CONSOLIDATED_STATUS" == "FAIL" ]]; then
+    any_failed=1
+  fi
+  printf "%-24s %-6s %8s\n" "Consolidated Report" "$CONSOLIDATED_STATUS" "n/a"
+fi
 echo "========================================================="
 
 exit "$any_failed"

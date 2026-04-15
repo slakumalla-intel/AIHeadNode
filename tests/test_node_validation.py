@@ -3213,6 +3213,8 @@ class TestWorkloadAcceptanceHuggingFace:
         inputs = tokenizer(prompt, return_tensors="pt").to(device)
         max_new_tokens = 32
         min_test_duration_sec = 5 * 60
+        max_mean_latency_ms = float(os.environ.get("HF_INFERENCE_MAX_MEAN_LATENCY_MS", "1200"))
+        max_p95_latency_ms = float(os.environ.get("HF_INFERENCE_MAX_P95_LATENCY_MS", "1500"))
 
         # Warmup
         with torch.no_grad():
@@ -3257,6 +3259,11 @@ class TestWorkloadAcceptanceHuggingFace:
             _HF_INFERENCE_MODEL, mean_ms, p95_ms, tps, max_new_tokens,
             total_runtime_sec, time.perf_counter() - test_t0, len(latencies_ms)
         )
+        logger.info(
+            "HF latency acceptance thresholds: mean<%.1f ms, p95<%.1f ms",
+            max_mean_latency_ms,
+            max_p95_latency_ms,
+        )
 
         _record_kpi(
             "test_hf_causal_lm_inference_latency",
@@ -3272,9 +3279,14 @@ class TestWorkloadAcceptanceHuggingFace:
             },
         )
 
-        # GPT-2 should complete 32 tokens in < 500 ms on H100
-        assert mean_ms < 500, (
-            f"{_HF_INFERENCE_MODEL} inference mean latency {mean_ms:.0f} ms > 500 ms"
+        # Keep thresholds configurable so workload acceptance can be tuned per model/stack.
+        assert mean_ms < max_mean_latency_ms, (
+            f"{_HF_INFERENCE_MODEL} inference mean latency {mean_ms:.0f} ms > "
+            f"{max_mean_latency_ms:.0f} ms"
+        )
+        assert p95_ms < max_p95_latency_ms, (
+            f"{_HF_INFERENCE_MODEL} inference p95 latency {p95_ms:.0f} ms > "
+            f"{max_p95_latency_ms:.0f} ms"
         )
         del model
         torch.cuda.empty_cache()

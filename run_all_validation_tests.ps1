@@ -58,8 +58,16 @@ try {
         Command = "pytest -m node_validation -vv tests/test_node_validation.py $ExtraPytestArgs"
     }
     $stages += [PSCustomObject]@{
+        Name = "Workload Acceptance"
+        Command = "pytest -m workload_acceptance -vv tests/test_node_validation.py tests/test_vllm_prefill_validation.py $ExtraPytestArgs"
+    }
+    $stages += [PSCustomObject]@{
         Name = "Performance Suite"
         Command = "pytest -vv tests/test_performance_suite.py -k test_performance_case_suite $ExtraPytestArgs"
+    }
+    $stages += [PSCustomObject]@{
+        Name = "MLPerf Suite"
+        Command = "pytest -m mlperf -vv tests/test_mlperf_suite.py -k test_mlperf_case_suite $ExtraPytestArgs"
     }
 
     $results = @()
@@ -76,7 +84,7 @@ try {
         Write-Host ""
         Write-Host "============================================================" -ForegroundColor Cyan
         Write-Host "Refreshing consolidated markdown report" -ForegroundColor Cyan
-        $consolidatedCmd = "pytest -vv tests/test_bottleneck_analysis.py tests/test_node_validation.py tests/test_performance_suite.py $ExtraPytestArgs"
+        $consolidatedCmd = "pytest -vv tests/ $ExtraPytestArgs"
         Write-Host "Command: $consolidatedCmd" -ForegroundColor DarkGray
         Write-Host "============================================================" -ForegroundColor Cyan
 

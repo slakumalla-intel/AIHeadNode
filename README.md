@@ -52,7 +52,9 @@ Stages executed in order:
 
 1. Bottleneck tests
 2. Node validation tests
-3. Performance suite
+3. Workload acceptance
+4. Performance suite
+5. MLPerf suite
 
 ### 2) Run Workload Acceptance Only
 
@@ -88,7 +90,8 @@ For staged validation:
 ```
 
 By default, the staged runner executes a final consolidated pytest pass to refresh
-`TESTCASE_EXECUTION_FINAL_REPORT.md` with a single unified report snapshot.
+`TESTCASE_EXECUTION_FINAL_REPORT.md` with a single unified report snapshot across
+the full `tests/` directory.
 
 For workload acceptance:
 

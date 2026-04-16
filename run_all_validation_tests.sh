@@ -88,13 +88,17 @@ fi
 STAGE_NAMES=(
   "Bottleneck Tests"
   "Node Validation Tests"
+  "Workload Acceptance"
   "Performance Suite"
+  "MLPerf Suite"
 )
 
 STAGE_COMMANDS=(
   "pytest -m bottleneck -vv tests/test_bottleneck_analysis.py"
   "pytest -m node_validation -vv tests/test_node_validation.py"
+  "pytest -m workload_acceptance -vv tests/test_node_validation.py tests/test_vllm_prefill_validation.py"
   "pytest -vv tests/test_performance_suite.py -k test_performance_case_suite"
+  "pytest -m mlperf -vv tests/test_mlperf_suite.py -k test_mlperf_case_suite"
 )
 
 RESULT_CODES=()
@@ -141,11 +145,11 @@ if [[ "$WRITE_CONSOLIDATED_REPORT" -eq 1 ]]; then
   echo
   echo "============================================================"
   echo "Refreshing consolidated markdown report"
-  echo "Command: pytest -vv tests/test_bottleneck_analysis.py tests/test_node_validation.py tests/test_performance_suite.py ${EXTRA_PYTEST_ARGS[*]:-}"
+  echo "Command: pytest -vv tests/ ${EXTRA_PYTEST_ARGS[*]:-}"
   echo "============================================================"
 
   set +e
-  bash -lc "pytest -vv tests/test_bottleneck_analysis.py tests/test_node_validation.py tests/test_performance_suite.py ${EXTRA_PYTEST_ARGS[*]:-}"
+  bash -lc "pytest -vv tests/ ${EXTRA_PYTEST_ARGS[*]:-}"
   consolidated_exit_code=$?
   set -e
 

@@ -194,7 +194,9 @@ def _purpose_from_item(item: pytest.Item) -> str:
     doc = getattr(item.obj, "__doc__", None)
     if not doc:
         return item.name
-    return " ".join(doc.strip().splitlines()).strip()
+    # Keep report purpose concise by using only the first docstring paragraph.
+    paragraph = doc.strip().split("\n\n", 1)[0]
+    return " ".join(paragraph.splitlines()).strip()
 
 
 def _report_section_for_item(item: pytest.Item) -> str:

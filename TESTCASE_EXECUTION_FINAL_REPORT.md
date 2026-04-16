@@ -1,8 +1,44 @@
-# AI Head Node Overall Test Execution Report
+# TEST CASE EXECUTION FINAL REPORT
 
-Generated: 2026-04-16 09:04:08
-Pytest command line: -vv tests/
-KPI source files: artifacts/node_validation_kpis.jsonl, artifacts/performance_suite_kpis.jsonl, artifacts/vllm_prefill_kpis.jsonl
+## Overall Status
+**Status:** FAIL (Attention required - one or more testcase failures were detected)
+
+## Table of Contents
+- [Run Metadata](#run-metadata)
+- [Execution Accounting](#execution-accounting)
+- [Failure Triage Summary](#failure-triage-summary)
+- [Workload Acceptance](#workload-acceptance)
+- [Node Validation](#node-validation)
+- [Bottleneck](#bottleneck)
+- [Performance](#performance)
+- [MLPerf](#mlperf)
+- [Other](#other)
+
+## Run Metadata
+| Metadata | Value |
+|----------|-------|
+| Time Started | Not available in generated artifact |
+| Time Ended | 2026-04-16 09:04:08 |
+| Total Duration | Not available in generated artifact |
+| Pytest command line | -vv tests/ |
+| KPI source files | artifacts/node_validation_kpis.jsonl, artifacts/performance_suite_kpis.jsonl, artifacts/vllm_prefill_kpis.jsonl |
+
+## Execution Accounting
+- **Captured:** 324
+- **Executed:** 273
+- **Not Run:** 51
+
+## Failure Triage Summary
+| Section | Count |
+|---------|-------|
+| Workload Acceptance | 1 |
+| Node Validation | 7 |
+| Bottleneck | 4 |
+| Performance | 0 |
+| MLPerf | 0 |
+| Other | 42 |
+
+## Brief Issues
 
 <style>
 .report-scroll { overflow-x: auto; resize: horizontal; border: 1px solid #d0d7de; border-radius: 6px; padding: 6px; }

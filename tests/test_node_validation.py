@@ -1535,6 +1535,10 @@ class TestGPUP2PBandwidth:
             if _sc_env.strip()
             else [1, 2, 4, 8]
         )
+        stream_counts = sorted(set(stream_counts))
+        has_stream_1 = 1 in stream_counts
+        has_stream_4 = 4 in stream_counts
+        symmetry_stream_count = 4 if has_stream_4 else max(stream_counts)
         min_stability_ratio = float(
             os.environ.get(
                 "P2P_MULTI_STREAM_MIN_STABILITY",
@@ -1624,15 +1628,16 @@ class TestGPUP2PBandwidth:
                 "ratio_4_over_1": round(float(ratio), 3),
                 "bw_by_streams_gbs": bw_by_streams,
             }
-            ratio_records.append((pair_key, float(ratio), float(bw_1), float(bw_4)))
+            if has_stream_1 and has_stream_4:
+                ratio_records.append((pair_key, float(ratio), float(bw_1), float(bw_4)))
 
-            if bw_1 <= 0:
-                failing_pairs.append(f"GPU{src}->GPU{dst}: 1-stream BW is 0.0 GB/s")
-            elif bw_4 > 0 and ratio < min_stability_ratio:
-                failing_pairs.append(
-                    f"GPU{src}->GPU{dst}: 4-stream BW {bw_4:.2f} GB/s retains only {ratio:.2f}x of "
-                    f"1-stream BW {bw_1:.2f} GB/s (< {min_stability_ratio:.2f}x)"
-                )
+                if bw_1 <= 0:
+                    failing_pairs.append(f"GPU{src}->GPU{dst}: 1-stream BW is 0.0 GB/s")
+                elif bw_4 > 0 and ratio < min_stability_ratio:
+                    failing_pairs.append(
+                        f"GPU{src}->GPU{dst}: 4-stream BW {bw_4:.2f} GB/s retains only {ratio:.2f}x of "
+                        f"1-stream BW {bw_1:.2f} GB/s (< {min_stability_ratio:.2f}x)"
+                    )
 
             logger.info("P2P multi-stream BW (GPU %d->%d): %s", src, dst, bw_by_streams)
 
@@ -1647,8 +1652,8 @@ class TestGPUP2PBandwidth:
             if not forward or not reverse:
                 continue
 
-            forward_bw = float(forward.get("bw_4_stream_gbs", 0.0))
-            reverse_bw = float(reverse.get("bw_4_stream_gbs", 0.0))
+            forward_bw = float(forward.get("bw_by_streams_gbs", {}).get(str(symmetry_stream_count), 0.0))
+            reverse_bw = float(reverse.get("bw_by_streams_gbs", {}).get(str(symmetry_stream_count), 0.0))
             if forward_bw <= 0.0 or reverse_bw <= 0.0:
                 continue
 
@@ -1656,7 +1661,7 @@ class TestGPUP2PBandwidth:
             directional_records.append((forward_key, reverse_key, symmetry_ratio))
             if symmetry_ratio < min_directional_symmetry:
                 failing_pairs.append(
-                    f"GPU{forward_key} vs GPU{reverse_key}: 4-stream directional symmetry "
+                    f"GPU{forward_key} vs GPU{reverse_key}: {symmetry_stream_count}-stream directional symmetry "
                     f"{symmetry_ratio:.2f}x is below {min_directional_symmetry:.2f}x "
                     f"({forward_bw:.2f} vs {reverse_bw:.2f} GB/s)"
                 )
@@ -1695,12 +1700,14 @@ class TestGPUP2PBandwidth:
 
         kpi_payload: Dict[str, Any] = {
             "tested_pair_count": len(peer_pairs),
+            "stream_counts": stream_counts,
             "n_bytes_per_stream": n_bytes_per_stream,
             "n_iters": n_iters,
             "required_min_stability_ratio": min_stability_ratio,
             "observed_min_scaling_ratio": round(min_ratio_observed, 3),
             "observed_avg_scaling_ratio": round(avg_ratio_observed, 3),
             "required_min_directional_symmetry": min_directional_symmetry,
+            "directional_symmetry_stream_count": symmetry_stream_count,
             "observed_min_directional_symmetry": round(min_directional_symmetry_observed, 3),
             "failing_pair_count": len(failing_pairs),
             "worst_pairs": worst_pairs_summary,

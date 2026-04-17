@@ -1529,7 +1529,12 @@ class TestGPUP2PBandwidth:
 
         n_bytes_per_stream = int(os.environ.get("P2P_MULTI_STREAM_BYTES", str(256 * 1024 * 1024)))
         n_iters = int(os.environ.get("P2P_MULTI_STREAM_ITERS", "5"))
-        stream_counts = [1, 2, 4, 8]
+        _sc_env = os.environ.get("P2P_MULTI_STREAM_COUNTS", "")
+        stream_counts = (
+            [int(x.strip()) for x in _sc_env.split(",") if x.strip().isdigit()]
+            if _sc_env.strip()
+            else [1, 2, 4, 8]
+        )
         min_stability_ratio = float(
             os.environ.get(
                 "P2P_MULTI_STREAM_MIN_STABILITY",

@@ -73,8 +73,6 @@
 | Domain | Testcases | Passed | Failed | Skipped |
 |---|---:|---:|---:|---:|
 | Functional Validation | 324 | 217 | 56 | 51 |
-## Brief Issues
-
 | Domain | Section | Test | Status | Issue |
 |---|---|---|---|---|
 | Functional Validation | Bottleneck | test_cpu_fp32_efficiency_report | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | AssertionError: CPU FP32 (1 process, BLAS threads=224): efficiency 3.23% is below threshold 70.00% (measured=0.880, theoretical=27.238) assert 0.03228907860796913 >= 0.7 |
@@ -200,6 +198,8 @@
 
 ## Workload Acceptance
 
+<details><summary>Workload Acceptance</summary>
+
 <div class="report-scroll">
 <table class="report-table">
 <thead><tr><th style="min-width: 380px;">Test</th><th style="min-width: 360px;">Purpose</th><th style="min-width: 100px;">Status</th><th style="min-width: 360px;">Result</th><th style="min-width: 300px;">Analysis</th><th style="min-width: 380px;">KPI</th><th style="min-width: 320px;">Reason / Success Case / Issue</th></tr></thead>
@@ -232,7 +232,11 @@
 </table>
 </div>
 
+</details>
+
 ## Node Validation
+
+<details><summary>Node Validation</summary>
 
 <div class="report-scroll">
 <table class="report-table">
@@ -269,7 +273,11 @@
 </table>
 </div>
 
+</details>
+
 ## Bottleneck
+
+<details><summary>Bottleneck</summary>
 
 <div class="report-scroll">
 <table class="report-table">
@@ -304,7 +312,11 @@
 </table>
 </div>
 
+</details>
+
 ## Performance
+
+<details><summary>Performance</summary>
 
 <div class="report-scroll">
 <table class="report-table">
@@ -339,7 +351,11 @@
 </table>
 </div>
 
+</details>
+
 ## MLPerf
+
+<details><summary>MLPerf</summary>
 
 <div class="report-scroll">
 <table class="report-table">
@@ -370,7 +386,11 @@
 </table>
 </div>
 
+</details>
+
 ## Other
+
+<details><summary>Other</summary>
 
 <div class="report-scroll">
 <table class="report-table">
@@ -578,3 +598,11 @@
 </tbody>
 </table>
 </div>
+
+</details>
+
+---
+
+### Back to top
+
+---

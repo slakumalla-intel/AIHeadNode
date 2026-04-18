@@ -23,7 +23,12 @@ SNAPSHOT_INTERVAL_SEC="60"
 LOG_DIR="artifacts/soak_$(date +%Y%m%d_%H%M%S)"
 
 # Set this from shell before running, or pass with --llama-cmd.
-LLAMA_TRAIN_CMD="${LLAMA_TRAIN_CMD:-}"
+# HuggingFace model/dataset to use when LLAMA_TRAIN_CMD is not set.
+# Override via env or --llama-cmd to supply a custom training command.
+HF_MODEL="${HF_MODEL:-meta-llama/Llama-2-7b-hf}"
+HF_DATASET="${HF_DATASET:-wikitext}"
+HF_DATASET_CONFIG="${HF_DATASET_CONFIG:-wikitext-2-raw-v1}"
+HF_OUTPUT_DIR="${HF_OUTPUT_DIR:-artifacts/hf_soak_output}"
 
 # Optional but useful defaults for MLPerf-style llama 70B LoRA fine-tuning.
 ML_NUM_GPUS="${ML_NUM_GPUS:-4}"
@@ -89,10 +94,33 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$LLAMA_TRAIN_CMD" ]]; then
-  echo "ERROR: Llama training command is required. Set LLAMA_TRAIN_CMD or pass --llama-cmd." >&2
-  echo "Hint: Use the MLPerf llama2-lora command from tests/test_mlperf_suite.py." >&2
-  exit 2
+# Build a default HuggingFace transformers CLM training command when none supplied.
+if [[ -z "${LLAMA_TRAIN_CMD:-}" ]]; then
+  HF_CLM_SCRIPT="$(python3 -c 'import transformers, pathlib; print(pathlib.Path(transformers.__file__).parent / "examples" / "pytorch" / "language-modeling" / "run_clm.py")' 2>/dev/null || true)"
+  if [[ -z "$HF_CLM_SCRIPT" || ! -f "$HF_CLM_SCRIPT" ]]; then
+    HF_CLM_SCRIPT="/tmp/hf_run_clm.py"
+    if [[ ! -f "$HF_CLM_SCRIPT" ]]; then
+      echo "[INFO] Downloading run_clm.py from HuggingFace transformers examples..."
+      curl -fsSL \
+        "https://raw.githubusercontent.com/huggingface/transformers/main/examples/pytorch/language-modeling/run_clm.py" \
+        -o "$HF_CLM_SCRIPT"
+    fi
+  fi
+  LLAMA_TRAIN_CMD="torchrun \
+    --nproc_per_node=${ML_NUM_GPUS} \
+    ${HF_CLM_SCRIPT} \
+    --model_name_or_path ${HF_MODEL} \
+    --dataset_name ${HF_DATASET} \
+    --dataset_config_name ${HF_DATASET_CONFIG} \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 4 \
+    --bf16 \
+    --do_train \
+    --max_steps 200 \
+    --logging_steps 20 \
+    --save_strategy no \
+    --output_dir ${HF_OUTPUT_DIR}"
+  echo "[INFO] Using default HuggingFace CLM training command (model: ${HF_MODEL}, dataset: ${HF_DATASET}/${HF_DATASET_CONFIG})"
 fi
 
 for c in stress-ng fio timeout; do

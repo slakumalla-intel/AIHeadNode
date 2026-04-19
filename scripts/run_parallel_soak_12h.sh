@@ -27,7 +27,7 @@ LOG_DIR="artifacts/soak_$(date +%Y%m%d_%H%M%S)"
 # Override via env or --llama-cmd to supply a custom training command.
 HF_MODEL="${HF_MODEL:-meta-llama/Llama-2-7b-hf}"
 HF_DATASET="${HF_DATASET:-wikitext}"
-HF_DATASET_CONFIG="${HF_DATASET_CONFIG:-wikitext-2-raw-v1}"
+HF_DATASET_CONFIG="${HF_DATASET_CONFIG:-plain_text}"
 HF_OUTPUT_DIR="${HF_OUTPUT_DIR:-artifacts/hf_soak_output}"
 
 # Optional but useful defaults for MLPerf-style llama 70B LoRA fine-tuning.

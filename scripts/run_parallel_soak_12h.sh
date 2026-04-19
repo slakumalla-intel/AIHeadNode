@@ -130,6 +130,10 @@ for c in stress-ng fio timeout; do
   fi
 done
 
+# Install HuggingFace dependencies for run_clm.py
+echo "[INFO] Installing HuggingFace training dependencies..."
+pip install --quiet evaluate datasets accelerate 2>&1 | tail -5 || true
+
 mkdir -p "$LOG_DIR"
 mkdir -p "$MLPERF_OUTPUT_DIR"
 

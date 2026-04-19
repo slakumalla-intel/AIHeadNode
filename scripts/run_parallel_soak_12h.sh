@@ -15,7 +15,7 @@ DURATION_HOURS="12"
 CPU_CORES="224"
 TOTAL_MEM_GB="371"
 DISK_PATH="/"
-FIO_SIZE_GB="600"
+FIO_SIZE_GB="auto"
 FIO_NUMJOBS="8"
 FIO_IODEPTH="64"
 FIO_BS="1M"
@@ -45,7 +45,7 @@ Options:
   --cpu-cores <N>           stress-ng CPU workers (default: 224)
   --total-mem-gb <N>        Total host memory in GB (default: 371)
   --disk-path <PATH>        Mount/path to place fio test file (default: /)
-  --fio-size-gb <N>         fio file size in GB (default: 600)
+  --fio-size-gb <N|auto>    fio file size in GB (default: auto=50% of available disk)
   --fio-numjobs <N>         fio numjobs (default: 8)
   --fio-iodepth <N>         fio iodepth (default: 64)
   --fio-bs <SIZE>           fio block size (default: 1M)
@@ -140,10 +140,23 @@ mkdir -p "$MLPERF_OUTPUT_DIR"
 DURATION_SEC=$((DURATION_HOURS * 3600))
 END_TS=$(( $(date +%s) + DURATION_SEC ))
 
-# Keep stress memory pressure below total system memory to avoid immediate OOM kill.
-STRESS_MEM_GB=$(( TOTAL_MEM_GB * 75 / 100 ))
+# Use half system memory for stress-ng and leave the remainder for AI workload and OS.
+STRESS_MEM_GB=$(( TOTAL_MEM_GB * 50 / 100 ))
 if (( STRESS_MEM_GB < 32 )); then
   STRESS_MEM_GB=32
+fi
+
+# Use half of available disk for fio unless explicitly overridden via --fio-size-gb.
+if [[ "${FIO_SIZE_GB:-}" == "" || "${FIO_SIZE_GB:-}" == "auto" ]]; then
+  AVAIL_DISK_GB="$(df -BG --output=avail "$DISK_PATH" 2>/dev/null | tail -1 | tr -dc '0-9')"
+  if [[ -n "$AVAIL_DISK_GB" ]]; then
+    FIO_SIZE_GB=$(( AVAIL_DISK_GB / 2 ))
+  else
+    FIO_SIZE_GB=100
+  fi
+fi
+if (( FIO_SIZE_GB < 10 )); then
+  FIO_SIZE_GB=10
 fi
 
 FIO_FILE="$DISK_PATH/fio_soak_$(date +%Y%m%d_%H%M%S).dat"

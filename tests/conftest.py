@@ -215,6 +215,27 @@ def _report_section_for_item(item: pytest.Item) -> str:
         return "Bottleneck"
     if "node_validation" in marker_names:
         return "Node Validation"
+    if (
+        "ai_pipeline" in marker_names
+        or "data_loading" in marker_names
+        or "model_orch" in marker_names
+        or "storage_net_io" in marker_names
+        or "inference_kpis" in marker_names
+        or Path(str(item.fspath)).name == "test_ai_pipeline_kpis.py"
+    ):
+        return "AI Pipeline KPIs"
+    if (
+        "system_health" in marker_names
+        or "thermal_stability" in marker_names
+        or "ecc_link_health" in marker_names
+        or "energy_efficiency" in marker_names
+        or "quant_correctness" in marker_names
+        or "ddp_correctness" in marker_names
+        or "compile_correctness" in marker_names
+        or "stream_correctness" in marker_names
+        or Path(str(item.fspath)).name == "test_system_health_and_reliability.py"
+    ):
+        return "System Health & Reliability"
     return "Other"
 
 
@@ -277,6 +298,8 @@ def _kpi_paths() -> List[Path]:
         Path(os.environ.get("NODE_VALIDATION_KPI_FILE", "artifacts/node_validation_kpis.jsonl")),
         Path(os.environ.get("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")),
         Path(os.environ.get("VLLM_PREFILL_KPI_FILE", "artifacts/vllm_prefill_kpis.jsonl")),
+        Path(os.environ.get("PIPELINE_KPI_FILE", "artifacts/ai_pipeline_kpis.jsonl")),
+        Path(os.environ.get("HEALTH_KPI_FILE", "artifacts/system_health_kpis.jsonl")),
     ]
     deduped: List[Path] = []
     seen = set()
@@ -479,6 +502,8 @@ def _write_final_report(config: pytest.Config) -> None:
         "Bottleneck",
         "Performance",
         "MLPerf",
+        "AI Pipeline KPIs",
+        "System Health & Reliability",
         "Other",
     ]
     section_rows: Dict[str, List[Tuple[str, Dict[str, str]]]] = {section: [] for section in section_order}
@@ -742,6 +767,19 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "workload_acceptance: workload acceptance tests")
     config.addinivalue_line("markers", "rdma_validation: RDMA/MMIO/FENCE/DMA functional validation tests")
     config.addinivalue_line("markers", "mlperf: MLPerf benchmark and compliance tests")
+    config.addinivalue_line("markers", "ai_pipeline: all AI pipeline KPI tests (data loading, model orch, storage, inference)")
+    config.addinivalue_line("markers", "data_loading: data loading and preprocessing KPI tests")
+    config.addinivalue_line("markers", "model_orch: model orchestration KPI tests (load time, checkpoint, KV cache, TP)")
+    config.addinivalue_line("markers", "storage_net_io: storage and networking I/O KPI tests")
+    config.addinivalue_line("markers", "inference_kpis: inference pipeline KPI tests (TTFT, ITL, batching, GPU util)")
+    config.addinivalue_line("markers", "system_health: all system health and reliability tests")
+    config.addinivalue_line("markers", "thermal_stability: GPU thermal limits and clock throttle detection")
+    config.addinivalue_line("markers", "ecc_link_health: GPU ECC error counts and PCIe link health")
+    config.addinivalue_line("markers", "energy_efficiency: GFLOPS/W energy efficiency measurements")
+    config.addinivalue_line("markers", "quant_correctness: FP8/INT8/BF16 quantisation numerical correctness")
+    config.addinivalue_line("markers", "ddp_correctness: DDP/NCCL gradient synchronisation correctness")
+    config.addinivalue_line("markers", "compile_correctness: torch.compile correctness and speedup validation")
+    config.addinivalue_line("markers", "stream_correctness: CUDA stream ordering and event synchronisation correctness")
     setattr(config, "_overall_report_rows", {})
 
 

@@ -141,6 +141,13 @@ tr:hover td{background:#ffffff08}
 .stat-box .num{font-size:2rem;font-weight:800;color:var(--intel-light)}
 .stat-box .lbl{font-size:.78rem;color:var(--muted);margin-top:2px}
 
+/* ────────────────────────────── cpu role badges ───────────────────────── */
+.cpu-badge{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.cpu-p{background:#e05252;color:#fff}
+.cpu-s{background:#f0a500;color:#000}
+.cpu-g{background:#21262d;color:#8b949e;border:1px solid #30363d}
+.cpu-g-label{background:#29c76f18;color:var(--accent-green);border:1px solid #29c76f40}
+
 /* ──────────────────────── domain colour coding ────────────────────────── */
 .dom-a{color:#29c76f} .dom-b{color:#00aeef} .dom-c{color:#f0a500}
 .dom-d{color:#e05252} .dom-e{color:#9b59b6} .dom-f{color:#e67e22}
@@ -328,11 +335,60 @@ tr:hover td{background:#ffffff08}
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
-     SLIDE 05 — DOMAIN A: DATA LOADING & PREPROCESSING
+     SLIDE 05 — HOST CPU CRITICAL KPIs
+     ════════════════════════════════════════════════════════════ -->
+<section class="slide slide-content" id="s5-cpu">
+  <div class="section-label">CPU Focus · Host CPU in a CPU+GPU Node</div>
+  <h2>Host CPU — Priority KPIs in a CPU+GPU AI System</h2>
+  <div class="accent-line"></div>
+  <p style="margin-bottom:12px;font-size:.88rem;color:var(--muted)">The Host CPU performs orchestration, preprocessing, I/O, NUMA-aware memory staging, and torch.compile. A CPU bottleneck stalls <em>all 4 GPUs simultaneously</em> without appearing in GPU utilisation metrics.</p>
+  <div class="card-grid card-grid-3" style="gap:10px">
+    <div class="card card-red">
+      <div style="margin-bottom:10px"><span class="cpu-badge cpu-p">🔴 CRITICAL — CPU Bottleneck Stalls All GPUs</span></div>
+      <ul style="font-size:.84rem;line-height:1.75;padding-left:16px">
+        <li><strong>overlap_pct ≥ 60%</strong> — CPU prefetch/GPU compute overlap; GPU idle = direct revenue loss</li>
+        <li><strong>tokens/s ≥ 200k</strong> — CPU tokenizer must outpace GPU decoder throughput</li>
+        <li><strong>scaling_ratio ≥ 2×</strong> — multi-thread tokenizer (1→4 threads); broken threading visible here</li>
+        <li><strong>h2d_bw ≥ 41 GB/s</strong> — CPU-initiated PCIe H2D for weight &amp; data loading</li>
+        <li><strong>kernel_launch p50 &lt; 10 µs</strong> — CPU→GPU dispatch latency per batch step</li>
+        <li><strong>seq_read GB/s</strong> — CPU I/O subsystem for 140+ GB model weight files (NVMe)</li>
+        <li><strong>dram_bw ≥ 75% DDR5</strong> — CPU data-staging bandwidth between DRAM and GPU</li>
+      </ul>
+    </div>
+    <div class="card card-amber">
+      <div style="margin-bottom:10px"><span class="cpu-badge cpu-s">🟡 HIGH — CPU Performance Affects SLA</span></div>
+      <ul style="font-size:.84rem;line-height:1.75;padding-left:16px">
+        <li><strong>NUMA local &gt; remote BW</strong> — wrong NUMA binding adds ~20% latency (GPU PCIe affinity)</li>
+        <li><strong>cpu_fp32_gflops ≥ 70%</strong> — attention masks, post-processing, CPU-side decode steps</li>
+        <li><strong>parallel_speedup ≥ 0.85</strong> — threading efficiency of parallel preprocessing pipeline</li>
+        <li><strong>kv_eff ≥ 80%</strong> — CPU-managed KV cache HBM allocation efficiency</li>
+        <li><strong>ar_overhead %</strong> — CPU-orchestrated NCCL AllReduce scheduling overhead per step</li>
+        <li><strong>speedup_ratio ≥ 1.05×</strong> — torch.compile Inductor/Triton runs on CPU; if &lt;1× it adds latency for zero gain</li>
+      </ul>
+    </div>
+    <div class="card card-green">
+      <div style="margin-bottom:10px"><span class="cpu-badge cpu-g-label">🟢 IMPORTANT — Correctness &amp; Reliability</span></div>
+      <ul style="font-size:.84rem;line-height:1.75;padding-left:16px">
+        <li><strong>allreduce_err &lt; 1e-3</strong> — CPU coordinates NCCL gradient sync; silent error = wrong model convergence</li>
+        <li><strong>callback_executed = True</strong> — host-side CPU stream callbacks must fire after GPU work</li>
+        <li><strong>concurrent_ratio ≤ 1.5×</strong> — CPU CUDA driver scheduling 4 streams concurrently</li>
+        <li><strong>sync_overhead p95 &lt; 1ms</strong> — CPU cudaStreamSynchronize() cost accumulated per training step</li>
+        <li><strong>tcp_bw Gbps</strong> — CPU network stack for gradient exchange &amp; checkpoint transfer</li>
+      </ul>
+    </div>
+  </div>
+  <div class="highlight-box" style="margin-top:12px">
+    <p><strong>Key insight:</strong> Every GPU kernel is dispatched by a CPU thread. If the CPU is slow, misconfigured (NUMA), or thermally throttled, <em>all 4 GPUs are underutilized</em> — even if per-GPU compute metrics look healthy.</p>
+  </div>
+  <div class="slide-num">5</div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 06 — DOMAIN A: DATA LOADING & PREPROCESSING
      ════════════════════════════════════════════════════════════ -->
 <section class="slide slide-section" id="s5">
   <div class="section-label">Domain A · AI Pipeline KPIs</div>
-  <h2>Data Loading &amp; Preprocessing</h2>
+  <h2>Data Loading &amp; Preprocessing <span class="cpu-badge cpu-p" style="font-size:.55rem;vertical-align:middle">CPU Primary</span></h2>
   <div class="accent-line accent-line-green"></div>
   <div class="two-col">
     <div>
@@ -371,7 +427,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">5</div>
+  <div class="slide-num">6</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -379,7 +435,7 @@ tr:hover td{background:#ffffff08}
      ════════════════════════════════════════════════════════════ -->
 <section class="slide slide-section" id="s6">
   <div class="section-label">Domain B · AI Pipeline KPIs</div>
-  <h2>Model Orchestration</h2>
+  <h2>Model Orchestration <span class="cpu-badge cpu-s" style="font-size:.55rem;vertical-align:middle">CPU+GPU</span></h2>
   <div class="accent-line"></div>
   <div class="two-col">
     <div>
@@ -418,7 +474,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">6</div>
+  <div class="slide-num">7</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -426,7 +482,7 @@ tr:hover td{background:#ffffff08}
      ════════════════════════════════════════════════════════════ -->
 <section class="slide slide-section" id="s7">
   <div class="section-label">Domain C · AI Pipeline KPIs</div>
-  <h2>Storage &amp; Networking I/O</h2>
+  <h2>Storage &amp; Networking I/O <span class="cpu-badge cpu-p" style="font-size:.55rem;vertical-align:middle">CPU Primary</span></h2>
   <div class="accent-line accent-line-amber"></div>
   <div class="two-col">
     <div>
@@ -465,7 +521,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">7</div>
+  <div class="slide-num">8</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -517,7 +573,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">8</div>
+  <div class="slide-num">9</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -563,7 +619,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">9</div>
+  <div class="slide-num">10</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -609,7 +665,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">10</div>
+  <div class="slide-num">11</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -656,7 +712,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">11</div>
+  <div class="slide-num">12</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -702,7 +758,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">12</div>
+  <div class="slide-num">13</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -710,7 +766,7 @@ tr:hover td{background:#ffffff08}
      ════════════════════════════════════════════════════════════ -->
 <section class="slide slide-section" id="s13">
   <div class="section-label">Domain I · System Health &amp; Reliability</div>
-  <h2>Multi-GPU Gradient Synchronization Correctness</h2>
+  <h2>Multi-GPU Gradient Synchronization Correctness <span class="cpu-badge cpu-p" style="font-size:.55rem;vertical-align:middle">CPU Primary</span></h2>
   <div class="accent-line accent-line-purple"></div>
   <div class="two-col">
     <div>
@@ -743,7 +799,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">13</div>
+  <div class="slide-num">14</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -751,7 +807,7 @@ tr:hover td{background:#ffffff08}
      ════════════════════════════════════════════════════════════ -->
 <section class="slide slide-section" id="s14">
   <div class="section-label">Domain J · System Health &amp; Reliability</div>
-  <h2>torch.compile() Correctness &amp; Speedup</h2>
+  <h2>torch.compile() Correctness &amp; Speedup <span class="cpu-badge cpu-p" style="font-size:.55rem;vertical-align:middle">CPU Primary</span></h2>
   <div class="accent-line accent-line-amber"></div>
   <div class="two-col">
     <div>
@@ -787,7 +843,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">14</div>
+  <div class="slide-num">15</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -834,7 +890,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">15</div>
+  <div class="slide-num">16</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -877,7 +933,7 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">16</div>
+  <div class="slide-num">17</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -940,7 +996,7 @@ tr:hover td{background:#ffffff08}
       </ul>
     </div>
   </div>
-  <div class="slide-num">17</div>
+  <div class="slide-num">18</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -980,36 +1036,47 @@ tr:hover td{background:#ffffff08}
       </div>
     </div>
   </div>
-  <div class="slide-num">18</div>
+  <div class="slide-num">19</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
      SLIDE 19 — KPI TRACEABILITY TABLE
      ════════════════════════════════════════════════════════════ -->
 <section class="slide slide-content" id="s19">
-  <div class="section-label">KPI Framework</div>
-  <h2>KPI → Decision Traceability</h2>
+  <div class="section-label">KPI Framework · CPU Focus</div>
+  <h2>KPI → Decision Traceability &amp; CPU Importance</h2>
   <div class="accent-line"></div>
-  <table style="font-size:.83rem">
+  <p style="font-size:.82rem;margin-bottom:10px;color:var(--muted)">
+    <span class="cpu-badge cpu-p">CPU ★</span>&nbsp;CPU-primary bottleneck &nbsp;·&nbsp;
+    <span class="cpu-badge cpu-s">CPU+GPU</span>&nbsp;Shared bottleneck &nbsp;·&nbsp;
+    <span class="cpu-badge cpu-g">GPU</span>&nbsp;GPU-side — CPU orchestrates but does not execute
+  </p>
+  <table style="font-size:.79rem">
     <thead>
-      <tr><th>KPI</th><th>Domain</th><th>Threshold</th><th>Failure Meaning</th><th>Action</th></tr>
+      <tr><th>KPI</th><th>Domain</th><th>Threshold</th><th>CPU Role</th><th>Failure Meaning</th><th>Action</th></tr>
     </thead>
     <tbody>
-      <tr><td>ue_count</td><td>F – ECC</td><td>= 0</td><td>Silent HBM3 data corruption</td><td>RMA GPU immediately</td></tr>
-      <tr><td>pcie_replay_count</td><td>F – PCIe</td><td>= 0</td><td>Signal integrity / riser fault</td><td>Reseat or replace riser card</td></tr>
-      <tr><td>clock_drop_ratio</td><td>E – Thermal</td><td>≤ 0.10</td><td>Thermal throttle reducing throughput</td><td>Improve airflow / check TIM</td></tr>
-      <tr><td>tflops_per_watt</td><td>G – Energy</td><td>≥ 1.0</td><td>Inefficient compute (power cap / derating)</td><td>Review power limits &amp; cooling</td></tr>
-      <tr><td>int8_rel_err</td><td>H – Quant</td><td>< 5%</td><td>Quantised inference silent accuracy loss</td><td>Verify CUDA / TRT version</td></tr>
-      <tr><td>allreduce_err</td><td>I – DDP</td><td>< 1e-3</td><td>NCCL gradient corruption</td><td>Check NCCL version &amp; NVLink / PCIe</td></tr>
-      <tr><td>speedup_ratio</td><td>J – Compile</td><td>≥ 1.05</td><td>torch.compile not beneficial</td><td>Check Triton / Inductor version</td></tr>
-      <tr><td>concurrent_ratio</td><td>K – Streams</td><td>≤ 1.5</td><td>Stream serialisation / scheduling bug</td><td>Profile with Nsight Systems</td></tr>
-      <tr><td>TTFT_ms</td><td>D – Inference</td><td>Model-specific</td><td>Prefill latency SLA breach</td><td>Increase TP, reduce seq len</td></tr>
-      <tr><td>overlap_pct</td><td>A – Data Load</td><td>≥ 60%</td><td>CPU preprocessing is GPU bottleneck</td><td>Add DataLoader workers</td></tr>
-      <tr><td>h2d_bw_gbps</td><td>Interconnect</td><td>≥ 41 GB/s</td><td>PCIe bandwidth limiting weight load</td><td>Check PCIe Gen/width negotiation</td></tr>
-      <tr><td>hbm_bw_tbps</td><td>GPU</td><td>≥ 2.68 TB/s</td><td>HBM3 underperforming (80% of 3.35)</td><td>Check for memory-bound workload / ECC cost</td></tr>
+      <tr style="background:#e0525210"><td><strong>overlap_pct</strong></td><td>A – Data Load</td><td>≥ 60%</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU preprocessing is GPU bottleneck → GPU idle</td><td>Add DataLoader workers; use async prefetch</td></tr>
+      <tr style="background:#e0525210"><td><strong>tokens_per_sec</strong></td><td>A – Data Load</td><td>≥ 200k</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU tokenizer too slow to feed GPU decoder</td><td>Increase tokenizer threads; use fast tokenizer</td></tr>
+      <tr style="background:#e0525210"><td><strong>dram_bw_gbps</strong></td><td>Memory</td><td>≥ 75% DDR5</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU memory BW limits data staging to GPU</td><td>Check NUMA interleaving; verify DDR5 speed</td></tr>
+      <tr style="background:#e0525210"><td><strong>cpu_fp32_gflops</strong></td><td>CPU Valid.</td><td>≥ 70% AVX-512</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU too slow for post-processing / attention masks</td><td>Check BIOS power limits; CPU frequency scaling</td></tr>
+      <tr style="background:#e0525210"><td><strong>parallel_speedup</strong></td><td>CPU Valid.</td><td>≥ 0.85 linear</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU threading inefficiency in data pipeline</td><td>Check thread affinity; disable NUMA balancing</td></tr>
+      <tr style="background:#e0525210"><td><strong>kernel_launch_us</strong></td><td>Node Valid.</td><td>p50 &lt; 10 µs</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>High CPU→GPU launch overhead accumulates per step</td><td>Use CUDA graphs; reduce Python overhead</td></tr>
+      <tr style="background:#e0525210"><td><strong>speedup_ratio</strong></td><td>J – Compile</td><td>≥ 1.05×</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>torch.compile Inductor runs on CPU; no gain = overhead</td><td>Check Triton / Inductor version</td></tr>
+      <tr style="background:#e0525210"><td><strong>allreduce_err</strong></td><td>I – DDP</td><td>&lt; 1e-3</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU-coordinated NCCL gradient corruption</td><td>Check NCCL version &amp; PCIe topology</td></tr>
+      <tr style="background:#f0a50010"><td>h2d_bw_gbps</td><td>Interconnect</td><td>≥ 41 GB/s</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>PCIe BW limits CPU-initiated weight/data transfer</td><td>Check PCIe Gen/width negotiation</td></tr>
+      <tr style="background:#f0a50010"><td>numa_local_ratio</td><td>CPU Valid.</td><td>local &gt; remote</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>Wrong CPU NUMA node → GPU PCIe affinity penalty +20%</td><td>Pin process to NUMA node nearest target GPU</td></tr>
+      <tr style="background:#f0a50010"><td>pcie_replay_count</td><td>F – PCIe</td><td>= 0</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>Signal integrity fault on CPU-GPU PCIe path</td><td>Reseat or replace riser card</td></tr>
+      <tr style="background:#f0a50010"><td>concurrent_ratio</td><td>K – Streams</td><td>≤ 1.5×</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>CPU CUDA driver serialising 4-stream scheduling</td><td>Profile with Nsight Systems</td></tr>
+      <tr style="background:#f0a50010"><td>TTFT_ms</td><td>D – Inference</td><td>Model-specific</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>Prefill SLA breach (CPU batching + GPU compute)</td><td>Increase TP, tune batch assembly</td></tr>
+      <tr><td>hbm_bw_tbps</td><td>GPU</td><td>≥ 2.68 TB/s</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>HBM3 underperforming (80% of 3.35 TB/s)</td><td>Check ECC cost; memory-bound workload analysis</td></tr>
+      <tr><td>tflops_per_watt</td><td>G – Energy</td><td>≥ 1.0</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Power cap / derating reducing GPU efficiency</td><td>Review power limits &amp; cooling</td></tr>
+      <tr><td>clock_drop_ratio</td><td>E – Thermal</td><td>≤ 0.10</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Thermal throttle reducing GPU SM clock</td><td>Improve airflow / check thermal interface</td></tr>
+      <tr><td>ue_count</td><td>F – ECC</td><td>= 0</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Silent HBM3 data corruption</td><td>RMA GPU immediately</td></tr>
+      <tr><td>int8_rel_err</td><td>H – Quant</td><td>&lt; 5%</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Quantised inference silent accuracy loss</td><td>Verify CUDA / TRT version</td></tr>
     </tbody>
   </table>
-  <div class="slide-num">19</div>
+  <div class="slide-num">20</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -1064,7 +1131,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
       </div>
     </div>
   </div>
-  <div class="slide-num">20</div>
+  <div class="slide-num">21</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -1124,7 +1191,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
       </div>
     </div>
   </div>
-  <div class="slide-num">21</div>
+  <div class="slide-num">22</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -1168,7 +1235,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
       </div>
     </div>
   </div>
-  <div class="slide-num">22</div>
+  <div class="slide-num">23</div>
 </section>
 
 </div><!-- /deck -->

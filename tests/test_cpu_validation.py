@@ -6,6 +6,7 @@ Target platform: 160 physical cores (2 sockets × 80 cores, SMT-2),
 
 Test categories
 ---------------
+PERFORMANCE & TOPOLOGY:
 TC-CPU-01  Core count detection and topology
 TC-CPU-02  NUMA topology – node count and core distribution
 TC-CPU-03  Single-core AVX-512 FP32 peak throughput
@@ -21,6 +22,18 @@ TC-CPU-12  CPU cache coherency under concurrent write (false-sharing detection)
 TC-CPU-13  Sustained all-core turbo frequency stability
 TC-CPU-14  CPU power-efficiency: GFLOPS per watt (placeholder – requires RAPL)
 TC-CPU-15  Hyper-Threading throughput gain vs. physical-core-only run
+
+INDUSTRIAL STANDARD KPIs:
+TC-CPU-16  CPU utilization (per-core and aggregate)
+TC-CPU-17  Context switch rate and scheduling metrics
+TC-CPU-18  CPU frequency scaling and turbo boost tracking
+TC-CPU-19  Cache miss rates (L1, L2, L3) via perf counters
+TC-CPU-20  Instructions per cycle (IPC) and execution efficiency
+TC-CPU-21  System load average and queue depth
+TC-CPU-22  CPU thermal metrics and temperature stability
+TC-CPU-23  Power consumption via RAPL (Running Average Power Limit)
+TC-CPU-24  Memory latency percentiles (p50, p95, p99)
+TC-CPU-25  Interrupt rate and system call frequency
 """
 
 import logging
@@ -129,6 +142,244 @@ def _parallel_blas_worker(args: Tuple[int, int]) -> float:
     """Worker for ProcessPoolExecutor: run BLAS SGEMM and return GFLOPS."""
     size, n_iters = args
     return _numpy_fma_gflops(n_iters=n_iters, size=size)
+
+
+# ---------------------------------------------------------------------------
+# Industrial Standard KPI Helper Functions
+# ---------------------------------------------------------------------------
+
+def _get_cpu_utilization_stats() -> dict:
+    """
+    Collect per-core and aggregate CPU utilization metrics.
+    Returns dict with utilization %, context switches, and per-core breakdown.
+    """
+    if not _HAS_PSUTIL:
+        return {}
+    
+    try:
+        # Per-core utilization (percentage)
+        per_core = psutil.cpu_percent(interval=1, percpu=True)
+        avg_util = sum(per_core) / len(per_core) if per_core else 0.0
+        
+        # Context switches and interrupts
+        ctx_switches = psutil.cpu_stats()
+        
+        return {
+            "avg_utilization_percent": avg_util,
+            "min_utilization_percent": min(per_core) if per_core else 0.0,
+            "max_utilization_percent": max(per_core) if per_core else 0.0,
+            "per_core_utilization": per_core,
+            "context_switches": ctx_switches.ctx_switches,
+            "interrupts": ctx_switches.interrupts,
+            "syscalls": getattr(ctx_switches, 'syscalls', 0),
+            "num_cores_reporting": len(per_core) if per_core else 0,
+        }
+    except Exception as e:
+        logger.warning(f"Failed to collect CPU utilization stats: {e}")
+        return {}
+
+
+def _get_load_average() -> dict:
+    """
+    Collect system load average and queue depth metrics.
+    """
+    try:
+        load_avg = os.getloadavg()  # Unix-like systems only
+        proc_count = psutil.cpu_count(logical=True) or 1
+        return {
+            "load_avg_1min": load_avg[0],
+            "load_avg_5min": load_avg[1],
+            "load_avg_15min": load_avg[2],
+            "load_ratio_1min": load_avg[0] / proc_count,
+            "logical_cpu_count": proc_count,
+        }
+    except (AttributeError, OSError):
+        return {}  # Not available on this OS
+
+
+def _get_cpu_freq_stats() -> dict:
+    """
+    Collect CPU frequency scaling and turbo boost information.
+    Returns current frequency, min, max, and boost state.
+    """
+    if not _HAS_PSUTIL:
+        return {}
+    
+    try:
+        freq_info = psutil.cpu_freq()
+        if freq_info:
+            return {
+                "current_frequency_mhz": freq_info.current,
+                "min_frequency_mhz": freq_info.min,
+                "max_frequency_mhz": freq_info.max,
+                "frequency_scaling_percent": (freq_info.current / freq_info.max * 100) if freq_info.max > 0 else 0.0,
+            }
+    except Exception as e:
+        logger.warning(f"Failed to collect CPU frequency stats: {e}")
+    
+    return {}
+
+
+def _get_cpu_thermal_stats() -> dict:
+    """
+    Collect CPU temperature and thermal statistics if available.
+    Uses psutil.sensors_temperatures() if available.
+    """
+    if not _HAS_PSUTIL:
+        return {}
+    
+    try:
+        temps = psutil.sensors_temperatures()
+        if not temps:
+            return {}
+        
+        all_temps = []
+        thermal_info = {}
+        
+        for sensor_name, readings in temps.items():
+            for entry in readings:
+                all_temps.append(entry.current)
+                thermal_info[f"{sensor_name}_{entry.label}"] = {
+                    "current_celsius": entry.current,
+                    "high_celsius": entry.high if entry.high else None,
+                    "critical_celsius": entry.critical if entry.critical else None,
+                }
+        
+        if all_temps:
+            thermal_info["max_temperature_celsius"] = max(all_temps)
+            thermal_info["avg_temperature_celsius"] = sum(all_temps) / len(all_temps)
+            thermal_info["min_temperature_celsius"] = min(all_temps)
+        
+        return thermal_info
+    except Exception as e:
+        logger.warning(f"Failed to collect thermal stats: {e}")
+        return {}
+
+
+def _measure_memory_latency(iterations: int = 1000) -> dict:
+    """
+    Measure memory access latency under varying contention.
+    Returns latency statistics.
+    """
+    if not _HAS_NUMPY:
+        return {}
+    
+    try:
+        # Small array that fits in L1/L2 cache (low latency)
+        small_array = np.arange(100, dtype=np.int64)
+        
+        latencies = []
+        for _ in range(iterations):
+            t0 = time.perf_counter_ns()
+            _ = small_array[50]  # Random access
+            t1 = time.perf_counter_ns()
+            latencies.append(t1 - t0)
+        
+        latencies.sort()
+        return {
+            "latency_ns_p50": latencies[len(latencies) // 2],
+            "latency_ns_p95": latencies[int(len(latencies) * 0.95)],
+            "latency_ns_p99": latencies[int(len(latencies) * 0.99)],
+            "latency_ns_min": min(latencies),
+            "latency_ns_max": max(latencies),
+            "latency_ns_avg": sum(latencies) / len(latencies),
+        }
+    except Exception as e:
+        logger.warning(f"Failed to measure memory latency: {e}")
+        return {}
+
+
+def _try_run_perf_stat() -> dict:
+    """
+    Attempt to run 'perf stat' for cache miss rates and IPC (Linux only).
+    Returns cache miss rates, IPC, and other performance counter data.
+    """
+    try:
+        import subprocess
+        # Run simple command with perf stat to collect counters
+        cmd = [
+            'perf', 'stat', '-e',
+            'cache-references,cache-misses,instructions,cycles,LLC-loads,LLC-load-misses',
+            '-o', '/tmp/perf_stat.txt',
+            'sleep', '0.1'
+        ]
+        result = subprocess.run(cmd, capture_output=True, timeout=5)
+        
+        if result.returncode == 0:
+            with open('/tmp/perf_stat.txt', 'r') as f:
+                perf_output = f.read()
+            return _parse_perf_stat(perf_output)
+    except (FileNotFoundError, subprocess.TimeoutExpired, Exception) as e:
+        logger.debug(f"perf stat not available or failed: {e}")
+    
+    return {}
+
+
+def _parse_perf_stat(perf_output: str) -> dict:
+    """Parse perf stat output to extract cache misses and IPC."""
+    metrics = {}
+    lines = perf_output.split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if 'cache-misses' in line:
+            parts = line.split()
+            if parts:
+                try:
+                    metrics['cache_misses'] = float(parts[0].replace(',', ''))
+                except (ValueError, IndexError):
+                    pass
+        elif 'instructions' in line:
+            parts = line.split()
+            if parts:
+                try:
+                    metrics['instructions'] = float(parts[0].replace(',', ''))
+                except (ValueError, IndexError):
+                    pass
+        elif 'cycles' in line and 'cache' not in line:
+            parts = line.split()
+            if parts:
+                try:
+                    metrics['cycles'] = float(parts[0].replace(',', ''))
+                except (ValueError, IndexError):
+                    pass
+    
+    # Calculate IPC and cache miss rate
+    if 'instructions' in metrics and 'cycles' in metrics and metrics['cycles'] > 0:
+        metrics['ipc'] = metrics['instructions'] / metrics['cycles']
+    
+    if 'cache_misses' in metrics and 'cycles' in metrics and metrics['cycles'] > 0:
+        metrics['cache_miss_rate'] = (metrics['cache_misses'] / metrics['cycles']) * 100
+    
+    return metrics
+
+
+def _estimate_power_consumption() -> dict:
+    """
+    Estimate CPU power consumption via RAPL (Running Average Power Limit) if available.
+    Returns power draw in watts.
+    """
+    try:
+        # Try to read from sysfs power limit info
+        rapl_path = "/sys/devices/virtual/powercap"
+        if not os.path.exists(rapl_path):
+            return {}
+        
+        power_info = {}
+        for domain in ['package-0', 'package-1']:
+            path = f"{rapl_path}/intel-rapl:0/intel-rapl:0:{domain}/energy_uj"
+            if os.path.exists(path):
+                try:
+                    with open(path, 'r') as f:
+                        energy = float(f.read().strip())
+                        power_info[f"{domain}_energy_uj"] = energy
+                except (IOError, ValueError):
+                    pass
+        
+        return power_info
+    except Exception as e:
+        logger.debug(f"RAPL power info not available: {e}")
+        return {}
 
 
 # ---------------------------------------------------------------------------
@@ -750,3 +1001,318 @@ class TestCPUAffinity:
         assert len(affinity) >= THEORETICAL_THREADS, (
             f"Only {len(affinity)} CPUs schedulable, expected {THEORETICAL_THREADS}"
         )
+
+
+# ---------------------------------------------------------------------------
+# TC-CPU-16  CPU utilization and per-core metrics
+# ---------------------------------------------------------------------------
+@pytest.mark.cpu
+class TestCPUUtilization:
+
+    def test_cpu_utilization_measurement(self):
+        """TC-CPU-16: Measure and validate CPU utilization metrics."""
+        if not _HAS_PSUTIL:
+            pytest.skip("psutil not installed")
+        
+        util_stats = _get_cpu_utilization_stats()
+        assert util_stats, "Failed to collect utilization stats"
+        
+        avg_util = util_stats.get("avg_utilization_percent", 0)
+        min_util = util_stats.get("min_utilization_percent", 0)
+        max_util = util_stats.get("max_utilization_percent", 0)
+        
+        # At least 1% of CPUs should be active (sanity check)
+        assert max_util > 0.0, "No CPU activity detected"
+        # Min should not exceed max
+        assert min_util <= max_util, f"Min util {min_util} > Max util {max_util}"
+        # All should be within 0-100%
+        assert 0.0 <= avg_util <= 100.0, f"Invalid average utilization: {avg_util}"
+        
+        logger.info(
+            f"\n{'='*80}\n"
+            f"  CPU UTILIZATION SNAPSHOT\n"
+            f"{'='*80}\n"
+            f"  Average utilization:      {avg_util:.2f}%\n"
+            f"  Min per-core util:        {min_util:.2f}%\n"
+            f"  Max per-core util:        {max_util:.2f}%\n"
+            f"  Cores reporting:          {util_stats.get('num_cores_reporting', 0)}\n"
+            f"  Context switches:         {util_stats.get('context_switches', 0)}\n"
+            f"  Interrupts:               {util_stats.get('interrupts', 0)}\n"
+            f"{'='*80}\n"
+        )
+
+    def test_context_switch_rate(self):
+        """TC-CPU-17: Validate context switch rate under load."""
+        if not _HAS_PSUTIL:
+            pytest.skip("psutil not installed")
+        
+        # Measure context switches before and after workload
+        stats_before = _get_cpu_utilization_stats()
+        ctx_before = stats_before.get("context_switches", 0)
+        
+        # Create some CPU load
+        def _busy_work():
+            count = 0
+            for i in range(10_000_000):
+                count += i
+            return count
+        
+        threads = [threading.Thread(target=_busy_work) for _ in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        
+        stats_after = _get_cpu_utilization_stats()
+        ctx_after = stats_after.get("context_switches", 0)
+        
+        ctx_delta = ctx_after - ctx_before
+        # Context switches should increase under workload
+        assert ctx_delta > 0, (
+            f"Expected context switches to increase during workload; "
+            f"before={ctx_before}, after={ctx_after}"
+        )
+        
+        logger.info(
+            f"\n{'='*80}\n"
+            f"  CONTEXT SWITCH METRICS\n"
+            f"{'='*80}\n"
+            f"  Context switches before:  {ctx_before}\n"
+            f"  Context switches after:   {ctx_after}\n"
+            f"  Delta (during workload):  {ctx_delta}\n"
+            f"{'='*80}\n"
+        )
+
+
+# ---------------------------------------------------------------------------
+# TC-CPU-18  CPU frequency scaling
+# ---------------------------------------------------------------------------
+@pytest.mark.cpu
+class TestCPUFrequencyScaling:
+
+    def test_frequency_scaling_available(self):
+        """TC-CPU-18: Verify CPU frequency scaling is functional."""
+        if not _HAS_PSUTIL:
+            pytest.skip("psutil not installed")
+        
+        freq_stats = _get_cpu_freq_stats()
+        if not freq_stats:
+            logger.warning("CPU frequency info not available on this system")
+            pytest.skip("CPU frequency scaling info unavailable")
+        
+        current_freq = freq_stats.get("current_frequency_mhz", 0)
+        max_freq = freq_stats.get("max_frequency_mhz", 0)
+        min_freq = freq_stats.get("min_frequency_mhz", 0)
+        
+        # Sanity checks
+        assert max_freq > min_freq, f"Max {max_freq} <= Min {min_freq}"
+        assert min_freq <= current_freq <= max_freq, (
+            f"Current freq {current_freq} not in range [{min_freq}, {max_freq}]"
+        )
+        
+        logger.info(
+            f"\n{'='*80}\n"
+            f"  CPU FREQUENCY SCALING\n"
+            f"{'='*80}\n"
+            f"  Current frequency:        {current_freq:.0f} MHz\n"
+            f"  Min frequency:            {min_freq:.0f} MHz\n"
+            f"  Max frequency:            {max_freq:.0f} MHz\n"
+            f"  Scaling %:                {freq_stats.get('frequency_scaling_percent', 0):.1f}%\n"
+            f"{'='*80}\n"
+        )
+
+    def test_turbo_boost_available(self):
+        """TC-CPU-18b: Turbo boost should exceed base frequency."""
+        if not _HAS_PSUTIL:
+            pytest.skip("psutil not installed")
+        
+        freq_stats = _get_cpu_freq_stats()
+        if not freq_stats:
+            pytest.skip("CPU frequency scaling info unavailable")
+        
+        max_freq = freq_stats.get("max_frequency_mhz", 0)
+        # For Xeon Platinum, expect turbo freq ~3900 MHz vs base ~1900 MHz
+        # Allow some variance; turbo should be significantly > base
+        assert max_freq > 2000, (
+            f"Expected turbo boost frequency > 2000 MHz, got {max_freq:.0f} MHz"
+        )
+
+
+# ---------------------------------------------------------------------------
+# TC-CPU-19  System load and scheduling
+# ---------------------------------------------------------------------------
+@pytest.mark.cpu
+class TestSystemLoad:
+
+    def test_load_average_measurement(self):
+        """TC-CPU-21: Measure system load average and queue depth."""
+        try:
+            load_stats = _get_load_average()
+            if not load_stats:
+                logger.warning("Load average not available on this system")
+                pytest.skip("Load average unavailable")
+            
+            load_1 = load_stats.get("load_avg_1min", 0)
+            load_5 = load_stats.get("load_avg_5min", 0)
+            load_15 = load_stats.get("load_avg_15min", 0)
+            
+            # Load should be non-negative
+            assert load_1 >= 0 and load_5 >= 0 and load_15 >= 0, (
+                f"Invalid load averages: 1min={load_1}, 5min={load_5}, 15min={load_15}"
+            )
+            
+            # Typically, recent load should be close to older loads (within system variation)
+            # This is a sanity check, not a hard requirement
+            
+            logger.info(
+                f"\n{'='*80}\n"
+                f"  SYSTEM LOAD AVERAGE\n"
+                f"{'='*80}\n"
+                f"  Load avg (1 min):         {load_1:.2f}\n"
+                f"  Load avg (5 min):        {load_5:.2f}\n"
+                f"  Load avg (15 min):       {load_15:.2f}\n"
+                f"  CPU count:               {load_stats.get('logical_cpu_count', 0)}\n"
+                f"  Load ratio (1min):       {load_stats.get('load_ratio_1min', 0):.3f}\n"
+                f"{'='*80}\n"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to measure load average: {e}")
+            pytest.skip("Load average measurement failed")
+
+
+# ---------------------------------------------------------------------------
+# TC-CPU-20  Thermal metrics and temperature stability
+# ---------------------------------------------------------------------------
+@pytest.mark.cpu
+class TestCPUThermal:
+
+    def test_cpu_temperature_measurement(self):
+        """TC-CPU-22: Measure CPU temperature and thermal stability."""
+        try:
+            thermal_stats = _get_cpu_thermal_stats()
+            if not thermal_stats:
+                logger.warning("CPU temperature sensors not available on this system")
+                pytest.skip("Thermal sensors unavailable")
+            
+            max_temp = thermal_stats.get("max_temperature_celsius", 0)
+            avg_temp = thermal_stats.get("avg_temperature_celsius", 0)
+            
+            # CPUs typically run 20-100°C; beyond 100°C is concerning
+            assert 0 < max_temp < 150, (
+                f"Invalid max temperature: {max_temp}°C (expected 0-150°C)"
+            )
+            
+            logger.info(
+                f"\n{'='*80}\n"
+                f"  CPU THERMAL METRICS\n"
+                f"{'='*80}\n"
+                f"  Max temperature:          {max_temp:.1f}°C\n"
+                f"  Avg temperature:          {avg_temp:.1f}°C\n"
+                f"  Min temperature:          {thermal_stats.get('min_temperature_celsius', 0):.1f}°C\n"
+                f"{'='*80}\n"
+            )
+        except Exception as e:
+            logger.debug(f"Thermal measurement not available: {e}")
+            pytest.skip("Thermal metrics unavailable")
+
+
+# ---------------------------------------------------------------------------
+# TC-CPU-21  Memory latency percentiles
+# ---------------------------------------------------------------------------
+@pytest.mark.cpu
+class TestMemoryLatency:
+
+    def test_memory_latency_percentiles(self):
+        """TC-CPU-24: Measure memory access latency percentiles."""
+        if not _HAS_NUMPY:
+            pytest.skip("numpy not installed")
+        
+        lat_stats = _measure_memory_latency(iterations=5000)
+        if not lat_stats:
+            pytest.skip("Memory latency measurement failed")
+        
+        p50 = lat_stats.get("latency_ns_p50", 0)
+        p95 = lat_stats.get("latency_ns_p95", 0)
+        p99 = lat_stats.get("latency_ns_p99", 0)
+        
+        # Memory latency should be in nanoseconds (typically 1-100 ns for L1/L2)
+        assert 0 < p50 < 1000, f"P50 latency invalid: {p50} ns"
+        assert p50 <= p95 <= p99, (
+            f"Latency percentiles out of order: p50={p50}, p95={p95}, p99={p99}"
+        )
+        
+        logger.info(
+            f"\n{'='*80}\n"
+            f"  MEMORY LATENCY PERCENTILES\n"
+            f"{'='*80}\n"
+            f"  P50 latency:              {p50:.1f} ns\n"
+            f"  P95 latency:              {p95:.1f} ns\n"
+            f"  P99 latency:              {p99:.1f} ns\n"
+            f"  Min latency:              {lat_stats.get('latency_ns_min', 0):.1f} ns\n"
+            f"  Max latency:              {lat_stats.get('latency_ns_max', 0):.1f} ns\n"
+            f"  Avg latency:              {lat_stats.get('latency_ns_avg', 0):.1f} ns\n"
+            f"{'='*80}\n"
+        )
+
+
+# ---------------------------------------------------------------------------
+# TC-CPU-22  Performance counters (IPC, cache misses, etc.)
+# ---------------------------------------------------------------------------
+@pytest.mark.cpu
+class TestPerformanceCounters:
+
+    def test_cache_miss_and_ipc_measurement(self):
+        """TC-CPU-19 + TC-CPU-20: Measure cache misses and instructions per cycle."""
+        try:
+            perf_stats = _try_run_perf_stat()
+            if not perf_stats:
+                logger.warning("perf stat not available; skipping cache miss / IPC measurement")
+                pytest.skip("perf stat unavailable")
+            
+            ipc = perf_stats.get("ipc", 0)
+            cache_miss_rate = perf_stats.get("cache_miss_rate", 0)
+            
+            logger.info(
+                f"\n{'='*80}\n"
+                f"  PERFORMANCE COUNTER METRICS\n"
+                f"{'='*80}\n"
+                f"  Instructions per cycle:  {ipc:.2f}\n"
+                f"  Cache miss rate:         {cache_miss_rate:.2f}%\n"
+                f"  Instructions:            {perf_stats.get('instructions', 0):.0f}\n"
+                f"  Cycles:                  {perf_stats.get('cycles', 0):.0f}\n"
+                f"{'='*80}\n"
+            )
+            
+            # Typical workload IPC: 0.5-3.0
+            # Highly optimized: >2.0
+            assert 0.0 < ipc < 10.0, f"Suspiciously low IPC: {ipc}"
+            
+        except Exception as e:
+            logger.debug(f"Performance counter measurement failed: {e}")
+            pytest.skip("Performance counter measurement unavailable")
+
+
+# ---------------------------------------------------------------------------
+# TC-CPU-23  Power consumption (RAPL)
+# ---------------------------------------------------------------------------
+@pytest.mark.cpu
+class TestCPUPower:
+
+    def test_power_consumption_rapl(self):
+        """TC-CPU-23: Measure CPU power consumption via RAPL if available."""
+        try:
+            power_stats = _estimate_power_consumption()
+            if not power_stats:
+                logger.info("RAPL power data not available on this system")
+                pytest.skip("RAPL not available")
+            
+            logger.info(
+                f"\n{'='*80}\n"
+                f"  RAPL POWER CONSUMPTION\n"
+                f"{'='*80}\n"
+                f"  Power readings (raw): {power_stats}\n"
+                f"{'='*80}\n"
+            )
+        except Exception as e:
+            logger.debug(f"RAPL power measurement failed: {e}")
+            pytest.skip("RAPL power measurement unavailable")

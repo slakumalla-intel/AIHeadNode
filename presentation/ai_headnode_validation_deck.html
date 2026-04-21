@@ -13,7 +13,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1117;color:#e6edf3;
 /* ────────────────────────────── slide shell ───────────────────────────── */
 .deck{position:relative;width:100%;height:100%}
 .slide{position:absolute;inset:0;display:none;flex-direction:column;
-       padding:56px 72px 48px;justify-content:center}
+  padding:56px 72px 96px;justify-content:flex-start;overflow-y:auto;
+  overscroll-behavior:contain;scrollbar-gutter:stable}
 .slide.active{display:flex}
 
 /* ─────────────────────────── colour palette ───────────────────────────── */
@@ -34,6 +35,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1117;color:#e6edf3;
 .slide-title{background:linear-gradient(135deg,#0d1117 0%,#0a2a4a 60%,#0d1117 100%)}
 .slide-section{background:linear-gradient(135deg,#0d1117 0%,#0a1f3a 100%)}
 .slide-content{background:#0d1117}
+.slide-title{justify-content:center}
 
 /* ────────────────────────────── typography ────────────────────────────── */
 .chip{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;
@@ -115,6 +117,32 @@ tr:hover td{background:#ffffff08}
 #nav .progress-fill{height:100%;background:var(--intel-blue);border-radius:2px;
                     transition:width .25s}
 #slide-counter{font-size:.82rem;color:var(--muted);white-space:nowrap}
+
+/* ─────────────────────────── sidebar nav ────────────────────────────── */
+#sidebar-nav{position:fixed;top:50%;right:18px;transform:translateY(-50%);
+             display:flex;flex-direction:column;align-items:center;gap:10px;
+             padding:12px 10px;background:#161b22d9;backdrop-filter:blur(8px);
+             border:1px solid var(--border);border-radius:14px;z-index:110}
+#sidebar-nav button{width:42px;height:42px;border-radius:10px;
+                    background:var(--surface2);border:1px solid var(--border);
+                    color:#e6edf3;cursor:pointer;font-size:.85rem;
+                    transition:background .15s,border-color .15s,opacity .15s}
+#sidebar-nav button:hover{background:#0071c530;border-color:var(--intel-blue)}
+#sidebar-nav button:disabled{opacity:.35;cursor:default}
+.sidebar-rail{display:flex;flex-direction:column;gap:8px;align-items:center;
+              max-height:58vh;overflow:auto;padding:2px}
+.sidebar-dot{width:12px;height:12px;border-radius:999px;border:1px solid #4b5563;
+             background:#1f2937;cursor:pointer;transition:transform .15s,
+             background .15s,border-color .15s}
+.sidebar-dot:hover{transform:scale(1.15);border-color:var(--intel-light)}
+.sidebar-dot.active{background:var(--intel-light);border-color:var(--intel-light);
+                    box-shadow:0 0 0 3px #00aeef22}
+
+@media (max-width: 900px){
+  #sidebar-nav{right:10px;padding:10px 8px}
+  .sidebar-rail{max-height:44vh}
+  #sidebar-nav button{width:38px;height:38px}
+}
 
 /* ──────────────────────────── keyboard hint ───────────────────────────── */
 .key-hint{position:fixed;top:16px;right:20px;font-size:.75rem;
@@ -1573,6 +1601,20 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
     </div>
   </div>
 
+  <div class="slide-num">23</div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 23 — KPI SNAPSHOT CONTINUED
+     ════════════════════════════════════════════════════════════ -->
+<section class="slide slide-content" id="s23">
+  <div class="section-label">Latest Run Snapshot</div>
+  <h2>Workload, MLPerf, and Efficiency Summary</h2>
+  <div class="accent-line"></div>
+  <p style="font-size:.9rem;margin-bottom:12px;color:var(--muted)">
+    Continuation of the latest KPI snapshot with workload acceptance, MLPerf coverage posture, normalized efficiency proxies, and the consolidated blocking signals.
+  </p>
+
   <div class="card-grid card-grid-2" style="gap:12px">
     <div class="card card-red">
       <h3>Failing KPI Signals (Unique)</h3>
@@ -1594,13 +1636,13 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
       </ul>
     </div>
   </div>
-  <div class="slide-num">23</div>
+  <div class="slide-num">24</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
-     SLIDE 23 — SUMMARY
+     SLIDE 24 — SUMMARY
      ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-title" id="s23">
+<section class="slide slide-title" id="s24">
   <div style="max-width:900px">
     <div class="chip chip-green" style="margin-bottom:22px">Summary</div>
     <h2>What This Test Suite Delivers</h2>
@@ -1638,39 +1680,91 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
       </div>
     </div>
   </div>
-  <div class="slide-num">24</div>
+  <div class="slide-num">25</div>
 </section>
 
 </div><!-- /deck -->
+
+<!-- ─────────────────────────── sidebar nav ──────────────────────────── -->
+<div id="sidebar-nav" aria-label="Slide sidebar navigation">
+  <button id="btn-up" onclick="navigate(-1)" disabled>Up</button>
+  <div class="sidebar-rail" id="sidebar-rail" aria-label="Slide list"></div>
+  <button id="btn-down" onclick="navigate(1)">Dn</button>
+</div>
 
 <!-- ─────────────────────────── navigation bar ──────────────────────────── -->
 <div id="nav">
   <button id="btn-prev" onclick="navigate(-1)" disabled>◀ Prev</button>
   <div class="progress"><div class="progress-fill" id="prog-fill"></div></div>
-  <span id="slide-counter">1 / 24</span>
+  <span id="slide-counter">1 / 25</span>
   <button id="btn-next" onclick="navigate(1)">Next ▶</button>
 </div>
 
 <script>
 const slides = document.querySelectorAll('.slide');
+const sidebarRail = document.getElementById('sidebar-rail');
 let cur = 0;
 const total = slides.length;
+
+slides.forEach((slide, index) => {
+  const dot = document.createElement('button');
+  dot.type = 'button';
+  dot.className = 'sidebar-dot';
+  dot.setAttribute('aria-label', 'Go to slide ' + (index + 1));
+  dot.title = (slide.querySelector('h2')?.textContent || 'Slide ' + (index + 1)).trim();
+  dot.addEventListener('click', () => showSlide(index));
+  sidebarRail.appendChild(dot);
+});
+
+function syncSidebar(){
+  const dots = sidebarRail.querySelectorAll('.sidebar-dot');
+  dots.forEach((dot, index) => {
+    dot.classList.toggle('active', index === cur);
+  });
+  document.getElementById('btn-up').disabled = cur === 0;
+  document.getElementById('btn-down').disabled = cur === total - 1;
+  dots[cur]?.scrollIntoView({block:'nearest'});
+}
 
 function showSlide(n){
   slides[cur].classList.remove('active');
   cur = Math.max(0, Math.min(n, total - 1));
   slides[cur].classList.add('active');
+  slides[cur].scrollTop = 0;
   document.getElementById('slide-counter').textContent = (cur+1)+' / '+total;
   document.getElementById('prog-fill').style.width = ((cur+1)/total*100)+'%';
   document.getElementById('btn-prev').disabled = cur === 0;
   document.getElementById('btn-next').disabled = cur === total - 1;
+  syncSidebar();
 }
 
 function navigate(dir){ showSlide(cur + dir); }
 
+function scrollCurrentSlide(dir){
+  const slide = slides[cur];
+  const viewport = Math.max(240, Math.floor(slide.clientHeight * 0.82));
+  slide.scrollBy({ top: dir * viewport, behavior: 'smooth' });
+}
+
+function canScrollCurrent(dir){
+  const slide = slides[cur];
+  if(dir > 0) return slide.scrollTop + slide.clientHeight < slide.scrollHeight - 4;
+  return slide.scrollTop > 4;
+}
+
 document.addEventListener('keydown', e => {
-  if(e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') navigate(1);
-  if(e.key === 'ArrowLeft'  || e.key === 'ArrowUp'   || e.key === 'PageUp')   navigate(-1);
+  if(e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' '){
+    e.preventDefault();
+    if(canScrollCurrent(1)) scrollCurrentSlide(1);
+    else navigate(1);
+  }
+  if(e.key === 'ArrowUp' || e.key === 'PageUp'){
+    e.preventDefault();
+    if(canScrollCurrent(-1)) scrollCurrentSlide(-1);
+    else navigate(-1);
+  }
+  if(e.key === 'ArrowRight') navigate(1);
+  if(e.key === 'ArrowLeft') navigate(-1);
   if(e.key === 'Home') showSlide(0);
   if(e.key === 'End')  showSlide(total - 1);
 });

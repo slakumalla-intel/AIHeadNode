@@ -141,6 +141,23 @@ tr:hover td{background:#ffffff08}
 .stat-box .num{font-size:2rem;font-weight:800;color:var(--intel-light)}
 .stat-box .lbl{font-size:.78rem;color:var(--muted);margin-top:2px}
 
+/* ───────────────────────────── executive strip ────────────────────────── */
+.exec-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:18px}
+.exec-pill{background:linear-gradient(135deg,#161b22 0%,#1b2633 100%);
+           border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.exec-pill .title{font-size:.72rem;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.exec-pill .value{font-size:1.05rem;color:#e6edf3;font-weight:700;margin-top:5px}
+
+/* ───────────────────────────── score cards ────────────────────────────── */
+.score-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:10px}
+.score-list{list-style:none;padding-left:0}
+.score-list li{padding:9px 0;border-bottom:1px solid #ffffff14;font-size:.9rem}
+.score-list li:last-child{border-bottom:none}
+.kpi-tag{display:inline-block;min-width:86px;text-align:center;padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:700;margin-right:8px}
+.kpi-critical{background:#e052521a;color:#ff8f8f;border:1px solid #e0525250}
+.kpi-high{background:#f0a5001a;color:#ffc857;border:1px solid #f0a50050}
+.kpi-core{background:#0071c51a;color:#5dc6ff;border:1px solid #0071c550}
+
 /* ────────────────────────────── cpu role badges ───────────────────────── */
 .cpu-badge{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
 .cpu-p{background:#e05252;color:#fff}
@@ -179,6 +196,20 @@ tr:hover td{background:#ffffff08}
       <div class="stat-box"><div class="num">350+</div><div class="lbl">Test Cases</div></div>
       <div class="stat-box"><div class="num">11</div><div class="lbl">KPI Streams</div></div>
       <div class="stat-box"><div class="num">1</div><div class="lbl">Auto Report</div></div>
+    </div>
+    <div class="exec-strip">
+      <div class="exec-pill">
+        <div class="title">Executive Outcome</div>
+        <div class="value">Cross-vendor KPI comparability</div>
+      </div>
+      <div class="exec-pill">
+        <div class="title">Primary Decision</div>
+        <div class="value">Go / No-Go for production readiness</div>
+      </div>
+      <div class="exec-pill">
+        <div class="title">Engineering Value</div>
+        <div class="value">Fast root-cause via KPI traces</div>
+      </div>
     </div>
   </div>
   <div class="slide-num">1</div>
@@ -1054,38 +1085,37 @@ tr:hover td{background:#ffffff08}
      ════════════════════════════════════════════════════════════ -->
 <section class="slide slide-content" id="s19">
   <div class="section-label">KPI Framework · CPU Focus</div>
-  <h2>KPI → Decision Traceability &amp; CPU Importance</h2>
+  <h2>Decision Scorecard: KPIs That Matter Most</h2>
   <div class="accent-line"></div>
-  <p style="font-size:.82rem;margin-bottom:10px;color:var(--muted)">
-    <span class="cpu-badge cpu-p">CPU ★</span>&nbsp;CPU-primary bottleneck &nbsp;·&nbsp;
-    <span class="cpu-badge cpu-s">CPU+GPU</span>&nbsp;Shared bottleneck &nbsp;·&nbsp;
-    <span class="cpu-badge cpu-g">GPU</span>&nbsp;GPU-side — CPU orchestrates but does not execute
+  <p style="font-size:.9rem;margin-bottom:8px;color:var(--muted)">
+    Simplified operator view: track the smallest KPI set that drives deployment decisions and fastest triage.
   </p>
-  <table style="font-size:.79rem">
-    <thead>
-      <tr><th>KPI</th><th>Domain</th><th>Threshold</th><th>CPU Role</th><th>Failure Meaning</th><th>Action</th></tr>
-    </thead>
-    <tbody>
-      <tr style="background:#e0525210"><td><strong>overlap_pct</strong></td><td>A – Data Load</td><td>≥ 60%</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU preprocessing is GPU bottleneck → GPU idle</td><td>Add DataLoader workers; use async prefetch</td></tr>
-      <tr style="background:#e0525210"><td><strong>tokens_per_sec</strong></td><td>A – Data Load</td><td>≥ 200k</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU tokenizer too slow to feed GPU decoder</td><td>Increase tokenizer threads; use fast tokenizer</td></tr>
-      <tr style="background:#e0525210"><td><strong>dram_bw_gbps</strong></td><td>Memory</td><td>≥ 75% DDR5</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU memory BW limits data staging to GPU</td><td>Check NUMA interleaving; verify DDR5 speed</td></tr>
-      <tr style="background:#e0525210"><td><strong>cpu_fp32_gflops</strong></td><td>CPU Valid.</td><td>≥ 70% SIMD</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU too slow for post-processing / attention masks</td><td>Check BIOS power limits; CPU frequency scaling</td></tr>
-      <tr style="background:#e0525210"><td><strong>parallel_speedup</strong></td><td>CPU Valid.</td><td>≥ 0.85 linear</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU threading inefficiency in data pipeline</td><td>Check thread affinity; disable NUMA balancing</td></tr>
-      <tr style="background:#e0525210"><td><strong>kernel_launch_us</strong></td><td>Node Valid.</td><td>p50 &lt; 10 µs</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>High CPU→GPU launch overhead accumulates per step</td><td>Use CUDA graphs; reduce Python overhead</td></tr>
-      <tr style="background:#e0525210"><td><strong>speedup_ratio</strong></td><td>J – Compile</td><td>≥ 1.05×</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>torch.compile Inductor runs on CPU; no gain = overhead</td><td>Check Triton / Inductor version</td></tr>
-      <tr style="background:#e0525210"><td><strong>allreduce_err</strong></td><td>I – DDP</td><td>&lt; 1e-3</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU-coordinated NCCL gradient corruption</td><td>Check NCCL version &amp; PCIe topology</td></tr>
-      <tr style="background:#f0a50010"><td>h2d_bw_gbps</td><td>Interconnect</td><td>≥ 41 GB/s</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>PCIe BW limits CPU-initiated weight/data transfer</td><td>Check PCIe Gen/width negotiation</td></tr>
-      <tr style="background:#f0a50010"><td>numa_local_ratio</td><td>CPU Valid.</td><td>local &gt; remote</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>Wrong CPU NUMA node → GPU PCIe affinity penalty +20%</td><td>Pin process to NUMA node nearest target GPU</td></tr>
-      <tr style="background:#f0a50010"><td>pcie_replay_count</td><td>F – PCIe</td><td>= 0</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>Signal integrity fault on CPU-GPU PCIe path</td><td>Reseat or replace riser card</td></tr>
-      <tr style="background:#f0a50010"><td>concurrent_ratio</td><td>K – Streams</td><td>≤ 1.5×</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>CPU CUDA driver serialising 4-stream scheduling</td><td>Profile with Nsight Systems</td></tr>
-      <tr style="background:#f0a50010"><td>TTFT_ms</td><td>D – Inference</td><td>Model-specific</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>Prefill SLA breach (CPU batching + GPU compute)</td><td>Increase TP, tune batch assembly</td></tr>
-      <tr><td>mem_bw_tbps</td><td>GPU</td><td>≥ 80% of detected peak</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Accelerator memory subsystem underperforming</td><td>Check ECC cost; memory-bound workload analysis</td></tr>
-      <tr><td>tflops_per_watt</td><td>G – Energy</td><td>≥ 1.0</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Power cap / derating reducing GPU efficiency</td><td>Review power limits &amp; cooling</td></tr>
-      <tr><td>clock_drop_ratio</td><td>E – Thermal</td><td>≤ 0.10</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Thermal throttle reducing GPU SM clock</td><td>Improve airflow / check thermal interface</td></tr>
-      <tr><td>ue_count</td><td>F – ECC</td><td>= 0</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Silent accelerator-memory data corruption</td><td>RMA GPU immediately</td></tr>
-      <tr><td>int8_rel_err</td><td>H – Quant</td><td>&lt; 5%</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Quantised inference silent accuracy loss</td><td>Verify CUDA / TRT version</td></tr>
-    </tbody>
-  </table>
+  <div class="score-grid">
+    <div class="card card-accent">
+      <h3>Deployment Gate KPIs (P0/P1)</h3>
+      <ul class="score-list">
+        <li><span class="kpi-tag kpi-critical">P0</span><strong>TTFT / ITL</strong> — user-facing latency SLA must hold under realistic batch and context lengths.</li>
+        <li><span class="kpi-tag kpi-critical">P0</span><strong>FP16/BF16 % of peak</strong> — confirms accelerator compute utilization is competitive.</li>
+        <li><span class="kpi-tag kpi-critical">P0</span><strong>mem_bw_tbps % peak</strong> — validates memory subsystem is not the hidden bottleneck.</li>
+        <li><span class="kpi-tag kpi-high">P1</span><strong>CPU overlap_pct + tokens/s</strong> — detects host-side feeding bottlenecks that idle all GPUs.</li>
+        <li><span class="kpi-tag kpi-high">P1</span><strong>h2d_bw_gbps</strong> — verifies PCIe transfer path for weights and batches.</li>
+        <li><span class="kpi-tag kpi-high">P1</span><strong>tool_parallel_speedup</strong> — validates agentic multi-tool execution scales as expected.</li>
+      </ul>
+    </div>
+    <div class="card card-purple">
+      <h3>Fast Triage Map</h3>
+      <ul class="score-list">
+        <li><span class="kpi-tag kpi-core">Compute</span>Low TFLOPS with normal memory BW: kernel shape, occupancy, or power cap issue.</li>
+        <li><span class="kpi-tag kpi-core">Memory</span>Low memory BW with healthy clocks: ECC overhead, NUMA placement, or workload access pattern.</li>
+        <li><span class="kpi-tag kpi-core">Interconnect</span>Low H2D/D2H or P2P BW: PCIe generation/width mismatch or topology constraints.</li>
+        <li><span class="kpi-tag kpi-core">CPU Host</span>Low overlap_pct / tokenizer throughput: data pipeline or thread-affinity bottleneck.</li>
+        <li><span class="kpi-tag kpi-core">Reliability</span>Any UE ECC or high replay count: hardware integrity action before workload sign-off.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="highlight-box" style="margin-top:12px">
+    <p><strong>Recommended cadence:</strong> run full KPI suite weekly, run P0/P1 scorecard on every driver/framework change, and block rollout on any P0 regression.</p>
+  </div>
   <div class="slide-num">20</div>
 </section>
 
@@ -1124,6 +1154,11 @@ pytest -m stream_correctness  -vv</pre>
         <h3>AI Pipeline KPIs</h3>
         <pre style="font-size:.82rem;color:#79c0ff;background:#0d1117;padding:10px;border-radius:6px;overflow-x:auto">pytest -m ai_pipeline -vv \
   tests/test_ai_pipeline_kpis.py</pre>
+      </div>
+      <div class="card card-green" style="margin-bottom:12px">
+        <h3>Agentic AI KPIs</h3>
+        <pre style="font-size:.82rem;color:#79c0ff;background:#0d1117;padding:10px;border-radius:6px;overflow-x:auto">AGENTIC_EXECUTE=1 pytest -m agentic_ai -vv \
+  tests/test_agentic_ai_validation.py</pre>
       </div>
       <div class="card card-red" style="margin-bottom:12px">
         <h3>Workload Acceptance</h3>

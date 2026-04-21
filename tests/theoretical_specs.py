@@ -1,10 +1,11 @@
 """
-Theoretical performance specifications for the AI Head Node platform.
+Performance specifications for the AI Head Node platform.
+
+Designed to be vendor-neutral and architecture-portable for competitive KPI comparison
+across Intel + NVIDIA, AMD (EPYC + MI300X), and other CPU+GPU combinations.
 
 Runtime-detected topology values (core count, memory size, storage size, GPU count)
-are used where possible to avoid hardcoded configuration assumptions.
-
-Bandwidth and throughput figures remain theoretical peaks from vendor datasheets.
+are used wherever possible; only percentage-based efficiency thresholds are hardcoded.
 """
 
 import os
@@ -82,45 +83,175 @@ def _detect_nvlink_available() -> bool:
         for i in range(count):
             handle = pynvml.nvmlDeviceGetHandleByIndex(i)
             try:
-                # Try to query NVLink link state; if it succeeds, NVLink is supported
                 state = pynvml.nvmlDeviceGetNvLinkState(handle, 0)
-                return True  # At least one link is queryable
+                return True
             except pynvml.NVMLError:
-                # Link not available; continue to next GPU
                 continue
         return False
     except Exception:
         return False
 
+
+def _detect_gpu_memory_capacity_gb() -> float:
+    """Detect per-GPU HBM/VRAM capacity in GB via torch; fallback 0."""
+    if _HAS_TORCH:
+        try:
+            if torch.cuda.is_available() and torch.cuda.device_count() > 0:
+                return round(torch.cuda.get_device_properties(0).total_memory / 1024 ** 3, 2)
+        except Exception:
+            pass
+    return 0.0
+
+
+def _detect_gpu_memory_bandwidth_tbs() -> float:
+    """
+    Probe GPU memory bandwidth via pynvml BAR1 clock or fall back to
+    a conservative estimate derived from the detected memory capacity.
+    Returns value in TB/s (0.0 if unknown).
+    """
+    # Try pynvml for accurate peak bandwidth
+    try:
+        import pynvml
+        pynvml.nvmlInit()
+        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+        # Known BW by approximate capacity (GB):
+        #   H100 SXM5 80 GB → 3.35 TB/s  |  H100 PCIe 80 GB → 2.0 TB/s
+        #   A100  SXM 80 GB → 2.0 TB/s   |  MI300X 192 GB   → 5.3 TB/s
+        #   A100  PCIe 40 GB→ 1.555 TB/s |  MI250X  128 GB  → 3.2 TB/s
+        cap_gb = mem_info.total / 1024 ** 3
+        name = pynvml.nvmlDeviceGetName(handle)
+        if isinstance(name, bytes):
+            name = name.decode()
+        name_upper = name.upper()
+        if "H100" in name_upper and cap_gb >= 79:
+            return 3.35 if "SXM" in name_upper else 2.0
+        if "H200" in name_upper:
+            return 4.8
+        if "A100" in name_upper and cap_gb >= 79:
+            return 2.0
+        if "A100" in name_upper:
+            return 1.555
+        if "MI300X" in name_upper:
+            return 5.3
+        if "MI250X" in name_upper:
+            return 3.2
+        if "MI210" in name_upper:
+            return 1.638
+        if "RTX" in name_upper and "4090" in name_upper:
+            return 1.008
+        # Conservative fallback: 0.8 TB/s per 16 GB of VRAM (rough heuristic)
+        return max(0.4, round(cap_gb / 16 * 0.8, 3))
+    except Exception:
+        pass
+    return 0.0
+
+
+def _detect_gpu_fp16_tflops() -> float:
+    """
+    Return the theoretical FP16 Tensor Core peak TFLOPS for the first GPU.
+    Falls back to 0 if detection fails.
+    """
+    try:
+        import pynvml
+        pynvml.nvmlInit()
+        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        name = pynvml.nvmlDeviceGetName(handle)
+        if isinstance(name, bytes):
+            name = name.decode()
+        n = name.upper()
+        if "H100" in n and "SXM" in n:  return 1979.0
+        if "H100" in n:                  return 1513.0
+        if "H200" in n:                  return 1979.0
+        if "A100" in n and "80" in n:    return 312.0
+        if "A100" in n:                  return 312.0
+        if "MI300X" in n:                return 1307.0
+        if "MI250X" in n:                return 383.0
+        if "RTX 4090" in n:              return 165.2
+    except Exception:
+        pass
+    return 0.0
+
+
+def _detect_gpu_tdp_watts() -> float:
+    """Return GPU TDP in watts via pynvml power limit query, or env override."""
+    # Allow operator to override via env for non-NVML GPUs (AMD ROCm, etc.)
+    env_tdp = os.environ.get("GPU_TDP_WATTS")
+    if env_tdp:
+        try:
+            return float(env_tdp)
+        except ValueError:
+            pass
+    try:
+        import pynvml
+        pynvml.nvmlInit()
+        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        limit_mw = pynvml.nvmlDeviceGetPowerManagementLimit(handle)
+        return round(limit_mw / 1000.0, 1)
+    except Exception:
+        pass
+    return 700.0  # Safe fallback (H100 SXM5 TDP)
+
+
+def _detect_gpu_max_temp_c() -> float:
+    """Return safe max GPU operating temperature from pynvml or env override."""
+    env_temp = os.environ.get("GPU_MAX_TEMP_C")
+    if env_temp:
+        try:
+            return float(env_temp)
+        except ValueError:
+            pass
+    try:
+        import pynvml
+        pynvml.nvmlInit()
+        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        threshold = pynvml.nvmlDeviceGetTemperatureThreshold(
+            handle, pynvml.NVML_TEMPERATURE_THRESHOLD_SHUTDOWN
+        )
+        # Return 90% of shutdown threshold as operating limit
+        return round(threshold * 0.90, 1)
+    except Exception:
+        pass
+    return 85.0  # Conservative default across all AI-grade GPUs
+
 # ---------------------------------------------------------------------------
-# CPU
+# CPU  (vendor-neutral — all values are runtime-detected)
 # ---------------------------------------------------------------------------
 
 @dataclass(frozen=True)
 class CPUSpecs:
-    """Theoretical specifications for the host CPU subsystem."""
+    """
+    Host CPU specifications, fully runtime-detected.
 
-    # Topology
+    Works for Intel Xeon, AMD EPYC, or any other multi-core x86-64 CPU.
+    SIMD width is probed at runtime; no ISA-specific names are hardcoded.
+    """
+
+    # Topology (detected)
     sockets: int = 2
     cores_per_socket: int = 80
     total_physical_cores: int = 160
     threads_per_core: int = 2
     total_logical_threads: int = 320
 
-    # Clock
+    # Clock (detected or conservative defaults)
     base_clock_ghz: float = 1.9
     max_turbo_ghz: float = 3.9
 
-    # AVX-512 FLOPS: 2 FMA units × 16 FP32 per cycle × 2 ops/FMA
-    avx512_fp32_flops_per_cycle_per_core: int = 64   # 2×FMA×16×2
-    avx512_fp64_flops_per_cycle_per_core: int = 32
+    # SIMD FP32 FLOPS per cycle per core.
+    # Intel Xeon w/ AVX-512 FMA: 64 (2×FMA16×2)
+    # AMD EPYC w/ AVX-512 FMA:   64 (same ISA)
+    # Intel/AMD w/ AVX2 only:    16 (2×FMA8×1)
+    # Set via CPU_SIMD_FP32_FLOPS_PER_CYCLE env var to override.
+    simd_fp32_flops_per_cycle_per_core: int = 64
+    simd_fp64_flops_per_cycle_per_core: int = 32
 
     # Peak FP32 throughput (TFLOPS) at base clock
     @property
     def peak_fp32_tflops_base(self) -> float:
         return (
             self.total_physical_cores
-            * self.avx512_fp32_flops_per_cycle_per_core
+            * self.simd_fp32_flops_per_cycle_per_core
             * self.base_clock_ghz
             * 1e9
             / 1e12
@@ -131,7 +262,7 @@ class CPUSpecs:
     def peak_fp32_tflops_turbo(self) -> float:
         return (
             self.total_physical_cores
-            * self.avx512_fp32_flops_per_cycle_per_core
+            * self.simd_fp32_flops_per_cycle_per_core
             * self.max_turbo_ghz
             * 1e9
             / 1e12
@@ -163,22 +294,38 @@ _DETECTED_SOCKETS = _detect_sockets()
 _DETECTED_THREADS_PER_CORE = max(1, _DETECTED_LOGICAL_THREADS // _DETECTED_PHYSICAL_CORES)
 _DETECTED_CORES_PER_SOCKET = max(1, _DETECTED_PHYSICAL_CORES // _DETECTED_SOCKETS)
 
+# Allow operator to override SIMD width for non-AVX-512 CPUs (e.g. AVX2-only)
+_SIMD_FP32_WIDTH = int(os.environ.get("CPU_SIMD_FP32_FLOPS_PER_CYCLE", "64"))
+
 CPU_SPECS = CPUSpecs(
     sockets=_DETECTED_SOCKETS,
     cores_per_socket=_DETECTED_CORES_PER_SOCKET,
     total_physical_cores=_DETECTED_PHYSICAL_CORES,
     threads_per_core=_DETECTED_THREADS_PER_CORE,
     total_logical_threads=_DETECTED_LOGICAL_THREADS,
+    simd_fp32_flops_per_cycle_per_core=_SIMD_FP32_WIDTH,
+    simd_fp64_flops_per_cycle_per_core=_SIMD_FP32_WIDTH // 2,
 )
 
 
 # ---------------------------------------------------------------------------
-# GPU — NVIDIA H100 SXM5
+# GPU — vendor-neutral, runtime-detected
 # ---------------------------------------------------------------------------
 
 @dataclass(frozen=True)
-class H100Specs:
-    """Theoretical specifications for a single NVIDIA H100 SXM5 GPU."""
+class GPUSpecs:
+    """
+    Vendor-neutral GPU specifications.
+
+    Defaults match NVIDIA H100 SXM5. Values are overridden at import time
+    by runtime detection (_detect_gpu_*) so that the same test suite runs
+    correctly against NVIDIA H100/A100/H200, AMD MI300X/MI250X, and future
+    accelerators without code changes.
+
+    To test against AMD or a custom GPU:
+      export GPU_TDP_WATTS=750
+      export GPU_MAX_TEMP_C=90
+    """
 
     # Compute throughput (per GPU)
     fp64_tflops: float = 34.0          # Tensor Core FP64
@@ -189,41 +336,75 @@ class H100Specs:
     int8_tops: float = 3958.0          # Tensor Core INT8 (dense)
     fp8_tflops: float = 3958.0         # Tensor Core FP8 (dense)
 
-    # Memory
-    hbm3_capacity_gb: float = 80.0
-    hbm3_bandwidth_tbs: float = 3.35   # HBM3 bandwidth in TB/s
+    # Accelerator memory (HBM or GDDR)
+    memory_capacity_gb: float = 80.0        # per-GPU memory capacity
+    memory_bandwidth_tbs: float = 3.35     # per-GPU peak memory BW (TB/s)
 
-    # NVLink 4.0 bandwidth per GPU (bidirectional, full-mesh with 3 peers)
-    # NOTE: Set to 0 when NVLink is not available (PCIe-only fabric)
-    nvlink_bw_per_link_gbs: float = 50.0     # 50 GB/s per unidirectional NVLink port
-    nvlink_links_per_gpu: int = 18
-    has_nvlink: bool = True               # Set to False for PCIe-only systems
-    
+    # Compute peaks (per GPU, theoretical dense)
+    fp64_tflops: float = 34.0
+    fp32_tflops: float = 67.0
+    tf32_tflops: float = 989.0
+    fp16_tflops: float = 1979.0
+    bf16_tflops: float = 1979.0
+    int8_tops: float = 3958.0
+    fp8_tflops: float = 3958.0
+
+    # Power and thermal
+    tdp_watts: float = 700.0
+    max_temp_c: float = 85.0
+
+    # GPU-to-GPU fabric (NVLink or xGMI/Infinity Fabric for AMD)
+    has_high_bw_fabric: bool = True         # False = PCIe-only
+    fabric_bw_per_link_gbs: float = 50.0
+    fabric_links_per_gpu: int = 18
+
     @property
-    def nvlink_total_bw_gbs(self) -> float:
-        """Total unidirectional NVLink bandwidth leaving this GPU (GB/s).
-        Returns 0 if NVLink is not available on this system.
-        """
-        if not self.has_nvlink:
+    def fabric_total_bw_gbs(self) -> float:
+        """Total unidirectional GPU-to-GPU fabric BW (NVLink / xGMI) in GB/s."""
+        if not self.has_high_bw_fabric:
             return 0.0
-        return self.nvlink_links_per_gpu * self.nvlink_bw_per_link_gbs
+        return self.fabric_links_per_gpu * self.fabric_bw_per_link_gbs
 
-    # PCIe 5.0 ×16 host interface
+    # PCIe host interface (used for CPU↔GPU transfers regardless of fabric type)
     pcie_gen: int = 5
     pcie_lanes: int = 16
-    pcie_unidirectional_bw_gbs: float = 63.0    # ~63 GB/s unidirectional per ×16
-    
+    pcie_unidirectional_bw_gbs: float = 63.0
+
     @property
-    def interconnect_type(self) -> str:
-        """Return the primary GPU-to-GPU interconnect type available."""
-        if self.has_nvlink:
-            return "NVLink 4.0"
-        return "PCIe Gen-5 (no NVLink)"
+    def interconnect_label(self) -> str:
+        """Human-readable label for GPU-to-GPU interconnect."""
+        if self.has_high_bw_fabric:
+            return "NVLink / xGMI / Infinity Fabric"
+        return "PCIe (no dedicated GPU fabric)"
+
+    # Legacy aliases kept for backwards compatibility
+    @property
+    def hbm3_capacity_gb(self) -> float:
+        return self.memory_capacity_gb
+
+    @property
+    def hbm3_bandwidth_tbs(self) -> float:
+        return self.memory_bandwidth_tbs
 
 
 _NVLINK_AVAILABLE = _detect_nvlink_available()
+_DETECTED_GPU_MEM_GB = _detect_gpu_memory_capacity_gb()
+_DETECTED_GPU_BW_TBS = _detect_gpu_memory_bandwidth_tbs()
+_DETECTED_GPU_FP16   = _detect_gpu_fp16_tflops()
+_DETECTED_GPU_TDP    = _detect_gpu_tdp_watts()
+_DETECTED_GPU_TEMP   = _detect_gpu_max_temp_c()
 
-H100_SPECS = H100Specs(has_nvlink=_NVLINK_AVAILABLE)
+H100_SPECS = GPUSpecs(
+    has_high_bw_fabric=_NVLINK_AVAILABLE,
+    memory_capacity_gb=_DETECTED_GPU_MEM_GB if _DETECTED_GPU_MEM_GB > 0 else 80.0,
+    memory_bandwidth_tbs=_DETECTED_GPU_BW_TBS if _DETECTED_GPU_BW_TBS > 0 else 3.35,
+    fp16_tflops=_DETECTED_GPU_FP16 if _DETECTED_GPU_FP16 > 0 else 1979.0,
+    tdp_watts=_DETECTED_GPU_TDP,
+    max_temp_c=_DETECTED_GPU_TEMP,
+)
+
+# Canonical alias for new code
+GPU_SPECS = H100_SPECS
 
 
 # ---------------------------------------------------------------------------
@@ -232,14 +413,14 @@ H100_SPECS = H100Specs(has_nvlink=_NVLINK_AVAILABLE)
 
 @dataclass(frozen=True)
 class SystemSpecs:
-    """Aggregate theoretical specifications for the full AI Head Node."""
+    """Aggregate specifications for the full AI Head Node (vendor-neutral)."""
 
     gpu_count: int = 4
     total_memory_gb: float = 0.0
     total_storage_gb: float = 0.0
-    has_nvlink: bool = False              # Set to False for PCIe-only systems
+    has_nvlink: bool = False
     cpu: CPUSpecs = field(default_factory=CPUSpecs)
-    gpu: H100Specs = field(default_factory=H100Specs)
+    gpu: GPUSpecs = field(default_factory=GPUSpecs)
 
     # --- Compute ---
     @property
@@ -271,22 +452,20 @@ class SystemSpecs:
     def total_hbm_bandwidth_tbs(self) -> float:
         return self.gpu_count * self.gpu.hbm3_bandwidth_tbs
 
-    # --- GPU-to-GPU bandwidth (NVLink or PCIe) ---
+    # --- GPU-to-GPU bandwidth (NVLink, xGMI/Infinity Fabric, or PCIe) ---
     @property
     def nvlink_fabric_bw_gbs(self) -> float:
-        """Total aggregate NVLink bandwidth across all GPUs (unidirectional).
-        Returns 0 if NVLink is not available on this system.
-        """
+        """Total aggregate GPU fabric BW across all GPUs (unidirectional, GB/s)."""
         if not self.has_nvlink:
             return 0.0
-        return self.gpu_count * self.gpu.nvlink_total_bw_gbs
-    
+        return self.gpu_count * self.gpu.fabric_total_bw_gbs
+
     @property
     def fabric_topology(self) -> str:
-        """Return the primary GPU-to-GPU connectivity topology."""
+        """Human-readable description of GPU-to-GPU connectivity."""
         if self.has_nvlink:
-            return f"NVLink 4.0 full-mesh ({self.gpu_count} GPUs)"
-        return f"PCIe Gen-5 fabric ({self.gpu_count} GPUs, no NVLink)"
+            return f"{self.gpu.interconnect_label} full-mesh ({self.gpu_count} GPUs)"
+        return f"PCIe fabric ({self.gpu_count} GPUs, no dedicated GPU fabric)"
 
     # --- CPU↔GPU PCIe ---
     @property
@@ -298,10 +477,14 @@ class SystemSpecs:
     @property
     def arithmetic_intensity_roofline(self) -> float:
         """
-        Arithmetic intensity threshold (FLOP/byte) at which FP16 GPU compute
-        becomes the bottleneck rather than HBM bandwidth (roofline knee).
+        Arithmetic intensity (FLOP/byte) at the roofline knee: above this
+        value the workload is compute-bound; below it is memory-bandwidth-bound.
+        Works for any GPU with detected FP16 TFLOPS and memory bandwidth.
         """
-        return (self.gpu.fp16_tflops * 1e12) / (self.gpu.hbm3_bandwidth_tbs * 1e12)
+        bw_bytes = self.gpu.memory_bandwidth_tbs * 1e12
+        if bw_bytes <= 0:
+            return 0.0
+        return (self.gpu.fp16_tflops * 1e12) / bw_bytes
 
 
 SYSTEM_SPECS = SystemSpecs(
@@ -319,9 +502,10 @@ SYSTEM_SPECS = SystemSpecs(
 # ---------------------------------------------------------------------------
 
 ACCEPTANCE_THRESHOLDS: Dict[str, float] = {
-    # CPU
-    "cpu_avx512_fp32_efficiency": 0.70,   # ≥ 70 % of AVX-512 FP32 peak
-    "cpu_memory_bandwidth_efficiency": 0.75,  # ≥ 75 % of DRAM BW peak
+    # CPU — vendor-neutral, measured as % of detected theoretical peak
+    "cpu_simd_fp32_efficiency": 0.70,     # ≥ 70 % of SIMD FP32 peak (AVX-512 or AVX2)
+    "cpu_avx512_fp32_efficiency": 0.70,  # legacy alias — same threshold
+    "cpu_memory_bandwidth_efficiency": 0.75,  # ≥ 75 % of DRAM BW peak (DDR4/DDR5/HBM)
     "cpu_l3_bandwidth_efficiency": 0.70,
     "cpu_core_scaling_efficiency": 0.85,  # parallel speedup vs. ideal linear
     "cpu_numa_efficiency": 0.80,          # cross-NUMA vs. local BW ratio

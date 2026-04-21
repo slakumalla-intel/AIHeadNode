@@ -169,15 +169,15 @@ tr:hover td{background:#ffffff08}
     <h1>Bring-Up Validation<br>for the AI Head Node</h1>
     <div class="accent-line"></div>
     <p class="subtitle">
-      160-Core CPU &nbsp;·&nbsp; 4 × NVIDIA H100 PCIe (80 GB HBM3 each)<br>
+      Vendor-neutral x86-64 CPU &nbsp;·&nbsp; AI accelerators (NVIDIA or AMD)<br>
       End-to-end validation: hardware, interconnect, compute efficiency,<br>
-      AI workload acceptance, and system reliability
+      AI workload acceptance, agentic workflows, and system reliability
     </p>
     <div class="stat-row" style="margin-top:36px">
-      <div class="stat-box"><div class="num">11</div><div class="lbl">Test Domains</div></div>
-      <div class="stat-box"><div class="num">16</div><div class="lbl">Test Files</div></div>
+      <div class="stat-box"><div class="num">12</div><div class="lbl">Test Domains</div></div>
+      <div class="stat-box"><div class="num">13</div><div class="lbl">Test Files</div></div>
       <div class="stat-box"><div class="num">350+</div><div class="lbl">Test Cases</div></div>
-      <div class="stat-box"><div class="num">6</div><div class="lbl">KPI Streams</div></div>
+      <div class="stat-box"><div class="num">11</div><div class="lbl">KPI Streams</div></div>
       <div class="stat-box"><div class="num">1</div><div class="lbl">Auto Report</div></div>
     </div>
   </div>
@@ -246,13 +246,18 @@ tr:hover td{background:#ffffff08}
         <div class="flow-box">MD Report</div>
       </div>
       <div class="card card-accent" style="margin-top:18px">
-        <h3>KPI JSONL Files (6 streams)</h3>
+        <h3>KPI JSONL Files (11 streams)</h3>
         <ul>
+          <li>cpu_validation_kpis.jsonl</li>
+          <li>gpu_validation_kpis.jsonl</li>
+          <li>memory_validation_kpis.jsonl</li>
+          <li>interconnect_kpis.jsonl</li>
           <li>node_validation_kpis.jsonl</li>
           <li>performance_suite_kpis.jsonl</li>
           <li>vllm_prefill_kpis.jsonl</li>
           <li>mlperf_suite_kpis.jsonl</li>
           <li>ai_pipeline_kpis.jsonl</li>
+          <li>agentic_ai_kpis.jsonl</li>
           <li>system_health_kpis.jsonl</li>
         </ul>
       </div>
@@ -271,6 +276,7 @@ tr:hover td{background:#ffffff08}
           <tr><td>MLPerf</td><td>test_mlperf_suite.py</td></tr>
           <tr><td>vLLM Prefill</td><td>test_vllm_prefill_validation.py</td></tr>
           <tr><td>AI Pipeline KPIs</td><td>test_ai_pipeline_kpis.py</td></tr>
+          <tr><td>Agentic AI Validation</td><td>test_agentic_ai_validation.py</td></tr>
           <tr><td>System Health</td><td>test_system_health_and_reliability.py</td></tr>
         </tbody>
       </table>
@@ -284,7 +290,7 @@ tr:hover td{background:#ffffff08}
      ════════════════════════════════════════════════════════════ -->
 <section class="slide slide-content" id="s4">
   <div class="section-label">Domain Overview</div>
-  <h2>11 Validation Domains</h2>
+  <h2>Competitive KPI Domains (Vendor-Neutral)</h2>
   <div class="accent-line"></div>
   <div class="card-grid card-grid-4" style="gap:10px;margin-top:6px">
     <div class="card" style="border-left:4px solid #29c76f">
@@ -300,7 +306,7 @@ tr:hover td{background:#ffffff08}
     <div class="card" style="border-left:4px solid #e67e22">
       <div class="chip chip-amber" style="margin-bottom:8px">Domain F</div>
       <h3 class="dom-f">ECC & Link Health</h3>
-      <p>HBM3 ECC errors, PCIe replay counters, retired page counts</p>
+      <p>HBM/VRAM ECC errors, PCIe replay counters, retired page counts</p>
     </div>
     <div class="card" style="border-left:4px solid #1abc9c">
       <div class="chip chip-green" style="margin-bottom:8px">Domain G</div>
@@ -327,6 +333,9 @@ tr:hover td{background:#ffffff08}
       <h3 class="dom-k">Stream Ordering</h3>
       <p>CUDA event barriers, race condition detection, stream concurrency</p>
     </div>
+  </div>
+  <div class="highlight-box" style="margin-top:14px">
+    <p>New workload domain included: <strong>Agentic AI Validation</strong> (tool dispatch latency, CPU↔GPU sync overhead, multi-turn P50/P95/P99, and tool parallelization efficiency).</p>
   </div>
   <div class="highlight-box" style="margin-top:14px">
     <p>Plus foundational suites: <strong>Node Validation · Bottleneck/Roofline · CPU · GPU · Interconnect · Memory · Performance Suite · MLPerf · vLLM Prefill</strong></p>
@@ -586,11 +595,11 @@ tr:hover td{background:#ffffff08}
   <div class="two-col">
     <div>
       <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">H100 PCIe TjMax is 83 °C. When this is reached, the GPU hardware automatically reduces SM clock frequency to stay within thermal/power budget — this is <strong>transparent to the user but directly reduces compute throughput</strong>. Long-running training jobs may degrade by 10–30% without triggering any errors.</p>
+      <p style="margin-bottom:14px">Each GPU has a model-specific thermal limit. When this limit is approached, hardware reduces SM clock frequency to stay within thermal/power budget. This is <strong>transparent to users but directly reduces compute throughput</strong>. Long-running training jobs may degrade by 10–30% without explicit runtime errors.</p>
       <div class="card card-purple">
         <h3>Test Cases (4)</h3>
         <ul>
-          <li>Idle temperature ≤ 83 °C on all 4 GPUs</li>
+          <li>Idle temperature below detected max operating temperature</li>
           <li>Clock boost ratio ≥ 80% of advertised max</li>
           <li>SM clock drop ≤ 10% during 30s sustained GEMM</li>
           <li>Power draw ≤ 90% of programmed power limit at rest</li>
@@ -602,7 +611,7 @@ tr:hover td{background:#ffffff08}
       <div class="card-grid" style="gap:10px">
         <div class="card card-purple">
           <div class="kpi-val">temperature_c</div>
-          <div class="kpi-label">Per-GPU temperature (°C) — threshold 83°C</div>
+          <div class="kpi-label">Per-GPU temperature (°C) — threshold from detected spec</div>
         </div>
         <div class="card card-purple">
           <div class="kpi-val">clock_ratio</div>
@@ -632,14 +641,14 @@ tr:hover td{background:#ffffff08}
   <div class="two-col">
     <div>
       <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">A single <strong>uncorrected ECC error (UE/DBE)</strong> in HBM3 silently corrupts tensor values — causing model training to diverge or inference to produce wrong outputs. PCIe replay counters indicate signal integrity failures that manifest as random slowdowns and data corruption.</p>
+      <p style="margin-bottom:14px">A single <strong>uncorrected ECC error (UE/DBE)</strong> in accelerator memory can silently corrupt tensor values, causing model training to diverge or inference to produce wrong outputs. PCIe replay counters indicate signal integrity failures that manifest as random slowdowns and data corruption.</p>
       <div class="card card-red">
         <h3>Test Cases (4)</h3>
         <ul>
-          <li>HBM3 uncorrected ECC count = 0 (per GPU)</li>
-          <li>HBM3 corrected SBE count &lt; 100 (per GPU)</li>
+          <li>VRAM/HBM uncorrected ECC count = 0 (per GPU)</li>
+          <li>VRAM/HBM corrected SBE count &lt; 100 (per GPU)</li>
           <li>PCIe link replay counters = 0 (all GPUs)</li>
-          <li>Retired HBM3 pages (DBE) &lt; 10 per GPU</li>
+          <li>Retired memory pages (DBE) &lt; 10 per GPU</li>
         </ul>
       </div>
     </div>
@@ -660,7 +669,7 @@ tr:hover td{background:#ffffff08}
         </div>
         <div class="card card-red">
           <div class="kpi-val">retired_pages</div>
-          <div class="kpi-label">HBM3 DBE retired pages — threshold &lt; 10</div>
+          <div class="kpi-label">Retired memory pages (DBE) — threshold &lt; 10</div>
         </div>
       </div>
     </div>
@@ -678,7 +687,7 @@ tr:hover td{background:#ffffff08}
   <div class="two-col">
     <div>
       <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">Total Cost of Ownership for AI clusters is dominated by power. H100 PCIe theoretical FP16 efficiency is ~5.7 TFLOPS/W. A measured value far below this threshold reveals <strong>power capping, thermal derating, or underutilized compute</strong> — all of which inflate operating costs per token served.</p>
+      <p style="margin-bottom:14px">Total Cost of Ownership for AI clusters is dominated by power. The suite compares measured TFLOPS/W against each GPU's detected theoretical peak. A value far below expectation reveals <strong>power capping, thermal derating, or underutilized compute</strong> — all of which inflate operating costs per token served.</p>
       <div class="card card-green">
         <h3>Test Cases (2)</h3>
         <ul>
@@ -687,7 +696,7 @@ tr:hover td{background:#ffffff08}
         </ul>
       </div>
       <div class="highlight-box">
-        <p><strong>H100 PCIe reference:</strong> 1979 TFLOPS ÷ 350W TDP = 5.65 TFLOPS/W theoretical. Floor of 1.0 allows for thermal/power derating.</p>
+        <p><strong>Examples:</strong> H100 SXM5 ≈ 2.83 TFLOPS/W, H100 PCIe ≈ 4.32 TFLOPS/W, MI300X ≈ 1.74 TFLOPS/W theoretical FP16. Floor of 1.0 allows for thermal and power derating.</p>
       </div>
     </div>
     <div>
@@ -725,7 +734,7 @@ tr:hover td{background:#ffffff08}
   <div class="two-col">
     <div>
       <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">Production LLM serving uses FP8 (via TensorRT-LLM / vLLM) or INT8 (via bitsandbytes) to fit larger models in 80 GB HBM3. If the GPU's quantized compute path introduces unexpected numerical drift, <strong>model quality degrades silently</strong> while benchmarks still show correct throughput numbers.</p>
+      <p style="margin-bottom:14px">Production LLM serving uses FP8 or INT8 paths to fit larger models in accelerator memory. If the GPU's quantized compute path introduces unexpected numerical drift, <strong>model quality degrades silently</strong> while benchmarks still show correct throughput numbers.</p>
       <div class="card card-accent">
         <h3>Test Cases (4)</h3>
         <ul>
@@ -777,7 +786,7 @@ tr:hover td{background:#ffffff08}
         <ul>
           <li>NCCL allreduce(MEAN) matches CPU-computed reference (max abs error &lt; 1e-3)</li>
           <li>Single-GPU gradient computation self-consistency</li>
-          <li>Multi-GPU tensor PCIe/NVLink copy bit-identity</li>
+          <li>Multi-GPU tensor PCIe/fabric copy bit-identity</li>
         </ul>
       </div>
     </div>
@@ -794,7 +803,7 @@ tr:hover td{background:#ffffff08}
         </div>
         <div class="card card-purple">
           <div class="kpi-val">tensor_max_diff</div>
-          <div class="kpi-label">PCIe/NVLink copy bit-identity difference (must be 0.0)</div>
+          <div class="kpi-label">PCIe/fabric copy bit-identity difference (must be 0.0)</div>
         </div>
       </div>
     </div>
@@ -812,7 +821,7 @@ tr:hover td{background:#ffffff08}
   <div class="two-col">
     <div>
       <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">PyTorch 2.x <code>torch.compile()</code> with Inductor/Triton generates custom CUDA kernels at runtime. Bugs in kernel generation can produce <strong>numerically wrong outputs without raising exceptions</strong>. Additionally, if compilation does not deliver any speedup on H100, enabling it adds latency overhead for no gain.</p>
+      <p style="margin-bottom:14px">PyTorch 2.x <code>torch.compile()</code> with Inductor/Triton generates custom kernels at runtime. Bugs in kernel generation can produce <strong>numerically wrong outputs without raising exceptions</strong>. Additionally, if compilation does not deliver speedup on the target platform, enabling it adds latency overhead for no gain.</p>
       <div class="card card-amber">
         <h3>Test Cases (2)</h3>
         <ul>
@@ -905,7 +914,7 @@ tr:hover td{background:#ffffff08}
       <div class="card card-accent" style="margin-bottom:12px">
         <h3>Node Validation (TC-NV-01 → 08)</h3>
         <ul>
-          <li><strong>GPU enumeration &amp; PCIe topology</strong> — 4 H100 PCIe correctly wired</li>
+          <li><strong>GPU enumeration &amp; PCIe topology</strong> — all detected accelerators correctly wired</li>
           <li><strong>PCIe H2D/D2H bandwidth</strong> — ≥ 65% of 63 GB/s Gen5 theoretical</li>
           <li><strong>Pinned vs pageable memory</strong> — DMA engine performance</li>
           <li><strong>P2P bandwidth</strong> — all GPU pairs via PCIe fabric</li>
@@ -920,16 +929,16 @@ tr:hover td{background:#ffffff08}
       <div class="card card-amber">
         <h3>Bottleneck / Roofline Analysis (TC-BN-01 → 06)</h3>
         <ul>
-          <li><strong>CPU FP32 efficiency</strong> — measured vs AVX-512 theoretical (target ≥ 70%)</li>
+          <li><strong>CPU FP32 efficiency</strong> — measured vs SIMD theoretical (target ≥ 70%)</li>
           <li><strong>CPU DRAM bandwidth</strong> — STREAM Triad ≥ 75% of DDR5 peak</li>
-          <li><strong>GPU FP16 efficiency</strong> — per-GPU &amp; aggregate vs 1979 TFLOPS (target ≥ 75%)</li>
-          <li><strong>HBM3 bandwidth</strong> — ≥ 80% of 3.35 TB/s theoretical</li>
+          <li><strong>GPU FP16 efficiency</strong> — per-GPU &amp; aggregate vs detected peak (target ≥ 75%)</li>
+          <li><strong>Accelerator memory bandwidth</strong> — ≥ 80% of detected theoretical peak</li>
           <li><strong>PCIe bottleneck</strong> — identifies compute vs memory vs interconnect bottleneck</li>
           <li><strong>Scaling efficiency</strong> — multi-GPU linear speedup ratio</li>
         </ul>
       </div>
       <div class="highlight-box" style="margin-top:12px">
-        <p><strong>Known H100 PCIe caveats:</strong> P2P BW threshold designed for NVLink; PCIe-only P2P will be ~10–20× lower. FP16 75% efficiency threshold requires roofline-optimal kernel sizes.</p>
+        <p><strong>Platform caveat:</strong> P2P bandwidth depends on NVLink/xGMI availability; PCIe-only systems show lower peer bandwidth. Compute-efficiency thresholds use percentage-of-peak to keep cross-platform comparisons fair.</p>
       </div>
     </div>
   </div>
@@ -960,9 +969,10 @@ tr:hover td{background:#ffffff08}
     <div class="card card-green">
       <h3>GPU Validation</h3>
       <ul>
-        <li>4 × H100, CUDA ≥ 12.0, CC 9.0</li>
-        <li>HBM3 capacity ≥ 79 GB each</li>
-        <li>HBM3 BW ≥ 80% of 3.35 TB/s</li>
+        <li>N × AI accelerators, CUDA/ROCm runtime supported</li>
+        <li>Compute capability AI-grade floor (configurable)</li>
+        <li>Memory capacity validated against detected spec</li>
+        <li>Memory BW ≥ 80% of detected theoretical peak</li>
         <li>FP32 / FP16 / BF16 / INT8 / FP64 TFLOPS</li>
         <li>All 4 concurrent FP16 TFLOPS ≥ 80% of 4×</li>
         <li>GPU utilization ≥ 90% under GEMM</li>
@@ -988,7 +998,7 @@ tr:hover td{background:#ffffff08}
         <li>H2D / D2H per-GPU (≥ 65% of 63 GB/s)</li>
         <li>Bidirectional PCIe (≥ 70% of sum)</li>
         <li>Multi-GPU concurrent H2D</li>
-        <li>NVLink detection &amp; all-to-all BW</li>
+        <li>NVLink/xGMI detection &amp; all-to-all BW</li>
         <li>P2P bandwidth all pairs</li>
         <li>DMA alignment &amp; consistency</li>
         <li>CPU↔GPU pipeline overlap (≥ 75%)</li>
@@ -1032,7 +1042,7 @@ tr:hover td{background:#ffffff08}
       </div>
       <div class="card" style="border-left:4px solid var(--intel-light)">
         <h3>6. Platform Recalibration</h3>
-        <p>When thresholds fail on H100 PCIe (vs SXM5 targets), the KPI values tell you exactly what the PCIe-specific baselines should be — enabling informed threshold updates rather than blanket waivers.</p>
+        <p>When thresholds fail on any platform, KPI values show the exact baseline gap and whether the issue is compute, memory, interconnect, or orchestration related, enabling targeted threshold recalibration instead of blanket waivers.</p>
       </div>
     </div>
   </div>
@@ -1059,7 +1069,7 @@ tr:hover td{background:#ffffff08}
       <tr style="background:#e0525210"><td><strong>overlap_pct</strong></td><td>A – Data Load</td><td>≥ 60%</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU preprocessing is GPU bottleneck → GPU idle</td><td>Add DataLoader workers; use async prefetch</td></tr>
       <tr style="background:#e0525210"><td><strong>tokens_per_sec</strong></td><td>A – Data Load</td><td>≥ 200k</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU tokenizer too slow to feed GPU decoder</td><td>Increase tokenizer threads; use fast tokenizer</td></tr>
       <tr style="background:#e0525210"><td><strong>dram_bw_gbps</strong></td><td>Memory</td><td>≥ 75% DDR5</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU memory BW limits data staging to GPU</td><td>Check NUMA interleaving; verify DDR5 speed</td></tr>
-      <tr style="background:#e0525210"><td><strong>cpu_fp32_gflops</strong></td><td>CPU Valid.</td><td>≥ 70% AVX-512</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU too slow for post-processing / attention masks</td><td>Check BIOS power limits; CPU frequency scaling</td></tr>
+      <tr style="background:#e0525210"><td><strong>cpu_fp32_gflops</strong></td><td>CPU Valid.</td><td>≥ 70% SIMD</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU too slow for post-processing / attention masks</td><td>Check BIOS power limits; CPU frequency scaling</td></tr>
       <tr style="background:#e0525210"><td><strong>parallel_speedup</strong></td><td>CPU Valid.</td><td>≥ 0.85 linear</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>CPU threading inefficiency in data pipeline</td><td>Check thread affinity; disable NUMA balancing</td></tr>
       <tr style="background:#e0525210"><td><strong>kernel_launch_us</strong></td><td>Node Valid.</td><td>p50 &lt; 10 µs</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>High CPU→GPU launch overhead accumulates per step</td><td>Use CUDA graphs; reduce Python overhead</td></tr>
       <tr style="background:#e0525210"><td><strong>speedup_ratio</strong></td><td>J – Compile</td><td>≥ 1.05×</td><td><span class="cpu-badge cpu-p">CPU ★</span></td><td>torch.compile Inductor runs on CPU; no gain = overhead</td><td>Check Triton / Inductor version</td></tr>
@@ -1069,10 +1079,10 @@ tr:hover td{background:#ffffff08}
       <tr style="background:#f0a50010"><td>pcie_replay_count</td><td>F – PCIe</td><td>= 0</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>Signal integrity fault on CPU-GPU PCIe path</td><td>Reseat or replace riser card</td></tr>
       <tr style="background:#f0a50010"><td>concurrent_ratio</td><td>K – Streams</td><td>≤ 1.5×</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>CPU CUDA driver serialising 4-stream scheduling</td><td>Profile with Nsight Systems</td></tr>
       <tr style="background:#f0a50010"><td>TTFT_ms</td><td>D – Inference</td><td>Model-specific</td><td><span class="cpu-badge cpu-s">CPU+GPU</span></td><td>Prefill SLA breach (CPU batching + GPU compute)</td><td>Increase TP, tune batch assembly</td></tr>
-      <tr><td>hbm_bw_tbps</td><td>GPU</td><td>≥ 2.68 TB/s</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>HBM3 underperforming (80% of 3.35 TB/s)</td><td>Check ECC cost; memory-bound workload analysis</td></tr>
+      <tr><td>mem_bw_tbps</td><td>GPU</td><td>≥ 80% of detected peak</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Accelerator memory subsystem underperforming</td><td>Check ECC cost; memory-bound workload analysis</td></tr>
       <tr><td>tflops_per_watt</td><td>G – Energy</td><td>≥ 1.0</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Power cap / derating reducing GPU efficiency</td><td>Review power limits &amp; cooling</td></tr>
       <tr><td>clock_drop_ratio</td><td>E – Thermal</td><td>≤ 0.10</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Thermal throttle reducing GPU SM clock</td><td>Improve airflow / check thermal interface</td></tr>
-      <tr><td>ue_count</td><td>F – ECC</td><td>= 0</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Silent HBM3 data corruption</td><td>RMA GPU immediately</td></tr>
+      <tr><td>ue_count</td><td>F – ECC</td><td>= 0</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Silent accelerator-memory data corruption</td><td>RMA GPU immediately</td></tr>
       <tr><td>int8_rel_err</td><td>H – Quant</td><td>&lt; 5%</td><td><span class="cpu-badge cpu-g">GPU</span></td><td>Quantised inference silent accuracy loss</td><td>Verify CUDA / TRT version</td></tr>
     </tbody>
   </table>
@@ -1244,7 +1254,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
 <div id="nav">
   <button id="btn-prev" onclick="navigate(-1)" disabled>◀ Prev</button>
   <div class="progress"><div class="progress-fill" id="prog-fill"></div></div>
-  <span id="slide-counter">1 / 22</span>
+  <span id="slide-counter">1 / 23</span>
   <button id="btn-next" onclick="navigate(1)">Next ▶</button>
 </div>
 

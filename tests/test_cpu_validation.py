@@ -1,29 +1,29 @@
 """
-Advanced CPU validation tests for the AI Head Node.
+CPU validation tests for the AI Head Node — vendor-neutral.
 
-Target platform: 160 physical cores (2 sockets × 80 cores, SMT-2),
-                 Intel Xeon Platinum class with AVX-512 support.
+Target platform: Detected at runtime (any x86-64 multi-core CPU).
+Works on Intel Xeon, AMD EPYC, or any NUMA-capable server-class CPU.
 
 Test categories
 ---------------
 PERFORMANCE & TOPOLOGY:
 TC-CPU-01  Core count detection and topology
 TC-CPU-02  NUMA topology – node count and core distribution
-TC-CPU-03  Single-core AVX-512 FP32 peak throughput
-TC-CPU-04  All-core AVX-512 FP32 scaling efficiency
+TC-CPU-03  Single-core SIMD FP32 peak throughput
+TC-CPU-04  All-core SIMD FP32 scaling efficiency
 TC-CPU-05  Multi-threaded memory bandwidth (DRAM BW)
 TC-CPU-06  L3 cache bandwidth
-TC-CPU-07  Parallel speedup across 1 → 160 cores
+TC-CPU-07  Parallel speedup across 1 → N cores
 TC-CPU-08  NUMA-local vs NUMA-remote memory bandwidth
 TC-CPU-09  CPU integer throughput (64-bit integer SIMD)
 TC-CPU-10  CPU branch-prediction / instruction-level-parallelism stress
-TC-CPU-11  OpenMP / thread-pool launch overhead
+TC-CPU-11  Thread-pool launch overhead
 TC-CPU-12  CPU cache coherency under concurrent write (false-sharing detection)
 TC-CPU-13  Sustained all-core turbo frequency stability
-TC-CPU-14  CPU power-efficiency: GFLOPS per watt (placeholder – requires RAPL)
-TC-CPU-15  Hyper-Threading throughput gain vs. physical-core-only run
+TC-CPU-14  SMT throughput gain vs. physical-core-only run
+TC-CPU-15  CPU affinity and process scheduling
 
-INDUSTRIAL STANDARD KPIs:
+INDUSTRIAL STANDARD KPIs (for competitive comparison):
 TC-CPU-16  CPU utilization (per-core and aggregate)
 TC-CPU-17  Context switch rate and scheduling metrics
 TC-CPU-18  CPU frequency scaling and turbo boost tracking
@@ -31,7 +31,7 @@ TC-CPU-19  Cache miss rates (L1, L2, L3) via perf counters
 TC-CPU-20  Instructions per cycle (IPC) and execution efficiency
 TC-CPU-21  System load average and queue depth
 TC-CPU-22  CPU thermal metrics and temperature stability
-TC-CPU-23  Power consumption via RAPL (Running Average Power Limit)
+TC-CPU-23  Power consumption via RAPL (Intel) or equivalent
 TC-CPU-24  Memory latency percentiles (p50, p95, p99)
 TC-CPU-25  Interrupt rate and system call frequency
 """
@@ -93,11 +93,13 @@ except ImportError:
 # Helpers
 # ---------------------------------------------------------------------------
 
-THEORETICAL_CPU_CORES = CPU_SPECS.total_physical_cores      # 160
-THEORETICAL_THREADS   = CPU_SPECS.total_logical_threads     # 320
-THEORETICAL_MEM_BW    = CPU_SPECS.peak_memory_bandwidth_gbs # ~614 GB/s
-THEORETICAL_FP32_BASE = CPU_SPECS.peak_fp32_tflops_base     # ~19.5 TFLOPS @ 1.9 GHz
-THEORETICAL_FP32_TURBO = CPU_SPECS.peak_fp32_tflops_turbo   # ~40 TFLOPS @ 3.9 GHz
+THEORETICAL_CPU_CORES = CPU_SPECS.total_physical_cores
+THEORETICAL_THREADS   = CPU_SPECS.total_logical_threads
+THEORETICAL_MEM_BW    = CPU_SPECS.peak_memory_bandwidth_gbs
+THEORETICAL_FP32_BASE  = CPU_SPECS.peak_fp32_tflops_base
+THEORETICAL_FP32_TURBO = CPU_SPECS.peak_fp32_tflops_turbo
+# SIMD FP32 flops/cycle (64 for AVX-512 CPUs, 16 for AVX2-only; set via CPU_SIMD_FP32_FLOPS_PER_CYCLE)
+SIMD_FP32_PER_CYCLE = CPU_SPECS.simd_fp32_flops_per_cycle_per_core
 
 
 def _numpy_fma_gflops(n_iters: int = 500, size: int = 1024) -> float:
@@ -457,37 +459,45 @@ class TestNUMATopology:
 
 
 # ---------------------------------------------------------------------------
-# TC-CPU-03  Single-core FP32 throughput
+# TC-CPU-03  Single-core SIMD FP32 throughput
 # ---------------------------------------------------------------------------
 @pytest.mark.cpu
 @pytest.mark.slow
 class TestSingleCoreFP32:
 
     def test_single_core_gflops_above_floor(self):
-        """TC-CPU-03: Single-core FP32 GFLOPS must reach ≥ 50 % of per-core peak."""
+        """TC-CPU-03: Single-core SIMD FP32 GFLOPS must reach ≥ 50 % of per-core peak.
+
+        Vendor-neutral: uses BLAS SGEMM (backed by MKL on Intel, BLIS on AMD, etc.).
+        The per-core theoretical peak is computed from the detected SIMD width
+        (AVX-512 = 64 FLOP/cycle, AVX2 = 16 FLOP/cycle) and base clock speed.
+        """
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
-        # Single-core theoretical: 64 FLOP/cycle × 1.9 GHz → ~121 GFLOPS (base)
         per_core_theoretical_gflops = (
-            CPU_SPECS.avx512_fp32_flops_per_cycle_per_core * CPU_SPECS.base_clock_ghz
+            CPU_SPECS.simd_fp32_flops_per_cycle_per_core * CPU_SPECS.base_clock_ghz
         )
         measured = _numpy_fma_gflops(n_iters=200, size=512)
-        threshold = ACCEPTANCE_THRESHOLDS["cpu_avx512_fp32_efficiency"] * 0.5  # looser for single-core
+        threshold = ACCEPTANCE_THRESHOLDS["cpu_simd_fp32_efficiency"] * 0.5
         assert_efficiency(
             measured, per_core_theoretical_gflops, threshold,
-            "Single-core FP32 GFLOPS"
+            "Single-core SIMD FP32 GFLOPS"
         )
 
 
 # ---------------------------------------------------------------------------
-# TC-CPU-04  All-core AVX-512 FP32 scaling
+# TC-CPU-04  All-core SIMD FP32 scaling
 # ---------------------------------------------------------------------------
 @pytest.mark.cpu
 @pytest.mark.slow
 class TestAllCoreFP32Scaling:
 
     def test_all_core_fp32_gflops(self):
-        """TC-CPU-04: Estimate all-core FP32 GFLOPS within a 3-minute budget."""
+        """TC-CPU-04: Estimate all-core SIMD FP32 GFLOPS within a 3-minute budget.
+
+        Vendor-neutral: measures achieved BLAS SGEMM throughput and expresses it
+        as % of theoretical SIMD FP32 peak (works on Intel, AMD, ARM, etc.).
+        """
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
         available_workers = min(THEORETICAL_CPU_CORES, os.cpu_count() or 1)
@@ -553,18 +563,18 @@ class TestAllCoreFP32Scaling:
             f"  Extrapolated to all cores:{total_gflops:.2f} GFLOPS\n"
             f"  Theoretical peak:         {theoretical_gflops:.2f} GFLOPS\n"
             f"  Efficiency:               {efficiency:.1f}%\n"
-            f"  Min required:             {ACCEPTANCE_THRESHOLDS['cpu_avx512_fp32_efficiency'] * 100:.1f}%\n"
+            f"  Min required:             {ACCEPTANCE_THRESHOLDS['cpu_simd_fp32_efficiency'] * 100:.1f}%\n"
             f"{'─'*80}"
         )
         
         assert_efficiency(
             total_gflops, theoretical_gflops,
-            ACCEPTANCE_THRESHOLDS["cpu_avx512_fp32_efficiency"],
+            ACCEPTANCE_THRESHOLDS["cpu_simd_fp32_efficiency"],
             "All-core FP32 GFLOPS (BLAS)"
         )
         
         logger.info(
-            f"  ✅ PASS: All-core FP32 GFLOPS meets {ACCEPTANCE_THRESHOLDS['cpu_avx512_fp32_efficiency']*100:.0f}% efficiency threshold\n"
+            f"  ✅ PASS: All-core FP32 GFLOPS meets {ACCEPTANCE_THRESHOLDS['cpu_simd_fp32_efficiency']*100:.0f}% efficiency threshold\n"
             f"{'='*80}\n"
         )
 

@@ -1,0 +1,165 @@
+﻿{
+    "generated_at":  "2026-04-21T10:45:01",
+    "latest_records":  182,
+    "total_findings":  12,
+    "by_file":  [
+                    {
+                        "file":  "kpi_from_validation_full_log.jsonl",
+                        "records":  91
+                    },
+                    {
+                        "file":  "mlperf_suite_kpis.jsonl",
+                        "records":  21
+                    },
+                    {
+                        "file":  "node_validation_kpis.jsonl",
+                        "records":  44
+                    },
+                    {
+                        "file":  "performance_suite_kpis.jsonl",
+                        "records":  25
+                    },
+                    {
+                        "file":  "vllm_prefill_kpis.jsonl",
+                        "records":  1
+                    }
+                ],
+    "findings_by_reason":  [
+                               {
+                                   "reason":  "scaling_ratio_below_required",
+                                   "count":  2
+                               },
+                               {
+                                   "reason":  "directional_symmetry_below_required",
+                                   "count":  2
+                               },
+                               {
+                                   "reason":  "power_variance_high",
+                                   "count":  2
+                               },
+                               {
+                                   "reason":  "failing_gpus_nonempty",
+                                   "count":  2
+                               },
+                               {
+                                   "reason":  "below_threshold_gbs",
+                                   "count":  2
+                               },
+                               {
+                                   "reason":  "below_min_threshold_gbs",
+                                   "count":  2
+                               }
+                           ],
+    "findings":  [
+                     {
+                         "id":  "test_d2h_bandwidth_all_gpus",
+                         "file":  "kpi_from_validation_full_log.jsonl",
+                         "reason":  "failing_gpus_nonempty",
+                         "details":  {
+                                         "count":  1
+                                     }
+                     },
+                     {
+                         "id":  "test_d2h_bandwidth_all_gpus",
+                         "file":  "kpi_from_validation_full_log.jsonl",
+                         "reason":  "below_threshold_gbs",
+                         "details":  {
+                                         "threshold_gbs":  40.95,
+                                         "metric":  "min_gbs",
+                                         "value":  39.02
+                                     }
+                     },
+                     {
+                         "id":  "test_p2p_bandwidth_latency_binary",
+                         "file":  "kpi_from_validation_full_log.jsonl",
+                         "reason":  "below_min_threshold_gbs",
+                         "details":  {
+                                         "metric":  "unidir_min_gbs",
+                                         "min_threshold_gbs":  40,
+                                         "value":  37.71
+                                     }
+                     },
+                     {
+                         "id":  "test_p2p_multi_stream_bandwidth",
+                         "file":  "kpi_from_validation_full_log.jsonl",
+                         "reason":  "scaling_ratio_below_required",
+                         "details":  {
+                                         "observed":  0.633,
+                                         "required":  0.85
+                                     }
+                     },
+                     {
+                         "id":  "test_p2p_multi_stream_bandwidth",
+                         "file":  "kpi_from_validation_full_log.jsonl",
+                         "reason":  "directional_symmetry_below_required",
+                         "details":  {
+                                         "observed":  0.63,
+                                         "required":  0.75
+                                     }
+                     },
+                     {
+                         "id":  "test_sustained_gpu_power_stability",
+                         "file":  "kpi_from_validation_full_log.jsonl",
+                         "reason":  "power_variance_high",
+                         "details":  {
+                                         "std_w":  57.67,
+                                         "expected_max":  50
+                                     }
+                     },
+                     {
+                         "id":  "test_p2p_bandwidth_latency_binary",
+                         "file":  "node_validation_kpis.jsonl",
+                         "reason":  "below_min_threshold_gbs",
+                         "details":  {
+                                         "metric":  "unidir_min_gbs",
+                                         "min_threshold_gbs":  40,
+                                         "value":  37.71
+                                     }
+                     },
+                     {
+                         "id":  "test_d2h_bandwidth_all_gpus",
+                         "file":  "node_validation_kpis.jsonl",
+                         "reason":  "failing_gpus_nonempty",
+                         "details":  {
+                                         "count":  1
+                                     }
+                     },
+                     {
+                         "id":  "test_d2h_bandwidth_all_gpus",
+                         "file":  "node_validation_kpis.jsonl",
+                         "reason":  "below_threshold_gbs",
+                         "details":  {
+                                         "threshold_gbs":  40.95,
+                                         "metric":  "min_gbs",
+                                         "value":  39.02
+                                     }
+                     },
+                     {
+                         "id":  "test_p2p_multi_stream_bandwidth",
+                         "file":  "node_validation_kpis.jsonl",
+                         "reason":  "scaling_ratio_below_required",
+                         "details":  {
+                                         "observed":  0.633,
+                                         "required":  0.85
+                                     }
+                     },
+                     {
+                         "id":  "test_p2p_multi_stream_bandwidth",
+                         "file":  "node_validation_kpis.jsonl",
+                         "reason":  "directional_symmetry_below_required",
+                         "details":  {
+                                         "observed":  0.63,
+                                         "required":  0.75
+                                     }
+                     },
+                     {
+                         "id":  "test_sustained_gpu_power_stability",
+                         "file":  "node_validation_kpis.jsonl",
+                         "reason":  "power_variance_high",
+                         "details":  {
+                                         "std_w":  57.67,
+                                         "expected_max":  50
+                                     }
+                     }
+                 ]
+}

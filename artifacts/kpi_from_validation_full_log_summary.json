@@ -1,0 +1,372 @@
+﻿{
+    "generated_at":  "2026-04-21T10:34:19",
+    "source_log":  "validation_full.log",
+    "total_kpi_records":  139,
+    "unique_tests":  91,
+    "tests":  [
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_001",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_002",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_003",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_004",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_005",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_006",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_007",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_008",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_009",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_010",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_011",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_012",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_013",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_014",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_015",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_016",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_017",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_018",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_019",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_020",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_ML_TEST_ID_021",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_001",
+                      "records":  2
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_002",
+                      "records":  2
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_003",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_004",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_005",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_006",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_007",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_008",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_009",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_010",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_011",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_012",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_013",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_014",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_015",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_016",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_017",
+                      "records":  1
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_018",
+                      "records":  2
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_019",
+                      "records":  2
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_020",
+                      "records":  2
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_021",
+                      "records":  2
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_022",
+                      "records":  2
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_023",
+                      "records":  2
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_024",
+                      "records":  2
+                  },
+                  {
+                      "test":  "AI_HOSTCPU_PERF_TEST_ID_025",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_d2h_bandwidth_all_gpus",
+                      "records":  3
+                  },
+                  {
+                      "test":  "test_gpu_enumeration",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_gpu_write_performance_limiters",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_h2d_bandwidth_all_gpus",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_hf_causal_lm_batch_throughput",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_hf_causal_lm_inference_latency",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_hf_causal_lm_inference_latency_enterprise_workloads_deepseek_r1_quantized",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_hf_causal_lm_inference_latency_enterprise_workloads_llama_70b",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_hf_causal_lm_inference_latency_enterprise_workloads_llama_7b",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_hf_encoder_training_throughput",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_kernel_launch_latency_stats",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_llm_training_large_multigpu",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_llm_training_small_multigpu",
+                      "records":  5
+                  },
+                  {
+                      "test":  "test_looped_rdma_mmio_dma_stress_soak",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_mmio_write_read_validation",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_nccl_all_gather_perf",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nccl_all_reduce_perf",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nccl_availability",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nccl_deterministic_init_variance",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nccl_p2p_perf",
+                      "records":  3
+                  },
+                  {
+                      "test":  "test_nccl_reduce_scatter_perf",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nvbandwidth_device_to_device_memcpy_read_ce",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nvbandwidth_device_to_host_bidirectional_memcpy_ce",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nvbandwidth_device_to_host_memcpy_ce",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nvbandwidth_device_to_host_memcpy_sm",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nvbandwidth_host_to_device_bidirectional_memcpy_ce",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nvbandwidth_host_to_device_memcpy_ce",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nvbandwidth_host_to_device_memcpy_sm",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_nvlink_status",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_one_dma_read_4kb_validation",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_p2p_bandwidth_latency_binary",
+                      "records":  3
+                  },
+                  {
+                      "test":  "test_p2p_bandwidth_pytorch_fallback",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_p2p_multi_stream_bandwidth",
+                      "records":  3
+                  },
+                  {
+                      "test":  "test_pcie_bw_p2p_latency_hugepages_2mb",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_pcie_topology_discovery",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_predictable_memory_orchestration_kv_cache_offload",
+                      "records":  6
+                  },
+                  {
+                      "test":  "test_sustained_gpu_power_stability",
+                      "records":  3
+                  },
+                  {
+                      "test":  "test_synchronize_overhead_stats",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_topology_consistency",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_vision_image_generation_diffusers_throughput",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_vision_object_detection_yolo_fps",
+                      "records":  6
+                  },
+                  {
+                      "test":  "test_vllm_data_pipeline_saturation_inference_prefill",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_vllm_inference_throughput",
+                      "records":  2
+                  },
+                  {
+                      "test":  "test_vllm_prefill_quick",
+                      "records":  1
+                  },
+                  {
+                      "test":  "test_vllm_training_kpi_status",
+                      "records":  2
+                  }
+              ]
+}

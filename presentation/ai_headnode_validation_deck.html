@@ -158,6 +158,24 @@ tr:hover td{background:#ffffff08}
 .kpi-high{background:#f0a5001a;color:#ffc857;border:1px solid #f0a50050}
 .kpi-core{background:#0071c51a;color:#5dc6ff;border:1px solid #0071c550}
 
+/* ─────────────────────── KPI status pills ───────────────────────────── */
+.status-pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.3px}
+.status-pass{background:#29c76f18;color:var(--accent-green);border:1px solid #29c76f50}
+.status-fail{background:#e0525218;color:#ff8f8f;border:1px solid #e0525250}
+.status-warn{background:#f0a50018;color:#ffc857;border:1px solid #f0a50050}
+
+/* ─────────────────────── domain bar chart ───────────────────────────── */
+.domain-bars{display:grid;gap:10px}
+.domain-bar-row{display:grid;grid-template-columns:220px 1fr auto;align-items:center;gap:12px}
+.domain-name{font-size:.84rem;color:#c9d1d9;font-weight:700}
+.bar-track{height:14px;background:#1b2330;border:1px solid #2f3b4f;border-radius:999px;overflow:hidden;display:flex}
+.bar-pass{height:100%;background:linear-gradient(90deg,#1f9f57,#29c76f)}
+.bar-find{height:100%;background:linear-gradient(90deg,#964242,#e05252)}
+.bar-meta{font-size:.78rem;color:var(--muted);min-width:98px;text-align:right}
+
+.cmp-pos{color:var(--accent-green);font-weight:700}
+.cmp-neg{color:#ff8f8f;font-weight:700}
+
 /* ────────────────────────────── cpu role badges ───────────────────────── */
 .cpu-badge{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
 .cpu-p{background:#e05252;color:#fff}
@@ -1240,9 +1258,349 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
-     SLIDE 22 — SUMMARY
+     SLIDE 22 — KPI STATUS BY DOMAIN
      ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-title" id="s22">
+<section class="slide slide-content" id="s22">
+  <div class="section-label">Latest Run Snapshot</div>
+  <h2>KPI Status by Domain (Artifacts)</h2>
+  <div class="accent-line"></div>
+  <p style="font-size:.9rem;margin-bottom:12px;color:var(--muted)">
+    Source: <code>artifacts/kpi_status_report.json</code> generated from latest JSONL streams. 182 latest records, 12 findings (6 unique signals mirrored across log and node streams).
+  </p>
+
+  <div class="card card-accent" style="margin-bottom:12px">
+    <table>
+      <thead>
+        <tr>
+          <th>Domain</th>
+          <th>Artifact Stream</th>
+          <th>Latest KPI Records</th>
+          <th>Findings</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Node Validation</td>
+          <td>node_validation_kpis.jsonl</td>
+          <td>44</td>
+          <td>6</td>
+          <td><span class="status-pill status-fail">Action Needed</span></td>
+        </tr>
+        <tr>
+          <td>Performance Suite</td>
+          <td>performance_suite_kpis.jsonl</td>
+          <td>25</td>
+          <td>0</td>
+          <td><span class="status-pill status-pass">On Track</span></td>
+        </tr>
+        <tr>
+          <td>MLPerf Suite</td>
+          <td>mlperf_suite_kpis.jsonl</td>
+          <td>21</td>
+          <td>0</td>
+          <td><span class="status-pill status-pass">Catalog/Pass</span></td>
+        </tr>
+        <tr>
+          <td>vLLM Prefill Validation</td>
+          <td>vllm_prefill_kpis.jsonl</td>
+          <td>1</td>
+          <td>0</td>
+          <td><span class="status-pill status-pass">On Track</span></td>
+        </tr>
+        <tr>
+          <td>Consolidated Log KPIs</td>
+          <td>kpi_from_validation_full_log.jsonl</td>
+          <td>91</td>
+          <td>6</td>
+          <td><span class="status-pill status-warn">Mirror of Node Issues</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card card-accent" style="margin-bottom:12px">
+    <h3 style="margin-bottom:10px">Pass vs Findings by Domain</h3>
+    <div class="domain-bars">
+      <div class="domain-bar-row">
+        <div class="domain-name">Node Validation</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:86.4%"></div>
+          <div class="bar-find" style="width:13.6%"></div>
+        </div>
+        <div class="bar-meta">38 pass | 6 findings</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">Performance Suite</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:100%"></div>
+          <div class="bar-find" style="width:0%"></div>
+        </div>
+        <div class="bar-meta">25 pass | 0 findings</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">MLPerf Suite</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:100%"></div>
+          <div class="bar-find" style="width:0%"></div>
+        </div>
+        <div class="bar-meta">21 pass | 0 findings</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">vLLM Prefill Validation</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:100%"></div>
+          <div class="bar-find" style="width:0%"></div>
+        </div>
+        <div class="bar-meta">1 pass | 0 findings</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">Consolidated Log KPIs</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:93.4%"></div>
+          <div class="bar-find" style="width:6.6%"></div>
+        </div>
+        <div class="bar-meta">85 pass | 6 findings</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-purple" style="margin-bottom:12px">
+    <h3 style="margin-bottom:10px">Observed vs Theoretical vs Competitive</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>KPI</th>
+          <th>Observed (Artifacts)</th>
+          <th>Theoretical Peak</th>
+          <th>Competitive Baseline</th>
+          <th>Position</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Host→Device bandwidth (mean)</td>
+          <td>56.08 GB/s</td>
+          <td>63.0 GB/s (PCIe Gen5 x16)</td>
+          <td>>= 40.95 GB/s suite gate</td>
+          <td class="cmp-pos">89.0% of theoretical, +15.13 above gate</td>
+        </tr>
+        <tr>
+          <td>Device→Host bandwidth (mean)</td>
+          <td>55.61 GB/s</td>
+          <td>63.0 GB/s (PCIe Gen5 x16)</td>
+          <td>>= 40.95 GB/s suite gate</td>
+          <td class="cmp-pos">88.3% of theoretical, +14.66 above gate</td>
+        </tr>
+        <tr>
+          <td>NCCL AllReduce bus bandwidth (mean)</td>
+          <td>31.55 GB/s</td>
+          <td>n/a (collective/topology dependent)</td>
+          <td>>= 30.0 GB/s suite gate</td>
+          <td class="cmp-pos">+1.55 above competitive gate</td>
+        </tr>
+        <tr>
+          <td>P2P unidirectional minimum</td>
+          <td>37.60 GB/s</td>
+          <td>63.0 GB/s practical PCIe ceiling</td>
+          <td>>= 40.0 GB/s suite gate</td>
+          <td class="cmp-neg">59.7% of ceiling, -2.40 below gate</td>
+        </tr>
+        <tr>
+          <td>Kernel launch latency (p50)</td>
+          <td>11.46 us</td>
+          <td>lower is better</td>
+          <td>< 10 us target</td>
+          <td class="cmp-neg">+1.46 us slower than target</td>
+        </tr>
+        <tr>
+          <td>Power stability (std dev)</td>
+          <td>57.69 W</td>
+          <td>lower is better</td>
+          <td><= 50 W target</td>
+          <td class="cmp-neg">+7.69 W above target variance</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:.8rem;color:var(--muted);margin-top:8px">
+      Theoretical values are from runtime platform specs and PCIe link limits in the validation suite. Competitive baseline values are the suite gating thresholds used for go/no-go decisions.
+    </p>
+  </div>
+
+  <div class="card-grid card-grid-2" style="gap:12px;margin-bottom:12px">
+    <div class="card card-green">
+      <h3>Workload Acceptance and Captured KPIs</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Workload</th>
+            <th>Observed KPI</th>
+            <th>Readout</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Llama 3.1 8B interactive</td>
+            <td>62.59 tok/s</td>
+            <td>511.23 ms mean, 579.04 ms p95</td>
+          </tr>
+          <tr>
+            <td>DeepSeek R1 Distill 7B</td>
+            <td>31.14 tok/s</td>
+            <td>1027.45 ms mean, 1171.79 ms p95</td>
+          </tr>
+          <tr>
+            <td>Llama 3.1 70B</td>
+            <td>10.72 tok/s</td>
+            <td>1493.12 ms mean, 1629.80 ms p95</td>
+          </tr>
+          <tr>
+            <td>HF batch throughput</td>
+            <td>511.19 tok/s</td>
+            <td>Best high-throughput decode path in node artifacts</td>
+          </tr>
+          <tr>
+            <td>vLLM serving throughput</td>
+            <td>338.11 tok/s</td>
+            <td>Serving stack overhead remains below raw batch path</td>
+          </tr>
+          <tr>
+            <td>SD-Turbo image generation</td>
+            <td>52.739 img/s</td>
+            <td>Strong vision-side acceptance signal</td>
+          </tr>
+          <tr>
+            <td>BERT encoder training</td>
+            <td>309.09 samples/s</td>
+            <td>Healthy single-workload training throughput</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card card-amber">
+      <h3>Training, Prefill, and Memory-Path Efficiency</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Slice</th>
+            <th>Observed KPI</th>
+            <th>Interpretation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Small multi-GPU training</td>
+            <td>67.65 samples/s total</td>
+            <td>13.931 TFLOPS/GPU, 59.1% scaling efficiency, 19% sync time</td>
+          </tr>
+          <tr>
+            <td>Large multi-GPU training</td>
+            <td>3.08 samples/s total</td>
+            <td>18.946 TFLOPS/GPU, throughput dominated by model size</td>
+          </tr>
+          <tr>
+            <td>KV cache offload</td>
+            <td>662.02 -> 45.11 tok/s</td>
+            <td>93.2% throughput loss, memory expansion path is not SLA-safe</td>
+          </tr>
+          <tr>
+            <td>vLLM prefill saturation</td>
+            <td>23.87% mean GPU util</td>
+            <td>Prefill pipeline is not yet saturating the accelerator</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card-grid card-grid-2" style="gap:12px;margin-bottom:12px">
+    <div class="card card-purple">
+      <h3>MLPerf Coverage and Execution State</h3>
+      <ul>
+        <li><strong>21 MLPerf cases tracked</strong> across LLM inference, vision, speech, recommendation, graph, and training workloads.</li>
+        <li><strong>Latest artifact state is coverage-first:</strong> the current JSONL stream is predominantly catalog metadata with zero findings, not a broad set of measured MLPerf outputs.</li>
+        <li><strong>Inference families covered:</strong> Llama 405B, DeepSeek-R1, Mixtral, ResNet50, RetinaNet, 3D U-Net, RNN-T, Whisper, DLRM, SDXL, RGAT.</li>
+        <li><strong>Training families covered:</strong> GPT-J, BERT, 3D U-Net, Stable Diffusion, GPT-3, Llama 2 LoRA, DLRMv2.</li>
+        <li><strong>Stakeholder read:</strong> MLPerf is ready as a benchmark catalog and command plan, but competitive scorecards should wait for measured executions to land.</li>
+      </ul>
+    </div>
+    <div class="card card-accent">
+      <h3>Normalization Lens: Core, GPU, and Watt Proxies</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Normalization</th>
+            <th>Observed Value</th>
+            <th>What It Means</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CPU tokenizer per active thread</td>
+            <td>~132.6k tok/s/thread</td>
+            <td>Best observed point was 1.06M tok/s at 8-thread prompt ingestion</td>
+          </tr>
+          <tr>
+            <td>PCIe transport vs peak</td>
+            <td>89.0% of Gen5 ceiling</td>
+            <td>H2D path is close to theoretical; transport is not the primary bottleneck</td>
+          </tr>
+          <tr>
+            <td>P2P fabric vs practical ceiling</td>
+            <td>59.7% of 63 GB/s</td>
+            <td>This remains the clearest interconnect underperformance signal</td>
+          </tr>
+          <tr>
+            <td>Training per GPU</td>
+            <td>13.931 TFLOPS/GPU</td>
+            <td>Equivalent to roughly 34.8-39.8 GFLOPS/W using 400-350W H100-class TDP envelopes</td>
+          </tr>
+          <tr>
+            <td>Large-model training per GPU</td>
+            <td>18.946 TFLOPS/GPU</td>
+            <td>Equivalent to roughly 47.4-54.1 GFLOPS/W using the same TDP proxy range</td>
+          </tr>
+          <tr>
+            <td>KV offload throughput retention</td>
+            <td>6.8% of baseline</td>
+            <td>Memory-capacity relief is coming at a severe performance cost</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:.8rem;color:var(--muted);margin-top:8px">
+        Only some artifact streams carry direct power or core telemetry. Where workload-level watt or core counters are absent, the deck uses per-thread, per-GPU, and TDP-envelope proxies instead of inventing measured efficiency numbers.
+      </p>
+    </div>
+  </div>
+
+  <div class="card-grid card-grid-2" style="gap:12px">
+    <div class="card card-red">
+      <h3>Failing KPI Signals (Unique)</h3>
+      <ul>
+        <li>D2H min bandwidth: 39.02 GB/s vs 40.95 GB/s threshold</li>
+        <li>P2P unidirectional minimum: 37.71 GB/s vs 40.00 GB/s threshold</li>
+        <li>Multi-stream scaling ratio: 0.633 vs required 0.85</li>
+        <li>Directional symmetry ratio: 0.63 vs required 0.75</li>
+        <li>Sustained power stability std dev: 57.67 W vs max 50 W</li>
+      </ul>
+    </div>
+    <div class="card card-green">
+      <h3>Domain-Level Summary</h3>
+      <ul>
+        <li><strong>Primary failing domain:</strong> Node validation interconnect and stability sub-tests</li>
+        <li><strong>No active failures observed:</strong> Performance Suite, MLPerf Suite, vLLM Prefill</li>
+        <li><strong>Overall readiness:</strong> Partial pass, blocked by interconnect and stability deltas</li>
+        <li><strong>Immediate next gate:</strong> Re-run Node Validation after topology and power tuning</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-num">23</div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 23 — SUMMARY
+     ════════════════════════════════════════════════════════════ -->
+<section class="slide slide-title" id="s23">
   <div style="max-width:900px">
     <div class="chip chip-green" style="margin-bottom:22px">Summary</div>
     <h2>What This Test Suite Delivers</h2>
@@ -1280,7 +1638,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
       </div>
     </div>
   </div>
-  <div class="slide-num">23</div>
+  <div class="slide-num">24</div>
 </section>
 
 </div><!-- /deck -->
@@ -1289,7 +1647,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
 <div id="nav">
   <button id="btn-prev" onclick="navigate(-1)" disabled>◀ Prev</button>
   <div class="progress"><div class="progress-fill" id="prog-fill"></div></div>
-  <span id="slide-counter">1 / 23</span>
+  <span id="slide-counter">1 / 24</span>
   <button id="btn-next" onclick="navigate(1)">Next ▶</button>
 </div>
 

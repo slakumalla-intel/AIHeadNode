@@ -1,43 +1,31 @@
 """
-GPU validation tests for the AI Head Node — vendor-neutral.
-
-Designed to run against any CUDA-compatible AI accelerator:
-  NVIDIA H100, H200, A100, RTX 4090 — or AMD MI300X / MI250X via ROCm.
-
-GPU model, memory capacity, memory bandwidth, and TDP are all detected at
-runtime from pynvml (or env-var overrides). Thresholds are expressed as
-percentages of the detected theoretical peak so that comparisons across
-vendors are valid.
+GPU (4× NVIDIA H100 SXM5) validation tests for the AI Head Node.
 
 Test categories
 ---------------
 TC-GPU-01  GPU discovery and count
-TC-GPU-02  GPU model and runtime version (report, not assert vendor)
-TC-GPU-03  Accelerator memory capacity per GPU
-TC-GPU-04  Accelerator memory bandwidth per GPU
+TC-GPU-02  GPU model and driver version
+TC-GPU-03  HBM3 memory capacity per GPU
+TC-GPU-04  HBM3 memory bandwidth (per GPU)
 TC-GPU-05  FP32 compute throughput (SGEMM)
-TC-GPU-06  FP16 Tensor / Matrix Core throughput
-TC-GPU-07  BF16 Tensor / Matrix Core throughput
-TC-GPU-08  INT8 Tensor / Matrix Core throughput
+TC-GPU-06  FP16 Tensor Core throughput (HGEMM)
+TC-GPU-07  BF16 Tensor Core throughput
+TC-GPU-08  INT8 Tensor Core throughput
 TC-GPU-09  FP64 compute throughput
-TC-GPU-10  Multi-GPU aggregate compute
-TC-GPU-11  GPU utilisation under GEMM load
-TC-GPU-12  GPU temperature within safe operating range
+TC-GPU-10  Multi-GPU aggregate compute (all 4 GPUs simultaneously)
+TC-GPU-11  GPU utilisation stays near 100 % under GEMM load
+TC-GPU-12  GPU temperature within operating range during load
 TC-GPU-13  GPU power draw within TDP limits
-TC-GPU-14  ECC uncorrected error count
-TC-GPU-15  CUDA stream concurrency
+TC-GPU-14  GPU ECC uncorrected error count
+TC-GPU-15  CUDA stream concurrency (overlapping kernels)
 """
 
-import logging
-import os
 import time
 from typing import List
 
 import pytest
 
-logger = logging.getLogger("gpu_validation")
-
-from tests.theoretical_specs import H100_SPECS, GPU_SPECS, SYSTEM_SPECS, ACCEPTANCE_THRESHOLDS
+from tests.theoretical_specs import H100_SPECS, SYSTEM_SPECS, ACCEPTANCE_THRESHOLDS
 from tests.conftest import assert_efficiency
 
 try:
@@ -65,14 +53,10 @@ except Exception:
 # Constants
 # ---------------------------------------------------------------------------
 
-EXPECTED_GPU_COUNT = SYSTEM_SPECS.gpu_count
-# AI-grade GPU minimum compute capability for matrix-core operations:
-#   NVIDIA Volta = 7.0, Turing = 7.5, Ampere = 8.0, Hopper = 9.0
-#   Minimum bar for TC/matrix-core capable devices:
-MIN_COMPUTE_CAPABILITY_MAJOR = int(os.environ.get("GPU_MIN_CC_MAJOR", "7"))
-# GPU TDP and thermal limits come from runtime detection in GPU_SPECS
-GPU_TDP_W      = GPU_SPECS.tdp_watts
-MAX_GPU_TEMP_C = GPU_SPECS.max_temp_c
+EXPECTED_GPU_COUNT = SYSTEM_SPECS.gpu_count   # 4
+H100_KEYWORDS      = {"H100", "H200"}         # acceptable GPU model identifiers
+MAX_GPU_TEMP_C     = 83.0                      # H100 max operating temp (°C)
+H100_TDP_W         = 700.0                     # H100 SXM5 TDP in watts
 
 
 # ---------------------------------------------------------------------------
@@ -241,120 +225,86 @@ class TestGPUDiscovery:
 
 
 # ---------------------------------------------------------------------------
-# TC-GPU-02  GPU model and runtime version
+# TC-GPU-02  GPU model and driver
 # ---------------------------------------------------------------------------
 @pytest.mark.gpu
 class TestGPUModel:
 
-    def test_gpu_model_reported(self):
-        """TC-GPU-02a: Log GPU model name for every device (no vendor assertion).
-
-        Competitive note: records exact model strings (H100, MI300X, A100, etc.)
-        for use in KPI comparison tables without failing non-H100 hardware.
-        """
+    def test_gpu_model_is_h100(self):
+        """TC-GPU-02a: All GPUs must be NVIDIA H100 (or H200) class."""
         _skip_if_no_gpu()
         for i in range(torch.cuda.device_count()):
             name = torch.cuda.get_device_name(i)
-            props = torch.cuda.get_device_properties(i)
-            logger.info(
-                "GPU %d: %s | CC %d.%d | VRAM %.1f GB",
-                i, name, props.major, props.minor,
-                props.total_memory / 1024 ** 3,
+            assert any(kw in name for kw in H100_KEYWORDS), (
+                f"GPU {i} is '{name}', expected an H100 or H200 device"
             )
-            # Simply verify the name is non-empty (never assert a specific vendor)
-            assert name, f"GPU {i} returned empty model name"
 
     def test_cuda_version_12_or_above(self):
-        """TC-GPU-02b: CUDA / ROCm runtime version must be ≥ 12.0."""
+        """TC-GPU-02b: CUDA runtime version must be ≥ 12.0."""
         _skip_if_no_gpu()
-        version_str = torch.version.cuda or torch.version.hip or "0.0"
+        version_str = torch.version.cuda or "0.0"
         major = int(version_str.split(".")[0])
-        assert major >= 12, f"CUDA/ROCm version {version_str} < 12.0"
+        assert major >= 12, f"CUDA version {version_str} < 12.0"
 
-    def test_compute_capability_ai_grade(self):
-        """TC-GPU-02c: All GPUs must have compute capability ≥ 7.0 (AI-grade).
-
-        Covers Volta (7.0), Turing (7.5), Ampere (8.0), Hopper (9.0),
-        and AMD ROCm emulated capabilities.
-        Set GPU_MIN_CC_MAJOR env var to raise or lower the threshold.
-        """
+    def test_compute_capability_90(self):
+        """TC-GPU-02c: H100 compute capability must be 9.0."""
         _skip_if_no_gpu()
         for i in range(torch.cuda.device_count()):
             props = torch.cuda.get_device_properties(i)
-            major = props.major
-            assert major >= MIN_COMPUTE_CAPABILITY_MAJOR, (
-                f"GPU {i}: compute capability {major}.{props.minor} "
-                f"< minimum AI-grade {MIN_COMPUTE_CAPABILITY_MAJOR}.0"
+            major, minor = props.major, props.minor
+            assert (major, minor) == (9, 0), (
+                f"GPU {i}: compute capability {major}.{minor}, expected 9.0"
             )
 
 
 # ---------------------------------------------------------------------------
-# TC-GPU-03  Accelerator memory capacity
+# TC-GPU-03  HBM3 memory capacity
 # ---------------------------------------------------------------------------
 @pytest.mark.gpu
-class TestGPUMemoryCapacity:
+class TestHBMCapacity:
 
-    def test_memory_capacity_per_gpu(self):
-        """TC-GPU-03: Each GPU must report ≥ 98 % of its detected theoretical VRAM.
-
-        Uses the runtime-detected `GPU_SPECS.memory_capacity_gb` so the test
-        passes correctly on H100 (80 GB), MI300X (192 GB), A100 (40/80 GB), etc.
-        """
+    def test_hbm_capacity_per_gpu(self):
+        """TC-GPU-03: Each GPU must have ≥ 79 GB HBM3 (≥ 98.75 % of 80 GB spec)."""
         _skip_if_no_gpu()
-        theoretical_gb = GPU_SPECS.memory_capacity_gb
         for i in range(torch.cuda.device_count()):
             props = torch.cuda.get_device_properties(i)
             capacity_gb = props.total_memory / 1024 ** 3
-            floor_gb = theoretical_gb * 0.98 if theoretical_gb > 0 else 8.0
-            assert capacity_gb >= floor_gb, (
-                f"GPU {i}: {capacity_gb:.2f} GB < expected floor {floor_gb:.2f} GB"
+            assert capacity_gb >= H100_SPECS.hbm3_capacity_gb * 0.9875, (
+                f"GPU {i}: {capacity_gb:.2f} GB < {H100_SPECS.hbm3_capacity_gb * 0.9875:.2f} GB"
             )
-            logger.info("GPU %d VRAM: %.2f GB (theoretical %.2f GB, %.1f%%)",
-                        i, capacity_gb, theoretical_gb,
-                        100 * capacity_gb / theoretical_gb if theoretical_gb else 0)
 
-    def test_total_gpu_memory_scales_with_count(self):
-        """TC-GPU-03b: Total GPU memory across all GPUs must match N × per-GPU spec."""
+    def test_total_gpu_memory(self):
+        """TC-GPU-03b: Total GPU memory must scale with detected GPU count."""
         _skip_if_no_gpu()
         n_gpus = torch.cuda.device_count()
         total_gb = sum(
             torch.cuda.get_device_properties(i).total_memory
             for i in range(n_gpus)
         ) / 1024 ** 3
-        theoretical_gb = GPU_SPECS.memory_capacity_gb
-        if theoretical_gb > 0:
-            expected_total_gb = n_gpus * theoretical_gb * 0.98
-            assert total_gb >= expected_total_gb, (
-                f"Total GPU memory {total_gb:.1f} GB < {expected_total_gb:.1f} GB"
-            )
-        logger.info("Total GPU VRAM: %.2f GB across %d GPU(s)", total_gb, n_gpus)
+        expected_total_gb = n_gpus * H100_SPECS.hbm3_capacity_gb * 0.9875
+        assert total_gb >= expected_total_gb, (
+            f"Total GPU memory {total_gb:.1f} GB < {expected_total_gb:.1f} GB"
+        )
 
 
 # ---------------------------------------------------------------------------
-# TC-GPU-04  Accelerator memory bandwidth
+# TC-GPU-04  HBM3 bandwidth
 # ---------------------------------------------------------------------------
 @pytest.mark.gpu
 @pytest.mark.slow
-class TestGPUMemoryBandwidth:
+class TestHBMBandwidth:
 
     @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
-    def test_memory_bandwidth_per_gpu(self, device_idx):
-        """TC-GPU-04: GPU memory BW ≥ 80 % of detected theoretical peak (TB/s).
-
-        Uses `GPU_SPECS.memory_bandwidth_tbs` which is detected at runtime from
-        pynvml so it reflects H100 SXM5 (3.35 TB/s), H100 PCIe (2.0 TB/s),
-        MI300X (5.3 TB/s), etc. correctly.
-        """
+    def test_hbm_bandwidth_per_gpu(self, device_idx):
+        """TC-GPU-04: HBM3 BW per GPU must be ≥ 80 % of theoretical 3.35 TB/s."""
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
-        if GPU_SPECS.memory_bandwidth_tbs <= 0:
-            pytest.skip("Memory bandwidth spec not detected")
         bw_tbs = _hbm_bandwidth_tbs(device_idx, n_bytes=4 * 1024 ** 3)
         assert_efficiency(
-            bw_tbs, GPU_SPECS.memory_bandwidth_tbs,
+            bw_tbs, H100_SPECS.hbm3_bandwidth_tbs,
             ACCEPTANCE_THRESHOLDS["gpu_hbm_bandwidth_efficiency"],
-            f"GPU {device_idx} memory bandwidth"
+            f"HBM3 bandwidth GPU {device_idx}"
         )
 
 
@@ -367,16 +317,12 @@ class TestFP32Throughput:
 
     @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
     def test_fp32_gflops_per_gpu(self, device_idx):
-        """TC-GPU-05: FP32 GFLOPS ≥ 70 % of detected theoretical GPU FP32 peak.
-
-        Uses runtime-detected `GPU_SPECS.fp32_tflops` so the threshold scales
-        correctly across H100 (67 TFLOPS), A100 (19.5 TFLOPS), MI300X (163 TFLOPS).
-        """
+        """TC-GPU-05: FP32 GFLOPS per GPU ≥ 70 % of theoretical 67 TFLOPS."""
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
         gflops = _run_sgemm_gflops(device_idx, m=4096, k=4096, n=4096, n_iters=20)
-        theoretical_gflops = GPU_SPECS.fp32_tflops * 1000
+        theoretical_gflops = H100_SPECS.fp32_tflops * 1000
         assert_efficiency(
             gflops, theoretical_gflops,
             ACCEPTANCE_THRESHOLDS["gpu_fp32_efficiency"],
@@ -393,16 +339,13 @@ class TestFP16ThroughputGPU:
 
     @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
     def test_fp16_tflops_per_gpu(self, device_idx):
-        """TC-GPU-06: FP16 matrix TFLOPS ≥ 75 % of detected theoretical peak.
-
-        H100 SXM5 = 1979 TFLOPS, MI300X = 1307 TFLOPS, A100 = 312 TFLOPS.
-        """
+        """TC-GPU-06: FP16 TFLOPS per GPU ≥ 75 % of theoretical 1979 TFLOPS."""
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
         tflops = _run_hgemm_tflops(device_idx, m=8192, k=8192, n=8192, n_iters=10)
         assert_efficiency(
-            tflops, GPU_SPECS.fp16_tflops,
+            tflops, H100_SPECS.fp16_tflops,
             ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"],
             f"FP16 TFLOPS GPU {device_idx}"
         )
@@ -417,13 +360,13 @@ class TestBF16Throughput:
 
     @pytest.mark.parametrize("device_idx", list(range(EXPECTED_GPU_COUNT)))
     def test_bf16_tflops_per_gpu(self, device_idx):
-        """TC-GPU-07: BF16 matrix TFLOPS ≥ 75 % of detected theoretical peak."""
+        """TC-GPU-07: BF16 TFLOPS per GPU ≥ 75 % of theoretical 1979 TFLOPS."""
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
         tflops = _run_bf16_tflops(device_idx, m=8192, k=8192, n=8192, n_iters=10)
         assert_efficiency(
-            tflops, GPU_SPECS.bf16_tflops,
+            tflops, H100_SPECS.bf16_tflops,
             ACCEPTANCE_THRESHOLDS["gpu_bf16_efficiency"],
             f"BF16 TFLOPS GPU {device_idx}"
         )
@@ -458,8 +401,10 @@ class TestINT8Throughput:
         elapsed = time.perf_counter() - t0
         ops = 2 * m * k * n * n_iters
         tops = ops / elapsed / 1e12
+        # Compare against INT8 theoretical; FP16 proxy understimates INT8 but
+        # validates Tensor Core utilisation at comparable matrix size.
         assert_efficiency(
-            tops, GPU_SPECS.int8_tops,
+            tops, H100_SPECS.int8_tops,
             ACCEPTANCE_THRESHOLDS["gpu_int8_efficiency"],
             f"INT8-proxy TOPS GPU {device_idx}"
         )
@@ -480,7 +425,7 @@ class TestFP64Throughput:
             pytest.skip(f"GPU {device_idx} not available")
         tflops = _run_fp64_tflops(device_idx, m=4096, k=4096, n=4096, n_iters=5)
         assert_efficiency(
-            tflops, GPU_SPECS.fp64_tflops,
+            tflops, H100_SPECS.fp64_tflops,
             ACCEPTANCE_THRESHOLDS["gpu_fp32_efficiency"],
             f"FP64 TFLOPS GPU {device_idx}"
         )
@@ -568,18 +513,14 @@ class TestGPUUtilisation:
 class TestGPUTemperature:
 
     def test_gpu_temperature_in_range(self):
-        """TC-GPU-12: All GPU temperatures must be < detected max operating temp.
-
-        Threshold is detected via pynvml shutdown limit (or GPU_MAX_TEMP_C env var),
-        so it works for H100 (83 °C), MI300X (90 °C), A100 (83 °C), etc.
-        """
+        """TC-GPU-12: All GPU temperatures must be < 83 °C at idle/warm-up."""
         if not _HAS_NVML:
             pytest.skip("pynvml not installed")
         for i in range(pynvml.nvmlDeviceGetCount()):
             handle = pynvml.nvmlDeviceGetHandleByIndex(i)
             temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
             assert temp < MAX_GPU_TEMP_C, (
-                f"GPU {i} temperature {temp} \u00b0C \u2265 limit {MAX_GPU_TEMP_C} \u00b0C"
+                f"GPU {i} temperature {temp} °C ≥ {MAX_GPU_TEMP_C} °C"
             )
 
 
@@ -590,19 +531,15 @@ class TestGPUTemperature:
 class TestGPUPowerDraw:
 
     def test_gpu_power_within_tdp_at_idle(self):
-        """TC-GPU-13: All GPU power draws must be < detected TDP at idle.
-
-        TDP is detected via pynvml power limit query (or GPU_TDP_WATTS env var),
-        so it works for H100 SXM5 (700 W), H100 PCIe (350 W), MI300X (750 W), etc.
-        """
+        """TC-GPU-13: All GPU power draws must be < TDP (700 W) at idle."""
         if not _HAS_NVML:
             pytest.skip("pynvml not installed")
         for i in range(pynvml.nvmlDeviceGetCount()):
             handle = pynvml.nvmlDeviceGetHandleByIndex(i)
             power_mw = pynvml.nvmlDeviceGetPowerUsage(handle)
             power_w = power_mw / 1000.0
-            assert power_w < GPU_TDP_W, (
-                f"GPU {i} power draw {power_w:.0f} W exceeds TDP {GPU_TDP_W:.0f} W"
+            assert power_w < H100_TDP_W, (
+                f"GPU {i} power draw {power_w:.0f} W exceeds TDP {H100_TDP_W:.0f} W"
             )
 
 

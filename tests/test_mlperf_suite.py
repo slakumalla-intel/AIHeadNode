@@ -52,6 +52,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def _configure_mlperf_env_defaults() -> None:
+    os.environ.setdefault("ML_EXECUTE_CASES", "1")
     os.environ.setdefault("ML_CMD_TIMEOUT_SEC", "3600")
     os.environ.setdefault("ML_SUITE_KPI_FILE", "artifacts/mlperf_suite_kpis.jsonl")
     os.environ.setdefault("ML_NUM_GPUS", "4")

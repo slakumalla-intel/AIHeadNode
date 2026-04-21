@@ -75,8 +75,10 @@ cd "$SCRIPT_DIR"
 
 if [[ "$PERFORMANCE_CATALOG_ONLY" -eq 1 ]]; then
   export PERF_EXECUTE_CASES="0"
+  export ML_EXECUTE_CASES="0"
 else
   export PERF_EXECUTE_CASES="1"
+  export ML_EXECUTE_CASES="1"
 fi
 
 if [[ -n "$PERFORMANCE_CASE_IDS" ]]; then

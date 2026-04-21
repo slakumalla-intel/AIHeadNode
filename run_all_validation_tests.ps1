@@ -42,6 +42,7 @@ Push-Location $root
 
 try {
     $env:PERF_EXECUTE_CASES = if ($PerformanceCatalogOnly) { "0" } else { "1" }
+    $env:ML_EXECUTE_CASES = if ($PerformanceCatalogOnly) { "0" } else { "1" }
     if ([string]::IsNullOrWhiteSpace($PerformanceCaseIds)) {
         Remove-Item Env:PERF_CASE_IDS -ErrorAction SilentlyContinue
     } else {

@@ -77,6 +77,7 @@ pytest -m workload_acceptance -vv 2>&1 | tee node_validation_full.log
 For staged validation:
 
 ```bash
+# Catalog-only mode for both performance and MLPerf suites
 ./run_all_validation_tests.sh --performance-catalog-only
 ./run_all_validation_tests.sh --performance-case-ids 001,002,018
 ./run_all_validation_tests.sh --stop-on-failure
@@ -130,10 +131,11 @@ export HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC=300
 
 ## Performance Suite Controls
 
-`tests/test_performance_suite.py` uses these controls:
+`tests/test_performance_suite.py` uses these controls (execution is enabled by default):
 
 ```bash
-export PERF_EXECUTE_CASES=1
+# Optional: force catalog-only mode
+# export PERF_EXECUTE_CASES=0
 export PERF_CASE_IDS=001,002,018
 export PERF_CMD_TIMEOUT_SEC=1800
 export PERF_SUITE_KPI_FILE=artifacts/performance_suite_kpis.jsonl
@@ -166,7 +168,8 @@ scripts/run_mlperf_h100x4.sh --data-dir /data/mlperf --model-dir /models/mlperf 
 Or run the MLPerf pytest suite directly:
 
 ```bash
-export ML_EXECUTE_CASES=1
+# Optional: force catalog-only mode
+# export ML_EXECUTE_CASES=0
 export ML_CASE_IDS=001,006,014
 export ML_CMD_TIMEOUT_SEC=3600
 pytest -vv tests/test_mlperf_suite.py -k test_mlperf_case_suite
@@ -458,7 +461,8 @@ scripts/run_mlperf_h100x4.sh \
 	--num-gpus 4 --tp-size 4
 
 # Or via pytest
-export ML_EXECUTE_CASES=1
+# Optional: force catalog-only mode
+# export ML_EXECUTE_CASES=0
 export ML_CASE_IDS=001,006,014
 export ML_CMD_TIMEOUT_SEC=3600
 pytest -vv tests/test_mlperf_suite.py -k test_mlperf_case_suite
@@ -510,13 +514,14 @@ export NODE_VALIDATION_KPI_FILE=artifacts/node_validation_kpis.jsonl
 | `NODE_WORKLOAD_AUTO_INSTALL` | `1` | Auto-install missing Python packages |
 | `NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC` | `900` | pip install timeout |
 | `HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC` | `300` | Min soak duration for latency tests |
-| `PERF_EXECUTE_CASES` | `0` | Enable performance catalog execution |
+| `PERF_EXECUTE_CASES` | `1` | Enable performance case execution (`0` = catalog-only mode) |
 | `PERF_CASE_IDS` | all | Comma-separated performance case IDs |
 | `PERF_CMD_TIMEOUT_SEC` | `1800` | Per-case timeout |
-| `ML_EXECUTE_CASES` | `0` | Enable MLPerf case execution |
+| `ML_EXECUTE_CASES` | `1` | Enable MLPerf case execution (`0` = catalog-only mode) |
 | `ML_CASE_IDS` | all | Comma-separated MLPerf case IDs |
 | `ML_CMD_TIMEOUT_SEC` | `3600` | Per-MLPerf-case timeout |
-| `AGENTIC_EXECUTE` | `0` | Enable live GPU inference in agentic tests |
+| `PIPELINE_EXECUTE` | `1` | Enable AI pipeline execution-gated tests |
+| `AGENTIC_EXECUTE` | `1` | Enable live GPU inference in agentic tests |
 | `AGENTIC_MODEL_ID` | `facebook/opt-125m` | HuggingFace model for agentic tests |
 
 > Linux is the supported execution target for this validation suite.

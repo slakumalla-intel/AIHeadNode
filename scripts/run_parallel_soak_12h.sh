@@ -25,7 +25,7 @@ LOG_DIR="artifacts/soak_$(date +%Y%m%d_%H%M%S)"
 # Set this from shell before running, or pass with --llama-cmd.
 # HuggingFace model/dataset to use when LLAMA_TRAIN_CMD is not set.
 # Override via env or --llama-cmd to supply a custom training command.
-HF_MODEL="${HF_MODEL:-meta-llama/Llama-2-7b-hf}"
+HF_MODEL="${HF_MODEL:-meta-llama/Meta-Llama-3.1-8B-Instruct}"
 HF_DATASET="${HF_DATASET:-wikitext}"
 HF_DATASET_CONFIG="${HF_DATASET_CONFIG:-plain_text}"
 HF_OUTPUT_DIR="${HF_OUTPUT_DIR:-artifacts/hf_soak_output}"
@@ -56,10 +56,8 @@ Options:
   -h, --help                Show help
 
 Example:
-  LLAMA_TRAIN_CMD='torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py --model_name_or_path meta-llama/Llama-2-70b-hf --dataset_name scrolls --dataset_config govreport --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 --num_train_epochs 1 --per_device_train_batch_size 2 --gradient_accumulation_steps 4 --learning_rate 4e-4 --bf16 --output_dir artifacts/mlperf/llama2-lora --logging_steps 50' \
+  LLAMA_TRAIN_CMD='torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py --model_name_or_path meta-llama/Meta-Llama-3.1-70B-Instruct --dataset_name scrolls --dataset_config govreport --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 --num_train_epochs 1 --per_device_train_batch_size 2 --gradient_accumulation_steps 4 --learning_rate 4e-4 --bf16 --output_dir artifacts/mlperf/llama31-lora --logging_steps 50' \
   ./scripts/run_parallel_soak_12h.sh --duration-hours 12
-EOF
-}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in

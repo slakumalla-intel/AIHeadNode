@@ -71,7 +71,7 @@ def _env_list(name: str, default: str) -> List[int]:
 
 os.environ.setdefault("PIPELINE_EXECUTE", "1")
 os.environ.setdefault("PIPELINE_MODEL_ID", "openai-community/gpt2")
-os.environ.setdefault("PIPELINE_LARGE_MODEL_ID", os.environ.get("HF_INFERENCE_MODEL", "meta-llama/Llama-2-7b-hf"))
+os.environ.setdefault("PIPELINE_LARGE_MODEL_ID", os.environ.get("HF_INFERENCE_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct"))
 os.environ.setdefault("PIPELINE_SEQ_LENS", "32 128 512 2048")
 os.environ.setdefault("PIPELINE_BATCH_SIZES", "1 4 8 16")
 os.environ.setdefault("PIPELINE_WARMUP_ITERS", "3")

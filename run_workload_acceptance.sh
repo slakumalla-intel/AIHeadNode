@@ -82,14 +82,14 @@ fi
 export HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC="$MIN_DURATION_SEC"
 export NODE_VALIDATION_KPI_FILE="$KPI_FILE"
 
-set_default_env HF_LLAMA_7B_MODEL "meta-llama/Llama-2-7b-hf"
-set_default_env HF_LLAMA_70B_MODEL "meta-llama/Llama-2-70b-hf"
+set_default_env HF_LLAMA_7B_MODEL "meta-llama/Meta-Llama-3.1-8B-Instruct"
+set_default_env HF_LLAMA_70B_MODEL "meta-llama/Meta-Llama-3.1-70B-Instruct"
 set_default_env HF_QWEN_70B_MODEL "Qwen/Qwen-72B"
 set_default_env HF_DEEPSEEK_R1_QUANT_MODEL "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
-set_default_env HF_INFERENCE_MODEL "meta-llama/Llama-2-7b-hf"
+set_default_env HF_INFERENCE_MODEL "meta-llama/Meta-Llama-3.1-8B-Instruct"
 set_default_env HF_TRAINING_MODEL "bert-base-uncased"
 
-set_default_env NODE_VLLM_KV_OFFLOAD_MODEL "meta-llama/Llama-2-7b-hf"
+set_default_env NODE_VLLM_KV_OFFLOAD_MODEL "meta-llama/Meta-Llama-3.1-8B-Instruct"
 export NODE_VLLM_KV_CONTEXT_LENGTH="$KV_CACHE_CONTEXT_LENGTH"
 export NODE_VLLM_KV_BATCH_SIZE="$KV_CACHE_BATCH_SIZE"
 export NODE_VLLM_KV_NUM_PROMPTS="$KV_CACHE_NUM_PROMPTS"

@@ -41,17 +41,17 @@ $env:HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC = [string]$MinDurationSec
 $env:NODE_VALIDATION_KPI_FILE = $KpiFile
 
 # Model IDs (override these via environment before calling script)
-Set-DefaultEnv "HF_LLAMA_7B_MODEL" "meta-llama/Llama-2-7b-hf"
-Set-DefaultEnv "HF_LLAMA_70B_MODEL" "meta-llama/Llama-2-70b-hf"
+Set-DefaultEnv "HF_LLAMA_7B_MODEL" "meta-llama/Meta-Llama-3.1-8B-Instruct"
+Set-DefaultEnv "HF_LLAMA_70B_MODEL" "meta-llama/Meta-Llama-3.1-70B-Instruct"
 Set-DefaultEnv "HF_QWEN_70B_MODEL" "Qwen/Qwen-72B"
 Set-DefaultEnv "HF_DEEPSEEK_R1_QUANT_MODEL" "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
-Set-DefaultEnv "HF_INFERENCE_MODEL" "meta-llama/Llama-2-7b-hf"
+Set-DefaultEnv "HF_INFERENCE_MODEL" "meta-llama/Meta-Llama-3.1-8B-Instruct"
 Set-DefaultEnv "HF_TRAINING_MODEL" "bert-base-uncased"
 
 # =============================================================================
 # KV Cache Offload Configuration
 # =============================================================================
-Set-DefaultEnv "NODE_VLLM_KV_OFFLOAD_MODEL" "meta-llama/Llama-2-7b-hf"
+Set-DefaultEnv "NODE_VLLM_KV_OFFLOAD_MODEL" "meta-llama/Meta-Llama-3.1-8B-Instruct"
 $env:NODE_VLLM_KV_CONTEXT_LENGTH = $KVCacheContextLength
 $env:NODE_VLLM_KV_BATCH_SIZE = $KVCacheBatchSize
 $env:NODE_VLLM_KV_NUM_PROMPTS = $KVCacheNumPrompts
@@ -177,7 +177,7 @@ Write-Host "  - Use -SkipLargeModels to disable 70B+ models"
 Write-Host "  - Use -KVCacheContextLength to customize KV cache test context length"
 Write-Host ""
 Write-Host "Example Usage:" -ForegroundColor Cyan
-Write-Host "  # Default: Llama-2-7B with 8K context"
+Write-Host "  # Default: Llama-3.1-8B-Instruct with 8K context"
 Write-Host "  .\run_workload_acceptance.ps1"
 Write-Host ""
 Write-Host "  # Custom: 32K context, larger batch"

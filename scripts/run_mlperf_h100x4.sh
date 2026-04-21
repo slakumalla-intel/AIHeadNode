@@ -326,7 +326,7 @@ if should_run "005"; then
   [[ -f "$SHAREGPT" ]] && BENCH_ARGS="$BENCH_ARGS --dataset-path ${SHAREGPT}"
   run_vllm_benchmark \
     "AI_HOSTCPU_ML_TEST_ID_005" \
-    "meta-llama/Llama-2-70b-chat-hf" \
+    "meta-llama/Meta-Llama-3.1-70B-Instruct" \
     "--dtype bfloat16 --max-model-len 4096" \
     "$BENCH_ARGS"
 fi
@@ -600,7 +600,7 @@ if should_run "020"; then
   run_training_job "AI_HOSTCPU_ML_TEST_ID_020" "
     torchrun --nproc_per_node=${NUM_GPUS} \
       ${TRAINING_DIR}/llm_finetune/run_lora_finetune.py \
-      --model_name_or_path meta-llama/Llama-2-70b-hf \
+      --model_name_or_path meta-llama/Meta-Llama-3.1-70B-Instruct \
       --dataset_name scrolls \
       --dataset_config govreport \
       --lora_r 16 \

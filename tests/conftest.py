@@ -49,11 +49,11 @@ def _configure_default_env() -> None:
     os.environ.setdefault("HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD", "1")
     
     # Model IDs
-    os.environ.setdefault("HF_LLAMA_7B_MODEL", "meta-llama/Llama-2-7b-hf")
-    os.environ.setdefault("HF_LLAMA_70B_MODEL", "meta-llama/Llama-2-70b-hf")
+    os.environ.setdefault("HF_LLAMA_7B_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")
+    os.environ.setdefault("HF_LLAMA_70B_MODEL", "meta-llama/Meta-Llama-3.1-70B-Instruct")
     os.environ.setdefault("HF_QWEN_70B_MODEL", "Qwen/Qwen-72B")
     os.environ.setdefault("HF_DEEPSEEK_R1_QUANT_MODEL", "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B")
-    os.environ.setdefault("HF_INFERENCE_MODEL", "meta-llama/Llama-2-7b-hf")
+    os.environ.setdefault("HF_INFERENCE_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")
     os.environ.setdefault("HF_TRAINING_MODEL", "bert-base-uncased")
     os.environ.setdefault("HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC", "300")
     
@@ -79,7 +79,7 @@ def _configure_default_env() -> None:
             os.environ[new_name] = legacy_value
         os.environ.pop(legacy_name, None)
 
-    os.environ.setdefault("NODE_VLLM_KV_OFFLOAD_MODEL", "meta-llama/Llama-2-7b-hf")
+    os.environ.setdefault("NODE_VLLM_KV_OFFLOAD_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")
     os.environ.setdefault("NODE_VLLM_KV_CONTEXT_LENGTH", "8192")
     os.environ.setdefault("NODE_VLLM_KV_BATCH_SIZE", "4")
     os.environ.setdefault("NODE_VLLM_KV_NUM_PROMPTS", "10")

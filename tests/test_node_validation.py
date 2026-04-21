@@ -83,7 +83,7 @@ _HF_LLAMA_7B_MODEL = os.environ.get(
 )
 _HF_LLAMA_70B_MODEL = os.environ.get(
     "HF_LLAMA_70B_MODEL",
-    "meta-llama/Meta-Llama-3-70B",
+    "meta-llama/Meta-Llama-3.1-70B-Instruct",
 )
 _HF_QWEN_70B_MODEL = os.environ.get(
     "HF_QWEN_70B_MODEL",
@@ -4385,7 +4385,7 @@ class TestWorkloadAcceptanceHuggingFace:
         # but keep legacy VLLM_* fallback for backward compatibility.
         model_id = os.environ.get(
             "NODE_VLLM_KV_OFFLOAD_MODEL",
-            os.environ.get("VLLM_KV_OFFLOAD_MODEL", "meta-llama/Llama-2-7b-hf"),
+            os.environ.get("VLLM_KV_OFFLOAD_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct"),
         )
         context_length = int(
             os.environ.get("NODE_VLLM_KV_CONTEXT_LENGTH", os.environ.get("VLLM_KV_CONTEXT_LENGTH", "8192"))

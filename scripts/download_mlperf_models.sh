@@ -163,12 +163,12 @@ if should_run "004"; then
 fi
 
 # ---------------------------------------------------------------------------
-# ID 005 – Llama 2 70B  (Q&A)
+# ID 005 – Llama 3.1 70B  (Q&A)
 # ---------------------------------------------------------------------------
 if should_run "005"; then
-  log "[005] Downloading Llama-2-70b-chat-hf..."
-  hf_download "meta-llama/Llama-2-70b-chat-hf" \
-    "${MODEL_DIR}/llama2-70b"
+  log "[005] Downloading Meta-Llama-3.1-70B-Instruct..."
+  hf_download "meta-llama/Meta-Llama-3.1-70B-Instruct" \
+    "${MODEL_DIR}/llama31-70b"
 fi
 
 # ---------------------------------------------------------------------------
@@ -318,15 +318,15 @@ if should_run "019"; then
 fi
 
 # ---------------------------------------------------------------------------
-# ID 020 – Llama 2 70B  (same as ID 005 – reuse download)
+# ID 020 – Llama 3.1 70B  (same as ID 005 – reuse download)
 # ---------------------------------------------------------------------------
 if should_run "020"; then
-  if [[ -d "${MODEL_DIR}/llama2-70b" ]]; then
-    log "[020] Llama 2 70B already at ${MODEL_DIR}/llama2-70b – skipping re-download"
+  if [[ -d "${MODEL_DIR}/llama31-70b" ]]; then
+    log "[020] Llama 3.1 70B already at ${MODEL_DIR}/llama31-70b – skipping re-download"
   else
-    log "[020] Downloading Llama-2-70b-hf for LoRA fine-tuning..."
-    hf_download "meta-llama/Llama-2-70b-hf" \
-      "${MODEL_DIR}/llama2-70b-base"
+    log "[020] Downloading Meta-Llama-3.1-70B-Instruct for LoRA fine-tuning..."
+    hf_download "meta-llama/Meta-Llama-3.1-70B-Instruct" \
+      "${MODEL_DIR}/llama31-70b-base"
   fi
 fi
 

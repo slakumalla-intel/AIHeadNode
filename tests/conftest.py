@@ -9,6 +9,7 @@ Hardware target:
 import os
 import sys
 import json
+import re
 import platform
 import subprocess
 import time
@@ -29,9 +30,10 @@ logging.basicConfig(
 logger = logging.getLogger("ai_headnode_tests")
 
 _REPORT_PATH = Path(__file__).resolve().parents[1] / "TESTCASE_EXECUTION_FINAL_REPORT.md"
-_LEGACY_REPORT_PATHS = [
+_REPORT_ALIAS_PATHS = [
     Path(__file__).resolve().parents[1] / "NODE_VALIDATION_REPORT.md",
 ]
+_VALIDATION_LOG_PATH = Path(__file__).resolve().parents[1] / "validation_run.log"
 
 
 # ---------------------------------------------------------------------------
@@ -463,15 +465,140 @@ def _render_result_text(result: str) -> str:
     return _md_escape(result)
 
 
-def _write_final_report(config: pytest.Config) -> None:
-    """Write a single consolidated markdown report for the current pytest session."""
-    rows: Dict[str, Dict[str, str]] = getattr(config, "_overall_report_rows", {})
-    report_path = _REPORT_PATH
+def _strip_ansi(text: str) -> str:
+    return re.sub(r"\x1B\[[0-?]*[ -/]*[@-~]", "", text)
 
+
+def _truncate_line(text: str, max_chars: int = 170) -> str:
+    normalized = " ".join(text.split())
+    if len(normalized) <= max_chars:
+        return normalized
+    return normalized[: max_chars - 3].rstrip() + "..."
+
+
+def _compact_outcome_lines(status: str, result: str, analysis: str, fail_reason: Optional[str] = None) -> str:
+    lines: List[str] = []
+
+    if status == "FAIL":
+        lines.append(fail_reason or _extract_reason(result) or "Failure detected")
+        lines.append(analysis or "Investigate runtime conditions and thresholds.")
+    elif status == "SKIP":
+        lines.append(_extract_reason(result) or "Skipped")
+        lines.append(analysis or "Skipped by design or missing prerequisites.")
+    else:
+        lines.append("Executed successfully")
+        if analysis:
+            lines.append(analysis)
+
+    compact = [f"<div class=\"cell-wrap\">{_md_escape(_truncate_line(line))}</div>" for line in lines[:3] if line]
+    return "".join(compact) if compact else "<div class=\"cell-wrap\">-</div>"
+
+
+def _parse_validation_log(log_path: Path) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "kpi_by_test": {},
+        "failure_reason_by_test": {},
+        "kpi_rows": [],
+    }
+    if not log_path.exists():
+        return payload
+
+    test_line_re = re.compile(r"^(tests/[^\s]+::[^\s]+)")
+    kpi_line_re = re.compile(
+        r"ai_headnode_tests\s+(?P<metric>.+?)\s+measured=\s*(?P<measured>[-+]?\d+(?:\.\d+)?)\s+"
+        r"theoretical=\s*(?P<theoretical>[-+]?\d+(?:\.\d+)?)\s+efficiency=\s*(?P<eff>[-+]?\d+(?:\.\d+)?)%\s+"
+        r"threshold=\s*(?P<thresh>[-+]?\d+(?:\.\d+)?)%"
+    )
+    fail_summary_re = re.compile(r"^FAILED\s+(?P<test>tests/[^\s]+::[^\s]+)\s+-\s+(?P<reason>.+)$")
+
+    current_test: Optional[str] = None
+    current_norm: Optional[str] = None
+    kpi_rows: List[Dict[str, Any]] = []
+    kpi_by_test: Dict[str, str] = {}
+    fail_by_test: Dict[str, str] = {}
+
+    with log_path.open("r", encoding="utf-8", errors="ignore") as handle:
+        for raw in handle:
+            line = _strip_ansi(raw).strip()
+            if not line:
+                continue
+
+            test_match = test_line_re.match(line)
+            if test_match:
+                current_test = test_match.group(1)
+                current_norm = _normalize_test_key(current_test)
+                continue
+
+            kpi_match = kpi_line_re.search(line)
+            if kpi_match:
+                metric = kpi_match.group("metric").strip()
+                measured = float(kpi_match.group("measured"))
+                theoretical = float(kpi_match.group("theoretical"))
+                efficiency = float(kpi_match.group("eff"))
+                threshold = float(kpi_match.group("thresh"))
+
+                summary = (
+                    f"{metric}: measured={measured:.3f}, theoretical={theoretical:.3f}, "
+                    f"eff={efficiency:.2f}%, threshold={threshold:.2f}%"
+                )
+
+                if current_test:
+                    kpi_by_test[current_test] = summary
+                if current_norm:
+                    kpi_by_test[current_norm] = summary
+
+                kpi_rows.append(
+                    {
+                        "test": current_test or "-",
+                        "metric": metric,
+                        "measured": measured,
+                        "theoretical": theoretical,
+                        "efficiency": efficiency,
+                        "threshold": threshold,
+                    }
+                )
+                continue
+
+            fail_match = fail_summary_re.match(line)
+            if fail_match:
+                test_id = fail_match.group("test").strip()
+                reason = _truncate_line(fail_match.group("reason").strip(), max_chars=220)
+                fail_by_test[test_id] = reason
+                fail_by_test[_normalize_test_key(test_id)] = reason
+
+    payload["kpi_rows"] = kpi_rows
+    payload["kpi_by_test"] = kpi_by_test
+    payload["failure_reason_by_test"] = fail_by_test
+    return payload
+
+
+def _lookup_log_kpi(nodeid: str, log_payload: Dict[str, Any]) -> str:
+    kpis = log_payload.get("kpi_by_test", {})
+    for key in (nodeid, _normalize_test_key(nodeid)):
+        if key in kpis:
+            return str(kpis[key])
+    return "-"
+
+
+def _preferred_order(keys: List[str], preferred: List[str]) -> List[str]:
+    ordered: List[str] = []
+    for name in preferred:
+        if name in keys:
+            ordered.append(name)
+    for name in sorted(keys):
+        if name not in ordered:
+            ordered.append(name)
+    return ordered
+
+
+def _write_final_report(config: pytest.Config) -> None:
+    """Write compact, reportable markdown summaries for the current pytest session."""
+    rows: Dict[str, Dict[str, str]] = getattr(config, "_overall_report_rows", {})
     if not rows:
         return
 
     latest_kpis = _load_latest_kpis()
+    log_payload = _parse_validation_log(_VALIDATION_LOG_PATH)
 
     statuses = [v["status"] for v in rows.values()]
     passed = statuses.count("PASS")
@@ -480,74 +607,70 @@ def _write_final_report(config: pytest.Config) -> None:
     total = len(statuses)
     executed = passed + failed
 
-    skipped_rows = [
-        (nodeid, row)
-        for nodeid, row in sorted(rows.items())
-        if row.get("status") == "SKIP"
-    ]
-    failed_rows = [
-        (nodeid, row)
-        for nodeid, row in sorted(rows.items())
-        if row.get("status") == "FAIL"
-    ]
-    passed_rows = [
-        (nodeid, row)
-        for nodeid, row in sorted(rows.items())
-        if row.get("status") == "PASS"
-    ]
+    failed_rows = [(nodeid, row) for nodeid, row in sorted(rows.items()) if row.get("status") == "FAIL"]
+    skipped_rows = [(nodeid, row) for nodeid, row in sorted(rows.items()) if row.get("status") == "SKIP"]
 
-    section_order = [
-        "Workload Acceptance",
+    preferred_section_order = [
         "Node Validation",
         "Bottleneck",
         "Performance",
+        "Workload Acceptance",
         "MLPerf",
         "AI Pipeline KPIs",
         "System Health & Reliability",
         "Other",
     ]
-    section_rows: Dict[str, List[Tuple[str, Dict[str, str]]]] = {section: [] for section in section_order}
+    preferred_domain_order = ["Functional Validation"]
+
+    section_rows: Dict[str, List[Tuple[str, Dict[str, str]]]] = {}
     for nodeid, row in rows.items():
         section = row.get("section", "Other")
-        if section not in section_rows:
-            section_rows[section] = []
-        section_rows[section].append((nodeid, row))
+        section_rows.setdefault(section, []).append((nodeid, row))
 
-    section_summaries: List[Tuple[str, int, int, int, int]] = []
+    section_order = _preferred_order(list(section_rows.keys()), preferred_section_order)
+    section_summaries: List[Tuple[str, int, int, int, int, float]] = []
     for section in section_order:
-        entries = section_rows.get(section, [])
+        entries = section_rows[section]
         section_statuses = [row.get("status", "") for _, row in entries]
+        section_pass = section_statuses.count("PASS")
+        section_fail = section_statuses.count("FAIL")
+        section_skip = section_statuses.count("SKIP")
+        section_exec = section_pass + section_fail
+        pass_rate = (100.0 * section_pass / section_exec) if section_exec else 0.0
         section_summaries.append(
             (
                 section,
                 len(entries),
-                section_statuses.count("PASS"),
-                section_statuses.count("FAIL"),
-                section_statuses.count("SKIP"),
+                section_pass,
+                section_fail,
+                section_skip,
+                pass_rate,
             )
         )
 
-    domain_order = [
-        "Functional Validation",
-    ]
-    domain_rows: Dict[str, List[Tuple[str, Dict[str, str]]]] = {domain: [] for domain in domain_order}
+    domain_rows: Dict[str, List[Tuple[str, Dict[str, str]]]] = {}
     for nodeid, row in rows.items():
         domain = row.get("domain", "Other")
-        if domain not in domain_rows:
-            domain_rows[domain] = []
-        domain_rows[domain].append((nodeid, row))
+        domain_rows.setdefault(domain, []).append((nodeid, row))
 
-    domain_summaries: List[Tuple[str, int, int, int, int]] = []
+    domain_order = _preferred_order(list(domain_rows.keys()), preferred_domain_order)
+    domain_summaries: List[Tuple[str, int, int, int, int, float]] = []
     for domain in domain_order:
-        entries = domain_rows.get(domain, [])
+        entries = domain_rows[domain]
         domain_statuses = [row.get("status", "") for _, row in entries]
+        domain_pass = domain_statuses.count("PASS")
+        domain_fail = domain_statuses.count("FAIL")
+        domain_skip = domain_statuses.count("SKIP")
+        domain_exec = domain_pass + domain_fail
+        pass_rate = (100.0 * domain_pass / domain_exec) if domain_exec else 0.0
         domain_summaries.append(
             (
                 domain,
                 len(entries),
-                domain_statuses.count("PASS"),
-                domain_statuses.count("FAIL"),
-                domain_statuses.count("SKIP"),
+                domain_pass,
+                domain_fail,
+                domain_skip,
+                pass_rate,
             )
         )
 
@@ -559,13 +682,9 @@ def _write_final_report(config: pytest.Config) -> None:
         f"- {_color_badge('SKIP', '#d97706')}: {skipped}",
     ]
     if failed:
-        highlights.append(
-            f"- {_color_badge('FAIL', '#cc1f1a')}: Attention required - one or more testcase failures were detected."
-        )
+        highlights.append(f"- {_color_badge('FAIL', '#cc1f1a')}: {failed} testcase failures detected in this run.")
     else:
-        highlights.append(
-            f"- {_color_badge('PASS', '#1b8a3b')}: No testcase failures detected in this run."
-        )
+        highlights.append(f"- {_color_badge('PASS', '#1b8a3b')}: No testcase failures detected in this run.")
 
     report_title = "# AI Head Node Overall Test Execution Report"
 
@@ -577,11 +696,11 @@ def _write_final_report(config: pytest.Config) -> None:
         f"KPI source files: {', '.join(str(path) for path in _kpi_paths())}",
         "",
         "<style>",
-        ".report-scroll { overflow-x: auto; resize: horizontal; border: 1px solid #d0d7de; border-radius: 6px; padding: 6px; }",
-        ".report-table { border-collapse: collapse; width: 100%; min-width: 1400px; table-layout: auto; font-size: 12px; }",
+        ".report-scroll { overflow-x: auto; border: 1px solid #d0d7de; border-radius: 6px; padding: 6px; }",
+        ".report-table { border-collapse: collapse; width: 100%; min-width: 1100px; table-layout: auto; font-size: 12px; }",
         ".report-table th, .report-table td { border: 1px solid #d0d7de; padding: 6px 8px; vertical-align: top; }",
         ".report-table th { background: #f6f8fa; position: sticky; top: 0; z-index: 1; }",
-        ".cell-wrap { white-space: normal; word-break: break-word; max-width: 540px; }",
+        ".cell-wrap { white-space: normal; word-break: break-word; max-width: 420px; margin: 0 0 3px 0; }",
         ".summary-table { border-collapse: collapse; width: 100%; max-width: 720px; }",
         ".summary-table th, .summary-table td { border: 1px solid #d0d7de; padding: 6px 8px; }",
         ".summary-table th { background: #f6f8fa; text-align: left; }",
@@ -604,115 +723,117 @@ def _write_final_report(config: pytest.Config) -> None:
     lines.extend([
         "## Domain Summary",
         "",
-        "| Domain | Testcases | Passed | Failed | Skipped |",
-        "|---|---:|---:|---:|---:|",
+        "| Domain | Testcases | Passed | Failed | Skipped | Pass Rate (Exec) |",
+        "|---|---:|---:|---:|---:|---:|",
     ])
-    for domain, domain_total, domain_passed, domain_failed, domain_skipped in domain_summaries:
+    for domain, domain_total, domain_passed, domain_failed, domain_skipped, domain_rate in domain_summaries:
         lines.append(
-            f"| {_md_escape(domain)} | {domain_total} | {domain_passed} | {domain_failed} | {domain_skipped} |"
+            f"| {_md_escape(domain)} | {domain_total} | {domain_passed} | {domain_failed} | {domain_skipped} | {domain_rate:.1f}% |"
         )
 
     lines.extend([
-        "## Brief Issues",
+        "",
+        "## Section Summary",
+        "",
+        "| Section | Testcases | Passed | Failed | Skipped | Pass Rate (Exec) |",
+        "|---|---:|---:|---:|---:|---:|",
+    ])
+    for section, section_total, section_passed, section_failed, section_skipped, section_rate in section_summaries:
+        lines.append(
+            f"| {_md_escape(section)} | {section_total} | {section_passed} | {section_failed} | {section_skipped} | {section_rate:.1f}% |"
+        )
+
+    lines.extend([
+        "",
+        "## Failures and Skips",
         "",
     ])
 
     issue_rows = failed_rows + skipped_rows
     if issue_rows:
         lines.extend([
-            "| Domain | Section | Test | Status | Issue |",
-            "|---|---|---|---|---|",
+            "| Domain | Section | Test | Status | Outcome (2-3 lines) | KPI Snapshot |",
+            "|---|---|---|---|---|---|",
         ])
-        for nodeid, row in issue_rows[:25]:
+        for nodeid, row in issue_rows[:40]:
+            log_fail_reason = log_payload.get("failure_reason_by_test", {}).get(nodeid) or log_payload.get("failure_reason_by_test", {}).get(_normalize_test_key(nodeid))
+            kpi_metrics = _lookup_kpi_metrics(nodeid, latest_kpis)
+            kpi_text = _compact_metrics(kpi_metrics, max_items=4) if kpi_metrics else _lookup_log_kpi(nodeid, log_payload)
             lines.append(
-                f"| {_md_escape(row.get('domain', 'Functional Validation'))} | {_md_escape(row.get('section', 'Other'))} | {_md_escape(_display_test_name(nodeid))} | {_render_status(row.get('status', ''))} | {_md_escape(_extract_reason(row.get('result', '')))} |"
+                f"| {_md_escape(row.get('domain', 'Functional Validation'))} | {_md_escape(row.get('section', 'Other'))} | {_md_escape(_display_test_name(nodeid))} | {_render_status(row.get('status', ''))} | {_compact_outcome_lines(row.get('status', ''), row.get('result', ''), row.get('analysis', ''), log_fail_reason)} | <div class=\"cell-wrap\">{_md_escape(_truncate_line(kpi_text))}</div> |"
             )
     else:
         lines.append(f"- {_color_badge('PASS', '#1b8a3b')}: No failures or skips detected.")
 
+    top_kpis = _pick_top_kpis(latest_kpis, limit=6)
+    log_kpis = sorted(
+        log_payload.get("kpi_rows", []),
+        key=lambda x: abs(x.get("efficiency", 0.0) - x.get("threshold", 0.0)),
+        reverse=True,
+    )[:6]
     lines.extend([
         "",
-        "## Section Summary",
-        "",
-        "| Section | Testcases | Passed | Failed | Skipped |",
-        "|---|---:|---:|---:|---:|",
-    ])
-    for section, section_total, section_passed, section_failed, section_skipped in section_summaries:
-        lines.append(
-            f"| {_md_escape(section)} | {section_total} | {section_passed} | {section_failed} | {section_skipped} |"
-        )
-
-    top_kpis = _pick_top_kpis(latest_kpis, limit=5)
-    lines.extend([
-        "",
-        "## Top 5 KPIs",
+        "## KPI Highlights",
         "",
     ])
-    if top_kpis:
+    if top_kpis or log_kpis:
         lines.extend([
-            "| KPI | Value | Test |",
-            "|---|---|---|",
+            "| Source | Test | KPI | Value |",
+            "|---|---|---|---|",
         ])
         for item in top_kpis:
+            value_str = f"{item['value']:.3f}"
             lines.append(
-                f"| {_md_escape(item['metric'])} | {_md_escape(f'{item['value']:.3f}')} | {_md_escape(item['test'])} |"
+                f"| JSONL | {_md_escape(_normalize_test_key(str(item['test'])))} | {_md_escape(item['metric'])} | {_md_escape(value_str)} |"
+            )
+        for item in log_kpis:
+            value_str = f"eff={item.get('efficiency', 0.0):.2f}% (thr={item.get('threshold', 0.0):.2f}%)"
+            lines.append(
+                f"| validation_run.log | {_md_escape(_normalize_test_key(str(item.get('test', '-'))))} | {_md_escape(str(item.get('metric', '-')))} | {_md_escape(value_str)} |"
             )
     else:
-        lines.append("- No numeric KPI values available for this run.")
+        lines.append("- No KPI highlights available for this run.")
 
     lines.extend([
         "",
-        "## KPI Summary",
+        "## Domain Details",
         "",
     ])
 
-    if latest_kpis:
-        lines.extend([
-            "| Test Key | KPI Metrics |",
-            "|---|---|",
-        ])
-        for test_key in sorted(latest_kpis.keys()):
-            metrics = latest_kpis[test_key].get("metrics", {})
-            lines.append(
-                f"| {_md_escape(test_key)} | {_md_escape(_compact_metrics(metrics, max_items=8))} |"
-            )
-    else:
-        lines.append("- No KPI records found for this run. Ensure workload tests called KPI recorder.")
-
-    for section in section_order:
-        entries = section_rows.get(section, [])
+    for domain in domain_order:
+        domain_entries = domain_rows.get(domain, [])
         lines.extend([
             "",
-            f"## {section}",
+            f"### {domain}",
             "",
         ])
 
-        if not entries:
-            if section == "MLPerf":
-                lines.append("- No MLPerf tests captured in this run. This section is reserved for upcoming MLPerf coverage.")
-            else:
-                lines.append("- No tests captured in this section for the current run.")
+        if not domain_entries:
+            lines.append("- No tests captured for this domain.")
             continue
 
         lines.extend([
             "<div class=\"report-scroll\">",
             "<table class=\"report-table\">",
-            "<thead><tr><th style=\"min-width: 380px;\">Test</th><th style=\"min-width: 360px;\">Purpose</th><th style=\"min-width: 100px;\">Status</th><th style=\"min-width: 360px;\">Result</th><th style=\"min-width: 300px;\">Analysis</th><th style=\"min-width: 380px;\">KPI</th><th style=\"min-width: 320px;\">Reason / Success Case / Issue</th></tr></thead>",
+            "<thead><tr><th style=\"min-width: 180px;\">Section</th><th style=\"min-width: 280px;\">Test</th><th style=\"min-width: 90px;\">Status</th><th style=\"min-width: 320px;\">Outcome (2-3 lines)</th><th style=\"min-width: 340px;\">Success / Failure KPI Snapshot</th></tr></thead>",
             "<tbody>",
         ])
 
-        for nodeid, row in sorted(entries, key=lambda item: (_status_sort_key(item[1].get("status", "")), item[0])):
+        sorted_entries = sorted(
+            domain_entries,
+            key=lambda item: (_status_sort_key(item[1].get("status", "")), item[1].get("section", "Other"), item[0]),
+        )
+        for nodeid, row in sorted_entries:
             kpi_metrics = _lookup_kpi_metrics(nodeid, latest_kpis)
-            reason = _extract_reason(row.get("result", ""))
+            kpi_text = _compact_metrics(kpi_metrics, max_items=4) if kpi_metrics else _lookup_log_kpi(nodeid, log_payload)
+            fail_reason = log_payload.get("failure_reason_by_test", {}).get(nodeid) or log_payload.get("failure_reason_by_test", {}).get(_normalize_test_key(nodeid))
             lines.append(
                 "<tr>"
+                f"<td><div class=\"cell-wrap\">{_md_escape(row.get('section', 'Other'))}</div></td>"
                 f"<td><div class=\"cell-wrap\">{_md_escape(_display_test_name(nodeid))}</div></td>"
-                f"<td><div class=\"cell-wrap\">{_md_escape(row['purpose'])}</div></td>"
                 f"<td>{_render_status(row['status'])}</td>"
-                f"<td><div class=\"cell-wrap\">{_render_result_text(row['result'])}</div></td>"
-                f"<td><div class=\"cell-wrap\">{_md_escape(row['analysis'])}</div></td>"
-                f"<td><div class=\"cell-wrap\">{_md_escape(_compact_metrics(kpi_metrics, max_items=6))}</div></td>"
-                f"<td><div class=\"cell-wrap\">{_md_escape(reason)}</div></td>"
+                f"<td>{_compact_outcome_lines(row.get('status', ''), row.get('result', ''), row.get('analysis', ''), fail_reason)}</td>"
+                f"<td><div class=\"cell-wrap\">{_md_escape(_truncate_line(kpi_text, max_chars=220))}</div></td>"
                 "</tr>"
             )
 
@@ -722,8 +843,11 @@ def _write_final_report(config: pytest.Config) -> None:
             "</div>",
         ])
 
-    report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    logger.info("Wrote final testcase report: %s", report_path)
+    report_body = "\n".join(lines) + "\n"
+    output_paths = [_REPORT_PATH] + _REPORT_ALIAS_PATHS
+    for output_path in output_paths:
+        output_path.write_text(report_body, encoding="utf-8")
+        logger.info("Wrote testcase report: %s", output_path)
 
 # ---------------------------------------------------------------------------
 # Optional-dependency guards
@@ -806,14 +930,6 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     _write_final_report(session.config)
-
-    for legacy_path in _LEGACY_REPORT_PATHS:
-        try:
-            if legacy_path.exists():
-                legacy_path.unlink()
-                logger.info("Removed legacy report file: %s", legacy_path)
-        except Exception as exc:
-            logger.warning("Unable to remove legacy report file %s: %s", legacy_path, exc)
 
     # Best-effort cleanup: terminate any child processes left by workload tests.
     if _multiprocessing is not None:

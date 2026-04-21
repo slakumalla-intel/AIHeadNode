@@ -1,7 +1,7 @@
 # AI Head Node Overall Test Execution Report
 
-Generated: 2026-04-21 11:52:40
-Pytest command line: -m mlperf -vv tests/test_mlperf_suite.py -k test_mlperf_case_suite -vv --color=yes
+Generated: 2026-04-21 13:21:26
+Pytest command line: -m cpu tests/test_cpu_validation.py -v -s --log-cli-level=DEBUG
 KPI source files: artifacts/node_validation_kpis.jsonl, artifacts/performance_suite_kpis.jsonl, artifacts/vllm_prefill_kpis.jsonl, artifacts/ai_pipeline_kpis.jsonl, artifacts/system_health_kpis.jsonl
 
 <style>
@@ -17,61 +17,51 @@ KPI source files: artifacts/node_validation_kpis.jsonl, artifacts/performance_su
 
 ## Summary
 
-- <span style="color:#1f6feb;font-weight:700">INFO</span>: Total testcases captured: 21
-- <span style="color:#1f6feb;font-weight:700">INFO</span>: Tests executed (pass + fail): 0
-- <span style="color:#1b8a3b;font-weight:700">PASS</span>: 0
-- <span style="color:#cc1f1a;font-weight:700">FAIL</span>: 0
-- <span style="color:#d97706;font-weight:700">SKIP</span>: 21
-- <span style="color:#1b8a3b;font-weight:700">PASS</span>: No testcase failures detected in this run.
+- <span style="color:#1f6feb;font-weight:700">INFO</span>: Total testcases captured: 42
+- <span style="color:#1f6feb;font-weight:700">INFO</span>: Tests executed (pass + fail): 39
+- <span style="color:#1b8a3b;font-weight:700">PASS</span>: 31
+- <span style="color:#cc1f1a;font-weight:700">FAIL</span>: 8
+- <span style="color:#d97706;font-weight:700">SKIP</span>: 3
+- <span style="color:#cc1f1a;font-weight:700">FAIL</span>: 8 testcase failures detected in this run.
 
 | Metric | Count |
 |---|---:|
-| Testcases captured | 21 |
-| Tests executed | 0 |
-| Passed | 0 |
-| Failed | 0 |
-| Skipped | 21 |
+| Testcases captured | 42 |
+| Tests executed | 39 |
+| Passed | 31 |
+| Failed | 8 |
+| Skipped | 3 |
 
 ## Domain Summary
 
 | Domain | Testcases | Passed | Failed | Skipped |
 |---|---:|---:|---:|---:|
-| Functional Validation | 21 | 0 | 0 | 21 |
+| Functional Validation | 42 | 31 | 8 | 3 |
 ## Brief Issues
 
 | Domain | Section | Test | Status | Issue |
 |---|---|---|---|---|
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_001] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_001: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_002] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_002: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_003: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_004] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_004: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_005: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_006] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_006: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_007] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_007: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_008] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_008: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_009] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_009: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_010] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_010: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_011] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_011: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_012] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_012: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_013] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_013: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_014] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_014: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_015] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_015: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_016] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_016: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_017] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_017: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_018] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_018: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_019] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_019: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_020] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_020: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
-| Functional Validation | MLPerf | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_021] | <span style="color:#d97706;font-weight:700">SKIP</span> | AI_HOSTCPU_ML_TEST_ID_021: catalog validated. Set ML_EXECUTE_CASES=1 to run benchmark commands') |
+| Functional Validation | CPU Validation | TestAllCoreFP32Scaling::test_all_core_fp32_gflops | <span style="color:#d97706;font-weight:700">SKIP</span> | All-core GFLOPS benchmark failed: ProcessPoolExecutor.__init__() got an unexpected keyword argument 'timeout' |
+| Functional Validation | CPU Validation | TestNUMATopology::test_numa_node1_file_exists | <span style="color:#d97706;font-weight:700">SKIP</span> | Single-socket topology detected |
+| Functional Validation | CPU Validation | TestCPUPower::test_power_consumption_rapl | <span style="color:#d97706;font-weight:700">SKIP</span> | RAPL power data not available on this system |
+| Functional Validation | CPU Validation | TestAllCoreFP32Scaling::test_all_core_throughput_scales_with_cores | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | FP32 scaling efficiency at 8 cores was 0.26% vs threshold 85.00% (measured=6.065, theoretical=2300.872) |
+| Functional Validation | CPU Validation | TestParallelSpeedup::test_parallel_speedup_at_n_cores[4] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | Parallel speedup efficiency at 4 cores was 4.08% vs threshold 85.00% (measured=45.483, theoretical=1115.138) |
+| Functional Validation | CPU Validation | TestParallelSpeedup::test_parallel_speedup_at_n_cores[8] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | Parallel speedup efficiency at 8 cores was 0.28% vs threshold 85.00% (measured=6.157, theoretical=2198.536) |
+| Functional Validation | CPU Validation | TestParallelSpeedup::test_parallel_speedup_at_n_cores[16] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | Parallel speedup efficiency at 16 cores was 0.12% vs threshold 85.00% (measured=4.318, theoretical=3655.713) |
+| Functional Validation | CPU Validation | TestParallelSpeedup::test_parallel_speedup_at_n_cores[32] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | Parallel speedup efficiency at 32 cores was 0.05% vs threshold 85.00% (measured=4.361, theoretical=8983.166) |
+| Functional Validation | CPU Validation | TestParallelSpeedup::test_parallel_speedup_at_n_cores[64] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | Parallel speedup efficiency at 64 cores was 0.03% vs threshold 85.00% (measured=4.161, theoretical=15447.580) |
+| Functional Validation | CPU Validation | TestIntegerThroughput::test_integer_vector_ops_throughput | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | Concurrent INT64 vector add throughput 12.55 GOPS is below threshold 56.00 GOPS |
+| Functional Validation | CPU Validation | TestIntegerThroughput::test_integer_multiply_throughput | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | Concurrent INT64 multiply throughput 32.44 GOPS is below threshold 56.00 GOPS |
 
 ## Section Summary
 
 | Section | Testcases | Passed | Failed | Skipped |
 |---|---:|---:|---:|---:|
 | Workload Acceptance | 0 | 0 | 0 | 0 |
-| Node Validation | 0 | 0 | 0 | 0 |
+| Node Validation | 42 | 31 | 8 | 3 |
 | Bottleneck | 0 | 0 | 0 | 0 |
 | Performance | 0 | 0 | 0 | 0 |
-| MLPerf | 21 | 0 | 0 | 21 |
+| MLPerf | 0 | 0 | 0 | 0 |
 | AI Pipeline KPIs | 0 | 0 | 0 | 0 |
 | System Health & Reliability | 0 | 0 | 0 | 0 |
 | Other | 0 | 0 | 0 | 0 |

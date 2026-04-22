@@ -3572,7 +3572,56 @@ class TestWorkloadAcceptanceHuggingFace:
         except ImportError:
             pytest.skip("psutil not installed")
 
-        if torch.cuda.device_count() == 0:
+        def _visible_cuda_device_count() -> int:
+            try:
+                torch_visible = int(torch.cuda.device_count())
+            except Exception:
+                torch_visible = 0
+
+            if torch_visible > 0:
+                return torch_visible
+
+            cuda_visible_devices = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
+            if cuda_visible_devices and cuda_visible_devices.lower() != "all":
+                masked_devices = [
+                    device.strip()
+                    for device in cuda_visible_devices.split(",")
+                    if device.strip() and device.strip().lower() not in {"none", "void"}
+                ]
+                if masked_devices:
+                    logger.warning(
+                        "torch.cuda.device_count() returned 0, but CUDA_VISIBLE_DEVICES=%s exposes %d device(s); continuing with subprocess-driven CUDA detection",
+                        cuda_visible_devices,
+                        len(masked_devices),
+                    )
+                    return len(masked_devices)
+
+            try:
+                smi = subprocess.run(
+                    [
+                        "nvidia-smi",
+                        "--query-gpu=index",
+                        "--format=csv,noheader,nounits",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if smi.returncode == 0:
+                    visible_indices = [line.strip() for line in smi.stdout.splitlines() if line.strip()]
+                    if visible_indices:
+                        logger.warning(
+                            "torch.cuda.device_count() returned 0, but nvidia-smi reports %d visible GPU(s); continuing",
+                            len(visible_indices),
+                        )
+                        return len(visible_indices)
+            except Exception:
+                pass
+
+            return 0
+
+        visible_cuda_devices = _visible_cuda_device_count()
+        if visible_cuda_devices == 0:
             pytest.skip("No CUDA devices")
 
         try:

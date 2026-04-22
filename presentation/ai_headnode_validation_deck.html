@@ -1683,6 +1683,162 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
   <div class="slide-num">25</div>
 </section>
 
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 26 — MLPERF MODELS & DATASETS
+     ════════════════════════════════════════════════════════════ -->
+<section class="slide slide-content" id="s26">
+  <div class="section-label">MLPerf Benchmark Resource Requirements</div>
+  <h2>Models &amp; Datasets — 21 Benchmark Cases</h2>
+  <div class="accent-line accent-line-amber"></div>
+  <p style="margin-bottom:14px;color:var(--muted);font-size:.9rem">The MLPerf suite covers 21 test cases across three domains: LLAMA inference (001–005), Vision/Speech/Recs/Graph (006–013), and Training (014–021).</p>
+  
+  <div class="card-grid card-grid-2" style="gap:14px">
+    <div class="card card-amber">
+      <h3>Models Overview</h3>
+      <table style="font-size:.82rem">
+        <thead><tr><th>Model</th><th>Size</th><th>Test IDs</th></tr></thead>
+        <tbody>
+          <tr><td>Llama 3.1 405B</td><td>~800 GB</td><td>001</td></tr>
+          <tr><td>DeepSeek-R1 671B</td><td>~680 GB</td><td>002</td></tr>
+          <tr><td>Mixtral 8×7B</td><td>~50 GB</td><td>003</td></tr>
+          <tr><td>Llama 3.1 8B</td><td>~15 GB</td><td>004</td></tr>
+          <tr><td>Llama 2 70B</td><td>~140 GB</td><td>005</td></tr>
+          <tr><td>ResNet-50 v1.5</td><td><5 GB</td><td>006</td></tr>
+          <tr><td>RetinaNet</td><td><5 GB</td><td>007</td></tr>
+          <tr><td>3D U-Net</td><td><5 GB</td><td>008, 016</td></tr>
+          <tr><td>RNN-T</td><td><5 GB</td><td>009</td></tr>
+          <tr><td>Whisper large-v2</td><td>~3 GB</td><td>010</td></tr>
+          <tr><td>DLRM-DCNv2</td><td>~40 GB</td><td>011, 021</td></tr>
+          <tr><td>SDXL 1.0</td><td>~20-30 GB</td><td>012</td></tr>
+          <tr><td>RGAT</td><td><5 GB</td><td>013</td></tr>
+          <tr><td>GPT-J 6B</td><td>~12 GB</td><td>014</td></tr>
+          <tr><td>BERT-Large</td><td>~1.3 GB</td><td>015, 018</td></tr>
+          <tr><td>Stable Diffusion v2.1</td><td>~10 GB</td><td>017</td></tr>
+          <tr><td>GPT-3 175B</td><td>N/A (init)</td><td>019</td></tr>
+          <tr><td>Llama 2 70B LoRA</td><td>~140 GB</td><td>020</td></tr>
+        </tbody>
+      </table>
+      <div class="highlight-box" style="margin-top:8px">
+        <p style="font-size:.82rem"><strong>Subtotal (without 405B/DeepSeek):</strong> ~180 GB • <strong>With large models:</strong> ~2.6–3.6 TB</p>
+      </div>
+    </div>
+    
+    <div class="card card-accent">
+      <h3>Datasets Overview</h3>
+      <table style="font-size:.82rem">
+        <thead><tr><th>Dataset</th><th>Size</th><th>Test IDs</th></tr></thead>
+        <tbody>
+          <tr><td>ShareGPT V3</td><td>~600 MB</td><td>003–005</td></tr>
+          <tr><td>ImageNet-2012 val</td><td>~6.4 GB</td><td>006</td></tr>
+          <tr><td>OpenImages v6</td><td>~30 GB</td><td>007</td></tr>
+          <tr><td>KiTS19</td><td>~50 GB</td><td>008, 016</td></tr>
+          <tr><td>LibriSpeech test-clean</td><td>~346 MB</td><td>009, 010</td></tr>
+          <tr><td>Criteo Day 23 (inference)</td><td>~15 GB</td><td>011</td></tr>
+          <tr><td>COCO 2014</td><td>~400 MB</td><td>012</td></tr>
+          <tr><td>IGB-Het</td><td>~50 GB</td><td>013</td></tr>
+          <tr><td>CNN/DailyMail</td><td>~400 MB</td><td>014</td></tr>
+          <tr><td>SQuAD v1.1</td><td>~30 MB</td><td>015</td></tr>
+          <tr><td>Wikipedia + BooksCorpus</td><td>~21 GB</td><td>018</td></tr>
+          <tr><td>SCROLLS govreport</td><td>~600 MB</td><td>020</td></tr>
+          <tr><td class="cmp-neg"><strong>C4 (full)</strong></td><td><strong>~750 GB</strong></td><td>019</td></tr>
+          <tr><td class="cmp-neg"><strong>LAION-400M (subset)</strong></td><td><strong>~80 GB</strong></td><td>017</td></tr>
+          <tr><td class="cmp-neg"><strong>Criteo Terabyte (full)</strong></td><td><strong>~1 TB</strong></td><td>021</td></tr>
+        </tbody>
+      </table>
+      <div class="highlight-box" style="margin-top:8px">
+        <p style="font-size:.82rem"><strong>Subtotal (skip-large):</strong> ~175 GB • <strong>With large datasets:</strong> ~2.0 TB</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="slide-num">26</div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 27 — TOTAL STORAGE REQUIREMENTS
+     ════════════════════════════════════════════════════════════ -->
+<section class="slide slide-content" id="s27">
+  <div class="section-label">MLPerf Benchmark Resource Requirements</div>
+  <h2>Total Storage &amp; Deployment Scenarios</h2>
+  <div class="accent-line accent-line-green"></div>
+  
+  <div class="card-grid card-grid-2" style="gap:14px;margin-bottom:12px">
+    <div class="card card-green">
+      <h3>Storage by Scenario</h3>
+      <table style="font-size:.85rem">
+        <thead><tr><th>Scenario</th><th>Models</th><th>Datasets</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:700">Inference only<br>(skip-large)</td>
+            <td>~180 GB</td>
+            <td>~175 GB</td>
+            <td class="cmp-pos"><strong>~355 GB</strong></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">Full suite<br>(skip-large)</td>
+            <td>~180 GB</td>
+            <td>~175 GB</td>
+            <td class="cmp-pos"><strong>~355 GB</strong></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">With large models<br>& datasets</td>
+            <td>~3.6 TB</td>
+            <td>~2.0 TB</td>
+            <td class="cmp-neg"><strong>~5.6 TB</strong></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">Production<br>(405B + full)</td>
+            <td>~2.8 TB+</td>
+            <td>~2.0 TB</td>
+            <td class="cmp-neg"><strong>~5.6 TB</strong></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:.78rem;color:var(--muted);margin-top:8px">Recommended: <strong>6–8 TB dedicated storage</strong> to avoid contention and provide buffer for re-downloads.</p>
+    </div>
+    
+    <div class="card card-purple">
+      <h3>Large-Model Flag Control</h3>
+      <p style="margin-bottom:12px;font-size:.88rem">Use download scripts with <code>--skip-large</code> (default) or include manually:</p>
+      <table style="font-size:.82rem">
+        <thead><tr><th>Flag</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><code>--skip-large</code></td><td>Excludes: 405B, DeepSeek-R1, Criteo Terabyte, C4, LAION-400M (saves ~2.2 TB)</td></tr>
+          <tr><td>(no flag)</td><td>Downloads all models and datasets; requires <code>--only IDs</code> for selective subset</td></tr>
+          <tr><td><code>--only 001,006</code></td><td>Downloads only specific test IDs (e.g., 001 = Llama 405B, 006 = ImageNet + ResNet)</td></tr>
+          <tr><td><code>--hf-token TOKEN</code></td><td>Required for gated models (Llama family, DeepSeek-R1); set <code>HF_TOKEN</code> env var</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <div class="card card-amber">
+    <h3>Key Considerations</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <p style="font-weight:700;color:var(--accent-amber);margin-bottom:6px">✓ Minimum Setup</p>
+        <ul style="font-size:.84rem;padding-left:16px">
+          <li>Start with ~350 GB (skip-large)</li>
+          <li>Run inference benchmarks first</li>
+          <li>Good for CI/CD validation gates</li>
+          <li>Verify on-node bandwidth + ECC before scaling</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-weight:700;color:var(--intel-light);margin-bottom:6px">⚡ Full Production</p>
+        <ul style="font-size:.84rem;padding-left:16px">
+          <li>Requires ~5.6 TB for complete benchmark</li>
+          <li>Parallelizable downloads via aria2c (16 threads)</li>
+          <li>Expect 6–12 h download time on 1 Gbps connection</li>
+          <li>NVMe recommended; HDD will severely throttle</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="slide-num">27</div>
+</section>
+
 </div><!-- /deck -->
 
 <!-- ─────────────────────────── sidebar nav ──────────────────────────── -->
@@ -1696,7 +1852,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
 <div id="nav">
   <button id="btn-prev" onclick="navigate(-1)" disabled>◀ Prev</button>
   <div class="progress"><div class="progress-fill" id="prog-fill"></div></div>
-  <span id="slide-counter">1 / 25</span>
+  <span id="slide-counter">1 / 27</span>
   <button id="btn-next" onclick="navigate(1)">Next ▶</button>
 </div>
 

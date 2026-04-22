@@ -17,6 +17,7 @@ Can be executed separately with:
 
 import logging
 import importlib.util
+import importlib.metadata
 import multiprocessing as mp
 import os
 import json
@@ -3579,39 +3580,60 @@ class TestWorkloadAcceptanceHuggingFace:
         except ImportError:
             pytest.skip("vllm not installed")
 
+        try:
+            vllm_version = importlib.metadata.version("vllm")
+        except importlib.metadata.PackageNotFoundError:
+            vllm_version = "unknown"
+
         benchmark_timeout_sec = int(os.environ.get("VLLM_BENCHMARK_TIMEOUT_SEC", "240"))
         sample_interval_sec = float(os.environ.get("VLLM_BENCHMARK_SAMPLE_INTERVAL_SEC", "1.0"))
 
-        cmd = [
-            sys.executable,
-            "-m",
-            "vllm.benchmarks.benchmark_serving",
-            "--model",
-            _HF_INFERENCE_MODEL,
-            "--request-rate",
-            "100",
-            "--input-len-mean",
-            "1024",
-        ]
+        # Thresholds can adapt on shared nodes to avoid non-actionable hard skips.
+        # Exclusive-GPU runs keep strict defaults.
+        strict_gpu_over_90_target = float(os.environ.get("VLLM_GPU_OVER_90_RATIO_TARGET", "0.8"))
+        shared_gpu_over_90_target = float(os.environ.get("VLLM_GPU_OVER_90_RATIO_TARGET_SHARED", "0.5"))
+        cpu_under_70_target = float(os.environ.get("VLLM_CPU_UNDER_70_RATIO_TARGET", "0.8"))
 
-        logger.info("Running vLLM pipeline saturation benchmark: %s", " ".join(cmd))
+        def _query_active_compute_pids() -> set:
+            try:
+                proc_smi = subprocess.run(
+                    [
+                        "nvidia-smi",
+                        "--query-compute-apps=pid",
+                        "--format=csv,noheader,nounits",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if proc_smi.returncode != 0:
+                    return set()
+                return {
+                    line.strip()
+                    for line in proc_smi.stdout.strip().splitlines()
+                    if line.strip()
+                }
+            except Exception:
+                return set()
+
+        baseline_active_pids = _query_active_compute_pids()
 
         gpu_util_samples: List[float] = []
         cpu_util_samples: List[float] = []
-        start = time.perf_counter()
+        observed_active_pid_counts: List[int] = []
+        stdout = ""
+        stderr = ""
+        runtime_sec = 0.0
+        benchmark_mode = ""
+        returncode: Optional[int] = None
 
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            env={**os.environ, "CUDA_DEVICE_ORDER": "PCI_BUS_ID"},
-        )
-
-        try:
-            while proc.poll() is None and (time.perf_counter() - start) < benchmark_timeout_sec:
+        def _sample_while_running(target_proc: subprocess.Popen, timeout_sec: int) -> Tuple[str, str, float, int]:
+            start_local = time.perf_counter()
+            while target_proc.poll() is None and (time.perf_counter() - start_local) < timeout_sec:
                 # System-wide CPU utilization for starvation detection.
                 cpu_util_samples.append(psutil.cpu_percent(interval=sample_interval_sec))
+                active_pids = _query_active_compute_pids()
+                observed_active_pid_counts.append(len(active_pids))
                 try:
                     smi = subprocess.run(
                         [
@@ -3635,22 +3657,159 @@ class TestWorkloadAcceptanceHuggingFace:
                     # Keep sampling loop running even if one nvidia-smi call fails.
                     pass
 
-            if proc.poll() is None:
-                proc.terminate()
+            if target_proc.poll() is None:
+                target_proc.terminate()
                 try:
-                    proc.wait(timeout=10)
+                    target_proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
+                    target_proc.kill()
+
+            out, err = target_proc.communicate(timeout=10)
+            elapsed_local = time.perf_counter() - start_local
+            rc = target_proc.returncode if target_proc.returncode is not None else 0
+            return out, err, elapsed_local, rc
+
+        def _wait_for_http_ready(base_url: str, timeout_sec: int) -> bool:
+            deadline = time.perf_counter() + timeout_sec
+            while time.perf_counter() < deadline:
+                try:
+                    with urlopen(base_url + "/v1/models", timeout=3) as resp:
+                        if 200 <= getattr(resp, "status", 200) < 500:
+                            return True
+                except Exception:
+                    pass
+                time.sleep(1.0)
+            return False
+
+        # Preferred path: supported vLLM online benchmark flow.
+        serve_host = os.environ.get("VLLM_SERVE_HOST", "0.0.0.0")
+        serve_port = int(os.environ.get("VLLM_SERVE_PORT", "8000"))
+        base_url = os.environ.get("VLLM_BENCH_BASE_URL", f"http://127.0.0.1:{serve_port}")
+        endpoint = os.environ.get("VLLM_BENCH_ENDPOINT", "/v1/chat/completions")
+        request_rate = os.environ.get("VLLM_BENCH_REQUEST_RATE", "100")
+        num_prompts = os.environ.get("VLLM_BENCH_NUM_PROMPTS", "1000")
+        random_input_len = os.environ.get("VLLM_BENCH_RANDOM_INPUT_LEN", "1024")
+        random_output_len = os.environ.get("VLLM_BENCH_RANDOM_OUTPUT_LEN", "128")
+
+        cli_failed = False
+        if shutil.which("vllm") is not None:
+            serve_cmd = [
+                "vllm",
+                "serve",
+                _HF_INFERENCE_MODEL,
+                "--host",
+                serve_host,
+                "--port",
+                str(serve_port),
+            ]
+            bench_cmd = [
+                "vllm",
+                "bench",
+                "serve",
+                "--backend",
+                "openai-chat",
+                "--model",
+                _HF_INFERENCE_MODEL,
+                "--base-url",
+                base_url,
+                "--endpoint",
+                endpoint,
+                "--dataset-name",
+                "random",
+                "--random-input-len",
+                random_input_len,
+                "--random-output-len",
+                random_output_len,
+                "--request-rate",
+                request_rate,
+                "--num-prompts",
+                num_prompts,
+            ]
+
+            logger.info("vLLM version: %s", vllm_version)
+            logger.info("Starting vLLM server: %s", " ".join(serve_cmd))
+            serve_proc = subprocess.Popen(
+                serve_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                env={**os.environ, "CUDA_DEVICE_ORDER": "PCI_BUS_ID"},
+            )
+            try:
+                if _wait_for_http_ready(base_url, int(os.environ.get("VLLM_SERVE_READY_TIMEOUT_SEC", "90"))):
+                    logger.info("Running vLLM online serving benchmark: %s", " ".join(bench_cmd))
+                    bench_proc = subprocess.Popen(
+                        bench_cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        env={**os.environ, "CUDA_DEVICE_ORDER": "PCI_BUS_ID"},
+                    )
+                    stdout, stderr, runtime_sec, returncode = _sample_while_running(
+                        bench_proc,
+                        benchmark_timeout_sec,
+                    )
+                    benchmark_mode = "vllm_cli_serve_bench"
+                else:
+                    cli_failed = True
+                    returncode = 1
+                    benchmark_mode = "vllm_cli_serve_bench"
+                    logger.warning(
+                        "vLLM server did not become ready at %s within timeout; falling back",
+                        base_url,
+                    )
+            finally:
+                if serve_proc.poll() is None:
+                    serve_proc.terminate()
+                    try:
+                        serve_proc.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        serve_proc.kill()
+                try:
+                    _serve_out, _serve_err = serve_proc.communicate(timeout=5)
+                    if cli_failed and _serve_err:
+                        stderr = (stderr + "\n" + _serve_err).strip()
+                except Exception:
+                    pass
+        else:
+            cli_failed = True
+            returncode = 127
+            logger.warning("vllm CLI not found on PATH; falling back to module/API benchmark paths")
+
+        if returncode not in (0, None):
+            cmd = [
+                sys.executable,
+                "-m",
+                "vllm.benchmarks.benchmark_serving",
+                "--model",
+                _HF_INFERENCE_MODEL,
+                "--request-rate",
+                "100",
+                "--input-len-mean",
+                "1024",
+            ]
+
+            logger.info("Running vLLM pipeline saturation benchmark (module fallback): %s", " ".join(cmd))
+
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                env={**os.environ, "CUDA_DEVICE_ORDER": "PCI_BUS_ID"},
+            )
+
+            try:
+                stdout, stderr, runtime_sec, returncode = _sample_while_running(
+                    proc,
+                    benchmark_timeout_sec,
+                )
+                benchmark_mode = "vllm_module_benchmark_serving"
+            except Exception:
+                if proc.poll() is None:
                     proc.kill()
+                raise
 
-            stdout, stderr = proc.communicate(timeout=10)
-        except Exception:
-            if proc.poll() is None:
-                proc.kill()
-            raise
-
-        runtime_sec = time.perf_counter() - start
-
-        if proc.returncode not in (0, None):
             out_err = ((stderr or "") + "\n" + (stdout or ""))[-500:]
             # Fallback when benchmark module path is unavailable in installed vLLM.
             if "No module named vllm.benchmarks.benchmark_serving" in out_err:
@@ -3722,6 +3881,8 @@ class TestWorkloadAcceptanceHuggingFace:
                     stdout = ""
                     stderr = ""
                     runtime_sec = time.perf_counter() - start
+                    returncode = 0
+                    benchmark_mode = "vllm_api_fallback"
                 except Exception as fallback_exc:
                     pytest.skip(
                         "vLLM benchmark module unavailable and API fallback failed: "
@@ -3743,6 +3904,14 @@ class TestWorkloadAcceptanceHuggingFace:
         gpu_mean = float(np.mean(gpu_util_samples))
         cpu_mean = float(np.mean(cpu_util_samples))
         cpu_p95 = float(np.percentile(cpu_util_samples, 95))
+        max_active_compute_processes = max(observed_active_pid_counts) if observed_active_pid_counts else 0
+
+        # If compute processes were already present before the benchmark starts,
+        # treat this as shared-GPU contention and use an adjusted threshold.
+        contention_detected = len(baseline_active_pids) > 0
+        gpu_over_90_target = (
+            shared_gpu_over_90_target if contention_detected else strict_gpu_over_90_target
+        )
 
         # Optional latency-jitter signals from benchmark output, when available.
         p50_ms = None
@@ -3790,12 +3959,19 @@ class TestWorkloadAcceptanceHuggingFace:
             "test_vllm_data_pipeline_saturation_inference_prefill",
             {
                 "model": _HF_INFERENCE_MODEL,
+                "vllm_version": vllm_version,
+                "benchmark_mode": benchmark_mode,
                 "runtime_sec": round(runtime_sec, 2),
                 "gpu_mean_util_pct": round(gpu_mean, 2),
                 "cpu_mean_util_pct": round(cpu_mean, 2),
                 "gpu_over_90_ratio": round(gpu_over_90_ratio, 3),
                 "cpu_under_70_ratio": round(cpu_under_70_ratio, 3),
                 "cpu_p95_util_pct": round(cpu_p95, 2),
+                "gpu_over_90_ratio_target": round(gpu_over_90_target, 3),
+                "cpu_under_70_ratio_target": round(cpu_under_70_target, 3),
+                "contention_detected": contention_detected,
+                "baseline_active_compute_processes": len(baseline_active_pids),
+                "max_active_compute_processes": max_active_compute_processes,
                 "request_rate": 100,
                 "input_len_mean": 1024,
                 "p50_ms": p50_ms,
@@ -3804,39 +3980,24 @@ class TestWorkloadAcceptanceHuggingFace:
             },
         )
 
-        if gpu_over_90_ratio < 0.8:
-            # Shared nodes with concurrent GPU compute processes can suppress
-            # benchmark utilization and make saturation checks non-actionable.
-            try:
-                proc_smi = subprocess.run(
-                    [
-                        "nvidia-smi",
-                        "--query-compute-apps=pid,used_memory",
-                        "--format=csv,noheader,nounits",
-                    ],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                )
-                if proc_smi.returncode == 0:
-                    active_pids = {
-                        line.split(",", 1)[0].strip()
-                        for line in proc_smi.stdout.strip().splitlines()
-                        if line.strip() and "," in line
-                    }
-                    if len(active_pids) > 1:
-                        pytest.skip(
-                            "GPU utilization saturation test skipped due to shared GPU environment "
-                            f"(active compute processes={len(active_pids)})."
-                        )
-            except Exception:
-                pass
+        if contention_detected:
+            logger.warning(
+                "Shared GPU contention detected (baseline active compute processes=%d); "
+                "using adjusted gpu>=90%% ratio target %.2f instead of %.2f",
+                len(baseline_active_pids),
+                gpu_over_90_target,
+                strict_gpu_over_90_target,
+            )
 
-        assert gpu_over_90_ratio >= 0.8, (
-            f"GPU utilization not sustained (>=90% ratio={gpu_over_90_ratio:.2f}, mean={gpu_mean:.1f}%)"
+        assert gpu_over_90_ratio >= gpu_over_90_target, (
+            "GPU utilization not sustained "
+            f"(>=90% ratio={gpu_over_90_ratio:.2f}, mean={gpu_mean:.1f}%, "
+            f"target_ratio={gpu_over_90_target:.2f}, shared_gpu={contention_detected})"
         )
-        assert cpu_under_70_ratio >= 0.8, (
-            f"CPU utilization too high for sustained periods (<=70% ratio={cpu_under_70_ratio:.2f}, p95={cpu_p95:.1f}%)"
+        assert cpu_under_70_ratio >= cpu_under_70_target, (
+            "CPU utilization too high for sustained periods "
+            f"(<=70% ratio={cpu_under_70_ratio:.2f}, p95={cpu_p95:.1f}%, "
+            f"target_ratio={cpu_under_70_target:.2f})"
         )
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")

@@ -87,6 +87,29 @@ THEORETICAL_FP32_BASE = CPU_SPECS.peak_fp32_tflops_base     # ~19.5 TFLOPS @ 1.9
 THEORETICAL_FP32_TURBO = CPU_SPECS.peak_fp32_tflops_turbo   # ~40 TFLOPS @ 3.9 GHz
 
 
+@contextmanager
+def _single_thread_blas_env():
+    """Temporarily force BLAS backends to single-thread mode for fair process scaling."""
+    vars_to_set = [
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "MKL_NUM_THREADS",
+        "VECLIB_MAXIMUM_THREADS",
+        "NUMEXPR_NUM_THREADS",
+    ]
+    original = {k: os.environ.get(k) for k in vars_to_set}
+    try:
+        for key in vars_to_set:
+            os.environ[key] = "1"
+        yield
+    finally:
+        for key, value in original.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+
 def _numpy_fma_gflops(n_iters: int = 500, size: int = 1024) -> float:
     """
     Estimate FP32 GFLOPS using NumPy matrix-multiply (backed by BLAS SGEMM).
@@ -262,16 +285,19 @@ class TestAllCoreFP32Scaling:
         sample_results = []
         
         try:
-            with ProcessPoolExecutor(max_workers=sample_workers, timeout=180) as ex:
-                futures = [ex.submit(_parallel_blas_worker, arg) for arg in args]
-                for idx, future in enumerate(futures):
-                    try:
-                        result = future.result(timeout=15)  # 15 seconds per worker
-                        sample_results.append(result)
-                        logger.info(f"  Worker {idx+1}/{sample_workers} completed: {result:.2f} GFLOPS")
-                    except FuturesTimeoutError:
-                        logger.error(f"  Worker {idx+1}/{sample_workers} timed out after 15 seconds")
-                        raise TimeoutError(f"Worker {idx} exceeded 15-second timeout")
+            # Use spawned workers with single-thread BLAS to avoid nested-thread oversubscription.
+            with _single_thread_blas_env():
+                mp_ctx = multiprocessing.get_context("spawn")
+                with ProcessPoolExecutor(max_workers=sample_workers, mp_context=mp_ctx) as ex:
+                    futures = [ex.submit(_parallel_blas_worker, arg) for arg in args]
+                    for idx, future in enumerate(futures):
+                        try:
+                            result = future.result(timeout=15)  # 15 seconds per worker
+                            sample_results.append(result)
+                            logger.info(f"  Worker {idx+1}/{sample_workers} completed: {result:.2f} GFLOPS")
+                        except FuturesTimeoutError:
+                            logger.error(f"  Worker {idx+1}/{sample_workers} timed out after 15 seconds")
+                            raise TimeoutError(f"Worker {idx} exceeded 15-second timeout")
         except Exception as e:
             elapsed = time.perf_counter() - t0
             logger.error(f"\n  ❌ ERROR after {elapsed:.1f}s: {e}")
@@ -321,11 +347,15 @@ class TestAllCoreFP32Scaling:
         """TC-CPU-04b: N-core throughput must scale ≥ 85 % linearly vs 1-core."""
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
-        single_gflops = _numpy_fma_gflops(n_iters=100, size=256)
         n_workers = min(8, (os.cpu_count() or 1))  # use 8 cores for speed
         args = [(256, 100)] * n_workers
-        with ProcessPoolExecutor(max_workers=n_workers) as ex:
-            results = list(ex.map(_parallel_blas_worker, args))
+        with _single_thread_blas_env():
+            mp_ctx = multiprocessing.get_context("spawn")
+            # Measure 1-core baseline through the same process-pool/worker path for fair scaling.
+            with ProcessPoolExecutor(max_workers=1, mp_context=mp_ctx) as ex:
+                single_gflops = list(ex.map(_parallel_blas_worker, [(256, 100)]))[0]
+            with ProcessPoolExecutor(max_workers=n_workers, mp_context=mp_ctx) as ex:
+                results = list(ex.map(_parallel_blas_worker, args))
         multi_gflops = sum(results)
         ideal_gflops = single_gflops * n_workers
         assert_efficiency(

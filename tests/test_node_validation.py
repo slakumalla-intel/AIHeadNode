@@ -3793,7 +3793,7 @@ class TestWorkloadAcceptanceHuggingFace:
                 else:
                     cli_failed = True
                     returncode = 1
-                    benchmark_mode = "vllm_cli_serve_bench"
+                    # Don't set benchmark_mode here - let fallback run if needed
                     if serve_proc.poll() is not None:
                         logger.warning(
                             "vLLM server process exited before readiness (rc=%s); falling back",

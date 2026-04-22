@@ -3826,7 +3826,8 @@ class TestWorkloadAcceptanceHuggingFace:
             returncode = 127
             logger.warning("vllm CLI not found on PATH; falling back to module/API benchmark paths")
 
-        if returncode not in (0, None):
+        # Skip fallback if primary vllm CLI benchmark path already ran successfully.
+        if benchmark_mode != "vllm_cli_serve_bench" and returncode not in (0, None):
             cmd = [
                 sys.executable,
                 "-m",

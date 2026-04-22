@@ -3699,6 +3699,16 @@ class TestWorkloadAcceptanceHuggingFace:
         num_prompts = os.environ.get("VLLM_BENCH_NUM_PROMPTS", "1000")
         random_input_len = os.environ.get("VLLM_BENCH_RANDOM_INPUT_LEN", "1024")
         random_output_len = os.environ.get("VLLM_BENCH_RANDOM_OUTPUT_LEN", "128")
+        serve_tensor_parallel_size = os.environ.get(
+            "VLLM_SERVE_TENSOR_PARALLEL_SIZE",
+            os.environ.get("ML_TENSOR_PARALLEL", "1"),
+        )
+        serve_max_model_len = os.environ.get("VLLM_SERVE_MAX_MODEL_LEN", "4096")
+        serve_gpu_memory_utilization = os.environ.get(
+            "VLLM_SERVE_GPU_MEMORY_UTILIZATION",
+            "0.85",
+        )
+        serve_dtype = os.environ.get("VLLM_SERVE_DTYPE", "bfloat16")
         serve_ready_timeout_sec = int(os.environ.get("VLLM_SERVE_READY_TIMEOUT_SEC", "300"))
         serve_ready_poll_interval_sec = float(os.environ.get("VLLM_SERVE_READY_POLL_INTERVAL_SEC", "2.0"))
         # Keep readiness budget bounded so this test can still run benchmark/fallback
@@ -3718,6 +3728,14 @@ class TestWorkloadAcceptanceHuggingFace:
                 serve_host,
                 "--port",
                 str(serve_port),
+                "--tensor-parallel-size",
+                str(serve_tensor_parallel_size),
+                "--max-model-len",
+                str(serve_max_model_len),
+                "--gpu-memory-utilization",
+                str(serve_gpu_memory_utilization),
+                "--dtype",
+                str(serve_dtype),
             ]
             bench_cmd = [
                 "vllm",

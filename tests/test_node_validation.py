@@ -3691,7 +3691,7 @@ class TestWorkloadAcceptanceHuggingFace:
             return False
 
         # Preferred path: supported vLLM online benchmark flow.
-        serve_host = os.environ.get("VLLM_SERVE_HOST", "0.0.0.0")
+        serve_host = os.environ.get("VLLM_SERVE_HOST", "127.0.0.1")
         serve_port = int(os.environ.get("VLLM_SERVE_PORT", "8000"))
         base_url = os.environ.get("VLLM_BENCH_BASE_URL", f"http://127.0.0.1:{serve_port}")
         endpoint = os.environ.get("VLLM_BENCH_ENDPOINT", "/v1/chat/completions")

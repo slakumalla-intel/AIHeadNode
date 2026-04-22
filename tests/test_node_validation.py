@@ -3669,10 +3669,17 @@ class TestWorkloadAcceptanceHuggingFace:
             rc = target_proc.returncode if target_proc.returncode is not None else 0
             return out, err, elapsed_local, rc
 
-        def _wait_for_http_ready(base_url: str, timeout_sec: int, poll_interval_sec: float) -> bool:
+        def _wait_for_http_ready(
+            base_url: str,
+            timeout_sec: int,
+            poll_interval_sec: float,
+            server_proc: Optional[subprocess.Popen] = None,
+        ) -> bool:
             probe_paths = ["/v1/models", "/health", "/metrics"]
             deadline = time.perf_counter() + timeout_sec
             while time.perf_counter() < deadline:
+                if server_proc is not None and server_proc.poll() is not None:
+                    return False
                 for probe in probe_paths:
                     try:
                         with urlopen(base_url + probe, timeout=3) as resp:
@@ -3694,6 +3701,12 @@ class TestWorkloadAcceptanceHuggingFace:
         random_output_len = os.environ.get("VLLM_BENCH_RANDOM_OUTPUT_LEN", "128")
         serve_ready_timeout_sec = int(os.environ.get("VLLM_SERVE_READY_TIMEOUT_SEC", "300"))
         serve_ready_poll_interval_sec = float(os.environ.get("VLLM_SERVE_READY_POLL_INTERVAL_SEC", "2.0"))
+        # Keep readiness budget bounded so this test can still run benchmark/fallback
+        # before global pytest-timeout is reached.
+        effective_ready_timeout_sec = min(
+            serve_ready_timeout_sec,
+            max(30, benchmark_timeout_sec - 30),
+        )
 
         cli_failed = False
         if shutil.which("vllm") is not None:
@@ -3740,7 +3753,12 @@ class TestWorkloadAcceptanceHuggingFace:
                 env={**os.environ, "CUDA_DEVICE_ORDER": "PCI_BUS_ID"},
             )
             try:
-                if _wait_for_http_ready(base_url, serve_ready_timeout_sec, serve_ready_poll_interval_sec):
+                if _wait_for_http_ready(
+                    base_url,
+                    effective_ready_timeout_sec,
+                    serve_ready_poll_interval_sec,
+                    serve_proc,
+                ):
                     logger.info("Running vLLM online serving benchmark: %s", " ".join(bench_cmd))
                     bench_proc = subprocess.Popen(
                         bench_cmd,
@@ -3758,11 +3776,18 @@ class TestWorkloadAcceptanceHuggingFace:
                     cli_failed = True
                     returncode = 1
                     benchmark_mode = "vllm_cli_serve_bench"
-                    logger.warning(
-                        "vLLM server did not become ready at %s within %ds; falling back",
-                        base_url,
-                        serve_ready_timeout_sec,
-                    )
+                    if serve_proc.poll() is not None:
+                        logger.warning(
+                            "vLLM server process exited before readiness (rc=%s); falling back",
+                            serve_proc.returncode,
+                        )
+                    else:
+                        logger.warning(
+                            "vLLM server did not become ready at %s within %ds (configured=%ds); falling back",
+                            base_url,
+                            effective_ready_timeout_sec,
+                            serve_ready_timeout_sec,
+                        )
             finally:
                 if serve_proc.poll() is None:
                     serve_proc.terminate()

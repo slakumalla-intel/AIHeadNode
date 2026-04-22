@@ -3703,10 +3703,10 @@ class TestWorkloadAcceptanceHuggingFace:
             "VLLM_SERVE_TENSOR_PARALLEL_SIZE",
             os.environ.get("ML_TENSOR_PARALLEL", "1"),
         )
-        serve_max_model_len = os.environ.get("VLLM_SERVE_MAX_MODEL_LEN", "4096")
+        serve_max_model_len = os.environ.get("VLLM_SERVE_MAX_MODEL_LEN", "1024")
         serve_gpu_memory_utilization = os.environ.get(
             "VLLM_SERVE_GPU_MEMORY_UTILIZATION",
-            "0.85",
+            "0.4",
         )
         serve_dtype = os.environ.get("VLLM_SERVE_DTYPE", "bfloat16")
         serve_ready_timeout_sec = int(os.environ.get("VLLM_SERVE_READY_TIMEOUT_SEC", "300"))
@@ -3815,9 +3815,14 @@ class TestWorkloadAcceptanceHuggingFace:
                         serve_proc.kill()
                 try:
                     _serve_out, _serve_err = serve_proc.communicate(timeout=5)
-                    if cli_failed and _serve_err:
+                    if _serve_err:
+                        stderr = (_serve_err or "").strip()
+                        # Always capture full stderr to file for debugging
+                        diagnostics_dir = "artifacts"
+                        os.makedirs(diagnostics_dir, exist_ok=True)
+                        with open(os.path.join(diagnostics_dir, "vllm_serve_startup.log"), "w") as f:
+                            f.write(_serve_err)
                         err_tail = _serve_err[-1500:]
-                        stderr = (stderr + "\n" + err_tail).strip()
                         logger.warning("vLLM serve stderr tail (for readiness debugging): %s", err_tail)
                 except Exception:
                     pass

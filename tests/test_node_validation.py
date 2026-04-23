@@ -1528,7 +1528,33 @@ class TestGPUP2PBandwidth:
         if n_gpus < 2:
             pytest.skip("Need >= 2 GPUs for P2P multi-stream bandwidth test")
 
-        n_bytes_per_stream = int(os.environ.get("P2P_MULTI_STREAM_BYTES", str(256 * 1024 * 1024)))
+        default_transfer_sizes_mib = [4, 16, 25, 64, 256, 1024]
+        _sizes_env = os.environ.get("P2P_MULTI_STREAM_SIZES_MIB", "").strip()
+        _bytes_env = os.environ.get("P2P_MULTI_STREAM_BYTES", "").strip()
+
+        transfer_sizes_bytes: List[int]
+        if _sizes_env:
+            parsed_sizes_mib = [
+                int(x.strip())
+                for x in _sizes_env.split(",")
+                if x.strip().isdigit() and int(x.strip()) > 0
+            ]
+            if not parsed_sizes_mib:
+                pytest.skip("P2P_MULTI_STREAM_SIZES_MIB is set but contains no valid positive integers")
+            transfer_sizes_bytes = [mib * 1024 * 1024 for mib in parsed_sizes_mib]
+        elif _bytes_env:
+            parsed_sizes_bytes = [
+                int(x.strip())
+                for x in _bytes_env.split(",")
+                if x.strip().isdigit() and int(x.strip()) > 0
+            ]
+            if not parsed_sizes_bytes:
+                pytest.skip("P2P_MULTI_STREAM_BYTES is set but contains no valid positive integers")
+            transfer_sizes_bytes = parsed_sizes_bytes
+        else:
+            transfer_sizes_bytes = [mib * 1024 * 1024 for mib in default_transfer_sizes_mib]
+
+        transfer_sizes_bytes = sorted(set(transfer_sizes_bytes))
         n_iters = int(os.environ.get("P2P_MULTI_STREAM_ITERS", "5"))
         _sc_env = os.environ.get("P2P_MULTI_STREAM_COUNTS", "")
         stream_counts = (
@@ -1572,54 +1598,79 @@ class TestGPUP2PBandwidth:
         if max_pairs > 0:
             peer_pairs = peer_pairs[:max_pairs]
 
-        all_pair_results: Dict[str, Dict[str, float]] = {}
+        def _size_label(num_bytes: int) -> str:
+            gib = 1024 ** 3
+            mib = 1024 ** 2
+            if num_bytes % gib == 0:
+                return f"{num_bytes // gib}GiB"
+            return f"{num_bytes // mib}MiB"
+
+        assertion_size_bytes = int(
+            os.environ.get("P2P_MULTI_STREAM_ASSERT_SIZE_BYTES", str(max(transfer_sizes_bytes)))
+        )
+        if assertion_size_bytes not in transfer_sizes_bytes:
+            assertion_size_bytes = max(transfer_sizes_bytes)
+        assertion_size_label = _size_label(assertion_size_bytes)
+
+        all_pair_results: Dict[str, Dict[str, Dict[str, float]]] = {}
         failing_pairs: List[str] = []
         ratio_records: List[Tuple[str, float, float, float]] = []
         directional_records: List[Tuple[str, str, float]] = []
 
         for src, dst in peer_pairs:
             logger.info("P2P multi-stream: GPU %d -> GPU %d", src, dst)
-            bw_by_streams: Dict[str, float] = {}
+            per_size_stream_bw: Dict[str, Dict[str, float]] = {}
+            bw_for_assert_size: Dict[str, float] = {}
 
-            for n_streams in stream_counts:
-                src_bufs = [
-                    torch.empty(n_bytes_per_stream, dtype=torch.uint8, device=f"cuda:{src}")
-                    for _ in range(n_streams)
-                ]
-                dst_bufs = [
-                    torch.empty(n_bytes_per_stream, dtype=torch.uint8, device=f"cuda:{dst}")
-                    for _ in range(n_streams)
-                ]
-                streams = [torch.cuda.Stream(device=f"cuda:{dst}") for _ in range(n_streams)]
+            for n_bytes_per_stream in transfer_sizes_bytes:
+                size_key = _size_label(n_bytes_per_stream)
+                bw_by_streams: Dict[str, float] = {}
 
-                # Warmup
-                with torch.cuda.device(dst):
-                    for sl, (sb, db) in enumerate(zip(src_bufs, dst_bufs)):
-                        with torch.cuda.stream(streams[sl]):
-                            db.copy_(sb, non_blocking=True)
-                    torch.cuda.synchronize(dst)
+                for n_streams in stream_counts:
+                    src_bufs = [
+                        torch.empty(n_bytes_per_stream, dtype=torch.uint8, device=f"cuda:{src}")
+                        for _ in range(n_streams)
+                    ]
+                    dst_bufs = [
+                        torch.empty(n_bytes_per_stream, dtype=torch.uint8, device=f"cuda:{dst}")
+                        for _ in range(n_streams)
+                    ]
+                    streams = [torch.cuda.Stream(device=f"cuda:{dst}") for _ in range(n_streams)]
 
-                # Measure
-                total_bytes = n_bytes_per_stream * n_streams * n_iters
-                t0 = time.perf_counter()
-                with torch.cuda.device(dst):
-                    for _ in range(n_iters):
+                    # Warmup
+                    with torch.cuda.device(dst):
                         for sl, (sb, db) in enumerate(zip(src_bufs, dst_bufs)):
                             with torch.cuda.stream(streams[sl]):
                                 db.copy_(sb, non_blocking=True)
                         torch.cuda.synchronize(dst)
-                elapsed = time.perf_counter() - t0
 
-                bw_gbs = total_bytes / (elapsed * 1e9)
-                bw_by_streams[str(n_streams)] = round(bw_gbs, 2)
-                logger.info(
-                    "  %d stream(s): %.2f GB/s  (%.0f MB/stream)",
-                    n_streams, bw_gbs, n_bytes_per_stream / (1024 * 1024),
-                )
-                del src_bufs, dst_bufs, streams
+                    # Measure
+                    total_bytes = n_bytes_per_stream * n_streams * n_iters
+                    t0 = time.perf_counter()
+                    with torch.cuda.device(dst):
+                        for _ in range(n_iters):
+                            for sl, (sb, db) in enumerate(zip(src_bufs, dst_bufs)):
+                                with torch.cuda.stream(streams[sl]):
+                                    db.copy_(sb, non_blocking=True)
+                            torch.cuda.synchronize(dst)
+                    elapsed = time.perf_counter() - t0
 
-            bw_1 = bw_by_streams.get("1", 0.0)
-            bw_4 = bw_by_streams.get("4", 0.0)
+                    bw_gbs = total_bytes / (elapsed * 1e9)
+                    bw_by_streams[str(n_streams)] = round(bw_gbs, 2)
+                    logger.info(
+                        "  %s, %d stream(s): %.2f GB/s",
+                        size_key,
+                        n_streams,
+                        bw_gbs,
+                    )
+                    del src_bufs, dst_bufs, streams
+
+                per_size_stream_bw[size_key] = bw_by_streams
+                if n_bytes_per_stream == assertion_size_bytes:
+                    bw_for_assert_size = dict(bw_by_streams)
+
+            bw_1 = bw_for_assert_size.get("1", 0.0)
+            bw_4 = bw_for_assert_size.get("4", 0.0)
             ratio = (bw_4 / bw_1) if bw_1 > 0 else 0.0
 
             pair_key = f"{src}->{dst}"
@@ -1627,7 +1678,8 @@ class TestGPUP2PBandwidth:
                 "bw_1_stream_gbs": round(float(bw_1), 2),
                 "bw_4_stream_gbs": round(float(bw_4), 2),
                 "ratio_4_over_1": round(float(ratio), 3),
-                "bw_by_streams_gbs": bw_by_streams,
+                "assertion_size": assertion_size_label,
+                "bw_by_size_streams_gbs": per_size_stream_bw,
             }
             if has_stream_1 and has_stream_4:
                 ratio_records.append((pair_key, float(ratio), float(bw_1), float(bw_4)))
@@ -1636,11 +1688,12 @@ class TestGPUP2PBandwidth:
                     failing_pairs.append(f"GPU{src}->GPU{dst}: 1-stream BW is 0.0 GB/s")
                 elif bw_4 > 0 and ratio < min_stability_ratio:
                     failing_pairs.append(
-                        f"GPU{src}->GPU{dst}: 4-stream BW {bw_4:.2f} GB/s retains only {ratio:.2f}x of "
-                        f"1-stream BW {bw_1:.2f} GB/s (< {min_stability_ratio:.2f}x)"
+                        f"GPU{src}->GPU{dst} [{assertion_size_label}]: 4-stream BW {bw_4:.2f} GB/s "
+                        f"retains only {ratio:.2f}x of 1-stream BW {bw_1:.2f} GB/s "
+                        f"(< {min_stability_ratio:.2f}x)"
                     )
 
-            logger.info("P2P multi-stream BW (GPU %d->%d): %s", src, dst, bw_by_streams)
+            logger.info("P2P multi-stream BW (GPU %d->%d): %s", src, dst, per_size_stream_bw)
 
         for src, dst in peer_pairs:
             forward_key = f"{src}->{dst}"
@@ -1653,8 +1706,16 @@ class TestGPUP2PBandwidth:
             if not forward or not reverse:
                 continue
 
-            forward_bw = float(forward.get("bw_by_streams_gbs", {}).get(str(symmetry_stream_count), 0.0))
-            reverse_bw = float(reverse.get("bw_by_streams_gbs", {}).get(str(symmetry_stream_count), 0.0))
+            forward_bw = float(
+                forward.get("bw_by_size_streams_gbs", {})
+                .get(assertion_size_label, {})
+                .get(str(symmetry_stream_count), 0.0)
+            )
+            reverse_bw = float(
+                reverse.get("bw_by_size_streams_gbs", {})
+                .get(assertion_size_label, {})
+                .get(str(symmetry_stream_count), 0.0)
+            )
             if forward_bw <= 0.0 or reverse_bw <= 0.0:
                 continue
 
@@ -1662,7 +1723,8 @@ class TestGPUP2PBandwidth:
             directional_records.append((forward_key, reverse_key, symmetry_ratio))
             if symmetry_ratio < min_directional_symmetry:
                 failing_pairs.append(
-                    f"GPU{forward_key} vs GPU{reverse_key}: {symmetry_stream_count}-stream directional symmetry "
+                    f"GPU{forward_key} vs GPU{reverse_key} [{assertion_size_label}]: "
+                    f"{symmetry_stream_count}-stream directional symmetry "
                     f"{symmetry_ratio:.2f}x is below {min_directional_symmetry:.2f}x "
                     f"({forward_bw:.2f} vs {reverse_bw:.2f} GB/s)"
                 )
@@ -1702,7 +1764,10 @@ class TestGPUP2PBandwidth:
         kpi_payload: Dict[str, Any] = {
             "tested_pair_count": len(peer_pairs),
             "stream_counts": stream_counts,
-            "n_bytes_per_stream": n_bytes_per_stream,
+            "transfer_sizes_bytes": transfer_sizes_bytes,
+            "transfer_sizes_labels": [_size_label(v) for v in transfer_sizes_bytes],
+            "assertion_size_bytes": assertion_size_bytes,
+            "assertion_size_label": assertion_size_label,
             "n_iters": n_iters,
             "required_min_stability_ratio": min_stability_ratio,
             "observed_min_scaling_ratio": round(min_ratio_observed, 3),
@@ -1733,6 +1798,7 @@ class TestGPUP2PBandwidth:
             pytest.fail(
                 "P2P multi-stream stability validation failed.\n"
                 f"tested_pairs={len(peer_pairs)}, required_min_stability_ratio={min_stability_ratio:.2f}, "
+                f"assertion_size={assertion_size_label}, "
                 f"observed_min_scaling_ratio={min_ratio_observed:.3f}, "
                 f"observed_avg_scaling_ratio={avg_ratio_observed:.3f}, "
                 f"required_min_directional_symmetry={min_directional_symmetry:.2f}, "

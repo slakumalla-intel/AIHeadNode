@@ -141,9 +141,15 @@ def _configure_default_env() -> None:
     # KPI & Test Configuration
     # =========================================================================
     os.environ.setdefault("NODE_VALIDATION_KPI_FILE", "artifacts/node_validation_kpis.jsonl")
+    os.environ.setdefault("AGENTIC_KPI_FILE", "artifacts/agentic_ai_kpis.jsonl")
+    os.environ.setdefault("PIPELINE_KPI_FILE", "artifacts/ai_pipeline_kpis.jsonl")
+    os.environ.setdefault("HEALTH_KPI_FILE", "artifacts/system_health_kpis.jsonl")
+    os.environ.setdefault("ML_SUITE_KPI_FILE", "artifacts/mlperf_suite_kpis.jsonl")
     os.environ.setdefault("NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth")
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
     os.environ.setdefault("PYTEST_TIMEOUT", "600")
+    os.environ.setdefault("NODE_WORKLOAD_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
+    os.environ.setdefault("NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC", "1800")
 
     # =========================================================================
     # Performance Suite Configuration
@@ -173,6 +179,8 @@ def _configure_default_env() -> None:
         "  YOLO_DETECT_BATCH=%s\n"
         "  CUDA_VISIBLE_DEVICES=%s\n"
         "  NVBANDWIDTH_BIN=%s\n"
+        "  NODE_WORKLOAD_AUTO_INSTALL=%s\n"
+        "  NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC=%s\n"
         "  PERF_CMD_TIMEOUT_SEC=%s\n"
         "  PERF_AUTO_INSTALL=%s\n"
         "  PERF_NCCL_TESTS_DIR=%s\n"
@@ -186,6 +194,8 @@ def _configure_default_env() -> None:
         os.environ.get("YOLO_DETECT_BATCH"),
         os.environ.get("CUDA_VISIBLE_DEVICES"),
         os.environ.get("NVBANDWIDTH_BIN"),
+        os.environ.get("NODE_WORKLOAD_AUTO_INSTALL"),
+        os.environ.get("NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC"),
         os.environ.get("PERF_CMD_TIMEOUT_SEC"),
         os.environ.get("PERF_AUTO_INSTALL"),
         os.environ.get("PERF_NCCL_TESTS_DIR"),

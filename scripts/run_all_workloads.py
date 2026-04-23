@@ -38,7 +38,6 @@ DEFAULT_ENV: Dict[str, str] = {
     "AGENTIC_EXECUTE": "1",
     "HEALTH_EXECUTE": "1",
     # GPU / CUDA defaults
-    "CUDA_VISIBLE_DEVICES": "0,1,2,3",
     "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
     # HuggingFace / model defaults
     "HF_ENABLE_LARGE_MODELS": "1",
@@ -66,6 +65,39 @@ DEFAULT_ENV: Dict[str, str] = {
     "HEALTH_KPI_FILE": "artifacts/system_health_kpis.jsonl",
     "AGENTIC_KPI_FILE": "artifacts/agentic_ai_kpis.jsonl",
 }
+
+
+def _detect_nvidia_gpu_count() -> int:
+    """Best-effort NVIDIA GPU count without importing torch."""
+    try:
+        out = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=index", "--format=csv,noheader,nounits"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+        rows = [line.strip() for line in out.splitlines() if line.strip()]
+        return len(rows)
+    except Exception:
+        return 0
+
+
+def _sanitize_cuda_visible_devices(value: str, gpu_count: int) -> str:
+    if gpu_count <= 0:
+        return value
+    valid: List[str] = []
+    for token in (part.strip() for part in value.split(",")):
+        if token.isdigit() and int(token) < gpu_count:
+            valid.append(token)
+    if not valid:
+        return ",".join(str(i) for i in range(gpu_count))
+    return ",".join(valid)
+
+
+def _default_cuda_visible_devices() -> str:
+    gpu_count = _detect_nvidia_gpu_count()
+    if gpu_count <= 0:
+        return "0"
+    return ",".join(str(i) for i in range(gpu_count))
 
 
 DOMAINS: "OrderedDict[str, DomainSpec]" = OrderedDict(
@@ -398,6 +430,14 @@ def _build_env() -> Dict[str, str]:
     env = os.environ.copy()
     for key, value in DEFAULT_ENV.items():
         env.setdefault(key, value)
+
+    gpu_count = _detect_nvidia_gpu_count()
+    if "CUDA_VISIBLE_DEVICES" in env:
+        env["CUDA_VISIBLE_DEVICES"] = _sanitize_cuda_visible_devices(
+            env["CUDA_VISIBLE_DEVICES"], gpu_count
+        )
+    else:
+        env["CUDA_VISIBLE_DEVICES"] = _default_cuda_visible_devices()
     return env
 
 

@@ -806,7 +806,7 @@ class TestSystemLevelSummary:
             "HBM3 capacity/GPU (GB)": f"{H100_SPECS.hbm3_capacity_gb:.0f}",
             "HBM3 BW/GPU (TB/s)": f"{H100_SPECS.hbm3_bandwidth_tbs:.2f}",
             "Total HBM3 BW (TB/s)": f"{SYSTEM_SPECS.total_hbm_bandwidth_tbs:.2f}",
-            "GPU interconnect": H100_SPECS.interconnect_type,
+            "GPU interconnect": H100_SPECS.interconnect_label,
             "Inter-GPU BW/GPU (GB/s)": (
                 f"{H100_SPECS.nvlink_total_bw_gbs:.0f}"
                 if SYSTEM_SPECS.has_nvlink

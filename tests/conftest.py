@@ -10,6 +10,7 @@ import os
 import sys
 import json
 import re
+import signal
 import platform
 import subprocess
 import time
@@ -34,6 +35,177 @@ _REPORT_ALIAS_PATHS = [
     Path(__file__).resolve().parents[1] / "NODE_VALIDATION_REPORT.md",
 ]
 _VALIDATION_LOG_PATH = Path(__file__).resolve().parents[1] / "validation_run.log"
+
+_VLLM_PROCESS_PATTERNS = (
+    "enginecore",
+    "vllm.benchmarks.benchmark_serving",
+    "vllm.entrypoints.openai.api_server",
+)
+
+
+def _vllm_cleanup_enabled() -> bool:
+    return os.environ.get("VLLM_STRICT_CLEANUP", "1") == "1"
+
+
+def _is_vllm_related_item(item: pytest.Item) -> bool:
+    marker_names = {marker.name for marker in item.iter_markers()}
+    file_name = Path(str(item.fspath)).name.lower()
+    nodeid_lower = item.nodeid.lower()
+
+    if "vllm_prefill" in marker_names:
+        return True
+    if file_name in {
+        "test_vllm_prefill_validation.py",
+        "test_performance_suite.py",
+        "test_mlperf_suite.py",
+        "test_node_validation.py",
+    }:
+        return True
+    return "vllm" in nodeid_lower or "benchmark_serving" in nodeid_lower
+
+
+def _find_stale_vllm_processes() -> List[Tuple[int, str]]:
+    if not sys.platform.startswith("linux"):
+        return []
+
+    current_pid = os.getpid()
+    stale: List[Tuple[int, str]] = []
+
+    if _psutil is not None:
+        for proc in _psutil.process_iter(["pid", "cmdline"]):
+            try:
+                pid = int(proc.info.get("pid", -1))
+                if pid <= 0 or pid == current_pid:
+                    continue
+                cmdline = proc.info.get("cmdline") or []
+                cmd = " ".join(cmdline).strip()
+                cmd_lower = cmd.lower()
+                if any(pattern in cmd_lower for pattern in _VLLM_PROCESS_PATTERNS):
+                    stale.append((pid, cmd or "<unknown>"))
+            except Exception:
+                continue
+        return stale
+
+    # Fallback path if psutil is unavailable.
+    try:
+        result = subprocess.run(
+            ["ps", "-eo", "pid=,args="],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=5,
+        )
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(None, 1)
+            if not parts:
+                continue
+            pid = int(parts[0])
+            if pid == current_pid:
+                continue
+            cmd = parts[1] if len(parts) > 1 else ""
+            cmd_lower = cmd.lower()
+            if any(pattern in cmd_lower for pattern in _VLLM_PROCESS_PATTERNS):
+                stale.append((pid, cmd or "<unknown>"))
+    except Exception:
+        return []
+
+    return stale
+
+
+def _terminate_stale_vllm_processes(tag: str, nodeid: str) -> None:
+    if not _vllm_cleanup_enabled():
+        return
+
+    stale = _find_stale_vllm_processes()
+    if not stale:
+        return
+
+    logger.warning(
+        "[%s] Found %d stale vLLM process(es) before cleanup for %s",
+        tag,
+        len(stale),
+        nodeid,
+    )
+
+    for pid, cmd in stale:
+        try:
+            logger.warning("[%s] Terminating stale vLLM PID=%s cmd=%s", tag, pid, cmd[:220])
+            if _psutil is not None:
+                proc = _psutil.Process(pid)
+                proc.terminate()
+            else:
+                os.kill(pid, signal.SIGTERM)
+        except Exception:
+            continue
+
+    deadline = time.time() + 5.0
+    while time.time() < deadline:
+        remaining = _find_stale_vllm_processes()
+        if not remaining:
+            return
+        time.sleep(0.2)
+
+    # Escalate to hard kill when process did not terminate gracefully.
+    for pid, _cmd in _find_stale_vllm_processes():
+        try:
+            if _psutil is not None:
+                _psutil.Process(pid).kill()
+            else:
+                os.kill(pid, signal.SIGKILL)
+        except Exception:
+            continue
+
+
+def _release_torch_cuda_memory() -> None:
+    if _torch is None:
+        return
+    try:
+        if _torch.cuda.is_available():
+            _torch.cuda.synchronize()
+            _torch.cuda.empty_cache()
+            if hasattr(_torch.cuda, "ipc_collect"):
+                _torch.cuda.ipc_collect()
+    except Exception:
+        pass
+
+
+def _detect_nvidia_gpu_count() -> int:
+    """Best-effort NVIDIA GPU count without importing torch."""
+    try:
+        out = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=index", "--format=csv,noheader,nounits"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+        rows = [line.strip() for line in out.splitlines() if line.strip()]
+        return len(rows)
+    except Exception:
+        return 0
+
+
+def _sanitize_cuda_visible_devices(value: str, gpu_count: int) -> str:
+    """Keep only valid integer indices in range [0, gpu_count)."""
+    if gpu_count <= 0:
+        return value
+    valid: List[str] = []
+    for token in (part.strip() for part in value.split(",")):
+        if not token:
+            continue
+        if token.isdigit() and int(token) < gpu_count:
+            valid.append(token)
+    if not valid:
+        return ",".join(str(i) for i in range(gpu_count))
+    return ",".join(valid)
+
+
+def _recommended_cuda_visible_devices() -> str:
+    gpu_count = _detect_nvidia_gpu_count()
+    if gpu_count <= 0:
+        return "0"
+    return ",".join(str(i) for i in range(gpu_count))
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +306,13 @@ def _configure_default_env() -> None:
     # PyTorch & CUDA Configuration
     # =========================================================================
     os.environ.setdefault("TORCH_HOME", str(Path.home() / ".cache" / "torch"))
-    os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0,1,2,3")
+    gpu_count = _detect_nvidia_gpu_count()
+    if "CUDA_VISIBLE_DEVICES" in os.environ:
+        os.environ["CUDA_VISIBLE_DEVICES"] = _sanitize_cuda_visible_devices(
+            os.environ["CUDA_VISIBLE_DEVICES"], gpu_count
+        )
+    else:
+        os.environ["CUDA_VISIBLE_DEVICES"] = _recommended_cuda_visible_devices()
     os.environ.setdefault("CUDA_DEVICE_ORDER", "PCI_BUS_ID")
     
     # =========================================================================
@@ -951,6 +1129,17 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
             "status": status,
             "analysis": analysis,
         }
+
+
+def pytest_runtest_setup(item: pytest.Item) -> None:
+    if _is_vllm_related_item(item):
+        _terminate_stale_vllm_processes("pre-test", item.nodeid)
+
+
+def pytest_runtest_teardown(item: pytest.Item, nextitem: Optional[pytest.Item]) -> None:
+    if _is_vllm_related_item(item):
+        _release_torch_cuda_memory()
+        _terminate_stale_vllm_processes("post-test", item.nodeid)
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:

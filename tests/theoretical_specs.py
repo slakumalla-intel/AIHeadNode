@@ -377,6 +377,16 @@ class GPUSpecs:
             return "NVLink / xGMI / Infinity Fabric"
         return "PCIe (no dedicated GPU fabric)"
 
+    @property
+    def interconnect_type(self) -> str:
+        """Legacy alias kept for older tests and reports."""
+        return self.interconnect_label
+
+    @property
+    def nvlink_total_bw_gbs(self) -> float:
+        """Legacy alias for per-GPU high-bandwidth fabric total BW."""
+        return self.fabric_total_bw_gbs
+
     # Legacy aliases kept for backwards compatibility
     @property
     def hbm3_capacity_gb(self) -> float:

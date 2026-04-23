@@ -1513,16 +1513,73 @@ class TestGPUP2PBandwidth:
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_p2p_multi_stream_bandwidth(self):
-        """AI_HOSTCPU_FUNC_TEST_ID_052: P2P bandwidth with multiple concurrent CUDA streams.
+        """AI_HOSTCPU_FUNC_TEST_ID_052: PCIe GPU-to-GPU P2P bandwidth under concurrent CUDA streams.
 
-        Measures GPU-to-GPU copy bandwidth with 1, 2, 4, and 8 concurrent streams.
-        This check focuses on stability and consistency under concurrent streams,
-        not on requiring super-linear scaling beyond the available fabric peak.
+        Experiment Description
+        ----------------------
+        This test characterises GPU-to-GPU direct memory access (DMA) bandwidth over
+        the PCIe fabric using CUDA peer copies enqueued across multiple concurrent streams.
+        It does NOT require NVLink; peer access is validated at runtime via
+        ``torch.cuda.can_device_access_peer()``.
 
-        Pass criteria:
-          - Single-stream P2P BW > 0 (transfer succeeds on at least one GPU pair)
-          - 4-stream BW retains at least 85% of 1-stream BW
-          - Reverse directions of the same pair remain reasonably symmetric
+        Transfer Path (PCIe-only):
+          GPU(src) HBM
+            -> GPU(src) PCIe Gen5 x16 controller          (read DMA)
+              -> PCIe Root Complex / Switch fabric
+                -> GPU(dst) PCIe Gen5 x16 controller      (write DMA)
+                  -> GPU(dst) HBM
+
+        If direct peer access is unavailable for a pair, CUDA falls back to a
+        two-leg staged path through host DRAM (GPU→CPU DRAM→GPU), which is
+        ~2× slower and reported separately.
+
+        Methodology
+        -----------
+        1. Enumerate all directed GPU pairs (src, dst) where peer access is enabled.
+        2. For each transfer size in the sweep, allocate contiguous uint8 buffers on
+           src and dst; enqueue N concurrent async peer copies (one per CUDA stream on
+           dst); synchronise dst device; measure wall-clock elapsed time.
+        3. Repeat ``P2P_MULTI_STREAM_ITERS`` timed iterations per (size, stream-count)
+           cell after one warmup pass to pre-fault pages and warm caches.
+        4. Compute aggregate bandwidth: (bytes_per_stream × N_streams × iters) / elapsed.
+
+        Transfer size sweep (default, covering real-world workload scales):
+          4   MiB  -- NCCL small-message / collective bucket size
+          16  MiB  -- NCCL medium bucket / gradient bucket boundary
+          25  MiB  -- PyTorch DDP default all-reduce bucket (25 MB)
+          64  MiB  -- NCCL large-message / attention KV cache shard
+          256 MiB  -- Activation checkpoint / pipeline stage buffer
+          1   GiB  -- Bulk model shard / full layer weight transfer
+
+        Stream count sweep (default):
+          1  -- baseline single-stream (establishes fabric peak per pair)
+          2  -- 2× concurrent (shows parallelism overhead onset)
+          4  -- 4× concurrent (matches typical DDP/NCCL concurrency)
+          8  -- 8× concurrent (stress test: saturation and contention)
+
+        Pass Criteria
+        -------------
+          - 1-stream BW > 0 on at least one peer-accessible pair
+            (confirms PCIe P2P path is functional end-to-end)
+          - 4-stream BW at assertion size >= P2P_MULTI_STREAM_MIN_STABILITY
+            × 1-stream BW (default: 0.85 × 1-stream; fabric should not
+            collapse under 4 concurrent DMAs on H100 PCIe x16)
+          - Forward and reverse BW at symmetry stream count within
+            P2P_MULTI_STREAM_MIN_DIRECTIONAL_SYMMETRY (default: 0.90)
+            (detects cabling asymmetry, BIOS link width downgrade, or
+            PCIe error-recovery throttling on one direction)
+
+        Key Environment Overrides
+        -------------------------
+          P2P_MULTI_STREAM_SIZES_MIB   -- comma list in MiB   (e.g. "4,64,256,1024")
+          P2P_MULTI_STREAM_BYTES       -- comma list in bytes  (legacy or exact control)
+          P2P_MULTI_STREAM_COUNTS      -- comma list of stream counts (e.g. "1,4,8")
+          P2P_MULTI_STREAM_ITERS       -- timed iterations per cell (default 5)
+          P2P_MULTI_STREAM_MAX_PAIRS   -- cap number of pairs tested (0 = all)
+          P2P_MULTI_STREAM_ASSERT_SIZE_BYTES -- which transfer size triggers stability assert
+          P2P_MULTI_STREAM_MIN_STABILITY           -- min 4-stream/1-stream ratio (default 0.85)
+          P2P_MULTI_STREAM_MIN_DIRECTIONAL_SYMMETRY -- min fwd/rev symmetry (default 0.90)
+          CUDA_VISIBLE_DEVICES         -- restrict to specific physical GPU indices
         """
         n_gpus = torch.cuda.device_count()
         if n_gpus < 2:

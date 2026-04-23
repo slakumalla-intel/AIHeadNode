@@ -2,17 +2,23 @@
 
 A **vendor-neutral** Linux-first validation and competitive benchmarking suite for AI head nodes built from any combination of server-class CPUs and AI accelerators. The suite covers CPU, GPU, memory, interconnect, agentic AI workloads, and system health.
 
-**Tested hardware:**
+**Tested Hardware (DMR):**
 
-| CPU stack | GPU / Accelerator | Interconnect |
-|---|---|---|
-| Intel Xeon Platinum (SPR / EMR) | NVIDIA H100 SXM5 / PCIe | NVLink 4.0 |
-| Intel Xeon Platinum (SPR / EMR) | NVIDIA H200 SXM5 | NVLink 4.0 |
-| AMD EPYC Genoa / Bergamo | AMD Instinct MI300X | xGMI 3.0 |
-| AMD EPYC Genoa | NVIDIA A100 SXM4 / PCIe | NVLink 3.0 |
-| Any x86-64 server | Any CUDA ≥ 7.0 or ROCm device | PCIe Gen 5 |
+| CPU Stack | GPU / Accelerator | Interconnect | Configuration |
+|---|---|---|---|
+| Intel Xeon Platinum (SPR) 160-core | 4x NVIDIA H100 SXM5 (80 GB HBM3 each) | NVLink 4.0 full-mesh | DMR validation platform |
 
-All thresholds are expressed as **percentages of detected theoretical peak** (not absolute vendor-specific numbers), so pass/fail comparisons are valid across platforms.
+**H100 SXM5 Specifications (Single GPU):**
+- **FP16/BF16 Peak**: 1,979 TFLOPS
+- **FP32 Peak**: 989.5 TFLOPS  
+- **FP64 Peak**: 494.75 TFLOPS
+- **INT8 Peak**: 3,959 TOPS
+- **HBM3 Bandwidth**: 3.35 TB/s = **3,350 GB/s**
+- **HBM3 Capacity**: 80 GB
+- **NVLink 4.0 Bandwidth** (per link pair): 900 GB/s bidirectional
+- **PCIe 5.0 ×16 Bandwidth** (H2D/D2H): 63 GB/s unidirectional
+- **TDP**: 700 W
+- **Compute Capability**: 9.0 (Ada)
 
 ## Table of Contents
 
@@ -128,78 +134,6 @@ pytest -vv --log-file=validation.log --log-file-level=INFO 2>&1 | tee validation
 
 ---
 
-## Competitive Analysis KPIs
-
-The following KPIs are captured and written to structured JSONL artifact files.
-They are percentage-of-peak or latency-based so values can be compared fairly
-across Intel + NVIDIA and AMD + AMD configurations.
-
-### GPU Compute KPIs
-
-| KPI | Unit | Threshold | Artifact file |
-|---|---|---|---|
-| FP16 matrix TFLOPS | TFLOPS | ≥ 75 % of detected peak | `gpu_validation_kpis.jsonl` |
-| BF16 matrix TFLOPS | TFLOPS | ≥ 75 % of detected peak | `gpu_validation_kpis.jsonl` |
-| INT8 matrix TOPS | TOPS | ≥ 70 % of detected peak | `gpu_validation_kpis.jsonl` |
-| FP32 TFLOPS | TFLOPS | ≥ 70 % of detected peak | `gpu_validation_kpis.jsonl` |
-| FP64 TFLOPS | TFLOPS | ≥ 70 % of detected peak | `gpu_validation_kpis.jsonl` |
-| Multi-GPU scaling efficiency | % | ≥ 90 % linear | `gpu_validation_kpis.jsonl` |
-| Energy efficiency | TFLOPS / Watt | logged (higher is better) | `gpu_validation_kpis.jsonl` |
-
-> **Reference peaks** — detected at runtime from pynvml:
-> H100 SXM5 FP16 = 1979 TFLOPS, MI300X FP16 = 1307 TFLOPS, A100 FP16 = 312 TFLOPS.
-
-### GPU Memory KPIs
-
-| KPI | Unit | Threshold | Artifact file |
-|---|---|---|---|
-| HBM / VRAM capacity per GPU | GB | ≥ 98 % of spec | `gpu_validation_kpis.jsonl` |
-| Memory bandwidth per GPU | TB/s | ≥ 80 % of detected peak | `gpu_validation_kpis.jsonl` |
-
-> **Reference peaks** — H100 SXM5 = 3.35 TB/s, MI300X = 5.3 TB/s, A100 = 2.0 TB/s.
-
-### CPU Compute KPIs
-
-| KPI | Unit | Threshold | Artifact file |
-|---|---|---|---|
-| Single-core SIMD FP32 (AVX-512 or AVX2) | GFLOPS | ≥ 70 % of theoretical | `cpu_validation_kpis.jsonl` |
-| All-core SIMD FP32 aggregate | GFLOPS | ≥ 70 % of theoretical | `cpu_validation_kpis.jsonl` |
-| BLAS DGEMM throughput | GFLOPS | ≥ 70 % of theoretical | `cpu_validation_kpis.jsonl` |
-| CPU utilization under load | % | ≥ 90 % | `cpu_validation_kpis.jsonl` |
-| CPU frequency scaling | GHz | ≥ 90 % of base | `cpu_validation_kpis.jsonl` |
-| Memory latency (random access) | ns | ≤ 150 ns | `cpu_validation_kpis.jsonl` |
-| NUMA node balance | % | ≤ 10 % imbalance | `cpu_validation_kpis.jsonl` |
-
-### Interconnect KPIs
-
-| KPI | Unit | Threshold | Artifact file |
-|---|---|---|---|
-| CPU → GPU PCIe host-to-device bandwidth | GB/s | ≥ 80 % of Gen 5 peak (63 GB/s) | `interconnect_kpis.jsonl` |
-| CPU → GPU PCIe device-to-host bandwidth | GB/s | ≥ 80 % of Gen 5 peak | `interconnect_kpis.jsonl` |
-| GPU-to-GPU fabric bandwidth (NVLink / xGMI) | GB/s | ≥ 80 % of link spec | `interconnect_kpis.jsonl` |
-| InfiniBand / RDMA bandwidth | GB/s | ≥ 90 % of link speed | `interconnect_kpis.jsonl` |
-
-### LLM Serving / Inference KPIs
-
-| KPI | Unit | Competitive target | Artifact file |
-|---|---|---|---|
-| Time to First Token (TTFT) | ms | ≤ 500 ms (enterprise) | `vllm_prefill_kpis.jsonl` |
-| Inter-Token Latency (ITL) | ms | ≤ 30 ms / token | `vllm_prefill_kpis.jsonl` |
-| Tokens per second (TPS) throughput | tok/s | ≥ 1 000 tok/s | `vllm_prefill_kpis.jsonl` |
-| KV cache prefill efficiency | % | ≥ 75 % of HBM bandwidth | `vllm_prefill_kpis.jsonl` |
-
-### Agentic AI KPIs
-
-| KPI | Unit | Target | Artifact file |
-|---|---|---|---|
-| Tool dispatch overhead | ms | ≤ 5 ms | `agentic_ai_kpis.jsonl` |
-| CPU → GPU synchronization latency | µs | ≤ 500 µs | `agentic_ai_kpis.jsonl` |
-| Tool parallelization speedup | ×N | ≥ 0.7 × N | `agentic_ai_kpis.jsonl` |
-| Agent turn P99 latency | ms | logged | `agentic_ai_kpis.jsonl` |
-| Agent state serialization throughput | MB/s | ≥ 100 MB/s | `agentic_ai_kpis.jsonl` |
-
----
-
 ## Test Modules
 
 | File | TC range | Focus area | KPI artifact |
@@ -222,70 +156,88 @@ across Intel + NVIDIA and AMD + AMD configurations.
 
 ## Competitive Analysis KPIs
 
-The following KPIs are captured and written to structured JSONL artifact files. They are percentage-of-peak or latency-based so values can be compared fairly across Intel + NVIDIA and AMD + AMD configurations.
+The following KPIs are captured and written to structured JSONL artifact files. Values include both the H100 theoretical baseline and the corresponding absolute threshold.
 
 ### GPU Compute KPIs
 
-| KPI | Unit | Threshold | Artifact file |
-|---|---|---|---|
-| FP16 matrix TFLOPS | TFLOPS | ≥ 75 % of detected peak | `gpu_validation_kpis.jsonl` |
-| BF16 matrix TFLOPS | TFLOPS | ≥ 75 % of detected peak | `gpu_validation_kpis.jsonl` |
-| INT8 matrix TOPS | TOPS | ≥ 70 % of detected peak | `gpu_validation_kpis.jsonl` |
-| FP32 TFLOPS | TFLOPS | ≥ 70 % of detected peak | `gpu_validation_kpis.jsonl` |
-| FP64 TFLOPS | TFLOPS | ≥ 70 % of detected peak | `gpu_validation_kpis.jsonl` |
-| Multi-GPU scaling efficiency | % | ≥ 90 % linear | `gpu_validation_kpis.jsonl` |
-| Energy efficiency | TFLOPS / Watt | logged (higher is better) | `gpu_validation_kpis.jsonl` |
-
-> **Reference peaks** — detected at runtime from pynvml: H100 SXM5 FP16 = 1979 TFLOPS, MI300X FP16 = 1307 TFLOPS, A100 FP16 = 312 TFLOPS.
+| KPI | Theoretical (H100) | Threshold | Actual Threshold | Artifact |
+|---|---|---|---|---|
+| FP16 matrix TFLOPS | 1,979 TFLOPS | ≥ 75 % | ≥ 1,484 TFLOPS | `gpu_validation_kpis.jsonl` |
+| BF16 matrix TFLOPS | 1,979 TFLOPS | ≥ 75 % | ≥ 1,484 TFLOPS | `gpu_validation_kpis.jsonl` |
+| INT8 matrix TOPS | 3,959 TOPS | ≥ 70 % | ≥ 2,771 TOPS | `gpu_validation_kpis.jsonl` |
+| FP32 TFLOPS | 989.5 TFLOPS | ≥ 70 % | ≥ 692.6 TFLOPS | `gpu_validation_kpis.jsonl` |
+| FP64 TFLOPS | 494.75 TFLOPS | ≥ 70 % | ≥ 346.3 TFLOPS | `gpu_validation_kpis.jsonl` |
+| Multi-GPU scaling efficiency (4x) | 7,916 TFLOPS aggregate | ≥ 90 % linear | ≥ 7,124 TFLOPS | `gpu_validation_kpis.jsonl` |
+| Energy efficiency | ~2.8 TFLOPS/W (FP16) | logged (higher is better) | — | `gpu_validation_kpis.jsonl` |
 
 ### GPU Memory KPIs
 
-| KPI | Unit | Threshold | Artifact file |
-|---|---|---|---|
-| HBM / VRAM capacity per GPU | GB | ≥ 98 % of spec | `gpu_validation_kpis.jsonl` |
-| Memory bandwidth per GPU | TB/s | ≥ 80 % of detected peak | `gpu_validation_kpis.jsonl` |
-
-> **Reference peaks** — H100 SXM5 = 3.35 TB/s, MI300X = 5.3 TB/s, A100 = 2.0 TB/s.
+| KPI | Theoretical (H100) | Threshold | Actual Threshold | Artifact |
+|---|---|---|---|---|
+| HBM3 capacity per GPU | 80 GB | ≥ 98 % of spec | ≥ 78.4 GB | `gpu_validation_kpis.jsonl` |
+| HBM3 memory bandwidth per GPU | 3,350 GB/s (3.35 TB/s) | ≥ 80 % | ≥ 2,680 GB/s (2.68 TB/s) | `gpu_validation_kpis.jsonl` |
+| Aggregate 4x GPU bandwidth | 13,400 GB/s (13.4 TB/s) | ≥ 80 % | ≥ 10,720 GB/s (10.72 TB/s) | `gpu_validation_kpis.jsonl` |
 
 ### CPU Compute KPIs
 
-| KPI | Unit | Threshold | Artifact file |
-|---|---|---|---|
-| Single-core SIMD FP32 (AVX-512 or AVX2) | GFLOPS | ≥ 70 % of theoretical | `cpu_validation_kpis.jsonl` |
-| All-core SIMD FP32 aggregate | GFLOPS | ≥ 70 % of theoretical | `cpu_validation_kpis.jsonl` |
-| BLAS DGEMM throughput | GFLOPS | ≥ 70 % of theoretical | `cpu_validation_kpis.jsonl` |
-| CPU utilization under load | % | ≥ 90 % | `cpu_validation_kpis.jsonl` |
-| CPU frequency scaling | GHz | ≥ 90 % of base | `cpu_validation_kpis.jsonl` |
-| Memory latency (random access) | ns | ≤ 150 ns | `cpu_validation_kpis.jsonl` |
-| NUMA node balance | % | ≤ 10 % imbalance | `cpu_validation_kpis.jsonl` |
+| KPI | Theoretical (SPR 160-core @ 2.7 GHz) | Threshold | Actual Threshold | Artifact |
+|---|---|---|---|---|
+| Single-core SIMD FP32 (AVX-512 FMA) | 172.8 GFLOPS/core | ≥ 70 % | ≥ 121 GFLOPS | `cpu_validation_kpis.jsonl` |
+| All-core SIMD FP32 aggregate (160 cores) | 27.6 TFLOPS | ≥ 70 % | ≥ 19.3 TFLOPS | `cpu_validation_kpis.jsonl` |
+| BLAS DGEMM throughput (all-core) | ~20 TFLOPS (BLAS-optimized) | ≥ 70 % | ≥ 14 TFLOPS | `cpu_validation_kpis.jsonl` |
+| CPU utilization under load | 100 % of available threads | ≥ 90 % | ≥ 90 % | `cpu_validation_kpis.jsonl` |
+| CPU frequency scaling (Turbo boost) | 3.8 GHz (base 2.7 GHz) | ≥ 90 % of base | ≥ 2.43 GHz | `cpu_validation_kpis.jsonl` |
+| Memory latency (random access, L3 miss) | ~40-80 ns | ≤ 150 ns | ≤ 150 ns | `cpu_validation_kpis.jsonl` |
+| NUMA node balance (2 sockets) | N/A | ≤ 10 % imbalance | ≤ 10 % | `cpu_validation_kpis.jsonl` |
 
 ### Interconnect KPIs
 
-| KPI | Unit | Threshold | Artifact file |
-|---|---|---|---|
-| CPU → GPU PCIe host-to-device bandwidth | GB/s | ≥ 80 % of Gen 5 peak (63 GB/s) | `interconnect_kpis.jsonl` |
-| CPU → GPU PCIe device-to-host bandwidth | GB/s | ≥ 80 % of Gen 5 peak | `interconnect_kpis.jsonl` |
-| GPU-to-GPU fabric bandwidth (NVLink / xGMI) | GB/s | ≥ 80 % of link spec | `interconnect_kpis.jsonl` |
-| InfiniBand / RDMA bandwidth | GB/s | ≥ 90 % of link speed | `interconnect_kpis.jsonl` |
+| KPI | Theoretical | Threshold | Actual Threshold | Artifact |
+|---|---|---|---|---|
+| CPU → GPU PCIe 5.0 x16 H2D bandwidth (per GPU) | 63 GB/s | ≥ 80 % | ≥ 50.4 GB/s | `interconnect_kpis.jsonl` |
+| GPU → CPU PCIe 5.0 x16 D2H bandwidth (per GPU) | 63 GB/s | ≥ 80 % | ≥ 50.4 GB/s | `interconnect_kpis.jsonl` |
+| GPU-to-GPU NVLink 4.0 bandwidth (per link pair) | 900 GB/s bidirectional | ≥ 80 % | ≥ 720 GB/s | `interconnect_kpis.jsonl` |
+| Aggregate 4x GPU all-to-all NVLink | 5,400 GB/s (6 pairs x 900 GB/s) | ≥ 75 % | ≥ 4,050 GB/s | `interconnect_kpis.jsonl` |
 
 ### LLM Serving / Inference KPIs
 
-| KPI | Unit | Competitive target | Artifact file |
-|---|---|---|---|
-| Time to First Token (TTFT) | ms | ≤ 500 ms (enterprise) | `vllm_prefill_kpis.jsonl` |
-| Inter-Token Latency (ITL) | ms | ≤ 30 ms / token | `vllm_prefill_kpis.jsonl` |
-| Tokens per second (TPS) throughput | tok/s | ≥ 1 000 tok/s | `vllm_prefill_kpis.jsonl` |
-| KV cache prefill efficiency | % | ≥ 75 % of HBM bandwidth | `vllm_prefill_kpis.jsonl` |
+| KPI | Theoretical (4x H100) | Enterprise Target | Actual Threshold | Artifact |
+|---|---|---|---|---|
+| Time to First Token (TTFT) | N/A | ≤ 500 ms (prefill latency) | ≤ 500 ms | `vllm_prefill_kpis.jsonl` |
+| Inter-Token Latency (ITL) | N/A | ≤ 30 ms / token (decode rate) | ≤ 30 ms | `vllm_prefill_kpis.jsonl` |
+| Tokens per second (aggregate TPS) | ~1,500-2,000 TPS (vLLM batch mode) | ≥ 1,000 tok/s | ≥ 1,000 tok/s | `vllm_prefill_kpis.jsonl` |
+| KV cache prefill efficiency | ~13.4 TB/s (HBM bandwidth) | ≥ 75 % = 10.05 TB/s | ≥ 10.05 TB/s | `vllm_prefill_kpis.jsonl` |
 
 ### Agentic AI KPIs
 
-| KPI | Unit | Target | Artifact file |
-|---|---|---|---|
-| Tool dispatch overhead | ms | ≤ 5 ms | `agentic_ai_kpis.jsonl` |
-| CPU → GPU synchronization latency | µs | ≤ 500 µs | `agentic_ai_kpis.jsonl` |
-| Tool parallelization speedup | ×N | ≥ 0.7 × N | `agentic_ai_kpis.jsonl` |
-| Agent turn P99 latency | ms | logged | `agentic_ai_kpis.jsonl` |
-| Agent state serialization throughput | MB/s | ≥ 100 MB/s | `agentic_ai_kpis.jsonl` |
+| KPI | Theoretical (H100) | Target | Notes | Artifact |
+|---|---|---|---|---|
+| Tool dispatch overhead | ~1-2 ms (kernel launch) | ≤ 5 ms | PyTorch overhead + agent scheduling | `agentic_ai_kpis.jsonl` |
+| CPU → GPU synchronization latency | ~100-300 us (typical) | ≤ 500 us | Host-to-device fence/sync overhead | `agentic_ai_kpis.jsonl` |
+| Tool parallelization speedup (8 tools) | ≥ 6x (with NVLink) | ≥ 5.6x (0.7 x 8 tools) | Linear = 8x; 70% efficiency target | `agentic_ai_kpis.jsonl` |
+| Agent turn P99 latency (full round-trip) | ~500-1500 ms | logged | Prefill + token generation + tool call | `agentic_ai_kpis.jsonl` |
+| Agent state serialization throughput | ~500-1000 MB/s (PCIe/NVLink) | ≥ 100 MB/s | Actor/state checkpointing speed | `agentic_ai_kpis.jsonl` |
+
+### Understanding Theoretical vs Measured / Threshold Numbers
+
+**Theoretical Peak**: The maximum achievable performance under ideal conditions (single benchmark, no contention, full compute utilization). Used as the reference baseline.
+- Examples:
+  - H100 FP16: 1,979 TFLOPS (both tensors fully loaded, no pipeline bubbles)
+  - HBM bandwidth: 3,350 GB/s (sustained, no bank conflicts)
+  - PCIe 5.0 x16: 63 GB/s (saturated link, optimal packet sizes)
+
+**Measured / Threshold**: The actual performance target or typical run-time observation. Usually expressed as a percentage of theoretical to account for:
+- Kernel launch overhead
+- Pipeline bubbles and synchronization overhead
+- Memory bank conflicts (for bandwidth)
+- Contention from other workloads
+
+**Examples:**
+- **75% of H100 FP16 peak** = 75% x 1,979 TFLOPS = **1,484 TFLOPS minimum threshold** (test passes if measured ≥ 1,484)
+- **80% of HBM bandwidth** = 80% x 3,350 GB/s = **2,680 GB/s minimum threshold** (account for bank conflicts, limited vectorization)
+- **80% of PCIe peak** = 80% x 63 GB/s = **50.4 GB/s minimum** (bus contention, protocol overhead)
+
+All thresholds in this document are percentages of theoretical peak, converted to absolute values for this DMR + 4x H100 configuration.
 
 ---
 

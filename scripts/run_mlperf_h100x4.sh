@@ -9,8 +9,8 @@
 #   bash scripts/run_mlperf_h100x4.sh [OPTIONS]
 #
 # Options:
-#   --data-dir  DIR    Dataset root directory     (default: /data/mlperf)
-#   --model-dir DIR    Model root directory        (default: /models/mlperf)
+#   --data-dir  DIR    Dataset root directory     (default: <repo>/datasets)
+#   --model-dir DIR    Model root directory        (default: <repo>/datasets)
 #   --output-dir DIR   Results / KPI output dir    (default: artifacts/mlperf_results)
 #   --scenario  SCN    LoadGen scenario             (default: Offline)
 #   --only IDs         Comma-separated test IDs     e.g. --only 001,006,014
@@ -35,11 +35,15 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+DEFAULT_DATASET_ROOT="${REPO_ROOT}/datasets"
+
 # ---------------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------------
-DATA_DIR="${MLPERF_DATA_DIR:-/data/mlperf}"
-MODEL_DIR="${MLPERF_MODEL_DIR:-/models/mlperf}"
+DATA_DIR="${MLPERF_DATA_DIR:-${DEFAULT_DATASET_ROOT}}"
+MODEL_DIR="${MLPERF_MODEL_DIR:-${DEFAULT_DATASET_ROOT}}"
 OUTPUT_DIR="artifacts/mlperf_results"
 SCENARIO="Offline"
 ONLY_IDS=""

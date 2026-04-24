@@ -9,7 +9,7 @@
 #   bash scripts/download_mlperf_models.sh [OPTIONS]
 #
 # Options:
-#   --model-dir DIR   Root directory for model storage  (default: /models/mlperf)
+#   --model-dir DIR   Root directory for model storage  (default: <repo>/datasets)
 #   --hf-token TOKEN  HuggingFace access token           (or set HF_TOKEN env var)
 #   --skip-large      Skip models that require gated/paid access (405B, DeepSeek-R1)
 #   --dry-run         Print commands but do not execute them
@@ -33,10 +33,14 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+DEFAULT_DATASET_ROOT="${REPO_ROOT}/datasets"
+
 # ---------------------------------------------------------------------------
 # Defaults (override via CLI flags)
 # ---------------------------------------------------------------------------
-MODEL_DIR="${MLPERF_MODEL_DIR:-/models/mlperf}"
+MODEL_DIR="${MLPERF_MODEL_DIR:-${DEFAULT_DATASET_ROOT}}"
 HF_TOKEN="${HF_TOKEN:-}"
 SKIP_LARGE=false
 DRY_RUN=false
@@ -68,6 +72,16 @@ run() {
   fi
 }
 
+dir_has_content() {
+  local path="$1"
+  [[ -d "$path" ]] && find "$path" -mindepth 1 -print -quit | grep -q .
+}
+
+file_is_present() {
+  local path="$1"
+  [[ -s "$path" ]]
+}
+
 should_run() {
   local test_id="$1"
   if [[ -z "$ONLY_IDS" ]]; then return 0; fi
@@ -86,6 +100,13 @@ hf_download() {
   shift 2
   local extra_args=("$@")
 
+  if dir_has_content "$local_dir"; then
+    log "[SKIP] ${repo_id} already present at ${local_dir}"
+    return 0
+  fi
+
+  run mkdir -p "$local_dir"
+
   if [[ -z "$HF_TOKEN" ]]; then
     run huggingface-cli download "$repo_id" \
       --local-dir "$local_dir" \
@@ -98,6 +119,19 @@ hf_download() {
       --local-dir-use-symlinks False \
       "${extra_args[@]+"${extra_args[@]}"}"
   fi
+}
+
+fetch_file() {
+  local url="$1"
+  local dest="$2"
+
+  if file_is_present "$dest"; then
+    log "[SKIP] $(basename "$dest") already present at ${dest}"
+    return 0
+  fi
+
+  run mkdir -p "$(dirname "$dest")"
+  run wget -q --show-progress -c -O "$dest" "$url"
 }
 
 log()  { echo "$(date '+%Y-%m-%d %H:%M:%S')  [INFO]  $*"; }
@@ -176,9 +210,9 @@ fi
 # ---------------------------------------------------------------------------
 if should_run "006"; then
   log "[006] Downloading ResNet-50 v1.5 ONNX..."
-  run mkdir -p "${MODEL_DIR}/resnet50"
-  run wget -q --show-progress -O "${MODEL_DIR}/resnet50/resnet50_v1.onnx" \
-    "https://zenodo.org/record/4735647/files/resnet50_v1.onnx"
+  fetch_file \
+    "https://zenodo.org/record/4735647/files/resnet50_v1.onnx" \
+    "${MODEL_DIR}/resnet50/resnet50_v1.onnx"
 fi
 
 # ---------------------------------------------------------------------------
@@ -186,9 +220,9 @@ fi
 # ---------------------------------------------------------------------------
 if should_run "007"; then
   log "[007] Downloading RetinaNet ResNeXt-50 ONNX..."
-  run mkdir -p "${MODEL_DIR}/retinanet"
-  run wget -q --show-progress -O "${MODEL_DIR}/retinanet/retinanet_resnext50_32x4d.onnx" \
-    "https://zenodo.org/record/6617879/files/resnext50_32x4d_fpn.onnx"
+  fetch_file \
+    "https://zenodo.org/record/6617879/files/resnext50_32x4d_fpn.onnx" \
+    "${MODEL_DIR}/retinanet/retinanet_resnext50_32x4d.onnx"
 fi
 
 # ---------------------------------------------------------------------------
@@ -196,9 +230,9 @@ fi
 # ---------------------------------------------------------------------------
 if should_run "008"; then
   log "[008] Downloading 3D U-Net KiTS19 ONNX..."
-  run mkdir -p "${MODEL_DIR}/3d-unet"
-  run wget -q --show-progress -O "${MODEL_DIR}/3d-unet/3dunet_kits19.onnx" \
-    "https://zenodo.org/record/5597155/files/3dunet_kits19_128x128x128.onnx"
+  fetch_file \
+    "https://zenodo.org/record/5597155/files/3dunet_kits19_128x128x128.onnx" \
+    "${MODEL_DIR}/3d-unet/3dunet_kits19.onnx"
 fi
 
 # ---------------------------------------------------------------------------
@@ -206,9 +240,9 @@ fi
 # ---------------------------------------------------------------------------
 if should_run "009"; then
   log "[009] Downloading RNN-T PyTorch checkpoint..."
-  run mkdir -p "${MODEL_DIR}/rnnt"
-  run wget -q --show-progress -O "${MODEL_DIR}/rnnt/rnnt.pt" \
-    "https://zenodo.org/record/3662521/files/DistributedDataParallel_1576581068.9962234-epoch-100.pt"
+  fetch_file \
+    "https://zenodo.org/record/3662521/files/DistributedDataParallel_1576581068.9962234-epoch-100.pt" \
+    "${MODEL_DIR}/rnnt/rnnt.pt"
 fi
 
 # ---------------------------------------------------------------------------
@@ -225,11 +259,10 @@ fi
 # ---------------------------------------------------------------------------
 if should_run "011"; then
   log "[011] Downloading DLRM-DCNv2 model weights..."
-  run mkdir -p "${MODEL_DIR}/dlrm/model_weights"
   # Primary: MLCommons-hosted weights (~40 GB)
-  run wget -q --show-progress -c \
+  fetch_file \
     "https://cloud.mlcommons.org/index.php/s/XzfSeLgW8FYfR3S/download" \
-    -O "${MODEL_DIR}/dlrm/model_weights/dlrm_dcn_v2.pt" || \
+    "${MODEL_DIR}/dlrm/model_weights/dlrm_dcn_v2.pt" || \
     warn "[011] DLRM weight download failed – download manually from https://cloud.mlcommons.org"
 fi
 
@@ -247,10 +280,9 @@ fi
 # ---------------------------------------------------------------------------
 if should_run "013"; then
   log "[013] Downloading RGAT graph model checkpoint..."
-  run mkdir -p "${MODEL_DIR}/rgat"
-  run wget -q --show-progress -c \
+  fetch_file \
     "https://cloud.mlcommons.org/index.php/s/graph_rgat_checkpoint/download" \
-    -O "${MODEL_DIR}/rgat/rgat.pt" || \
+    "${MODEL_DIR}/rgat/rgat.pt" || \
     warn "[013] RGAT checkpoint download failed – see https://github.com/mlcommons/inference/tree/master/graph/R-GAT"
 fi
 
@@ -288,10 +320,9 @@ fi
 # ---------------------------------------------------------------------------
 if should_run "017"; then
   log "[017] Downloading Stable Diffusion v2.1 base checkpoint..."
-  run mkdir -p "${MODEL_DIR}/sd"
-  run wget -q --show-progress -c \
+  fetch_file \
     "https://huggingface.co/stabilityai/stable-diffusion-2-1-base/resolve/main/v2-1_512-ema-pruned.ckpt" \
-    -O "${MODEL_DIR}/sd/v2-1_512-ema-pruned.ckpt"
+    "${MODEL_DIR}/sd/v2-1_512-ema-pruned.ckpt"
 fi
 
 # ---------------------------------------------------------------------------
@@ -306,13 +337,14 @@ fi
 # ---------------------------------------------------------------------------
 if should_run "019"; then
   log "[019] Downloading GPT-2 vocabulary + merge files for Megatron-LM..."
-  run mkdir -p "${MODEL_DIR}/gpt3-vocab"
-  run wget -q --show-progress -O "${MODEL_DIR}/gpt3-vocab/gpt2-vocab.json" \
-    "https://huggingface.co/gpt2/resolve/main/vocab.json"
-  run wget -q --show-progress -O "${MODEL_DIR}/gpt3-vocab/gpt2-merges.txt" \
-    "https://huggingface.co/gpt2/resolve/main/merges.txt"
+  fetch_file \
+    "https://huggingface.co/gpt2/resolve/main/vocab.json" \
+    "${MODEL_DIR}/gpt3-vocab/gpt2-vocab.json"
+  fetch_file \
+    "https://huggingface.co/gpt2/resolve/main/merges.txt" \
+    "${MODEL_DIR}/gpt3-vocab/gpt2-merges.txt"
   # Also symlink to top-level data dir expected by the training config
-  DATA_DIR="${MLPERF_DATA_DIR:-/data/mlperf}"
+  DATA_DIR="${MLPERF_DATA_DIR:-${DEFAULT_DATASET_ROOT}}"
   run ln -sfn "${MODEL_DIR}/gpt3-vocab/gpt2-vocab.json" "${DATA_DIR}/gpt2-vocab.json" 2>/dev/null || true
   run ln -sfn "${MODEL_DIR}/gpt3-vocab/gpt2-merges.txt" "${DATA_DIR}/gpt2-merges.txt" 2>/dev/null || true
 fi
@@ -321,7 +353,7 @@ fi
 # ID 020 – Llama 3.1 70B  (same as ID 005 – reuse download)
 # ---------------------------------------------------------------------------
 if should_run "020"; then
-  if [[ -d "${MODEL_DIR}/llama31-70b" ]]; then
+  if dir_has_content "${MODEL_DIR}/llama31-70b" || dir_has_content "${MODEL_DIR}/llama31-70b-base"; then
     log "[020] Llama 3.1 70B already at ${MODEL_DIR}/llama31-70b – skipping re-download"
   else
     log "[020] Downloading Meta-Llama-3.1-70B-Instruct for LoRA fine-tuning..."

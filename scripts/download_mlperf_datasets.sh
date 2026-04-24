@@ -9,7 +9,7 @@
 #   bash scripts/download_mlperf_datasets.sh [OPTIONS]
 #
 # Options:
-#   --data-dir DIR    Root directory for dataset storage  (default: /data/mlperf)
+#   --data-dir DIR    Root directory for dataset storage  (default: <repo>/datasets)
 #   --skip-large      Skip datasets > 100 GB (ImageNet, Criteo Terabyte, LAION)
 #   --dry-run         Print commands without executing
 #   --only IDs        Comma-separated test IDs whose datasets to download
@@ -36,10 +36,14 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+DEFAULT_DATASET_ROOT="${REPO_ROOT}/datasets"
+
 # ---------------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------------
-DATA_DIR="${MLPERF_DATA_DIR:-/data/mlperf}"
+DATA_DIR="${MLPERF_DATA_DIR:-${DEFAULT_DATASET_ROOT}}"
 SKIP_LARGE=false
 DRY_RUN=false
 ONLY_IDS=""

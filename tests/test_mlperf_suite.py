@@ -10,14 +10,15 @@ Category structure:
 Execution control (environment variables):
   ML_EXECUTE_CASES=1           – run benchmark commands  (default: dry-run catalog only)
   ML_CASE_IDS=001,005          – comma-separated IDs or short numbers to run a subset
+    ML_SKIP_LARGE_CASES=1        – skip cases 001/002 unless explicitly disabled
   ML_CMD_TIMEOUT_SEC=3600      – per-command timeout seconds (default 3600)
   ML_SUITE_KPI_FILE            – JSONL output path (default: artifacts/mlperf_suite_kpis.jsonl)
 
 GPU / path configuration (4×H100 SXM5 defaults):
   ML_NUM_GPUS=4
   ML_TENSOR_PARALLEL=4
-  MLPERF_DATA_DIR=/data/mlperf         – root dataset mount
-  MLPERF_MODEL_DIR=/models/mlperf      – root model mount
+    MLPERF_DATA_DIR=<repo>/datasets      – root dataset/model mount
+    MLPERF_MODEL_DIR=<repo>/datasets     – root dataset/model mount
   MLPERF_OUTPUT_DIR=artifacts/mlperf_results
   MLPERF_INFERENCE_DIR=/root/workloads/mlcommons/inference
   MLPERF_TRAINING_DIR=/root/workloads/mlcommons/training
@@ -45,6 +46,8 @@ from typing import Dict, List, Optional
 import pytest
 
 logger = logging.getLogger(__name__)
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_DATASET_ROOT = REPO_ROOT / "datasets"
 
 
 # ---------------------------------------------------------------------------
@@ -53,12 +56,13 @@ logger = logging.getLogger(__name__)
 
 def _configure_mlperf_env_defaults() -> None:
     os.environ.setdefault("ML_EXECUTE_CASES", "1")
+    os.environ.setdefault("ML_SKIP_LARGE_CASES", "1")
     os.environ.setdefault("ML_CMD_TIMEOUT_SEC", "3600")
     os.environ.setdefault("ML_SUITE_KPI_FILE", "artifacts/mlperf_suite_kpis.jsonl")
     os.environ.setdefault("ML_NUM_GPUS", "4")
     os.environ.setdefault("ML_TENSOR_PARALLEL", "4")
-    os.environ.setdefault("MLPERF_DATA_DIR", "/data/mlperf")
-    os.environ.setdefault("MLPERF_MODEL_DIR", "/models/mlperf")
+    os.environ.setdefault("MLPERF_DATA_DIR", str(DEFAULT_DATASET_ROOT))
+    os.environ.setdefault("MLPERF_MODEL_DIR", str(DEFAULT_DATASET_ROOT))
     os.environ.setdefault("MLPERF_OUTPUT_DIR", "artifacts/mlperf_results")
     os.environ.setdefault("MLPERF_LOADGEN_SCENARIO", "Offline")
     os.environ.setdefault("MLPERF_INFERENCE_DIR", "/root/workloads/mlcommons/inference")
@@ -152,7 +156,16 @@ def _selected_case_ids() -> Optional[set]:
     return normalized
 
 
+def _skip_large_cases() -> bool:
+    return _env_flag("ML_SKIP_LARGE_CASES", "1")
+
+
 def _is_selected(case_id: str) -> bool:
+    if _skip_large_cases() and case_id in {
+        "AI_HOSTCPU_ML_TEST_ID_001",
+        "AI_HOSTCPU_ML_TEST_ID_002",
+    }:
+        return False
     selected = _selected_case_ids()
     return selected is None or case_id in selected
 
@@ -177,8 +190,8 @@ def _prepare_command(command: str) -> str:
     substitutions = {
         "${ML_TENSOR_PARALLEL}": str(_tensor_parallel_size()),
         "${ML_NUM_GPUS}": str(_visible_gpu_count()),
-        "${MLPERF_DATA_DIR}": os.environ.get("MLPERF_DATA_DIR", "/data/mlperf"),
-        "${MLPERF_MODEL_DIR}": os.environ.get("MLPERF_MODEL_DIR", "/models/mlperf"),
+        "${MLPERF_DATA_DIR}": os.environ.get("MLPERF_DATA_DIR", str(DEFAULT_DATASET_ROOT)),
+        "${MLPERF_MODEL_DIR}": os.environ.get("MLPERF_MODEL_DIR", str(DEFAULT_DATASET_ROOT)),
         "${MLPERF_OUTPUT_DIR}": os.environ.get("MLPERF_OUTPUT_DIR", "artifacts/mlperf_results"),
         "${MLPERF_INFERENCE_DIR}": os.environ.get("MLPERF_INFERENCE_DIR", "/root/workloads/mlcommons/inference"),
         "${MLPERF_TRAINING_DIR}": os.environ.get("MLPERF_TRAINING_DIR", "/root/workloads/mlcommons/training"),

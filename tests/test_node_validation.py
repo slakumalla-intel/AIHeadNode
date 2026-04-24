@@ -3149,8 +3149,44 @@ def _run_hf_causal_latency_workload(
         model = model.to(device)
     model.eval()
 
+    # When device_map="auto" is used the model may be spread across GPUs and
+    # GPU 0 may not hold any layers (e.g. because it was already occupied by a
+    # previous test).  Resolve the *actual* first-layer device so that inputs
+    # are placed there and torch.cuda.synchronize() targets the right device.
+    if use_quantized_load and hasattr(model, "hf_device_map") and model.hf_device_map:
+        # hf_device_map maps module-path -> device; pick the smallest-index GPU
+        # (or "cpu" as last resort) rather than always assuming cuda:0.
+        gpu_devices = [
+            d for d in model.hf_device_map.values()
+            if isinstance(d, (int, str)) and str(d) != "cpu"
+        ]
+        if gpu_devices:
+            # Normalise to torch.device; entries may be ints or "cuda:N" strings.
+            def _to_cuda_idx(d):
+                if isinstance(d, int):
+                    return d
+                return int(str(d).split(":")[-1]) if ":" in str(d) else int(d)
+            device = torch.device(f"cuda:{min(_to_cuda_idx(d) for d in gpu_devices)}")
+            logger.info("device_map='auto' resolved primary device to %s", device)
+
     prompt = "The AI head node validation test confirms stable latency for"
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
+
+    def _sync_all_gpus():
+        """Synchronize every CUDA device used by the model (important for device_map='auto')."""
+        if use_quantized_load and hasattr(model, "hf_device_map") and model.hf_device_map:
+            seen = set()
+            for d in model.hf_device_map.values():
+                idx = None
+                if isinstance(d, int):
+                    idx = d
+                elif isinstance(d, str) and d.startswith("cuda"):
+                    idx = int(d.split(":")[-1]) if ":" in d else 0
+                if idx is not None and idx not in seen:
+                    torch.cuda.synchronize(idx)
+                    seen.add(idx)
+        else:
+            torch.cuda.synchronize(device)
 
     # Warmup
     with torch.no_grad():
@@ -3161,13 +3197,13 @@ def _run_hf_causal_latency_workload(
                 do_sample=False,
                 pad_token_id=tokenizer.eos_token_id,
             )
-            torch.cuda.synchronize(device)
+            _sync_all_gpus()
 
     latencies_ms = []
     with torch.no_grad():
         start = time.perf_counter()
         while (time.perf_counter() - start) < min_duration_sec:
-            torch.cuda.synchronize(device)
+            _sync_all_gpus()
             t0 = time.perf_counter()
             _ = model.generate(
                 **inputs,
@@ -3175,7 +3211,7 @@ def _run_hf_causal_latency_workload(
                 do_sample=False,
                 pad_token_id=tokenizer.eos_token_id,
             )
-            torch.cuda.synchronize(device)
+            _sync_all_gpus()
             latencies_ms.append((time.perf_counter() - t0) * 1000)
 
     total_runtime_sec = time.perf_counter() - start

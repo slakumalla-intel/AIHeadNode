@@ -885,7 +885,7 @@ class TestGPUEnumerationAndTopology:
     """TC-NV-01: GPU enumeration and PCIe topology validation."""
 
     def test_gpu_enumeration(self):
-        """Enumerate all GPUs and verify count."""
+        """AI_HOSTCPU_FUNC_TEST_ID_001: Verify GPU enumeration and PCIe topology."""
         result = GPUEnumeration.enumerate_gpus()
         assert "gpus" in result, "GPU enumeration failed"
         assert result.get("count", 0) > 0, "No GPUs found"
@@ -909,7 +909,7 @@ class TestGPUEnumerationAndTopology:
         )
 
     def test_pcie_topology_discovery(self):
-        """TC-NV-01b: Validate GPU placement via nvidia-smi topo -m and print negotiated PCIe link speed/width."""
+        """AI_HOSTCPU_FUNC_TEST_ID_001: Validate GPU PCIe topology and negotiated link state."""
         # ── 1. Negotiated link speed per GPU ────────────────────────────────
         topo_result = GPUEnumeration.get_pcie_topology()
         assert topo_result.get("topology"), (
@@ -1019,7 +1019,9 @@ class TestPCIeBandwidthDirect:
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_h2d_bandwidth_all_gpus(self):
-        """Measure H2D bandwidth for all GPUs and validate >= 65% of PCIe theoretical (63 GB/s).
+        """AI_HOSTCPU_FUNC_TEST_ID_002: CPU->GPU PCIe bandwidth validation for direct-attached GPUs.
+
+        Measure H2D bandwidth for all GPUs and validate >= 65% of PCIe theoretical (63 GB/s).
 
         Boundary handling:
           - Uses NODE_PCIE_BW_BOUNDARY_GBS (default 1.0) to mark near-threshold values.
@@ -1082,7 +1084,9 @@ class TestPCIeBandwidthDirect:
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_d2h_bandwidth_all_gpus(self):
-        """Measure D2H bandwidth for all GPUs and validate >= 65% of PCIe theoretical.
+        """AI_HOSTCPU_FUNC_TEST_ID_003: GPU->CPU PCIe bandwidth validation for switch-attached paths.
+
+        Measure D2H bandwidth for all GPUs and validate >= 65% of PCIe theoretical.
 
         Boundary handling:
           - Uses NODE_PCIE_BW_BOUNDARY_GBS (default 1.0) to mark near-threshold values.
@@ -1209,11 +1213,11 @@ class TestNVBandwidthMemcpy:
         )
 
     def test_host_to_device_memcpy_ce(self):
-        """CE + pinned: H2D memcpy bandwidth via Copy Engine (all GPUs)."""
+        """AI_HOSTCPU_FUNC_TEST_ID_004: CE + pinned H2D memcpy bandwidth via Copy Engine."""
         self._run_and_validate("host_to_device_memcpy_ce")
 
     def test_device_to_host_memcpy_ce(self):
-        """CE + pinned: D2H memcpy bandwidth via Copy Engine (all GPUs)."""
+        """AI_HOSTCPU_FUNC_TEST_ID_004: CE + pinned D2H memcpy bandwidth via Copy Engine."""
         self._run_and_validate("device_to_host_memcpy_ce")
 
     def test_host_to_device_bidirectional_memcpy_ce(self):
@@ -1229,11 +1233,11 @@ class TestNVBandwidthMemcpy:
         self._run_and_validate("device_to_device_memcpy_read_ce")
 
     def test_host_to_device_memcpy_sm(self):
-        """SM copy: H2D bandwidth using CUDA Streaming Multiprocessors (pageable)."""
+        """AI_HOSTCPU_FUNC_TEST_ID_004: SM copy H2D bandwidth using CUDA SM path (pageable)."""
         self._run_and_validate("host_to_device_memcpy_sm")
 
     def test_device_to_host_memcpy_sm(self):
-        """SM copy: D2H bandwidth using CUDA Streaming Multiprocessors (pageable)."""
+        """AI_HOSTCPU_FUNC_TEST_ID_004: SM copy D2H bandwidth using CUDA SM path (pageable)."""
         self._run_and_validate("device_to_host_memcpy_sm")
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
@@ -1369,7 +1373,7 @@ class TestGPUP2PBandwidth:
     """
 
     def test_p2p_bandwidth_latency_binary(self):
-        """Run p2pBandwidthLatencyTest and validate bidirectional P2P BW ≥ threshold."""
+        """AI_HOSTCPU_FUNC_TEST_ID_005: Validate GPU P2P data bandwidth via p2pBandwidthLatencyTest."""
         if not _P2P_LATENCY_BIN.exists():
             pytest.skip(f"p2pBandwidthLatencyTest not found at {_P2P_LATENCY_BIN}")
 
@@ -1873,7 +1877,7 @@ class TestCPUGPULaunchAndSyncOverhead:
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_kernel_launch_latency_stats(self):
-        """Measure kernel launch latency distribution (min/p50/p95/p99/max)."""
+        """AI_HOSTCPU_FUNC_TEST_ID_006: Measure kernel launch latency distribution."""
         n_samples = int(os.environ.get("NODE_KERNEL_LAUNCH_SAMPLES", "200"))
         stats = measure_kernel_launch_latency(device_idx=0, n_samples=n_samples)
         assert stats, "Kernel launch measurement failed"
@@ -1900,7 +1904,7 @@ class TestCPUGPULaunchAndSyncOverhead:
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
     def test_synchronize_overhead_stats(self):
-        """Measure cudaDeviceSynchronize() overhead distribution."""
+        """AI_HOSTCPU_FUNC_TEST_ID_006: Measure cudaDeviceSynchronize() overhead distribution."""
         n_samples = int(os.environ.get("NODE_SYNC_OVERHEAD_SAMPLES", "200"))
         stats = measure_synchronize_overhead(device_idx=0, n_samples=n_samples)
         assert stats, "Synchronize measurement failed"
@@ -2064,7 +2068,7 @@ class TestNCCLAndNVLinkValidation:
     """
 
     def test_nvlink_status(self):
-        """Verify NVLink is active and report per-link speed."""
+        """AI_HOSTCPU_FUNC_TEST_ID_008: Verify NVLink status for inter-GPU communication path."""
         nvlink_info = validate_nvlink_status()
         logger.info("\nNVLink status:\n%s", nvlink_info.get("status", "(none)"))
         if nvlink_info.get("capabilities"):
@@ -2095,7 +2099,7 @@ class TestNCCLAndNVLinkValidation:
             pytest.skip(message)
 
     def test_nccl_all_reduce_perf(self):
-        """Run all_reduce_perf across all GPUs and validate peak busbw."""
+        """AI_HOSTCPU_FUNC_TEST_ID_008: Validate NCCL all-reduce performance across all GPUs."""
         if not _HAS_TORCH:
             pytest.skip("torch not available")
         n_gpus = torch.cuda.device_count()
@@ -2249,7 +2253,7 @@ class TestNCCLAndNVLinkValidation:
         assert peak >= 30.0, f"NCCL sendrecv busbw {peak:.1f} GB/s too low"
 
     def test_nccl_deterministic_init_variance(self):
-        """Run AllReduce 50× with small message and measure init/launch variance."""
+        """AI_HOSTCPU_FUNC_TEST_ID_009: Measure deterministic NCCL init/launch variance."""
         if not _HAS_TORCH:
             pytest.skip("torch not available")
         n_gpus = torch.cuda.device_count()

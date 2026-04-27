@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="18" skipped="0" tests="38" time="55.789" timestamp="2026-04-27T16:30:52.369521+00:00" hostname="sc00901168s0075"><testcase classname="tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing" name="test_tokenizer_throughput_by_seq_len[32]" time="0.762" /><testcase classname="tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing" name="test_tokenizer_throughput_by_seq_len[128]" time="0.528" /><testcase classname="tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing" name="test_tokenizer_throughput_by_seq_len[512]" time="0.735" /><testcase classname="tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing" name="test_tokenizer_throughput_by_seq_len[2048]" time="1.665" /><testcase classname="tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing" name="test_tokenizer_multi_thread_scaling" time="0.550"><failure message="AssertionError: 4-thread tokenizer scaling 0.53× &lt; 2.0× single-thread&#10;assert 0.5254029624596774 &gt;= 2.0">tests/test_ai_pipeline_kpis.py:304: in test_tokenizer_multi_thread_scaling
+    assert scaling_ratio &gt;= 2.0, (
+E   AssertionError: 4-thread tokenizer scaling 0.53× &lt; 2.0× single-thread
+E   assert 0.5254029624596774 &gt;= 2.0</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing" name="test_dataloader_cpu_to_pinned_throughput[0]" time="0.171" /><testcase classname="tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing" name="test_dataloader_cpu_to_pinned_throughput[2]" time="0.142" /><testcase classname="tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing" name="test_dataloader_cpu_to_pinned_throughput[4]" time="0.198" /><testcase classname="tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing" name="test_async_prefetch_gpu_overlap_efficiency" time="0.213"><failure message="AssertionError: Async prefetch overlap efficiency 25.2% &lt; 60.0%&#10;assert 25.157076046922278 &gt;= 60.0">tests/test_ai_pipeline_kpis.py:433: in test_async_prefetch_gpu_overlap_efficiency
+    assert overlap_pct &gt;= threshold_pct, (
+E   AssertionError: Async prefetch overlap efficiency 25.2% &lt; 60.0%
+E   assert 25.157076046922278 &gt;= 60.0</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing" name="test_cpu_preprocessing_pipeline_throughput" time="0.712" /><testcase classname="tests.test_ai_pipeline_kpis.TestModelOrchestration" name="test_model_load_time_to_gpu" time="1.450"><failure message="AssertionError: Model load bandwidth 0.16 GB/s &lt; 1.0 GB/s&#10;assert 0.16018335238275 &gt;= 1.0">tests/test_ai_pipeline_kpis.py:555: in test_model_load_time_to_gpu
+    assert bw_gbs &gt;= threshold_gbs, (
+E   AssertionError: Model load bandwidth 0.16 GB/s &lt; 1.0 GB/s
+E   assert 0.16018335238275 &gt;= 1.0</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestModelOrchestration" name="test_checkpoint_save_restore_throughput" time="0.135" /><testcase classname="tests.test_ai_pipeline_kpis.TestModelOrchestration" name="test_kv_cache_memory_allocation_efficiency" time="0.013" /><testcase classname="tests.test_ai_pipeline_kpis.TestModelOrchestration" name="test_tensor_parallel_allreduce_overhead_fraction" time="0.243"><failure message="AssertionError: AllReduce overhead 98.7% &gt; 20.0% of compute&#10;assert 98.68103591038746 &lt;= 20.0">tests/test_ai_pipeline_kpis.py:777: in test_tensor_parallel_allreduce_overhead_fraction
+    assert comm_overhead_pct &lt;= threshold_pct, (
+E   AssertionError: AllReduce overhead 98.7% &gt; 20.0% of compute
+E   assert 98.68103591038746 &lt;= 20.0</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestModelOrchestration" name="test_batch_assembly_gpu_latency[1]" time="0.016" /><testcase classname="tests.test_ai_pipeline_kpis.TestModelOrchestration" name="test_batch_assembly_gpu_latency[4]" time="0.002" /><testcase classname="tests.test_ai_pipeline_kpis.TestModelOrchestration" name="test_batch_assembly_gpu_latency[16]" time="0.002" /><testcase classname="tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO" name="test_storage_sequential_read_throughput" time="5.036" /><testcase classname="tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO" name="test_storage_sequential_write_throughput" time="1.705" /><testcase classname="tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO" name="test_storage_random_4k_read_iops" time="1.243" /><testcase classname="tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO" name="test_tcp_loopback_throughput" time="0.151" /><testcase classname="tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO" name="test_model_weight_load_pipeline_bandwidth" time="3.426"><failure message="AssertionError: Weight load pipeline 0.84 GB/s &lt; 1.0 GB/s&#10;assert 0.8412086480859542 &gt;= 1.0">tests/test_ai_pipeline_kpis.py:1133: in test_model_weight_load_pipeline_bandwidth
+    assert e2e_gbs &gt;= threshold_gbs, (
+E   AssertionError: Weight load pipeline 0.84 GB/s &lt; 1.0 GB/s
+E   assert 0.8412086480859542 &gt;= 1.0</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_time_to_first_token[32]" time="1.648" /><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_time_to_first_token[128]" time="0.938" /><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_time_to_first_token[512]" time="0.944" /><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_time_to_first_token[2048]" time="0.924"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1180: in test_time_to_first_token
+    _ = model.generate(**inputs, max_new_tokens=1, do_sample=False)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/utils/_contextlib.py:124: in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/generation/utils.py:2566: in generate
+    result = decoding_method(
+/usr/local/lib/python3.12/site-packages/transformers/generation/utils.py:2786: in _sample
+    outputs = self(**model_inputs, return_dict=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1776: in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1787: in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/models/gpt2/modeling_gpt2.py:1068: in forward
+    transformer_outputs = self.transformer(
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1776: in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1787: in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/models/gpt2/modeling_gpt2.py:873: in forward
+    causal_mask = create_causal_mask(
+/usr/local/lib/python3.12/site-packages/transformers/masking_utils.py:825: in create_causal_mask
+    causal_mask = mask_interface(
+/usr/local/lib/python3.12/site-packages/transformers/masking_utils.py:374: in sdpa_mask_recent_torch
+    if allow_is_causal_skip and _ignore_causal_mask_sdpa(padding_mask, q_length, kv_length, kv_offset, local_size):
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/masking_utils.py:254: in _ignore_causal_mask_sdpa
+    padding_mask.all()
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_inter_token_latency" time="0.514"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1233: in test_inter_token_latency
+    model = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_prefill_vs_decode_throughput_ratio" time="0.560"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1303: in test_prefill_vs_decode_throughput_ratio
+    model = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_batched_inference_throughput[1]" time="0.535"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1386: in test_batched_inference_throughput
+    model = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_batched_inference_throughput[4]" time="0.578"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1386: in test_batched_inference_throughput
+    model = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_batched_inference_throughput[8]" time="0.556"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1386: in test_batched_inference_throughput
+    model = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_batched_inference_throughput[16]" time="0.533"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1386: in test_batched_inference_throughput
+    model = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_gpu_utilisation_during_inference" time="0.503"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1454: in test_gpu_utilisation_during_inference
+    model = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_hbm_bandwidth_utilisation_during_decode" time="0.512"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1533: in test_hbm_bandwidth_utilisation_during_decode
+    model = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_continuous_batching_throughput_vllm" time="22.107"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1653: in test_continuous_batching_throughput_vllm
+    torch.cuda.empty_cache()
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:280: in empty_cache
+    torch._C._cuda_emptyCache()
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_latency_throughput_tradeoff_curve" time="0.688"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1680: in test_latency_throughput_tradeoff_curve
+    model = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_inference_pipeline_latency_breakdown" time="0.576"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1747: in test_inference_pipeline_latency_breakdown
+    model = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs" name="test_multi_gpu_inference_throughput_scaling" time="0.497"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_ai_pipeline_kpis.py:1868: in test_multi_gpu_inference_throughput_scaling
+    tps_1gpu = _measure_tps("cuda:0")
+               ^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ai_pipeline_kpis.py:1844: in _measure_tps
+    mdl = AutoModelForCausalLM.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py:604: in from_pretrained
+    return model_class.from_pretrained(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:277: in _wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5048: in from_pretrained
+    ) = cls._load_pretrained_model(
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:5432: in _load_pretrained_model
+    caching_allocator_warmup(model, expanded_device_map, hf_quantizer)
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:6090: in caching_allocator_warmup
+    device_memory = torch_accelerator_module.mem_get_info(index)[0]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:897: in mem_get_info
+    return torch.cuda.cudart().cudaMemGetInfo(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,51 @@
+16:03:35 INFO     cpu_validation 
+================================================================================
+  TC-CPU-04: ALL-CORE FP32 GFLOPS BENCHMARK
+================================================================================
+  Available logical cores:  224
+  Sample size (cores):      16
+  Theoretical FP32 @ base:  27.24 TFLOPS
+  Theoretical peak (GFLOPS):27238.40
+  Time budget:              3 minutes (180 seconds)
+================================================================================
+16:03:37 INFO     cpu_validation   Worker 1/16 completed: 31.56 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 2/16 completed: 31.31 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 3/16 completed: 36.02 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 4/16 completed: 36.48 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 5/16 completed: 36.39 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 6/16 completed: 31.72 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 7/16 completed: 31.67 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 8/16 completed: 31.62 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 9/16 completed: 31.38 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 10/16 completed: 24.94 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 11/16 completed: 31.71 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 12/16 completed: 31.66 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 13/16 completed: 35.67 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 14/16 completed: 35.99 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 15/16 completed: 31.50 GFLOPS
+16:03:37 INFO     cpu_validation   Worker 16/16 completed: 30.89 GFLOPS
+16:03:38 INFO     cpu_validation 
+────────────────────────────────────────────────────────────────────────────────
+  BENCHMARK RESULTS
+────────────────────────────────────────────────────────────────────────────────
+  Elapsed time:             3.30 seconds
+  Workers completed:        16/16
+  Sampled GFLOPS (16 cores): 520.50
+  Per-core avg:             32.53 GFLOPS/core
+  Extrapolated to all cores:7287.02 GFLOPS
+  Theoretical peak:         27238.40 GFLOPS
+  Efficiency:               26.8%
+  Min required:             70.0%
+────────────────────────────────────────────────────────────────────────────────
+16:03:38 INFO     ai_headnode_tests All-core FP32 GFLOPS (BLAS)                         measured=  7287.016  theoretical= 27238.400  efficiency= 26.75%  threshold=    70%
+16:03:42 INFO     ai_headnode_tests FP32 scaling efficiency (8 cores)                   measured=   267.408  theoretical=   171.680  efficiency=155.76%  threshold=    85%
+16:03:45 INFO     ai_headnode_tests Aggregate DRAM bandwidth (multi-thread)             measured=  2398.031  theoretical=   307.200  efficiency=780.61%  threshold=    75%
+16:03:52 INFO     ai_headnode_tests Parallel speedup at 1 cores                         measured=   259.449  theoretical=   274.434  efficiency= 94.54%  threshold=    85%
+16:03:52 INFO     ai_headnode_tests Parallel speedup at 2 cores                         measured=   424.439  theoretical=   508.891  efficiency= 83.40%  threshold=    85%
+16:03:53 INFO     ai_headnode_tests Parallel speedup at 4 cores                         measured=   160.452  theoretical=  1122.967  efficiency= 14.29%  threshold=    85%
+16:03:55 INFO     ai_headnode_tests Parallel speedup at 8 cores                         measured=     6.389  theoretical=  2031.079  efficiency=  0.31%  threshold=    85%
+16:04:02 INFO     ai_headnode_tests Parallel speedup at 16 cores                        measured=     4.872  theoretical=  4482.323  efficiency=  0.11%  threshold=    85%
+16:04:17 INFO     ai_headnode_tests Parallel speedup at 32 cores                        measured=     4.463  theoretical=  9000.100  efficiency=  0.05%  threshold=    85%
+16:04:43 INFO     ai_headnode_tests Parallel speedup at 64 cores                        measured=     4.724  theoretical= 18197.715  efficiency=  0.03%  threshold=    85%
+16:08:03 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+16:08:03 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/NODE_VALIDATION_REPORT.md

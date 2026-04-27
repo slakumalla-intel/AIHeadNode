@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="15" skipped="9" tests="51" time="1240.779" timestamp="2026-04-27T16:09:51.434221+00:00" hostname="sc00901168s0075"><testcase classname="tests.test_node_validation.TestGPUEnumerationAndTopology" name="test_gpu_enumeration" time="0.445" /><testcase classname="tests.test_node_validation.TestGPUEnumerationAndTopology" name="test_pcie_topology_discovery" time="0.879" /><testcase classname="tests.test_node_validation.TestGPUEnumerationAndTopology" name="test_topology_consistency" time="0.205" /><testcase classname="tests.test_node_validation.TestPCIeBandwidthDirect" name="test_h2d_bandwidth_all_gpus" time="7.078" /><testcase classname="tests.test_node_validation.TestPCIeBandwidthDirect" name="test_d2h_bandwidth_all_gpus" time="1.007"><failure message="Failed: D2H PCIe bandwidth validation failed.&#10;threshold=40.95 GB/s, boundary=1.00 GB/s, min=40.28 GB/s, mean=51.64 GB/s&#10;Per-GPU failures:&#10;GPU 3: 40.28 GB/s &lt; 40.95 GB/s">tests/test_node_validation.py:1139: in test_d2h_bandwidth_all_gpus
+    pytest.fail(
+E   Failed: D2H PCIe bandwidth validation failed.
+E   threshold=40.95 GB/s, boundary=1.00 GB/s, min=40.28 GB/s, mean=51.64 GB/s
+E   Per-GPU failures:
+E   GPU 3: 40.28 GB/s &lt; 40.95 GB/s</failure></testcase><testcase classname="tests.test_node_validation.TestNVBandwidthMemcpy" name="test_host_to_device_memcpy_ce" time="4.994" /><testcase classname="tests.test_node_validation.TestNVBandwidthMemcpy" name="test_device_to_host_memcpy_ce" time="5.290" /><testcase classname="tests.test_node_validation.TestNVBandwidthMemcpy" name="test_host_to_device_bidirectional_memcpy_ce" time="13.616" /><testcase classname="tests.test_node_validation.TestNVBandwidthMemcpy" name="test_device_to_host_bidirectional_memcpy_ce" time="11.851" /><testcase classname="tests.test_node_validation.TestNVBandwidthMemcpy" name="test_device_to_device_memcpy_read_ce" time="1.447"><skipped type="pytest.skip" message="nvbandwidth device_to_device_memcpy_read_ce error: Exit 1">/root/workloads/AIHeadNode/tests/test_node_validation.py:1179: nvbandwidth device_to_device_memcpy_read_ce error: Exit 1</skipped></testcase><testcase classname="tests.test_node_validation.TestNVBandwidthMemcpy" name="test_host_to_device_memcpy_sm" time="5.116" /><testcase classname="tests.test_node_validation.TestNVBandwidthMemcpy" name="test_device_to_host_memcpy_sm" time="5.418" /><testcase classname="tests.test_node_validation.TestNVBandwidthMemcpy" name="test_pcie_bw_p2p_latency_hugepages_2mb" time="20.595" /><testcase classname="tests.test_node_validation.TestGPUP2PBandwidth" name="test_p2p_bandwidth_latency_binary" time="2.481"><failure message="AssertionError: 2 P2P bandwidth values below 40.0 GB/s: ['17.2', '17.2']&#10;assert not [17.25, 17.23]">tests/test_node_validation.py:1423: in test_p2p_bandwidth_latency_binary
+    assert not failing, (
+E   AssertionError: 2 P2P bandwidth values below 40.0 GB/s: ['17.2', '17.2']
+E   assert not [17.25, 17.23]</failure></testcase><testcase classname="tests.test_node_validation.TestGPUP2PBandwidth" name="test_p2p_bandwidth_pytorch_fallback" time="2.926" /><testcase classname="tests.test_node_validation.TestGPUP2PBandwidth" name="test_p2p_multi_stream_bandwidth" time="34.777"><failure message="Failed: P2P multi-stream stability validation failed.&#10;tested_pairs=12, required_min_stability_ratio=0.85, assertion_size=1GiB, observed_min_scaling_ratio=0.794, observed_avg_scaling_ratio=1.041, required_min_directional_symmetry=0.75, observed_min_directional_symmetry=0.743&#10;worst_pairs=0-&gt;2=0.794x, 2-&gt;0=0.883x, 1-&gt;2=0.883x&#10;worst_directional_pairs=0-&gt;1&lt;-&gt;1-&gt;0=0.743x, 1-&gt;2&lt;-&gt;2-&gt;1=0.853x, 0-&gt;3&lt;-&gt;3-&gt;0=0.862x&#10;Failures:&#10;GPU0-&gt;GPU2 [1GiB]: 4-stream BW 36.39 GB/s retains only 0.79x of 1-stream BW 45.86 GB/s (&lt; 0.85x)&#10;GPU0-&gt;1 vs GPU1-&gt;0 [1GiB]: 4-stream directional symmetry 0.74x is below 0.75x (52.06 vs 70.07 GB/s)">tests/test_node_validation.py:1855: in test_p2p_multi_stream_bandwidth
+    pytest.fail(
+E   Failed: P2P multi-stream stability validation failed.
+E   tested_pairs=12, required_min_stability_ratio=0.85, assertion_size=1GiB, observed_min_scaling_ratio=0.794, observed_avg_scaling_ratio=1.041, required_min_directional_symmetry=0.75, observed_min_directional_symmetry=0.743
+E   worst_pairs=0-&gt;2=0.794x, 2-&gt;0=0.883x, 1-&gt;2=0.883x
+E   worst_directional_pairs=0-&gt;1&lt;-&gt;1-&gt;0=0.743x, 1-&gt;2&lt;-&gt;2-&gt;1=0.853x, 0-&gt;3&lt;-&gt;3-&gt;0=0.862x
+E   Failures:
+E   GPU0-&gt;GPU2 [1GiB]: 4-stream BW 36.39 GB/s retains only 0.79x of 1-stream BW 45.86 GB/s (&lt; 0.85x)
+E   GPU0-&gt;1 vs GPU1-&gt;0 [1GiB]: 4-stream directional symmetry 0.74x is below 0.75x (52.06 vs 70.07 GB/s)</failure></testcase><testcase classname="tests.test_node_validation.TestCPUGPULaunchAndSyncOverhead" name="test_kernel_launch_latency_stats" time="0.126" /><testcase classname="tests.test_node_validation.TestCPUGPULaunchAndSyncOverhead" name="test_synchronize_overhead_stats" time="0.147" /><testcase classname="tests.test_node_validation.TestCPUGPUPowerAndThrottling" name="test_sustained_gpu_power_stability" time="31.638"><failure message="AssertionError: Power variance 57.4 W is too high (expected &lt; 50 W)&#10;assert np.float64(57.391626369413764) &lt; 50">tests/test_node_validation.py:1962: in test_sustained_gpu_power_stability
+    assert std &lt; 50, f"Power variance {std:.1f} W is too high (expected &lt; 50 W)"
+E   AssertionError: Power variance 57.4 W is too high (expected &lt; 50 W)
+E   assert np.float64(57.391626369413764) &lt; 50</failure></testcase><testcase classname="tests.test_node_validation.TestCPUGPUPowerAndThrottling" name="test_gpu_write_performance_limiters" time="0.103" /><testcase classname="tests.test_node_validation.TestNCCLAndNVLinkValidation" name="test_nvlink_status" time="0.180" /><testcase classname="tests.test_node_validation.TestNCCLAndNVLinkValidation" name="test_nccl_availability" time="0.087" /><testcase classname="tests.test_node_validation.TestNCCLAndNVLinkValidation" name="test_nccl_all_reduce_perf" time="8.740" /><testcase classname="tests.test_node_validation.TestNCCLAndNVLinkValidation" name="test_nccl_all_gather_perf" time="3.938" /><testcase classname="tests.test_node_validation.TestNCCLAndNVLinkValidation" name="test_nccl_reduce_scatter_perf" time="3.923" /><testcase classname="tests.test_node_validation.TestNCCLAndNVLinkValidation" name="test_nccl_p2p_perf" time="4.400"><failure message="AssertionError: NCCL sendrecv busbw 25.1 GB/s too low&#10;assert 25.05 &gt;= 30.0">tests/test_node_validation.py:2249: in test_nccl_p2p_perf
+    assert peak &gt;= 30.0, f"NCCL sendrecv busbw {peak:.1f} GB/s too low"
+E   AssertionError: NCCL sendrecv busbw 25.1 GB/s too low
+E   assert 25.05 &gt;= 30.0</failure></testcase><testcase classname="tests.test_node_validation.TestNCCLAndNVLinkValidation" name="test_nccl_deterministic_init_variance" time="2.417" /><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_workload_preflight_requirements" time="0.099" /><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_hf_causal_lm_inference_latency" time="350.064" /><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_hf_causal_lm_inference_latency_enterprise_workloads[deepseek_r1_quantized-deepseek-ai/DeepSeek-R1-Distill-Qwen-7B-32-3000.0-True]" time="33.479"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_node_validation.py:3585: in test_hf_causal_lm_inference_latency_enterprise_workloads
+    metrics = _run_hf_causal_latency_workload(
+tests/test_node_validation.py:3158: in _run_hf_causal_latency_workload
+    _ = model.generate(
+/usr/local/lib64/python3.12/site-packages/torch/utils/_contextlib.py:124: in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/generation/utils.py:2566: in generate
+    result = decoding_method(
+/usr/local/lib/python3.12/site-packages/transformers/generation/utils.py:2786: in _sample
+    outputs = self(**model_inputs, return_dict=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1776: in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1787: in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/accelerate/hooks.py:192: in new_forward
+    output = module._old_forward(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/utils/generic.py:918: in wrapper
+    output = func(self, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py:449: in forward
+    outputs: BaseModelOutputWithPast = self.model(
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1776: in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1787: in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/utils/generic.py:1072: in wrapper
+    outputs = func(self, *args, **kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/models/qwen2/modeling_qwen2.py:372: in forward
+    "full_attention": create_causal_mask(**mask_kwargs),
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/masking_utils.py:788: in create_causal_mask
+    early_exit, attention_mask, packed_sequence_mask, kv_length, kv_offset = _preprocess_mask_arguments(
+/usr/local/lib/python3.12/site-packages/transformers/masking_utils.py:723: in _preprocess_mask_arguments
+    attention_mask = attention_mask.to(device=cache_position.device, dtype=torch.bool)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_hf_causal_lm_inference_latency_enterprise_workloads[llama_7b-meta-llama/Meta-Llama-3.1-8B-Instruct-32-3000.0-False]" time="3.094"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_node_validation.py:3585: in test_hf_causal_lm_inference_latency_enterprise_workloads
+    metrics = _run_hf_causal_latency_workload(
+tests/test_node_validation.py:3149: in _run_hf_causal_latency_workload
+    model = model.to(device)
+            ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:4343: in to
+    return super().to(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1381: in to
+    return self._apply(convert)
+           ^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:933: in _apply
+    module._apply(fn)
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:933: in _apply
+    module._apply(fn)
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:964: in _apply
+    param_applied = fn(param)
+                    ^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1367: in convert
+    return t.to(
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_hf_causal_lm_inference_latency_enterprise_workloads[llama_70b-meta-llama/Meta-Llama-3.1-70B-Instruct-16-12000.0-True]" time="5.781"><skipped type="pytest.skip" message="Model load failed for meta-llama/Meta-Llama-3.1-70B-Instruct: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">/root/workloads/AIHeadNode/tests/test_node_validation.py:3146: Model load failed for meta-llama/Meta-Llama-3.1-70B-Instruct: CUDA error: device-side assert triggered
+Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</skipped></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_hf_causal_lm_inference_latency_enterprise_workloads[qwen_70b-Qwen/Qwen-72B-16-12000.0-True]" time="6.185"><skipped type="pytest.skip" message="Model load failed for Qwen/Qwen-72B: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">/root/workloads/AIHeadNode/tests/test_node_validation.py:3146: Model load failed for Qwen/Qwen-72B: CUDA error: device-side assert triggered
+Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</skipped></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_hf_causal_lm_batch_throughput" time="2.461"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_node_validation.py:3620: in test_hf_causal_lm_batch_throughput
+    ).to(device)
+      ^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:4343: in to
+    return super().to(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1381: in to
+    return self._apply(convert)
+           ^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:933: in _apply
+    module._apply(fn)
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:933: in _apply
+    module._apply(fn)
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:964: in _apply
+    param_applied = fn(param)
+                    ^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1367: in convert
+    return t.to(
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_vllm_data_pipeline_saturation_inference_prefill" time="294.864"><failure message="AssertionError: GPU utilization not sustained (&gt;=90% ratio=0.00, mean=0.0%, target_ratio=0.50, shared_gpu=True)&#10;assert 0.0 &gt;= 0.5">tests/test_node_validation.py:4220: in test_vllm_data_pipeline_saturation_inference_prefill
+    assert gpu_over_90_ratio &gt;= gpu_over_90_target, (
+E   AssertionError: GPU utilization not sustained (&gt;=90% ratio=0.00, mean=0.0%, target_ratio=0.50, shared_gpu=True)
+E   assert 0.0 &gt;= 0.5</failure></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_vision_object_detection_yolo_fps" time="12.499"><failure message="AssertionError: YOLO aggregate FPS too low: 92.9 &lt; target 200.0&#10;assert 92.94495106042463 &gt;= 200.0">tests/test_node_validation.py:4404: in test_vision_object_detection_yolo_fps
+    assert aggregate_fps &gt;= fps_target, (
+E   AssertionError: YOLO aggregate FPS too low: 92.9 &lt; target 200.0
+E   assert 92.94495106042463 &gt;= 200.0</failure></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_vision_image_generation_diffusers_throughput" time="14.449" /><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_hf_encoder_training_throughput" time="1.120"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_node_validation.py:4578: in test_hf_encoder_training_throughput
+    ).to(device)
+      ^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/transformers/modeling_utils.py:4343: in to
+    return super().to(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1381: in to
+    return self._apply(convert)
+           ^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:933: in _apply
+    module._apply(fn)
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:933: in _apply
+    module._apply(fn)
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:933: in _apply
+    module._apply(fn)
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:964: in _apply
+    param_applied = fn(param)
+                    ^^^^^^^^^
+/usr/local/lib64/python3.12/site-packages/torch/nn/modules/module.py:1367: in convert
+    return t.to(
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_vllm_inference_throughput" time="25.087"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_node_validation.py:4740: in test_vllm_inference_throughput
+    torch.cuda.empty_cache()
+/usr/local/lib64/python3.12/site-packages/torch/cuda/memory.py:280: in empty_cache
+    torch._C._cuda_emptyCache()
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_predictable_memory_orchestration_kv_cache_offload" time="257.120"><skipped type="pytest.skip" message="KV offload workload initialization failed">/root/workloads/AIHeadNode/tests/test_node_validation.py:4836: KV offload workload initialization failed</skipped></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_single_core_gpudirect_rdma_flow" time="0.102"><skipped type="pytest.skip" message="ib_write_lat not found; install perftest package">/root/workloads/AIHeadNode/tests/test_node_validation.py:5209: ib_write_lat not found; install perftest package</skipped></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_mmio_write_read_validation" time="0.126" /><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_fence_validation_rdma_ordering" time="0.089"><skipped type="pytest.skip" message="Set RDMA_FENCE_VALIDATION_CMD to run device-specific fence ordering validation">/root/workloads/AIHeadNode/tests/test_node_validation.py:5340: Set RDMA_FENCE_VALIDATION_CMD to run device-specific fence ordering validation</skipped></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_one_dma_read_4kb_validation" time="0.090"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_node_validation.py:5379: in test_one_dma_read_4kb_validation
+    cpu_in = torch.tensor(list(host_src), dtype=torch.uint8, pin_memory=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_looped_rdma_mmio_dma_stress_soak" time="0.090"><failure message="torch.AcceleratorError: CUDA error: device-side assert triggered&#10;Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_node_validation.py:5419: in test_looped_rdma_mmio_dma_stress_soak
+    cpu_in = torch.empty(n_bytes, dtype=torch.uint8, pin_memory=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: device-side assert triggered
+E   Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_llm_training_small_multigpu" time="14.232"><failure message="AssertionError: TC-013: gradient sync ratio 21.4% exceeds threshold 15% — communication bottleneck detected; check NVLink status and NCCL topology&#10;assert 0.214175 &lt;= 0.15">tests/test_node_validation.py:5587: in test_llm_training_small_multigpu
+    assert mean_sync_ratio &lt;= max_sync_ratio, (
+E   AssertionError: TC-013: gradient sync ratio 21.4% exceeds threshold 15% — communication bottleneck detected; check NVLink status and NCCL topology
+E   assert 0.214175 &lt;= 0.15</failure></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_llm_training_large_multigpu" time="43.315" /><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_multi_tenant_inference_tail_latency" time="0.095"><skipped type="pytest.skip" message="TC-047 is temporarily disabled due to unstable vLLM multi-process setup in this branch. Use test_vllm_data_pipeline_saturation_inference_prefill for current inference validation.">/root/workloads/AIHeadNode/tests/test_node_validation.py:5789: TC-047 is temporarily disabled due to unstable vLLM multi-process setup in this branch. Use test_vllm_data_pipeline_saturation_inference_prefill for current inference validation.</skipped></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_multi_model_inference_kv_cache_concurrent" time="0.090"><skipped type="pytest.skip" message="TC-048 is temporarily disabled due to unstable vLLM multi-process setup in this branch.">/root/workloads/AIHeadNode/tests/test_node_validation.py:5800: TC-048 is temporarily disabled due to unstable vLLM multi-process setup in this branch.</skipped></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_deepseek_r1_kv_cache_dram_offload" time="0.152"><skipped type="pytest.skip" message="TC-049 is temporarily disabled in this branch while consolidating vLLM setup paths.">/root/workloads/AIHeadNode/tests/test_node_validation.py:5810: TC-049 is temporarily disabled in this branch while consolidating vLLM setup paths.</skipped></testcase><testcase classname="tests.test_node_validation.TestWorkloadAcceptanceHuggingFace" name="test_vllm_training_kpi_status" time="0.090" /></testsuite></testsuites>

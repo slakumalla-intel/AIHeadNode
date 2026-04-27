@@ -237,9 +237,9 @@ tr:hover td{background:#ffffff08}
       AI workload acceptance, agentic workflows, and system reliability
     </p>
     <div class="stat-row" style="margin-top:36px">
-      <div class="stat-box"><div class="num">12</div><div class="lbl">Test Domains</div></div>
+      <div class="stat-box"><div class="num">13</div><div class="lbl">Test Domains</div></div>
       <div class="stat-box"><div class="num">13</div><div class="lbl">Test Files</div></div>
-      <div class="stat-box"><div class="num">350+</div><div class="lbl">Test Cases</div></div>
+      <div class="stat-box"><div class="num">410+</div><div class="lbl">Test Cases</div></div>
       <div class="stat-box"><div class="num">11</div><div class="lbl">KPI Streams</div></div>
       <div class="stat-box"><div class="num">1</div><div class="lbl">Auto Report</div></div>
     </div>
@@ -1293,7 +1293,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
   <h2>KPI Status by Domain (Artifacts)</h2>
   <div class="accent-line"></div>
   <p style="font-size:.9rem;margin-bottom:12px;color:var(--muted)">
-    Source: <code>artifacts/kpi_status_report.json</code> generated from latest JSONL streams. 182 latest records, 12 findings (6 unique signals mirrored across log and node streams).
+    Source: <code>artifacts/workload_status_report.json</code> · Run: 2026-04-27 · Host: sc00901168s0075 · 13 domains · 410 tests · <strong style="color:#ff8f8f">107 failures</strong> · 35 skipped · <strong style="color:#ff8f8f">11 FAIL</strong> / <strong style="color:var(--accent-green)">2 PASS</strong>
   </p>
 
   <div class="card card-accent" style="margin-bottom:12px">
@@ -1301,94 +1301,242 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
       <thead>
         <tr>
           <th>Domain</th>
-          <th>Artifact Stream</th>
-          <th>Latest KPI Records</th>
-          <th>Findings</th>
+          <th>Description</th>
+          <th>Tests</th>
+          <th>Failures</th>
+          <th>Skipped</th>
+          <th>Duration (s)</th>
           <th>Status</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Node Validation</td>
-          <td>node_validation_kpis.jsonl</td>
-          <td>44</td>
-          <td>6</td>
-          <td><span class="status-pill status-fail">Action Needed</span></td>
-        </tr>
-        <tr>
-          <td>Performance Suite</td>
-          <td>performance_suite_kpis.jsonl</td>
+          <td>bottleneck</td>
+          <td>Roofline &amp; bottleneck analysis</td>
           <td>25</td>
+          <td>5</td>
           <td>0</td>
-          <td><span class="status-pill status-pass">On Track</span></td>
+          <td>9.9</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
         </tr>
         <tr>
-          <td>MLPerf Suite</td>
-          <td>mlperf_suite_kpis.jsonl</td>
-          <td>21</td>
-          <td>0</td>
-          <td><span class="status-pill status-pass">Catalog/Pass</span></td>
+          <td>cpu</td>
+          <td>CPU validation</td>
+          <td>33</td>
+          <td>11</td>
+          <td>1</td>
+          <td>268.7</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
         </tr>
         <tr>
-          <td>vLLM Prefill Validation</td>
-          <td>vllm_prefill_kpis.jsonl</td>
+          <td>memory</td>
+          <td>Memory subsystem validation</td>
+          <td>28</td>
+          <td>8</td>
+          <td>0</td>
+          <td>15.3</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>gpu</td>
+          <td>GPU validation</td>
+          <td>53</td>
+          <td>19</td>
+          <td>0</td>
+          <td>6.6</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>interconnect</td>
+          <td>PCIe / NVLink / P2P validation</td>
+          <td>77</td>
+          <td>3</td>
+          <td>4</td>
+          <td>73.0</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>node_validation</td>
+          <td>Node bring-up &amp; workload acceptance</td>
+          <td>51</td>
+          <td>15</td>
+          <td>9</td>
+          <td>1240.8</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>agentic_ai</td>
+          <td>Agentic AI KPI validation</td>
+          <td>9</td>
           <td>1</td>
           <td>0</td>
-          <td><span class="status-pill status-pass">On Track</span></td>
+          <td>14.2</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
         </tr>
         <tr>
-          <td>Consolidated Log KPIs</td>
-          <td>kpi_from_validation_full_log.jsonl</td>
-          <td>91</td>
-          <td>6</td>
-          <td><span class="status-pill status-warn">Mirror of Node Issues</span></td>
+          <td>ai_pipeline</td>
+          <td>AI pipeline KPI validation</td>
+          <td>38</td>
+          <td>18</td>
+          <td>0</td>
+          <td>55.8</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>system_health</td>
+          <td>System health &amp; reliability</td>
+          <td>39</td>
+          <td>7</td>
+          <td>3</td>
+          <td>34.5</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>system_config</td>
+          <td>System config report validation</td>
+          <td>8</td>
+          <td>0</td>
+          <td>0</td>
+          <td>0.7</td>
+          <td><span class="status-pill status-pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td>vllm_prefill</td>
+          <td>vLLM prefill validation</td>
+          <td>3</td>
+          <td>1</td>
+          <td>1</td>
+          <td>1110.6</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>performance_suite</td>
+          <td>Performance suite catalog / execution</td>
+          <td>25</td>
+          <td>0</td>
+          <td>15</td>
+          <td>248.2</td>
+          <td><span class="status-pill status-pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td>mlperf_suite</td>
+          <td>MLPerf suite catalog / execution</td>
+          <td>21</td>
+          <td>19</td>
+          <td>2</td>
+          <td>760.0</td>
+          <td><span class="status-pill status-fail">FAIL</span></td>
         </tr>
       </tbody>
     </table>
   </div>
 
   <div class="card card-accent" style="margin-bottom:12px">
-    <h3 style="margin-bottom:10px">Pass vs Findings by Domain</h3>
+    <h3 style="margin-bottom:10px">Pass vs Failures by Domain (2026-04-27 Run)</h3>
     <div class="domain-bars">
       <div class="domain-bar-row">
-        <div class="domain-name">Node Validation</div>
+        <div class="domain-name">bottleneck</div>
         <div class="bar-track">
-          <div class="bar-pass" style="width:86.4%"></div>
-          <div class="bar-find" style="width:13.6%"></div>
+          <div class="bar-pass" style="width:80.0%"></div>
+          <div class="bar-find" style="width:20.0%"></div>
         </div>
-        <div class="bar-meta">38 pass | 6 findings</div>
+        <div class="bar-meta">20 pass | 5 fail</div>
       </div>
       <div class="domain-bar-row">
-        <div class="domain-name">Performance Suite</div>
+        <div class="domain-name">cpu</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:66.7%"></div>
+          <div class="bar-find" style="width:33.3%"></div>
+        </div>
+        <div class="bar-meta">22 pass | 11 fail</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">memory</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:71.4%"></div>
+          <div class="bar-find" style="width:28.6%"></div>
+        </div>
+        <div class="bar-meta">20 pass | 8 fail</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">gpu</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:64.2%"></div>
+          <div class="bar-find" style="width:35.8%"></div>
+        </div>
+        <div class="bar-meta">34 pass | 19 fail</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">interconnect</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:96.1%"></div>
+          <div class="bar-find" style="width:3.9%"></div>
+        </div>
+        <div class="bar-meta">74 pass | 3 fail</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">node_validation</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:70.6%"></div>
+          <div class="bar-find" style="width:29.4%"></div>
+        </div>
+        <div class="bar-meta">36 pass | 15 fail</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">agentic_ai</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:88.9%"></div>
+          <div class="bar-find" style="width:11.1%"></div>
+        </div>
+        <div class="bar-meta">8 pass | 1 fail</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">ai_pipeline</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:52.6%"></div>
+          <div class="bar-find" style="width:47.4%"></div>
+        </div>
+        <div class="bar-meta">20 pass | 18 fail</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">system_health</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:82.1%"></div>
+          <div class="bar-find" style="width:17.9%"></div>
+        </div>
+        <div class="bar-meta">32 pass | 7 fail</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">system_config</div>
         <div class="bar-track">
           <div class="bar-pass" style="width:100%"></div>
           <div class="bar-find" style="width:0%"></div>
         </div>
-        <div class="bar-meta">25 pass | 0 findings</div>
+        <div class="bar-meta">8 pass | 0 fail</div>
       </div>
       <div class="domain-bar-row">
-        <div class="domain-name">MLPerf Suite</div>
+        <div class="domain-name">vllm_prefill</div>
+        <div class="bar-track">
+          <div class="bar-pass" style="width:66.7%"></div>
+          <div class="bar-find" style="width:33.3%"></div>
+        </div>
+        <div class="bar-meta">2 pass | 1 fail</div>
+      </div>
+      <div class="domain-bar-row">
+        <div class="domain-name">performance_suite</div>
         <div class="bar-track">
           <div class="bar-pass" style="width:100%"></div>
           <div class="bar-find" style="width:0%"></div>
         </div>
-        <div class="bar-meta">21 pass | 0 findings</div>
+        <div class="bar-meta">25 pass | 0 fail</div>
       </div>
       <div class="domain-bar-row">
-        <div class="domain-name">vLLM Prefill Validation</div>
+        <div class="domain-name">mlperf_suite</div>
         <div class="bar-track">
-          <div class="bar-pass" style="width:100%"></div>
-          <div class="bar-find" style="width:0%"></div>
+          <div class="bar-pass" style="width:9.5%"></div>
+          <div class="bar-find" style="width:90.5%"></div>
         </div>
-        <div class="bar-meta">1 pass | 0 findings</div>
-      </div>
-      <div class="domain-bar-row">
-        <div class="domain-name">Consolidated Log KPIs</div>
-        <div class="bar-track">
-          <div class="bar-pass" style="width:93.4%"></div>
-          <div class="bar-find" style="width:6.6%"></div>
-        </div>
-        <div class="bar-meta">85 pass | 6 findings</div>
+        <div class="bar-meta">2 pass | 19 fail</div>
       </div>
     </div>
   </div>
@@ -1617,22 +1765,31 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
 
   <div class="card-grid card-grid-2" style="gap:12px">
     <div class="card card-red">
-      <h3>Failing KPI Signals (Unique)</h3>
+      <h3>Failing KPI Signals (Key Failures)</h3>
       <ul>
-        <li>D2H min bandwidth: 39.02 GB/s vs 40.95 GB/s threshold</li>
-        <li>P2P unidirectional minimum: 37.71 GB/s vs 40.00 GB/s threshold</li>
-        <li>Multi-stream scaling ratio: 0.633 vs required 0.85</li>
-        <li>Directional symmetry ratio: 0.63 vs required 0.75</li>
-        <li>Sustained power stability std dev: 57.67 W vs max 50 W</li>
+        <li><strong>GPU compute efficiency:</strong> FP16 ~31%, BF16 ~24%, INT8 ~13% of theoretical peak (threshold 75%)</li>
+        <li><strong>CPU FP32 all-core efficiency:</strong> 26.8% of theoretical 27.2 TFLOPS (threshold 70%)</li>
+        <li><strong>CPU parallel speedup degraded:</strong> at ≥4 cores efficiency drops below 15% (threshold 85%)</li>
+        <li><strong>Memory: Total RAM 1007 GB &lt; 1 TB threshold; STREAM BW 12.3 GB/s &lt; 15 GB/s</strong></li>
+        <li><strong>D2H min bandwidth:</strong> 39.02 GB/s vs 40.95 GB/s threshold</li>
+        <li><strong>P2P unidirectional minimum:</strong> 37.71 GB/s vs 40.00 GB/s threshold</li>
+        <li><strong>NCCL sendrecv busbw:</strong> 25.1 GB/s vs 30.0 GB/s threshold</li>
+        <li><strong>GPU power stability std dev:</strong> 57.4 W vs max 50 W; GPU 0 at 96% power limit at rest</li>
+        <li><strong>GPU clock throttling:</strong> GPUs 1–3 at 19–20% of max clock; SM clock drops 46% under sustained load</li>
+        <li><strong>AI Pipeline / Node Validation:</strong> 14 tests blocked by CUDA device-side assert errors</li>
+        <li><strong>MLPerf suite:</strong> 19/21 cases failing (timeouts, missing datasets/commands)</li>
+        <li><strong>vLLM prefill:</strong> timeout after 600s; prefill GPU util only 23.9%</li>
+        <li><strong>torch.compile speedup:</strong> 0.81× (below 1.05× floor) on H100 PCIe</li>
       </ul>
     </div>
     <div class="card card-green">
       <h3>Domain-Level Summary</h3>
       <ul>
-        <li><strong>Primary failing domain:</strong> Node validation interconnect and stability sub-tests</li>
-        <li><strong>No active failures observed:</strong> Performance Suite, MLPerf Suite, vLLM Prefill</li>
-        <li><strong>Overall readiness:</strong> Partial pass, blocked by interconnect and stability deltas</li>
-        <li><strong>Immediate next gate:</strong> Re-run Node Validation after topology and power tuning</li>
+        <li><strong>PASS (2/13):</strong> system_config (8/8), performance_suite (25/25)</li>
+        <li><strong>Highest failure count:</strong> gpu (19), mlperf_suite (19), ai_pipeline (18), cpu (11)</li>
+        <li><strong>CUDA device-side asserts:</strong> blocking inference tests across node_validation and ai_pipeline — root cause before any other triage</li>
+        <li><strong>Overall readiness:</strong> Not production-ready — hardware efficiency, thermal, and CUDA runtime issues block go/no-go</li>
+        <li><strong>Immediate next gate:</strong> Resolve CUDA errors; address GPU clock throttling and power cap; recheck PCIe Gen5 and P2P topology</li>
       </ul>
     </div>
   </div>

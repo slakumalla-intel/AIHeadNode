@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="1" tests="3" time="1110.551" timestamp="2026-04-27T16:32:34.031158+00:00" hostname="sc00901168s0075"><testcase classname="tests.test_vllm_prefill_validation.TestVLLMPrefillValidation" name="test_vllm_4h100_prefill_validation" time="600.317"><failure message="Failed: Timeout (&gt;600.0s) from pytest-timeout.">tests/test_vllm_prefill_validation.py:224: in test_vllm_4h100_prefill_validation
+    result = subprocess.run(
+/usr/lib64/python3.12/subprocess.py:550: in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.12/subprocess.py:1209: in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.12/subprocess.py:2141: in _communicate
+    self.wait(timeout=self._remaining_time(endtime))
+/usr/lib64/python3.12/subprocess.py:1264: in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.12/subprocess.py:2047: in _wait
+    time.sleep(delay)
+E   Failed: Timeout (&gt;600.0s) from pytest-timeout.</failure></testcase><testcase classname="tests.test_vllm_prefill_validation.TestVLLMPrefillValidation" name="test_vllm_prefill_with_custom_model" time="0.150"><skipped type="pytest.skip" message="CUSTOM_MODEL environment variable not set">/root/workloads/AIHeadNode/tests/test_vllm_prefill_validation.py:253: CUSTOM_MODEL environment variable not set</skipped></testcase><testcase classname="tests.test_vllm_prefill_validation.TestVLLMPrefillValidation" name="test_vllm_prefill_quick" time="510.022" /></testsuite></testsuites>

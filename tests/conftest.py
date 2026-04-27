@@ -410,6 +410,8 @@ def _report_section_for_item(item: pytest.Item) -> str:
 
     if "mlperf" in marker_names or "mlperf" in nodeid_lower:
         return "MLPerf"
+    if "agentic_ai" in marker_names or Path(str(item.fspath)).name == "test_agentic_ai_validation.py":
+        return "Agentic AI Validation"
     if Path(str(item.fspath)).name == "test_performance_suite.py":
         return "Performance"
     if "vllm_prefill" in marker_names or Path(str(item.fspath)).name == "test_vllm_prefill_validation.py":
@@ -501,6 +503,7 @@ def _parameterized_test_key(value: str) -> Optional[str]:
 def _kpi_paths() -> List[Path]:
     paths = [
         Path(os.environ.get("NODE_VALIDATION_KPI_FILE", "artifacts/node_validation_kpis.jsonl")),
+        Path(os.environ.get("AGENTIC_KPI_FILE", "artifacts/agentic_ai_kpis.jsonl")),
         Path(os.environ.get("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")),
         Path(os.environ.get("VLLM_PREFILL_KPI_FILE", "artifacts/vllm_prefill_kpis.jsonl")),
         Path(os.environ.get("PIPELINE_KPI_FILE", "artifacts/ai_pipeline_kpis.jsonl")),
@@ -819,6 +822,7 @@ def _write_final_report(config: pytest.Config) -> None:
         "Performance",
         "Workload Acceptance",
         "MLPerf",
+        "Agentic AI Validation",
         "AI Pipeline KPIs",
         "System Health & Reliability",
         "Other",

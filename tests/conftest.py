@@ -35,6 +35,7 @@ _REPORT_ALIAS_PATHS = [
     Path(__file__).resolve().parents[1] / "NODE_VALIDATION_REPORT.md",
 ]
 _VALIDATION_LOG_PATH = Path(__file__).resolve().parents[1] / "validation_run.log"
+_FINALIZED_MAP_PATH = Path(__file__).resolve().parents[1] / "artifacts" / "reports" / "finalized_test_to_testcaseid_map.csv"
 
 _VLLM_PROCESS_PATTERNS = (
     "enginecore",
@@ -797,6 +798,58 @@ def _preferred_order(keys: List[str], preferred: List[str]) -> List[str]:
     return ordered
 
 
+def _load_testcase_id_map() -> Dict[str, str]:
+    """Load selector -> testcase ID mapping from the finalized mapping CSV."""
+    if not _FINALIZED_MAP_PATH.exists():
+        return {}
+
+    try:
+        import csv
+
+        mapping: Dict[str, str] = {}
+        with _FINALIZED_MAP_PATH.open("r", encoding="utf-8", newline="") as f:
+            for row in csv.DictReader(f):
+                selector = (row.get("TestSelector") or "").strip()
+                testcase_id = (row.get("FinalPrimaryTestCaseID") or "").strip()
+                if selector and testcase_id:
+                    mapping[selector] = testcase_id
+        return mapping
+    except Exception as exc:
+        logger.warning("Failed to load testcase ID map from %s: %s", _FINALIZED_MAP_PATH, exc)
+        return {}
+
+
+def _nodeid_lookup_candidates(nodeid: str) -> List[str]:
+    """Return candidate selector keys for mapping lookup, including de-parameterized nodeid."""
+    candidates: List[str] = []
+    if nodeid:
+        candidates.append(nodeid)
+
+    # Convert parametrized nodeids like test_fn[param] -> test_fn for selector matching.
+    parts = nodeid.split("::")
+    if parts:
+        last = parts[-1]
+        if "[" in last and last.endswith("]"):
+            parts[-1] = last.split("[", 1)[0]
+            candidates.append("::".join(parts))
+
+    # Deduplicate while preserving order.
+    seen = set()
+    out: List[str] = []
+    for key in candidates:
+        if key not in seen:
+            seen.add(key)
+            out.append(key)
+    return out
+
+
+def _testcase_id_for_nodeid(nodeid: str, id_map: Dict[str, str]) -> str:
+    for key in _nodeid_lookup_candidates(nodeid):
+        if key in id_map:
+            return id_map[key]
+    return "-"
+
+
 def _write_final_report(config: pytest.Config) -> None:
     """Write compact, reportable markdown summaries for the current pytest session."""
     rows: Dict[str, Dict[str, str]] = getattr(config, "_overall_report_rows", {})
@@ -805,6 +858,7 @@ def _write_final_report(config: pytest.Config) -> None:
 
     latest_kpis = _load_latest_kpis()
     log_payload = _parse_validation_log(_VALIDATION_LOG_PATH)
+    testcase_id_map: Dict[str, str] = getattr(config, "_testcase_id_map", {})
 
     statuses = [v["status"] for v in rows.values()]
     passed = statuses.count("PASS")
@@ -959,15 +1013,16 @@ def _write_final_report(config: pytest.Config) -> None:
     issue_rows = failed_rows + skipped_rows
     if issue_rows:
         lines.extend([
-            "| Domain | Section | Test | Status | Outcome (2-3 lines) | KPI Snapshot |",
-            "|---|---|---|---|---|---|",
+            "| Domain | Section | TestCaseID | Test | Status | Outcome (2-3 lines) | KPI Snapshot |",
+            "|---|---|---|---|---|---|---|",
         ])
         for nodeid, row in issue_rows[:40]:
             log_fail_reason = log_payload.get("failure_reason_by_test", {}).get(nodeid) or log_payload.get("failure_reason_by_test", {}).get(_normalize_test_key(nodeid))
             kpi_metrics = _lookup_kpi_metrics(nodeid, latest_kpis)
             kpi_text = _compact_metrics(kpi_metrics, max_items=4) if kpi_metrics else _lookup_log_kpi(nodeid, log_payload)
+            testcase_id = row.get("testcase_id", _testcase_id_for_nodeid(nodeid, testcase_id_map))
             lines.append(
-                f"| {_md_escape(row.get('domain', 'Functional Validation'))} | {_md_escape(row.get('section', 'Other'))} | {_md_escape(_display_test_name(nodeid))} | {_render_status(row.get('status', ''))} | {_compact_outcome_lines(row.get('status', ''), row.get('result', ''), row.get('analysis', ''), log_fail_reason)} | <div class=\"cell-wrap\">{_md_escape(_truncate_line(kpi_text))}</div> |"
+                f"| {_md_escape(row.get('domain', 'Functional Validation'))} | {_md_escape(row.get('section', 'Other'))} | {_md_escape(testcase_id)} | {_md_escape(_display_test_name(nodeid))} | {_render_status(row.get('status', ''))} | {_compact_outcome_lines(row.get('status', ''), row.get('result', ''), row.get('analysis', ''), log_fail_reason)} | <div class=\"cell-wrap\">{_md_escape(_truncate_line(kpi_text))}</div> |"
             )
     else:
         lines.append(f"- {_color_badge('PASS', '#1b8a3b')}: No failures or skips detected.")
@@ -1022,7 +1077,7 @@ def _write_final_report(config: pytest.Config) -> None:
         lines.extend([
             "<div class=\"report-scroll\">",
             "<table class=\"report-table\">",
-            "<thead><tr><th style=\"min-width: 180px;\">Section</th><th style=\"min-width: 280px;\">Test</th><th style=\"min-width: 90px;\">Status</th><th style=\"min-width: 320px;\">Outcome (2-3 lines)</th><th style=\"min-width: 340px;\">Success / Failure KPI Snapshot</th></tr></thead>",
+            "<thead><tr><th style=\"min-width: 180px;\">Section</th><th style=\"min-width: 230px;\">TestCaseID</th><th style=\"min-width: 280px;\">Test</th><th style=\"min-width: 90px;\">Status</th><th style=\"min-width: 320px;\">Outcome (2-3 lines)</th><th style=\"min-width: 340px;\">Success / Failure KPI Snapshot</th></tr></thead>",
             "<tbody>",
         ])
 
@@ -1034,9 +1089,11 @@ def _write_final_report(config: pytest.Config) -> None:
             kpi_metrics = _lookup_kpi_metrics(nodeid, latest_kpis)
             kpi_text = _compact_metrics(kpi_metrics, max_items=4) if kpi_metrics else _lookup_log_kpi(nodeid, log_payload)
             fail_reason = log_payload.get("failure_reason_by_test", {}).get(nodeid) or log_payload.get("failure_reason_by_test", {}).get(_normalize_test_key(nodeid))
+            testcase_id = row.get("testcase_id", _testcase_id_for_nodeid(nodeid, testcase_id_map))
             lines.append(
                 "<tr>"
                 f"<td><div class=\"cell-wrap\">{_md_escape(row.get('section', 'Other'))}</div></td>"
+                f"<td><div class=\"cell-wrap\">{_md_escape(testcase_id)}</div></td>"
                 f"<td><div class=\"cell-wrap\">{_md_escape(_display_test_name(nodeid))}</div></td>"
                 f"<td>{_render_status(row['status'])}</td>"
                 f"<td>{_compact_outcome_lines(row.get('status', ''), row.get('result', ''), row.get('analysis', ''), fail_reason)}</td>"
@@ -1112,6 +1169,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "compile_correctness: torch.compile correctness and speedup validation")
     config.addinivalue_line("markers", "stream_correctness: CUDA stream ordering and event synchronisation correctness")
     setattr(config, "_overall_report_rows", {})
+    setattr(config, "_testcase_id_map", _load_testcase_id_map())
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -1120,6 +1178,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
     report: pytest.TestReport = outcome.get_result()
 
     rows: Dict[str, Dict[str, str]] = getattr(item.config, "_overall_report_rows")
+    testcase_id_map: Dict[str, str] = getattr(item.config, "_testcase_id_map", {})
     nodeid = item.nodeid
 
     # Prefer call-phase results. For setup-skip/fail without call, capture setup phase.
@@ -1132,6 +1191,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
             "result": result,
             "status": status,
             "analysis": analysis,
+            "testcase_id": _testcase_id_for_nodeid(nodeid, testcase_id_map),
         }
 
 

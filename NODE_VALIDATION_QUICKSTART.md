@@ -7,7 +7,7 @@ cd AIHeadNode
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-pytest -m node_validation -vv
+python scripts/run_all_workloads.py --only node_validation
 ```
 
 Check:
@@ -28,22 +28,40 @@ Check:
 
 ## Recommended Execution Paths
 
-Run full staged flow:
+Run node validation through the workload orchestrator (recommended on Linux SUT):
 
 ```bash
-./run_all_validation_tests.sh
+python scripts/run_all_workloads.py --only node_validation
 ```
 
-Run workload acceptance only:
+Run workload acceptance tests directly:
 
 ```bash
-./run_workload_acceptance.sh
+pytest -m workload_acceptance -vv tests/test_node_validation.py
 ```
 
 Run only node validation tests:
 
 ```bash
 pytest -m node_validation -vv tests/test_node_validation.py
+```
+
+## Linux SUT Preflight
+
+Before running workload-heavy tests, verify GPU tools and binaries expected by default:
+
+```bash
+nvidia-smi
+test -x /root/workloads/nvbandwidth
+test -d /root/workloads/nccl-tests/build
+```
+
+If your paths differ, override before execution:
+
+```bash
+export NVBANDWIDTH_BIN=/opt/nvbandwidth/nvbandwidth
+export PERF_NVBANDWIDTH_BIN=/opt/nvbandwidth/nvbandwidth
+export PERF_NCCL_TESTS_DIR=/opt/nccl-tests/build
 ```
 
 ## Key Markers

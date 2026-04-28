@@ -37,6 +37,8 @@ A **vendor-neutral** Linux-first validation and competitive benchmarking suite f
 ### Setup (Linux)
 
 ```bash
+# From the repo root on the Linux SUT
+
 # Create and activate virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
@@ -55,6 +57,27 @@ sudo apt-get install -y python3-dev build-essential
 
 # Or for RHEL/Rocky/CentOS:
 sudo dnf install -y python3-devel gcc gcc-c++ make
+```
+
+### Linux SUT Preflight (Required for full workload execution)
+
+Several tests expect vendor tools and workload binaries to be available on the SUT.
+
+```bash
+# GPU visibility
+nvidia-smi
+
+# Expected defaults used by tests/conftest.py and scripts/run_all_workloads.py
+test -x /root/workloads/nvbandwidth
+test -d /root/workloads/nccl-tests/build
+```
+
+If your binaries are in different locations, override them before running tests:
+
+```bash
+export NVBANDWIDTH_BIN=/opt/nvbandwidth/nvbandwidth
+export PERF_NVBANDWIDTH_BIN=/opt/nvbandwidth/nvbandwidth
+export PERF_NCCL_TESTS_DIR=/opt/nccl-tests/build
 ```
 
 ### Run All Tests (Recommended)
@@ -77,6 +100,12 @@ Outputs:
 
 ```bash
 python scripts/run_all_workloads.py
+```
+
+### 1a. Linux SUT smoke before full run
+
+```bash
+python scripts/run_all_workloads.py --only cpu,gpu,interconnect,node_validation
 ```
 
 ### 2. Run Specific Domains
@@ -522,7 +551,7 @@ export NODE_VALIDATION_KPI_FILE=artifacts/node_validation_kpis.jsonl
 | `HF_ENABLE_LARGE_MODELS` | `1` | Enable >7B parameter model tests |
 | `HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD` | `1` | Allow HuggingFace Hub downloads |
 | `NODE_WORKLOAD_AUTO_INSTALL` | `1` | Auto-install missing Python packages |
-| `NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC` | `900` | pip install timeout |
+| `NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC` | `1800` | pip install timeout |
 | `HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC` | `300` | Min soak duration for latency tests |
 | `PERF_EXECUTE_CASES` | `1` | Enable performance case execution (`0` = catalog-only mode) |
 | `PERF_CASE_IDS` | all | Comma-separated performance case IDs |

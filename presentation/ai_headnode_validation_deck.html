@@ -226,1008 +226,210 @@ tr:hover td{background:#ffffff08}
 <!-- ════════════════════════════════════════════════════════════
      SLIDE 01 — TITLE
      ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-title active" id="s1">
-  <div style="max-width:820px">
-    <div class="chip chip-blue" style="margin-bottom:24px">AI Head Node · Validation Suite</div>
-    <h1>Bring-Up Validation<br>for the AI Head Node</h1>
-    <div class="accent-line"></div>
-    <p class="subtitle">
-      Vendor-neutral x86-64 CPU &nbsp;·&nbsp; AI accelerators (NVIDIA or AMD)<br>
-      End-to-end validation: hardware, interconnect, compute efficiency,<br>
-      AI workload acceptance, agentic workflows, and system reliability
-    </p>
-    <div class="stat-row" style="margin-top:36px">
-      <div class="stat-box"><div class="num">13</div><div class="lbl">Test Domains</div></div>
-      <div class="stat-box"><div class="num">13</div><div class="lbl">Test Files</div></div>
-      <div class="stat-box"><div class="num">410+</div><div class="lbl">Test Cases</div></div>
-      <div class="stat-box"><div class="num">11</div><div class="lbl">KPI Streams</div></div>
-      <div class="stat-box"><div class="num">1</div><div class="lbl">Auto Report</div></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE ES-1 — EXECUTIVE SUMMARY OVERVIEW
+     ════════════════════════════════════════════════════════════ -->
+<section class="slide slide-section active" id="s-exec-1">
+  <div class="chip chip-amber" style="margin-bottom:20px">Executive Summary · April 27 2026</div>
+  <h2>Validation Run Results — sc00901168s0075</h2>
+  <div class="accent-line accent-line-amber"></div>
+  <p style="margin-bottom:18px;color:var(--muted)">System: 4&times; H100 PCIe &nbsp;&middot;&nbsp; 285 mapped test cases &nbsp;&middot;&nbsp; 13 suites</p>
+  <div class="stat-row">
+    <div class="stat-box"><div class="num" style="color:#e6edf3">285</div><div class="lbl">Mapped Tests</div></div>
+    <div class="stat-box"><div class="num" style="color:var(--intel-light)">246</div><div class="lbl">Executed</div></div>
+    <div class="stat-box"><div class="num" style="color:var(--accent-green)">152</div><div class="lbl">PASS</div></div>
+    <div class="stat-box"><div class="num" style="color:var(--accent-red)">62</div><div class="lbl">FAIL</div></div>
+    <div class="stat-box"><div class="num" style="color:var(--accent-amber)">32</div><div class="lbl">SKIP</div></div>
+    <div class="stat-box"><div class="num" style="color:var(--muted)">39</div><div class="lbl">NOT EXECUTED</div></div>
+  </div>
+  <div class="card-grid card-grid-3" style="margin-top:16px">
+    <div class="card card-green">
+      <h3>Pass Rate (executed)</h3>
+      <div class="kpi-val" style="font-size:2.6rem;color:var(--accent-green)">61.8%</div>
+      <p style="font-size:.82rem;color:var(--muted);margin-top:4px">152 / 246 executed tests passing</p>
     </div>
-    <div class="exec-strip">
-      <div class="exec-pill">
-        <div class="title">Executive Outcome</div>
-        <div class="value">Cross-vendor KPI comparability</div>
-      </div>
-      <div class="exec-pill">
-        <div class="title">Primary Decision</div>
-        <div class="value">Go / No-Go for production readiness</div>
-      </div>
-      <div class="exec-pill">
-        <div class="title">Engineering Value</div>
-        <div class="value">Fast root-cause via KPI traces</div>
-      </div>
+    <div class="card card-red">
+      <h3>Failure Rate</h3>
+      <div class="kpi-val" style="font-size:2.6rem;color:var(--accent-red)">25.2%</div>
+      <p style="font-size:.82rem;color:var(--muted);margin-top:4px">62 / 246 executed tests failing</p>
+    </div>
+    <div class="card card-amber">
+      <h3>Blockers Identified</h3>
+      <div class="kpi-val" style="font-size:2.6rem;color:var(--accent-amber)">7</div>
+      <p style="font-size:.82rem;color:var(--muted);margin-top:4px">BLK-1 through BLK-7 &middot; 2&times; P0</p>
     </div>
   </div>
   <div class="slide-num">1</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
-     SLIDE 02 — WHY VALIDATION MATTERS
+     SLIDE ES-2 — SUITE-LEVEL RESULTS DASHBOARD
      ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-content" id="s2">
-  <div class="section-label">Motivation</div>
-  <h2>Why Systematic Bring-Up Validation?</h2>
+<section class="slide slide-content" id="s-exec-2">
+  <div class="section-label">Executive Summary</div>
+  <h2>Suite-Level Results Dashboard</h2>
   <div class="accent-line"></div>
-  <div class="card-grid card-grid-3" style="margin-top:4px">
-    <div class="card card-accent">
-      <div class="icon">🔍</div>
-      <h3>Silent Failures</h3>
-      <p>PCIe replay errors, HBM ECC faults, and clock throttling cause <strong>non-deterministic</strong> training divergence and inference errors that are invisible without targeted tests.</p>
-    </div>
-    <div class="card card-amber">
-      <div class="icon">📊</div>
-      <h3>Performance Regression</h3>
-      <p>A single misconfigured NUMA binding or power cap can reduce AI throughput by 30–50%. KPIs capture <strong>measurable baselines</strong> before and after every change.</p>
-    </div>
-    <div class="card card-green">
-      <div class="icon">✅</div>
-      <h3>Production Readiness</h3>
-      <p>Workload acceptance gates (inference latency, training throughput, KV cache) confirm the node is <strong>ready for production SLAs</strong> before serving traffic.</p>
-    </div>
-    <div class="card card-red">
-      <div class="icon">⚡</div>
-      <h3>Hardware Defect Detection</h3>
-      <p>ECC uncorrected errors, retired HBM pages, and PCIe link replays surface <strong>early hardware faults</strong> that would otherwise manifest as random crashes.</p>
-    </div>
-    <div class="card card-purple">
-      <div class="icon">🔁</div>
-      <h3>CI/CD Regression Gate</h3>
-      <p>Every driver update, framework upgrade, or config change is validated against the <strong>same KPI thresholds</strong>, preventing silent regressions.</p>
-    </div>
-    <div class="card card-accent">
-      <div class="icon">📝</div>
-      <h3>Audit Trail</h3>
-      <p>Auto-generated <code>TESTCASE_EXECUTION_FINAL_REPORT.md</code> gives a time-stamped, human-readable record of every test run for <strong>compliance and handover</strong>.</p>
-    </div>
+  <div class="domain-bars" style="margin-top:8px">
+    <div class="domain-bar-row"><div class="domain-name">agentic_ai (9)</div><div class="bar-track"><div class="bar-pass" style="width:88.9%"></div><div class="bar-find" style="width:11.1%"></div></div><div class="bar-meta"><span class="status-pass">8 PASS</span> &nbsp;<span class="status-fail">1 FAIL</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">ai_pipeline (20)</div><div class="bar-track"><div class="bar-pass" style="width:35%"></div><div class="bar-find" style="width:65%"></div></div><div class="bar-meta"><span class="status-pass">7 PASS</span> &nbsp;<span class="status-fail">13 FAIL</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">bottleneck (20)</div><div class="bar-track"><div class="bar-pass" style="width:80%"></div><div class="bar-find" style="width:20%"></div></div><div class="bar-meta"><span class="status-pass">16 PASS</span> &nbsp;<span class="status-fail">4 FAIL</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">cpu (26)</div><div class="bar-track"><div class="bar-pass" style="width:80.8%"></div><div class="bar-find" style="width:15.4%"></div></div><div class="bar-meta"><span class="status-pass">21 PASS</span> &nbsp;<span class="status-fail">4 FAIL</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">gpu (21)</div><div class="bar-track"><div class="bar-pass" style="width:90.5%"></div><div class="bar-find" style="width:9.5%"></div></div><div class="bar-meta"><span class="status-pass">19 PASS</span> &nbsp;<span class="status-fail">2 FAIL</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">interconnect (7)</div><div class="bar-track"><div class="bar-pass" style="width:28.6%"></div><div class="bar-find" style="width:0%"></div></div><div class="bar-meta"><span class="status-pass">2 PASS</span> &nbsp;<span class="status-warn">4 SKIP</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">memory (20)</div><div class="bar-track"><div class="bar-pass" style="width:80%"></div><div class="bar-find" style="width:20%"></div></div><div class="bar-meta"><span class="status-pass">16 PASS</span> &nbsp;<span class="status-fail">4 FAIL</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">mlperf_suite (21)</div><div class="bar-track"><div class="bar-pass" style="width:0%"></div><div class="bar-find" style="width:90.5%"></div></div><div class="bar-meta"><span class="status-fail">19 FAIL</span> &nbsp;<span class="status-warn">2 SKIP</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">node_validation (47)</div><div class="bar-track"><div class="bar-pass" style="width:68.1%"></div><div class="bar-find" style="width:19.1%"></div></div><div class="bar-meta"><span class="status-pass">32 PASS</span> &nbsp;<span class="status-fail">9 FAIL</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">performance_suite (25)</div><div class="bar-track"><div class="bar-pass" style="width:40%"></div><div class="bar-find" style="width:0%"></div></div><div class="bar-meta"><span class="status-pass">10 PASS</span> &nbsp;<span class="status-warn">15 SKIP</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">system_config (8)</div><div class="bar-track"><div class="bar-pass" style="width:100%"></div><div class="bar-find" style="width:0%"></div></div><div class="bar-meta"><span class="status-pass">8 PASS</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">system_health (19)</div><div class="bar-track"><div class="bar-pass" style="width:63.2%"></div><div class="bar-find" style="width:21.1%"></div></div><div class="bar-meta"><span class="status-pass">12 PASS</span> &nbsp;<span class="status-fail">4 FAIL</span></div></div>
+    <div class="domain-bar-row"><div class="domain-name">vllm_prefill (3)</div><div class="bar-track"><div class="bar-pass" style="width:33.3%"></div><div class="bar-find" style="width:33.3%"></div></div><div class="bar-meta"><span class="status-pass">1 PASS</span> &nbsp;<span class="status-fail">1 FAIL</span></div></div>
   </div>
   <div class="slide-num">2</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
-     SLIDE 03 — TEST SUITE ARCHITECTURE
+     SLIDE ES-3 — FAILURE ROOT-CAUSE BREAKDOWN
      ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-content" id="s3">
-  <div class="section-label">Architecture</div>
-  <h2>Test Suite Architecture</h2>
-  <div class="accent-line"></div>
-  <div class="two-col">
-    <div>
-      <p style="margin-bottom:14px;color:var(--muted)">All tests feed a single consolidated report via pytest hooks in <code>conftest.py</code>.</p>
-      <div class="flow">
-        <div class="flow-box">pytest run</div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box">conftest hooks</div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box">JSONL KPIs</div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-box">MD Report</div>
-      </div>
-      <div class="card card-accent" style="margin-top:18px">
-        <h3>KPI JSONL Files (11 streams)</h3>
-        <ul>
-          <li>cpu_validation_kpis.jsonl</li>
-          <li>gpu_validation_kpis.jsonl</li>
-          <li>memory_validation_kpis.jsonl</li>
-          <li>interconnect_kpis.jsonl</li>
-          <li>node_validation_kpis.jsonl</li>
-          <li>performance_suite_kpis.jsonl</li>
-          <li>vllm_prefill_kpis.jsonl</li>
-          <li>mlperf_suite_kpis.jsonl</li>
-          <li>ai_pipeline_kpis.jsonl</li>
-          <li>agentic_ai_kpis.jsonl</li>
-          <li>system_health_kpis.jsonl</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <table>
-        <thead><tr><th>Report Section</th><th>Source File</th></tr></thead>
-        <tbody>
-          <tr><td>Node Validation</td><td>test_node_validation.py</td></tr>
-          <tr><td>Bottleneck</td><td>test_bottleneck_analysis.py</td></tr>
-          <tr><td>CPU Validation</td><td>test_cpu_validation.py</td></tr>
-          <tr><td>GPU Validation</td><td>test_gpu_validation.py</td></tr>
-          <tr><td>Interconnect</td><td>test_interconnect_validation.py</td></tr>
-          <tr><td>Memory</td><td>test_memory_validation.py</td></tr>
-          <tr><td>Performance Suite</td><td>test_performance_suite.py</td></tr>
-          <tr><td>MLPerf</td><td>test_mlperf_suite.py</td></tr>
-          <tr><td>vLLM Prefill</td><td>test_vllm_prefill_validation.py</td></tr>
-          <tr><td>AI Pipeline KPIs</td><td>test_ai_pipeline_kpis.py</td></tr>
-          <tr><td>Agentic AI Validation</td><td>test_agentic_ai_validation.py</td></tr>
-          <tr><td>System Health</td><td>test_system_health_and_reliability.py</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+<section class="slide slide-content" id="s-exec-3">
+  <div class="section-label">Executive Summary</div>
+  <h2>Failure Root-Cause Breakdown</h2>
+  <div class="accent-line accent-line-amber"></div>
+  <table style="margin-top:8px">
+    <thead><tr><th>Root Cause</th><th style="text-align:center"># Failures</th><th>Impacted Suites</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip chip-red" style="font-size:.72rem">MLPerf rc=2</span> &nbsp;MLPerf command errors &mdash; datasets / models missing</td><td style="text-align:center;font-size:1.1rem;font-weight:800;color:var(--accent-red)">16</td><td><code>mlperf_suite</code></td></tr>
+      <tr><td><span class="chip chip-amber" style="font-size:.72rem">CUDA Assert</span> &nbsp;CUDA device-side assert cascade (inference pipeline)</td><td style="text-align:center;font-size:1.1rem;font-weight:800;color:var(--accent-amber)">8</td><td><code>ai_pipeline</code></td></tr>
+      <tr><td><span class="chip chip-amber" style="font-size:.72rem">Assertion</span> &nbsp;Correctness / config assertion failures</td><td style="text-align:center;font-size:1.1rem;font-weight:800;color:var(--accent-amber)">15</td><td><code>agentic_ai, ai_pipeline, cpu, memory, node_validation, system_health</code></td></tr>
+      <tr><td><span class="chip chip-amber" style="font-size:.72rem">Bandwidth</span> &nbsp;Bandwidth below threshold (PCIe, NCCL, STREAM, model load)</td><td style="text-align:center;font-size:1.1rem;font-weight:800;color:var(--accent-amber)">9</td><td><code>ai_pipeline, memory, node_validation</code></td></tr>
+      <tr><td><span class="chip chip-blue" style="font-size:.72rem">Perf Thresh</span> &nbsp;Compute efficiency below threshold (FP16/BF16/FP32)</td><td style="text-align:center;font-size:1.1rem;font-weight:800;color:var(--intel-light)">5</td><td><code>bottleneck, cpu, ai_pipeline</code></td></tr>
+      <tr><td><span class="chip chip-red" style="font-size:.72rem">Hardware</span> &nbsp;Hardware / config issues (ECC off, PCIe Gen5 missing, bus collision)</td><td style="text-align:center;font-size:1.1rem;font-weight:800;color:var(--accent-red)">3</td><td><code>gpu, interconnect</code></td></tr>
+      <tr><td><span class="chip chip-amber" style="font-size:.72rem">Timeout</span> &nbsp;MLPerf / vLLM timeouts (&gt;600 s)</td><td style="text-align:center;font-size:1.1rem;font-weight:800;color:var(--accent-amber)">4</td><td><code>mlperf_suite, vllm_prefill</code></td></tr>
+      <tr><td><span class="chip chip-blue" style="font-size:.72rem">Code Error</span> &nbsp;Missing attribute in CPUSpecs class</td><td style="text-align:center;font-size:1.1rem;font-weight:800;color:var(--intel-light)">1</td><td><code>cpu</code></td></tr>
+      <tr style="border-top:2px solid var(--border)"><td style="font-weight:800;color:#e6edf3">Total</td><td style="text-align:center;font-size:1.3rem;font-weight:900;color:var(--accent-red)">62</td><td></td></tr>
+    </tbody>
+  </table>
   <div class="slide-num">3</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
-     SLIDE 04 — DOMAIN MAP OVERVIEW
+     SLIDE ES-4 — KEY BLOCKERS BLK-1 to BLK-4
      ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-content" id="s4">
-  <div class="section-label">Domain Overview</div>
-  <h2>Competitive KPI Domains (Vendor-Neutral)</h2>
-  <div class="accent-line"></div>
-  <div class="card-grid card-grid-4" style="gap:10px;margin-top:6px">
-    <div class="card" style="border-left:4px solid #29c76f">
-      <div class="chip chip-green" style="margin-bottom:8px">Domains A–D</div>
-      <h3 class="dom-a">AI Pipeline KPIs</h3>
-      <p>Data loading, model orchestration, storage/network I/O, inference pipeline</p>
+<section class="slide slide-content" id="s-exec-4">
+  <div class="section-label">Executive Summary &middot; Key Blockers</div>
+  <h2>Key Blockers &mdash; BLK-1 to BLK-4</h2>
+  <div class="accent-line accent-line-amber"></div>
+  <div class="card-grid card-grid-2" style="margin-top:8px">
+    <div class="card card-red">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3>BLK-1 &mdash; MLPerf Suite (16/21 failing)</h3><span class="chip chip-red">P1</span></div>
+      <p><strong style="color:var(--accent-amber)">Symptom:</strong> rc=2 + timeouts &gt;600 s across all inference workloads</p>
+      <p style="margin-top:6px"><strong style="color:var(--accent-amber)">Root cause:</strong> Datasets missing at <code>/root/workloads/AIHeadNode/datasets/</code></p>
+      <div class="highlight-box" style="margin-top:10px;padding:10px 14px"><p style="font-size:.82rem">&#9655; Run <code>scripts/download_mlperf_datasets.sh</code> and <code>scripts/download_mlperf_models.sh</code></p></div>
     </div>
-    <div class="card" style="border-left:4px solid #9b59b6">
-      <div class="chip chip-purple" style="margin-bottom:8px">Domain E</div>
-      <h3 class="dom-e">Thermal & Clock</h3>
-      <p>GPU temperature, clock boost ratio, sustained throttle detection</p>
+    <div class="card card-red">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3>BLK-2 &mdash; CUDA Device-Side Assert (8 tests)</h3><span class="chip chip-red">P0</span></div>
+      <p><strong style="color:var(--accent-amber)">Symptom:</strong> <code>torch.AcceleratorError: CUDA error: device-side assert triggered</code></p>
+      <p style="margin-top:6px"><strong style="color:var(--accent-amber)">Root cause:</strong> Upstream assertion in <code>test_batched_inference_throughput</code> corrupts CUDA state</p>
+      <div class="highlight-box" style="margin-top:10px;padding:10px 14px"><p style="font-size:.82rem">&#9655; Fix root assertion in TestInferencePipelineKPIs, then re-run suite</p></div>
     </div>
-    <div class="card" style="border-left:4px solid #e67e22">
-      <div class="chip chip-amber" style="margin-bottom:8px">Domain F</div>
-      <h3 class="dom-f">ECC & Link Health</h3>
-      <p>HBM/VRAM ECC errors, PCIe replay counters, retired page counts</p>
+    <div class="card card-amber">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3>BLK-3 &mdash; GPU Compute Efficiency Low (25&ndash;32%)</h3><span class="chip chip-amber">P0</span></div>
+      <p><strong style="color:var(--accent-amber)">Symptom:</strong> FP16/BF16/INT8 efficiency well below 75% floor across all 4 GPUs</p>
+      <p style="margin-top:6px"><strong style="color:var(--accent-amber)">Root cause:</strong> H100 PCIe under power cap &mdash; GPU0 at 99% limit at rest; SM clock throttled 47% under load</p>
+      <div class="highlight-box" style="margin-top:10px;padding:10px 14px"><p style="font-size:.82rem">&#9655; Resolve BLK-5 (power throttling) first</p></div>
     </div>
-    <div class="card" style="border-left:4px solid #1abc9c">
-      <div class="chip chip-green" style="margin-bottom:8px">Domain G</div>
-      <h3 class="dom-g">Energy Efficiency</h3>
-      <p>FP16 TFLOPS/W per GPU and aggregate system efficiency</p>
+    <div class="card card-amber">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3>BLK-4 &mdash; vLLM Prefill Timeout</h3><span class="chip chip-amber">P2</span></div>
+      <p><strong style="color:var(--accent-amber)">Symptom:</strong> <code>test_vllm_4h100_prefill_validation</code> times out at &gt;600 s</p>
+      <p style="margin-top:6px"><strong style="color:var(--accent-amber)">Root cause:</strong> vLLM benchmark exceeds pytest-timeout; exacerbated by GPU clock throttle</p>
+      <div class="highlight-box" style="margin-top:10px;padding:10px 14px"><p style="font-size:.82rem">&#9655; Increase pytest timeout; re-run after resolving BLK-5</p></div>
     </div>
-    <div class="card" style="border-left:4px solid #3498db">
-      <div class="chip chip-blue" style="margin-bottom:8px">Domain H</div>
-      <h3 class="dom-h">Quant Correctness</h3>
-      <p>INT8, FP8, BF16 numerical accuracy vs FP16 reference</p>
-    </div>
-    <div class="card" style="border-left:4px solid #e91e63">
-      <div class="chip chip-red" style="margin-bottom:8px">Domain I</div>
-      <h3 class="dom-i">DDP Correctness</h3>
-      <p>NCCL allreduce accuracy, gradient sync, multi-GPU parameter identity</p>
-    </div>
-    <div class="card" style="border-left:4px solid #ff9800">
-      <div class="chip chip-amber" style="margin-bottom:8px">Domain J</div>
-      <h3 class="dom-j">torch.compile</h3>
-      <p>Compiled output vs eager correctness, speedup ≥ 1.05×</p>
-    </div>
-    <div class="card" style="border-left:4px solid #00bcd4">
-      <div class="chip chip-blue" style="margin-bottom:8px">Domain K</div>
-      <h3 class="dom-k">Stream Ordering</h3>
-      <p>CUDA event barriers, race condition detection, stream concurrency</p>
-    </div>
-  </div>
-  <div class="highlight-box" style="margin-top:14px">
-    <p>New workload domain included: <strong>Agentic AI Validation</strong> (tool dispatch latency, CPU↔GPU sync overhead, multi-turn P50/P95/P99, and tool parallelization efficiency).</p>
-  </div>
-  <div class="highlight-box" style="margin-top:14px">
-    <p>Plus foundational suites: <strong>Node Validation · Bottleneck/Roofline · CPU · GPU · Interconnect · Memory · Performance Suite · MLPerf · vLLM Prefill</strong></p>
   </div>
   <div class="slide-num">4</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
-     SLIDE 05 — HOST CPU CRITICAL KPIs
+     SLIDE ES-5 — KEY BLOCKERS BLK-5 to BLK-7
      ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-content" id="s5-cpu">
-  <div class="section-label">CPU Focus · Host CPU in a CPU+GPU Node</div>
-  <h2>Host CPU — Priority KPIs in a CPU+GPU AI System</h2>
-  <div class="accent-line"></div>
-  <p style="margin-bottom:12px;font-size:.88rem;color:var(--muted)">The Host CPU performs orchestration, preprocessing, I/O, NUMA-aware memory staging, and torch.compile. A CPU bottleneck stalls <em>all 4 GPUs simultaneously</em> without appearing in GPU utilisation metrics.</p>
-  <div class="card-grid card-grid-3" style="gap:10px">
-    <div class="card card-red">
-      <div style="margin-bottom:10px"><span class="cpu-badge cpu-p">🔴 CRITICAL — CPU Bottleneck Stalls All GPUs</span></div>
-      <ul style="font-size:.84rem;line-height:1.75;padding-left:16px">
-        <li><strong>overlap_pct ≥ 60%</strong> — CPU prefetch/GPU compute overlap; GPU idle = direct revenue loss</li>
-        <li><strong>tokens/s ≥ 200k</strong> — CPU tokenizer must outpace GPU decoder throughput</li>
-        <li><strong>scaling_ratio ≥ 2×</strong> — multi-thread tokenizer (1→4 threads); broken threading visible here</li>
-        <li><strong>h2d_bw ≥ 41 GB/s</strong> — CPU-initiated PCIe H2D for weight &amp; data loading</li>
-        <li><strong>kernel_launch p50 &lt; 10 µs</strong> — CPU→GPU dispatch latency per batch step</li>
-        <li><strong>seq_read GB/s</strong> — CPU I/O subsystem for 140+ GB model weight files (NVMe)</li>
-        <li><strong>dram_bw ≥ 75% DDR5</strong> — CPU data-staging bandwidth between DRAM and GPU</li>
-      </ul>
+<section class="slide slide-content" id="s-exec-5">
+  <div class="section-label">Executive Summary &middot; Key Blockers</div>
+  <h2>Key Blockers &mdash; BLK-5 to BLK-7</h2>
+  <div class="accent-line accent-line-amber"></div>
+  <div class="card-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:8px;gap:14px">
+    <div class="card card-red" style="grid-column:1 / 3">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3>BLK-5 &mdash; GPU Power Throttling &#x1F525;</h3><span class="chip chip-red">P0</span></div>
+      <div class="two-col" style="gap:18px">
+        <div>
+          <ul style="font-size:.86rem;padding-left:18px;margin-top:4px">
+            <li>GPU0 at <strong>99% power limit at rest</strong> (345.9 W / 350.0 W cap)</li>
+            <li>SM clock dropped <strong>47%</strong> under load (1755 &rarr; 930 MHz)</li>
+            <li>Cascades into BLK-3 and BLK-4</li>
+          </ul>
+        </div>
+        <div>
+          <div class="highlight-box" style="padding:10px 14px"><p style="font-size:.82rem">&#9655; <code>nvidia-smi -pl 400</code><br>&#9655; Check PSU / power delivery rail<br>&#9655; Inspect fan curves and ambient temp</p></div>
+        </div>
+      </div>
     </div>
     <div class="card card-amber">
-      <div style="margin-bottom:10px"><span class="cpu-badge cpu-s">🟡 HIGH — CPU Performance Affects SLA</span></div>
-      <ul style="font-size:.84rem;line-height:1.75;padding-left:16px">
-        <li><strong>NUMA local &gt; remote BW</strong> — wrong NUMA binding adds ~20% latency (GPU PCIe affinity)</li>
-        <li><strong>cpu_fp32_gflops ≥ 70%</strong> — attention masks, post-processing, CPU-side decode steps</li>
-        <li><strong>parallel_speedup ≥ 0.85</strong> — threading efficiency of parallel preprocessing pipeline</li>
-        <li><strong>kv_eff ≥ 80%</strong> — CPU-managed KV cache HBM allocation efficiency</li>
-        <li><strong>ar_overhead %</strong> — CPU-orchestrated NCCL AllReduce scheduling overhead per step</li>
-        <li><strong>speedup_ratio ≥ 1.05×</strong> — torch.compile Inductor/Triton runs on CPU; if &lt;1× it adds latency for zero gain</li>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3>BLK-6 &mdash; PCIe / NVLink Issues</h3><span class="chip chip-amber">P1</span></div>
+      <ul style="font-size:.84rem;padding-left:18px">
+        <li>No PCIe Gen 5 (32 GT/s) links in sysfs</li>
+        <li>GPU 2 PCIe bus collision (0x61)</li>
+        <li>NCCL P2P busbw 25.1 GB/s &lt; 30 GB/s threshold</li>
       </ul>
+      <div class="highlight-box" style="margin-top:10px;padding:10px 14px"><p style="font-size:.82rem">&#9655; Check BIOS PCIe settings &amp; GPU2 slot</p></div>
     </div>
-    <div class="card card-green">
-      <div style="margin-bottom:10px"><span class="cpu-badge cpu-g-label">🟢 IMPORTANT — Correctness &amp; Reliability</span></div>
-      <ul style="font-size:.84rem;line-height:1.75;padding-left:16px">
-        <li><strong>allreduce_err &lt; 1e-3</strong> — CPU coordinates NCCL gradient sync; silent error = wrong model convergence</li>
-        <li><strong>callback_executed = True</strong> — host-side CPU stream callbacks must fire after GPU work</li>
-        <li><strong>concurrent_ratio ≤ 1.5×</strong> — CPU CUDA driver scheduling 4 streams concurrently</li>
-        <li><strong>sync_overhead p95 &lt; 1ms</strong> — CPU cudaStreamSynchronize() cost accumulated per training step</li>
-        <li><strong>tcp_bw Gbps</strong> — CPU network stack for gradient exchange &amp; checkpoint transfer</li>
-      </ul>
+    <div class="card card-amber">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3>BLK-7 &mdash; RAM Just Under 1 TiB</h3><span class="chip chip-amber">P2</span></div>
+      <p>Measured: 1007 GB &lt; 1024 GB threshold</p>
+      <div class="highlight-box" style="margin-top:10px;padding:10px 14px"><p style="font-size:.82rem">&#9655; <code>dmidecode --type 17</code><br>&#9655; Verify all DIMM slots populated</p></div>
     </div>
-  </div>
-  <div class="highlight-box" style="margin-top:12px">
-    <p><strong>Key insight:</strong> Every GPU kernel is dispatched by a CPU thread. If the CPU is slow, misconfigured (NUMA), or thermally throttled, <em>all 4 GPUs are underutilized</em> — even if per-GPU compute metrics look healthy.</p>
   </div>
   <div class="slide-num">5</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
-     SLIDE 06 — DOMAIN A: DATA LOADING & PREPROCESSING
+     SLIDE ES-6 — PASSING HIGHLIGHTS & RECOMMENDED ACTIONS
      ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s5">
-  <div class="section-label">Domain A · AI Pipeline KPIs</div>
-  <h2>Data Loading &amp; Preprocessing <span class="cpu-badge cpu-p" style="font-size:.55rem;vertical-align:middle">CPU Primary</span></h2>
+<section class="slide slide-content" id="s-exec-6">
+  <div class="section-label">Executive Summary</div>
+  <h2>Passing Highlights &amp; Recommended Actions</h2>
   <div class="accent-line accent-line-green"></div>
-  <div class="two-col">
+  <div class="two-col" style="gap:28px;margin-top:8px">
     <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">The CPU preprocessing pipeline (tokenization, padding, batching) must feed GPUs faster than they consume data. A bottleneck here causes GPU idle time that does not appear in GPU utilization metrics alone.</p>
-      <div class="card card-green">
-        <h3>Test Cases (5)</h3>
-        <ul>
-          <li>Tokenizer throughput by sequence length (32–2048)</li>
-          <li>Tokenizer multi-thread scaling (1 → 4 threads ≥ 2×)</li>
-          <li>DataLoader CPU→pinned throughput (0/2/4 workers)</li>
-          <li>Async prefetch GPU overlap efficiency (≥ 60%)</li>
-          <li>Full CPU preprocessing pipeline (≥ 200k tokens/s)</li>
-        </ul>
-      </div>
+      <h3 style="color:var(--accent-green);margin-bottom:10px">&#10003; What's Passing</h3>
+      <ul class="score-list">
+        <li>&#10003; GPU enumeration &amp; topology &mdash; all 4 H100s visible</li>
+        <li>&#10003; NCCL AllReduce / AllGather / ReduceScatter &mdash; within spec</li>
+        <li>&#10003; Host-to-Device PCIe bandwidth &mdash; within spec</li>
+        <li>&#10003; NVLink status &mdash; detected and enabled</li>
+        <li>&#10003; System config (BIOS, OS, driver, CUDA) &mdash; 8/8</li>
+        <li>&#10003; GPU ECC DRAM &mdash; no uncorrectable errors</li>
+        <li>&#10003; BF16 / FP8 / INT8 numerical correctness &mdash; within bounds</li>
+        <li>&#10003; Agentic AI latency tests &mdash; 8/9 passing</li>
+        <li>&#10003; CPU topology, affinity, scheduling &mdash; passing</li>
+      </ul>
     </div>
     <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-green">
-          <div class="kpi-val">tokens/s</div>
-          <div class="kpi-label">Tokenizer throughput per sequence length</div>
-        </div>
-        <div class="card card-green">
-          <div class="kpi-val">scaling_ratio</div>
-          <div class="kpi-label">Multi-thread speedup factor (target ≥ 2.0×)</div>
-        </div>
-        <div class="card card-green">
-          <div class="kpi-val">overlap_pct</div>
-          <div class="kpi-label">CPU prefetch / GPU compute overlap efficiency</div>
-        </div>
-        <div class="card card-green">
-          <div class="kpi-val">samples/s</div>
-          <div class="kpi-label">DataLoader samples per second by worker count</div>
-        </div>
-      </div>
+      <h3 style="color:var(--accent-amber);margin-bottom:10px">&#127919; Recommended Action Priority</h3>
+      <table style="font-size:.84rem">
+        <thead><tr><th>Priority</th><th>Blocker</th><th>Expected Recovery</th></tr></thead>
+        <tbody>
+          <tr><td><span class="chip chip-red">P0</span></td><td>BLK-5 GPU power throttle</td><td>Fixes BLK-3, BLK-4 automatically</td></tr>
+          <tr><td><span class="chip chip-red">P0</span></td><td>BLK-2 CUDA device assert</td><td>Clears 8 ai_pipeline failures</td></tr>
+          <tr><td><span class="chip chip-amber">P1</span></td><td>BLK-1 MLPerf datasets</td><td>Clears 16 mlperf failures</td></tr>
+          <tr><td><span class="chip chip-amber">P1</span></td><td>BLK-6 PCIe / NVLink</td><td>Fixes interconnect + P2P</td></tr>
+          <tr><td><span class="chip chip-blue">P2</span></td><td>BLK-4 vLLM timeout</td><td>After BLK-5 resolved</td></tr>
+          <tr><td><span class="chip chip-blue">P2</span></td><td>BLK-7 RAM capacity</td><td>DIMM population check</td></tr>
+        </tbody>
+      </table>
+      <div class="highlight-box" style="margin-top:12px"><p style="font-size:.84rem">Addressing <strong>BLK-5</strong> alone is estimated to recover <strong>~20+ tests</strong> across gpu, system_health, ai_pipeline, and vllm_prefill suites.</p></div>
     </div>
   </div>
   <div class="slide-num">6</div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 06 — DOMAIN B: MODEL ORCHESTRATION
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s6">
-  <div class="section-label">Domain B · AI Pipeline KPIs</div>
-  <h2>Model Orchestration <span class="cpu-badge cpu-s" style="font-size:.55rem;vertical-align:middle">CPU+GPU</span></h2>
-  <div class="accent-line"></div>
-  <div class="two-col">
-    <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">Loading weights, managing KV cache, and assembling batches are on the critical path for serving latency. Slow weight loading extends cold-start SLAs; KV cache inefficiency limits context window capacity.</p>
-      <div class="card card-accent">
-        <h3>Test Cases (5)</h3>
-        <ul>
-          <li>Model load time to GPU (weight transfer bandwidth)</li>
-          <li>Checkpoint save &amp; restore throughput (GB/s)</li>
-          <li>KV cache memory allocation efficiency (≥ 80%)</li>
-          <li>Tensor parallel AllReduce overhead fraction</li>
-          <li>Batch assembly GPU latency</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-accent">
-          <div class="kpi-val">load_bw GB/s</div>
-          <div class="kpi-label">Weight load bandwidth (PCIe H2D throughput)</div>
-        </div>
-        <div class="card card-accent">
-          <div class="kpi-val">ckpt GB/s</div>
-          <div class="kpi-label">Checkpoint save/restore speed</div>
-        </div>
-        <div class="card card-accent">
-          <div class="kpi-val">kv_eff %</div>
-          <div class="kpi-label">KV cache HBM allocation efficiency</div>
-        </div>
-        <div class="card card-accent">
-          <div class="kpi-val">ar_overhead %</div>
-          <div class="kpi-label">AllReduce overhead as fraction of compute time</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">7</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 07 — DOMAIN C: STORAGE & NETWORK I/O
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s7">
-  <div class="section-label">Domain C · AI Pipeline KPIs</div>
-  <h2>Storage &amp; Networking I/O <span class="cpu-badge cpu-p" style="font-size:.55rem;vertical-align:middle">CPU Primary</span></h2>
-  <div class="accent-line accent-line-amber"></div>
-  <div class="two-col">
-    <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">Model weight files for 70B+ models are 140+ GB. If NVMe throughput is below the PCIe bandwidth available for H2D transfer, model loading is storage-bound. Network I/O affects distributed training gradient sharing.</p>
-      <div class="card card-amber">
-        <h3>Test Cases (5)</h3>
-        <ul>
-          <li>Sequential read throughput (GB/s)</li>
-          <li>Sequential write throughput (GB/s)</li>
-          <li>Random 4K read IOPS (latency-sensitive prefetch)</li>
-          <li>TCP loopback bandwidth (inter-process comms)</li>
-          <li>End-to-end model weight load pipeline bandwidth</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-amber">
-          <div class="kpi-val">seq_read GB/s</div>
-          <div class="kpi-label">Sequential read speed (NVMe / SSD)</div>
-        </div>
-        <div class="card card-amber">
-          <div class="kpi-val">rand_4k IOPS</div>
-          <div class="kpi-label">Random small-block IOPS</div>
-        </div>
-        <div class="card card-amber">
-          <div class="kpi-val">tcp_bw Gbps</div>
-          <div class="kpi-label">Loopback TCP throughput</div>
-        </div>
-        <div class="card card-amber">
-          <div class="kpi-val">weight_load GB/s</div>
-          <div class="kpi-label">End-to-end weight loading bandwidth</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">8</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 08 — DOMAIN D: INFERENCE PIPELINE KPIs
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s8">
-  <div class="section-label">Domain D · AI Pipeline KPIs</div>
-  <h2>Inference Pipeline KPIs</h2>
-  <div class="accent-line accent-line-green"></div>
-  <div class="two-col">
-    <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">TTFT and ITL are the two SLA metrics users directly experience. Validating them at multiple input lengths and batch sizes ensures the system meets latency budgets under realistic load patterns.</p>
-      <div class="card card-green">
-        <h3>Test Cases (10)</h3>
-        <ul>
-          <li>TTFT by input length (128–4096 tokens)</li>
-          <li>Inter-token latency (ITL) during decode</li>
-          <li>Prefill vs decode throughput ratio</li>
-          <li>Batched inference throughput (tokens/s)</li>
-          <li>GPU utilization during inference (≥ 80%)</li>
-          <li>HBM bandwidth utilization during decode</li>
-          <li>Continuous batching via vLLM</li>
-          <li>Latency–throughput tradeoff curve</li>
-          <li>Inference pipeline latency breakdown</li>
-          <li>Multi-GPU inference throughput scaling</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-green">
-          <div class="kpi-val">TTFT ms</div>
-          <div class="kpi-label">Time-to-first-token by input length</div>
-        </div>
-        <div class="card card-green">
-          <div class="kpi-val">ITL ms</div>
-          <div class="kpi-label">Inter-token latency (decode phase)</div>
-        </div>
-        <div class="card card-green">
-          <div class="kpi-val">tokens/s</div>
-          <div class="kpi-label">Batched inference throughput</div>
-        </div>
-        <div class="card card-green">
-          <div class="kpi-val">GPU util %</div>
-          <div class="kpi-label">GPU utilization during active inference</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">9</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 09 — DOMAIN E: THERMAL & CLOCK STABILITY
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s9">
-  <div class="section-label">Domain E · System Health &amp; Reliability</div>
-  <h2>GPU Thermal &amp; Clock Stability</h2>
-  <div class="accent-line accent-line-purple"></div>
-  <div class="two-col">
-    <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">Each GPU has a model-specific thermal limit. When this limit is approached, hardware reduces SM clock frequency to stay within thermal/power budget. This is <strong>transparent to users but directly reduces compute throughput</strong>. Long-running training jobs may degrade by 10–30% without explicit runtime errors.</p>
-      <div class="card card-purple">
-        <h3>Test Cases (4)</h3>
-        <ul>
-          <li>Idle temperature below detected max operating temperature</li>
-          <li>Clock boost ratio ≥ 80% of advertised max</li>
-          <li>SM clock drop ≤ 10% during 30s sustained GEMM</li>
-          <li>Power draw ≤ 90% of programmed power limit at rest</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-purple">
-          <div class="kpi-val">temperature_c</div>
-          <div class="kpi-label">Per-GPU temperature (°C) — threshold from detected spec</div>
-        </div>
-        <div class="card card-purple">
-          <div class="kpi-val">clock_ratio</div>
-          <div class="kpi-label">current_clock / max_clock (threshold ≥ 0.80)</div>
-        </div>
-        <div class="card card-purple">
-          <div class="kpi-val">clock_drop_ratio</div>
-          <div class="kpi-label">SM clock drop during sustained load (≤ 0.10)</div>
-        </div>
-        <div class="card card-purple">
-          <div class="kpi-val">power_ratio</div>
-          <div class="kpi-label">Idle power / power limit (≤ 0.90)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">10</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 10 — DOMAIN F: ECC & PCIE LINK HEALTH
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s10">
-  <div class="section-label">Domain F · System Health &amp; Reliability</div>
-  <h2>GPU ECC &amp; PCIe Link Health</h2>
-  <div class="accent-line accent-line-amber"></div>
-  <div class="two-col">
-    <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">A single <strong>uncorrected ECC error (UE/DBE)</strong> in accelerator memory can silently corrupt tensor values, causing model training to diverge or inference to produce wrong outputs. PCIe replay counters indicate signal integrity failures that manifest as random slowdowns and data corruption.</p>
-      <div class="card card-red">
-        <h3>Test Cases (4)</h3>
-        <ul>
-          <li>VRAM/HBM uncorrected ECC count = 0 (per GPU)</li>
-          <li>VRAM/HBM corrected SBE count &lt; 100 (per GPU)</li>
-          <li>PCIe link replay counters = 0 (all GPUs)</li>
-          <li>Retired memory pages (DBE) &lt; 10 per GPU</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-red">
-          <div class="kpi-val">ue_count</div>
-          <div class="kpi-label">Uncorrected ECC errors — must be 0</div>
-        </div>
-        <div class="card card-red">
-          <div class="kpi-val">ce_count</div>
-          <div class="kpi-label">Corrected SBE count — threshold &lt; 100</div>
-        </div>
-        <div class="card card-red">
-          <div class="kpi-val">pcie_replays</div>
-          <div class="kpi-label">PCIe replay counter per GPU — must be 0</div>
-        </div>
-        <div class="card card-red">
-          <div class="kpi-val">retired_pages</div>
-          <div class="kpi-label">Retired memory pages (DBE) — threshold &lt; 10</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">11</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 11 — DOMAIN G: ENERGY EFFICIENCY
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s11">
-  <div class="section-label">Domain G · System Health &amp; Reliability</div>
-  <h2>Energy Efficiency (GFLOPS/W)</h2>
-  <div class="accent-line accent-line-green"></div>
-  <div class="two-col">
-    <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">Total Cost of Ownership for AI clusters is dominated by power. The suite compares measured TFLOPS/W against each GPU's detected theoretical peak. A value far below expectation reveals <strong>power capping, thermal derating, or underutilized compute</strong> — all of which inflate operating costs per token served.</p>
-      <div class="card card-green">
-        <h3>Test Cases (2)</h3>
-        <ul>
-          <li>Per-GPU FP16 TFLOPS/W ≥ 1.0 (runs sustained GEMM, samples power in parallel)</li>
-          <li>Aggregate 4-GPU FP16 TFLOPS/W ≥ 1.0 (concurrent GEMM on all GPUs)</li>
-        </ul>
-      </div>
-      <div class="highlight-box">
-        <p><strong>Examples:</strong> H100 SXM5 ≈ 2.83 TFLOPS/W, H100 PCIe ≈ 4.32 TFLOPS/W, MI300X ≈ 1.74 TFLOPS/W theoretical FP16. Floor of 1.0 allows for thermal and power derating.</p>
-      </div>
-    </div>
-    <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-green">
-          <div class="kpi-val">fp16_tflops</div>
-          <div class="kpi-label">Measured FP16 TFLOPS (sustained GEMM)</div>
-        </div>
-        <div class="card card-green">
-          <div class="kpi-val">mean_power_w</div>
-          <div class="kpi-label">Average GPU power draw during benchmark (W)</div>
-        </div>
-        <div class="card card-green">
-          <div class="kpi-val">tflops_per_watt</div>
-          <div class="kpi-label">FP16 efficiency (threshold ≥ 1.0)</div>
-        </div>
-        <div class="card card-green">
-          <div class="kpi-val">total_power_w</div>
-          <div class="kpi-label">Aggregate system GPU power (4-GPU test)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">12</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 12 — DOMAIN H: QUANTIZATION CORRECTNESS
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s12">
-  <div class="section-label">Domain H · System Health &amp; Reliability</div>
-  <h2>Quantization Numerical Correctness</h2>
-  <div class="accent-line"></div>
-  <div class="two-col">
-    <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">Production LLM serving uses FP8 or INT8 paths to fit larger models in accelerator memory. If the GPU's quantized compute path introduces unexpected numerical drift, <strong>model quality degrades silently</strong> while benchmarks still show correct throughput numbers.</p>
-      <div class="card card-accent">
-        <h3>Test Cases (4)</h3>
-        <ul>
-          <li>INT8 GEMM mean relative error vs FP16 &lt; 5%</li>
-          <li>FP8 E4M3 GEMM relative error vs FP16 &lt; 15%</li>
-          <li>BF16 vs FP16 GEMM relative error &lt; 10%</li>
-          <li>Quantised softmax max absolute error &lt; 1e-3</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-accent">
-          <div class="kpi-val">int8_rel_err</div>
-          <div class="kpi-label">INT8 vs FP16 mean relative GEMM error</div>
-        </div>
-        <div class="card card-accent">
-          <div class="kpi-val">fp8_rel_err</div>
-          <div class="kpi-label">FP8 E4M3 vs FP16 mean relative GEMM error</div>
-        </div>
-        <div class="card card-accent">
-          <div class="kpi-val">bf16_rel_err</div>
-          <div class="kpi-label">BF16 vs FP16 relative error</div>
-        </div>
-        <div class="card card-accent">
-          <div class="kpi-val">softmax_abs_err</div>
-          <div class="kpi-label">Quantised attention softmax max error</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">13</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 13 — DOMAIN I: DDP GRADIENT CORRECTNESS
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s13">
-  <div class="section-label">Domain I · System Health &amp; Reliability</div>
-  <h2>Multi-GPU Gradient Synchronization Correctness <span class="cpu-badge cpu-p" style="font-size:.55rem;vertical-align:middle">CPU Primary</span></h2>
-  <div class="accent-line accent-line-purple"></div>
-  <div class="two-col">
-    <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">DDP training correctness depends entirely on NCCL producing the exact arithmetic mean of gradients across all ranks. A hardware or NCCL bug that produces <strong>silently wrong allreduce results</strong> causes models to converge to wrong minima — an extremely hard-to-diagnose failure mode.</p>
-      <div class="card card-purple">
-        <h3>Test Cases (3)</h3>
-        <ul>
-          <li>NCCL allreduce(MEAN) matches CPU-computed reference (max abs error &lt; 1e-3)</li>
-          <li>Single-GPU gradient computation self-consistency</li>
-          <li>Multi-GPU tensor PCIe/fabric copy bit-identity</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-purple">
-          <div class="kpi-val">allreduce_err</div>
-          <div class="kpi-label">Max absolute error vs CPU reference (threshold &lt; 1e-3)</div>
-        </div>
-        <div class="card card-purple">
-          <div class="kpi-val">grad_rel_err</div>
-          <div class="kpi-label">Gradient computation max relative error</div>
-        </div>
-        <div class="card card-purple">
-          <div class="kpi-val">tensor_max_diff</div>
-          <div class="kpi-label">PCIe/fabric copy bit-identity difference (must be 0.0)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">14</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 14 — DOMAIN J: TORCH.COMPILE
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s14">
-  <div class="section-label">Domain J · System Health &amp; Reliability</div>
-  <h2>torch.compile() Correctness &amp; Speedup <span class="cpu-badge cpu-p" style="font-size:.55rem;vertical-align:middle">CPU Primary</span></h2>
-  <div class="accent-line accent-line-amber"></div>
-  <div class="two-col">
-    <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">PyTorch 2.x <code>torch.compile()</code> with Inductor/Triton generates custom kernels at runtime. Bugs in kernel generation can produce <strong>numerically wrong outputs without raising exceptions</strong>. Additionally, if compilation does not deliver speedup on the target platform, enabling it adds latency overhead for no gain.</p>
-      <div class="card card-amber">
-        <h3>Test Cases (2)</h3>
-        <ul>
-          <li>Compiled FP16 linear model output matches eager output (max abs error &lt; 1e-2)</li>
-          <li>Compiled GEMM block is ≥ 1.05× faster than eager after warm-up</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-amber">
-          <div class="kpi-val">compile_err</div>
-          <div class="kpi-label">Max abs error compiled vs eager output</div>
-        </div>
-        <div class="card card-amber">
-          <div class="kpi-val">eager_time_s</div>
-          <div class="kpi-label">Eager mode N-iteration latency</div>
-        </div>
-        <div class="card card-amber">
-          <div class="kpi-val">compiled_time_s</div>
-          <div class="kpi-label">Compiled mode N-iteration latency</div>
-        </div>
-        <div class="card card-amber">
-          <div class="kpi-val">speedup_ratio</div>
-          <div class="kpi-label">Compiled / eager speedup (threshold ≥ 1.05)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">15</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 15 — DOMAIN K: CUDA STREAM ORDERING
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-section" id="s15">
-  <div class="section-label">Domain K · System Health &amp; Reliability</div>
-  <h2>CUDA Stream Ordering &amp; Sync Correctness</h2>
-  <div class="accent-line"></div>
-  <div class="two-col">
-    <div>
-      <h3>Why It Matters</h3>
-      <p style="margin-bottom:14px">vLLM, FlashAttention, and custom CUDA operators use multiple streams with event barriers for correctness. A broken event ordering gives the GPU permission to execute a consumer kernel before the producer finishes — causing <strong>data races that produce wrong results intermittently</strong>, often only under high load.</p>
-      <div class="card card-accent">
-        <h3>Test Cases (5)</h3>
-        <ul>
-          <li>Event wait enforces producer → consumer ordering</li>
-          <li>No race condition on shared tensor across two streams</li>
-          <li>CUDA event elapsed time is positive and plausible</li>
-          <li>Stream callback executes on host after GPU work</li>
-          <li>4 concurrent streams complete in &lt; 1.5× serial time</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>KPIs Generated</h3>
-      <div class="card-grid" style="gap:10px">
-        <div class="card card-accent">
-          <div class="kpi-val">ordering_correct</div>
-          <div class="kpi-label">Event barrier enforces correct execution order (bool)</div>
-        </div>
-        <div class="card card-accent">
-          <div class="kpi-val">gemm_elapsed_ms</div>
-          <div class="kpi-label">CUDA event timing sanity check</div>
-        </div>
-        <div class="card card-accent">
-          <div class="kpi-val">concurrent_ratio</div>
-          <div class="kpi-label">Concurrent / sequential time (threshold ≤ 1.5)</div>
-        </div>
-        <div class="card card-accent">
-          <div class="kpi-val">callback_executed</div>
-          <div class="kpi-label">Host callback fired after synchronize (bool)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">16</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 16 — FOUNDATIONAL SUITES: NODE + BOTTLENECK
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-content" id="s16">
-  <div class="section-label">Foundational Suites</div>
-  <h2>Node Validation &amp; Bottleneck Analysis</h2>
-  <div class="accent-line"></div>
-  <div class="card-grid card-grid-2" style="gap:16px">
-    <div>
-      <div class="card card-accent" style="margin-bottom:12px">
-        <h3>Node Validation (TC-NV-01 → 08)</h3>
-        <ul>
-          <li><strong>GPU enumeration &amp; PCIe topology</strong> — all detected accelerators correctly wired</li>
-          <li><strong>PCIe H2D/D2H bandwidth</strong> — ≥ 65% of 63 GB/s Gen5 theoretical</li>
-          <li><strong>Pinned vs pageable memory</strong> — DMA engine performance</li>
-          <li><strong>P2P bandwidth</strong> — all GPU pairs via PCIe fabric</li>
-          <li><strong>Kernel launch &amp; sync latency</strong> — p50 &lt; 10 µs</li>
-          <li><strong>Power stability</strong> — variance &lt; 50W under workload</li>
-          <li><strong>NCCL init &amp; allreduce</strong> — collective health check</li>
-          <li><strong>Workload acceptance</strong> — GPT-2, BERT, Llama 7B inference + training</li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <div class="card card-amber">
-        <h3>Bottleneck / Roofline Analysis (TC-BN-01 → 06)</h3>
-        <ul>
-          <li><strong>CPU FP32 efficiency</strong> — measured vs SIMD theoretical (target ≥ 70%)</li>
-          <li><strong>CPU DRAM bandwidth</strong> — STREAM Triad ≥ 75% of DDR5 peak</li>
-          <li><strong>GPU FP16 efficiency</strong> — per-GPU &amp; aggregate vs detected peak (target ≥ 75%)</li>
-          <li><strong>Accelerator memory bandwidth</strong> — ≥ 80% of detected theoretical peak</li>
-          <li><strong>PCIe bottleneck</strong> — identifies compute vs memory vs interconnect bottleneck</li>
-          <li><strong>Scaling efficiency</strong> — multi-GPU linear speedup ratio</li>
-        </ul>
-      </div>
-      <div class="highlight-box" style="margin-top:12px">
-        <p><strong>Platform caveat:</strong> P2P bandwidth depends on NVLink/xGMI availability; PCIe-only systems show lower peer bandwidth. Compute-efficiency thresholds use percentage-of-peak to keep cross-platform comparisons fair.</p>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">17</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 17 — CPU, GPU, MEMORY, INTERCONNECT
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-content" id="s17">
-  <div class="section-label">Foundational Suites</div>
-  <h2>CPU · GPU · Memory · Interconnect Validation</h2>
-  <div class="accent-line"></div>
-  <div class="card-grid card-grid-4" style="gap:12px">
-    <div class="card card-accent">
-      <h3>CPU Validation</h3>
-      <ul>
-        <li>160 physical cores / 320 threads</li>
-        <li>2 NUMA nodes (2-socket)</li>
-        <li>FP32 single/all-core GFLOPS</li>
-        <li>Parallel speedup at 1–64 cores</li>
-        <li>DRAM single/multi-thread BW</li>
-        <li>L3 cache bandwidth</li>
-        <li>NUMA locality BW ratio</li>
-        <li>INT64 vector throughput</li>
-      </ul>
-    </div>
-    <div class="card card-green">
-      <h3>GPU Validation</h3>
-      <ul>
-        <li>N × AI accelerators, CUDA/ROCm runtime supported</li>
-        <li>Compute capability AI-grade floor (configurable)</li>
-        <li>Memory capacity validated against detected spec</li>
-        <li>Memory BW ≥ 80% of detected theoretical peak</li>
-        <li>FP32 / FP16 / BF16 / INT8 / FP64 TFLOPS</li>
-        <li>All 4 concurrent FP16 TFLOPS ≥ 80% of 4×</li>
-        <li>GPU utilization ≥ 90% under GEMM</li>
-      </ul>
-    </div>
-    <div class="card card-purple">
-      <h3>Memory Validation</h3>
-      <ul>
-        <li>Total RAM ≥ 1 TB</li>
-        <li>Transparent huge pages</li>
-        <li>STREAM Copy/Scale/Triad</li>
-        <li>Cache hierarchy BW (L1/L2/L3/DRAM)</li>
-        <li>Memory latency by working set</li>
-        <li>ECC / EDAC sysfs health</li>
-        <li>No uncorrected EDAC errors</li>
-        <li>BW sustained over 5 runs (≤15% drop)</li>
-      </ul>
-    </div>
-    <div class="card card-amber">
-      <h3>Interconnect</h3>
-      <ul>
-        <li>PCIe topology query (all 4 GPUs)</li>
-        <li>H2D / D2H per-GPU (≥ 65% of 63 GB/s)</li>
-        <li>Bidirectional PCIe (≥ 70% of sum)</li>
-        <li>Multi-GPU concurrent H2D</li>
-        <li>NVLink/xGMI detection &amp; all-to-all BW</li>
-        <li>P2P bandwidth all pairs</li>
-        <li>DMA alignment &amp; consistency</li>
-        <li>CPU↔GPU pipeline overlap (≥ 75%)</li>
-        <li>Multi-stream bidirectional sweep</li>
-      </ul>
-    </div>
-  </div>
-  <div class="slide-num">18</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 18 — HOW KPIs HELP
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-content" id="s18">
-  <div class="section-label">KPI Framework</div>
-  <h2>How KPIs Help: From Raw Numbers to Decisions</h2>
-  <div class="accent-line"></div>
-  <div class="two-col">
-    <div>
-      <div class="card card-accent" style="margin-bottom:12px">
-        <h3>1. Threshold-Based Pass/Fail</h3>
-        <p>Every KPI has a quantified threshold tied to hardware specs. A test passes only when the measured value crosses the threshold — this converts subjective "looks OK" to an <strong>objective gate</strong>.</p>
-      </div>
-      <div class="card card-green" style="margin-bottom:12px">
-        <h3>2. Regression Detection</h3>
-        <p>KPIs are persisted to JSONL files with timestamps. Running the suite after a driver update immediately surfaces whether, e.g., tokenizer throughput dropped 15% or TTFT regressed.</p>
-      </div>
-      <div class="card card-amber">
-        <h3>3. Root-Cause Triage</h3>
-        <p>Correlated KPIs pinpoint the bottleneck layer: if <code>tflops_per_watt</code> is low but <code>fp16_tflops</code> is normal → power cap. If <code>TTFT</code> is high but <code>prefill_tflops</code> is normal → data loading is the culprit.</p>
-      </div>
-    </div>
-    <div>
-      <div class="card card-purple" style="margin-bottom:12px">
-        <h3>4. Automated Report Generation</h3>
-        <p>Each pytest session auto-generates <code>TESTCASE_EXECUTION_FINAL_REPORT.md</code> with color-coded pass/fail/skip tables and inline KPI values — ready for stakeholder handover without manual editing.</p>
-      </div>
-      <div class="card card-red" style="margin-bottom:12px">
-        <h3>5. Comparative Benchmarking</h3>
-        <p>KPIs enable A/B comparison: node A vs node B, pre- vs post-driver-upgrade, or PCIe Gen4 vs Gen5. Numeric evidence replaces subjective assessment.</p>
-      </div>
-      <div class="card" style="border-left:4px solid var(--intel-light)">
-        <h3>6. Platform Recalibration</h3>
-        <p>When thresholds fail on any platform, KPI values show the exact baseline gap and whether the issue is compute, memory, interconnect, or orchestration related, enabling targeted threshold recalibration instead of blanket waivers.</p>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">19</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 19 — KPI TRACEABILITY TABLE
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-content" id="s19">
-  <div class="section-label">KPI Framework · CPU Focus</div>
-  <h2>Decision Scorecard: KPIs That Matter Most</h2>
-  <div class="accent-line"></div>
-  <p style="font-size:.9rem;margin-bottom:8px;color:var(--muted)">
-    Simplified operator view: track the smallest KPI set that drives deployment decisions and fastest triage.
-  </p>
-  <div class="score-grid">
-    <div class="card card-accent">
-      <h3>Deployment Gate KPIs (P0/P1)</h3>
-      <ul class="score-list">
-        <li><span class="kpi-tag kpi-critical">P0</span><strong>TTFT / ITL</strong> — user-facing latency SLA must hold under realistic batch and context lengths.</li>
-        <li><span class="kpi-tag kpi-critical">P0</span><strong>FP16/BF16 % of peak</strong> — confirms accelerator compute utilization is competitive.</li>
-        <li><span class="kpi-tag kpi-critical">P0</span><strong>mem_bw_tbps % peak</strong> — validates memory subsystem is not the hidden bottleneck.</li>
-        <li><span class="kpi-tag kpi-high">P1</span><strong>CPU overlap_pct + tokens/s</strong> — detects host-side feeding bottlenecks that idle all GPUs.</li>
-        <li><span class="kpi-tag kpi-high">P1</span><strong>h2d_bw_gbps</strong> — verifies PCIe transfer path for weights and batches.</li>
-        <li><span class="kpi-tag kpi-high">P1</span><strong>tool_parallel_speedup</strong> — validates agentic multi-tool execution scales as expected.</li>
-      </ul>
-    </div>
-    <div class="card card-purple">
-      <h3>Fast Triage Map</h3>
-      <ul class="score-list">
-        <li><span class="kpi-tag kpi-core">Compute</span>Low TFLOPS with normal memory BW: kernel shape, occupancy, or power cap issue.</li>
-        <li><span class="kpi-tag kpi-core">Memory</span>Low memory BW with healthy clocks: ECC overhead, NUMA placement, or workload access pattern.</li>
-        <li><span class="kpi-tag kpi-core">Interconnect</span>Low H2D/D2H or P2P BW: PCIe generation/width mismatch or topology constraints.</li>
-        <li><span class="kpi-tag kpi-core">CPU Host</span>Low overlap_pct / tokenizer throughput: data pipeline or thread-affinity bottleneck.</li>
-        <li><span class="kpi-tag kpi-core">Reliability</span>Any UE ECC or high replay count: hardware integrity action before workload sign-off.</li>
-      </ul>
-    </div>
-  </div>
-  <div class="highlight-box" style="margin-top:12px">
-    <p><strong>Recommended cadence:</strong> run full KPI suite weekly, run P0/P1 scorecard on every driver/framework change, and block rollout on any P0 regression.</p>
-  </div>
-  <div class="slide-num">20</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 20 — RUNNING THE SUITE
-     ════════════════════════════════════════════════════════════ -->
-<section class="slide slide-content" id="s20">
-  <div class="section-label">Operations</div>
-  <h2>Running the Validation Suite</h2>
-  <div class="accent-line"></div>
-  <div class="card-grid card-grid-2" style="gap:18px;margin-top:4px">
-    <div>
-      <div class="card card-accent" style="margin-bottom:12px">
-        <h3>Full Suite</h3>
-        <pre style="font-size:.82rem;color:#79c0ff;background:#0d1117;padding:10px;border-radius:6px;overflow-x:auto">pytest tests/ -vv
-# → auto-generates TESTCASE_EXECUTION_FINAL_REPORT.md</pre>
-      </div>
-      <div class="card card-green" style="margin-bottom:12px">
-        <h3>New System Health Suite</h3>
-        <pre style="font-size:.82rem;color:#79c0ff;background:#0d1117;padding:10px;border-radius:6px;overflow-x:auto">pytest -m system_health -vv \
-  tests/test_system_health_and_reliability.py</pre>
-      </div>
-      <div class="card card-amber">
-        <h3>By Domain</h3>
-        <pre style="font-size:.82rem;color:#79c0ff;background:#0d1117;padding:10px;border-radius:6px;overflow-x:auto">pytest -m thermal_stability -vv
-pytest -m ecc_link_health  -vv
-pytest -m energy_efficiency -vv
-pytest -m quant_correctness -vv
-pytest -m ddp_correctness   -vv
-pytest -m compile_correctness -vv
-pytest -m stream_correctness  -vv</pre>
-      </div>
-    </div>
-    <div>
-      <div class="card card-purple" style="margin-bottom:12px">
-        <h3>AI Pipeline KPIs</h3>
-        <pre style="font-size:.82rem;color:#79c0ff;background:#0d1117;padding:10px;border-radius:6px;overflow-x:auto">pytest -m ai_pipeline -vv \
-  tests/test_ai_pipeline_kpis.py</pre>
-      </div>
-      <div class="card card-green" style="margin-bottom:12px">
-        <h3>Agentic AI KPIs</h3>
-        <pre style="font-size:.82rem;color:#79c0ff;background:#0d1117;padding:10px;border-radius:6px;overflow-x:auto">AGENTIC_EXECUTE=1 pytest -m agentic_ai -vv \
-  tests/test_agentic_ai_validation.py</pre>
-      </div>
-      <div class="card card-red" style="margin-bottom:12px">
-        <h3>Workload Acceptance</h3>
-        <pre style="font-size:.82rem;color:#79c0ff;background:#0d1117;padding:10px;border-radius:6px;overflow-x:auto">./run_workload_acceptance.sh
-# or skip large models:
-./run_workload_acceptance.sh \
-  --skip-large-models</pre>
-      </div>
-      <div class="card card-accent">
-        <h3>Environment Toggles</h3>
-        <pre style="font-size:.82rem;color:#79c0ff;background:#0d1117;padding:10px;border-radius:6px;overflow-x:auto">HEALTH_EXECUTE=0          # skip heavy tests
-HEALTH_THERMAL_DURATION_SEC=60
-HEALTH_QUANT_REL_TOL=0.03 # tighter quant check
-HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
-      </div>
-    </div>
-  </div>
-  <div class="slide-num">21</div>
-</section>
-
-<!-- ════════════════════════════════════════════════════════════
-     SLIDE 21 — REPORT OUTPUT
-     ════════════════════════════════════════════════════════════ -->
 <section class="slide slide-content" id="s21">
   <div class="section-label">Output</div>
   <h2>Auto-Generated Report Structure</h2>
@@ -1282,7 +484,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
       </div>
     </div>
   </div>
-  <div class="slide-num">22</div>
+  <div class="slide-num">7</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -1749,7 +951,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
     </div>
   </div>
 
-  <div class="slide-num">23</div>
+  <div class="slide-num">8</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -1793,7 +995,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
       </ul>
     </div>
   </div>
-  <div class="slide-num">24</div>
+  <div class="slide-num">9</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -1837,7 +1039,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
       </div>
     </div>
   </div>
-  <div class="slide-num">25</div>
+  <div class="slide-num">10</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -1908,7 +1110,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
     </div>
   </div>
   
-  <div class="slide-num">26</div>
+  <div class="slide-num">11</div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -1993,7 +1195,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
     </div>
   </div>
   
-  <div class="slide-num">27</div>
+  <div class="slide-num">12</div>
 </section>
 
 </div><!-- /deck -->
@@ -2009,7 +1211,7 @@ HEALTH_COMPILE_SPEEDUP_FLOOR=1.1</pre>
 <div id="nav">
   <button id="btn-prev" onclick="navigate(-1)" disabled>◀ Prev</button>
   <div class="progress"><div class="progress-fill" id="prog-fill"></div></div>
-  <span id="slide-counter">1 / 27</span>
+  <span id="slide-counter">1 / 12</span>
   <button id="btn-next" onclick="navigate(1)">Next ▶</button>
 </div>
 

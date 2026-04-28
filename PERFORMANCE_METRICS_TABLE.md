@@ -44,16 +44,16 @@
 | Metric | Min Value | Max Value | Unit | Test |
 |--------|-----------|-----------|------|------|
 | **HBM (GPU Memory)** | | | | |
-| hbm_bandwidth_gbps | 1,663 | 1,663 | GB/s | GPU Memory Bandwidth |
-| **NVLink Bandwidth** | | | | |
-| nvlink_bandwidth_gbps | 230 | 230 | GB/s | test_nvlink_bandwidth |
-| **NCCL Bus Bandwidth** | | | | |
-| busbw_mean_gbs | 622.72 | 14,622,216 | GB/s | test_nccl_collective_bandwidth |
-| busbw_peak_gbs | 3,446 | 60,000,000 | GB/s | test_nccl_collective_bandwidth |
+| hbm_bandwidth_gbps | 1,663 | 1,663 | GB/s | GPU Memory Bandwidth (on-GPU) |
+| **PCIe Bandwidth (P2P/Host Communication)** | | | | |
+| h2d_bandwidth_gbps | 21.89 | 21.89 | GB/s | Host-to-Device (PCIe) |
+| d2h_bandwidth_gbps | 31.78 | 31.78 | GB/s | Device-to-Host (PCIe) |
+| p2p_bandwidth_gbps | 17.3 | 17.3 | GB/s | GPU-to-GPU P2P (PCIe) |
+| **NCCL Collective Communications (over PCIe)** | | | | |
+| nccl_p2p_busbw_gbps | 25.1 | 622.72 | GB/s | NCCL P2P bus bandwidth (PCIe-based) |
+| busbw_mean_gbs | 622.72 | 14,622,216 | GB/s | NCCL collective bus bandwidth |
+| busbw_peak_gbs | 3,446 | 60,000,000 | GB/s | NCCL peak bandwidth |
 | busbw_samples | 30 | 30 | samples | NCCL measurements |
-| **PCIe Bandwidth** | | | | |
-| h2d_bandwidth_gbps | 21.89 | 21.89 | GB/s | Host-to-Device |
-| d2h_bandwidth_gbps | 31.78 | 31.78 | GB/s | Device-to-Host |
 | **Total NVBandwidth Metrics** | **238** | | | |
 
 ---
@@ -98,7 +98,7 @@
 |----------|--------------|------------|
 | **Functional** | 20 | All correctness errors < 0.04 (excellent accuracy) |
 | **Inference** | 361 | Max throughput: 1.4M tokens/sec; Latencies: 57-475 ms |
-| **NVBandwidth** | 238 | HBM: 1.6TB/s; NVLink: 230GB/s; PCIe: 21-31GB/s |
+| **NVBandwidth** | 238 | HBM: 1.6TB/s (on-GPU); PCIe P2P: 17.3GB/s; PCIe H2D/D2H: 21-31GB/s |
 | **P2P** | 3 unique | AllReduce: 10-11ms; P2P: 15-92μs latency |
 | **Training** | 1 | Compile speedup: 1.049x |
 | **TOTAL** | **623** | 19,466 individual data points captured |
@@ -115,9 +115,11 @@
 
 ### 🔗 Communication Performance
 - **AllReduce Time:** 10.7-11.6ms (collective sync)
-- **NVLink:** 230 GB/s bandwidth
-- **HBM:** 1,663 GB/s bandwidth
-- **PCIe H2D/D2H:** 21.89-31.78 GB/s
+- **HBM Memory Bandwidth:** 1,663 GB/s (on-GPU)
+- **PCIe P2P GPU-to-GPU:** 17.3 GB/s
+- **PCIe Host-to-Device:** 21.89 GB/s
+- **PCIe Device-to-Host:** 31.78 GB/s
+- **NCCL P2P (over PCIe):** 25.1-622.72 GB/s (collective bandwidth)
 
 ### ✅ Correctness & Reliability
 - **BF16 vs FP16 error:** 0.29%

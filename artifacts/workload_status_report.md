@@ -1,6 +1,6 @@
 # Workload Execution Status Report
 
-Generated (UTC): 2026-04-27T17:07:57.616000+00:00
+Generated (UTC): 2026-04-28T04:42:12.181620+00:00
 Host: sc00901168s0075
 
 ## Summary
@@ -9,200 +9,172 @@ Host: sc00901168s0075
 - Passed: 2
 - Failed: 11
 - Total tests: 410
-- Failures: 107
+- Failures: 98
 - Errors: 0
-- Skipped: 35
+- Skipped: 33
 
 ## Domain Status
 
 | Domain | Status | Tests | Failures | Errors | Skipped | Duration (s) | XML | Log |
 |---|---|---:|---:|---:|---:|---:|---|---|
-| bottleneck | FAIL | 25 | 5 | 0 | 0 | 9.899 | artifacts/reports/junit/bottleneck.xml | artifacts/reports/logs/bottleneck.log |
-| cpu | FAIL | 33 | 11 | 0 | 1 | 268.736 | artifacts/reports/junit/cpu.xml | artifacts/reports/logs/cpu.log |
-| memory | FAIL | 28 | 8 | 0 | 0 | 15.259 | artifacts/reports/junit/memory.xml | artifacts/reports/logs/memory.log |
-| gpu | FAIL | 53 | 19 | 0 | 0 | 6.616 | artifacts/reports/junit/gpu.xml | artifacts/reports/logs/gpu.log |
-| interconnect | FAIL | 77 | 3 | 0 | 4 | 72.995 | artifacts/reports/junit/interconnect.xml | artifacts/reports/logs/interconnect.log |
-| node_validation | FAIL | 51 | 15 | 0 | 9 | 1240.779 | artifacts/reports/junit/node_validation.xml | artifacts/reports/logs/node_validation.log |
-| agentic_ai | FAIL | 9 | 1 | 0 | 0 | 14.245 | artifacts/reports/junit/agentic_ai.xml | artifacts/reports/logs/agentic_ai.log |
-| ai_pipeline | FAIL | 38 | 18 | 0 | 0 | 55.789 | artifacts/reports/junit/ai_pipeline.xml | artifacts/reports/logs/ai_pipeline.log |
-| system_health | FAIL | 39 | 7 | 0 | 3 | 34.512 | artifacts/reports/junit/system_health.xml | artifacts/reports/logs/system_health.log |
-| system_config | PASS | 8 | 0 | 0 | 0 | 0.714 | artifacts/reports/junit/system_config.xml | artifacts/reports/logs/system_config.log |
-| vllm_prefill | FAIL | 3 | 1 | 0 | 1 | 1110.551 | artifacts/reports/junit/vllm_prefill.xml | artifacts/reports/logs/vllm_prefill.log |
-| performance_suite | PASS | 25 | 0 | 0 | 15 | 248.181 | artifacts/reports/junit/performance_suite.xml | artifacts/reports/logs/performance_suite.log |
-| mlperf_suite | FAIL | 21 | 19 | 0 | 2 | 759.975 | artifacts/reports/junit/mlperf_suite.xml | artifacts/reports/logs/mlperf_suite.log |
+| bottleneck | FAIL | 25 | 4 | 0 | 0 | 10.051 | artifacts/reports/junit/bottleneck.xml | artifacts/reports/logs/bottleneck.log |
+| cpu | FAIL | 33 | 9 | 0 | 1 | 232.45 | artifacts/reports/junit/cpu.xml | artifacts/reports/logs/cpu.log |
+| memory | FAIL | 28 | 8 | 0 | 0 | 17.36 | artifacts/reports/junit/memory.xml | artifacts/reports/logs/memory.log |
+| gpu | FAIL | 53 | 20 | 0 | 0 | 6.141 | artifacts/reports/junit/gpu.xml | artifacts/reports/logs/gpu.log |
+| interconnect | FAIL | 77 | 1 | 0 | 4 | 67.352 | artifacts/reports/junit/interconnect.xml | artifacts/reports/logs/interconnect.log |
+| node_validation | FAIL | 51 | 9 | 0 | 7 | 2577.366 | artifacts/reports/junit/node_validation.xml | artifacts/reports/logs/node_validation.log |
+| agentic_ai | FAIL | 9 | 1 | 0 | 0 | 14.103 | artifacts/reports/junit/agentic_ai.xml | artifacts/reports/logs/agentic_ai.log |
+| ai_pipeline | FAIL | 38 | 18 | 0 | 0 | 68.638 | artifacts/reports/junit/ai_pipeline.xml | artifacts/reports/logs/ai_pipeline.log |
+| system_health | FAIL | 39 | 8 | 0 | 3 | 34.454 | artifacts/reports/junit/system_health.xml | artifacts/reports/logs/system_health.log |
+| system_config | PASS | 8 | 0 | 0 | 0 | 0.841 | artifacts/reports/junit/system_config.xml | artifacts/reports/logs/system_config.log |
+| vllm_prefill | FAIL | 3 | 1 | 0 | 1 | 1130.979 | artifacts/reports/junit/vllm_prefill.xml | artifacts/reports/logs/vllm_prefill.log |
+| performance_suite | PASS | 25 | 0 | 0 | 15 | 208.218 | artifacts/reports/junit/performance_suite.xml | artifacts/reports/logs/performance_suite.log |
+| mlperf_suite | FAIL | 21 | 19 | 0 | 2 | 1889.065 | artifacts/reports/junit/mlperf_suite.xml | artifacts/reports/logs/mlperf_suite.log |
 
 ## Failure Details
 
 ### bottleneck
 
-- [failure] tests.test_bottleneck_analysis.TestCPUComputeBottleneck::test_cpu_fp32_efficiency_report: AssertionError: CPU FP32 (1 process, BLAS threads=224): efficiency 7.03% is below threshold 70.00% (measured=1.915, theoretical=27.238)
-assert 0.07029843576423664 >= 0.7
-- [failure] tests.test_bottleneck_analysis.TestGPUComputeBottleneck::test_per_gpu_fp16_efficiency: AssertionError: GPU 0 FP16 Tensor Core: efficiency 31.62% is below threshold 75.00% (measured=478.387, theoretical=1513.000)
-assert 0.31618443124915063 >= 0.75
-- [failure] tests.test_bottleneck_analysis.TestGPUComputeBottleneck::test_aggregate_4gpu_fp16_tflops: AssertionError: 4-GPU aggregate FP16 TFLOPS: efficiency 29.80% is below threshold 75.00% (measured=1803.664, theoretical=6052.000)
-assert 0.29802782333568895 >= 0.75
-- [failure] tests.test_bottleneck_analysis.TestHBMBandwidthBottleneck::test_hbm_bandwidth_per_gpu_vs_theoretical: AssertionError: GPU 2 HBM3 bandwidth: efficiency 9.16% is below threshold 80.00% (measured=0.183, theoretical=2.000)
-assert 0.0915859993385234 >= 0.8
+- [failure] tests.test_bottleneck_analysis.TestCPUComputeBottleneck::test_cpu_fp32_efficiency_report: AssertionError: CPU FP32 (1 process, BLAS threads=224): efficiency 7.05% is below threshold 70.00% (measured=1.919, theoretical=27.238)
+assert 0.07045469366717601 >= 0.7
+- [failure] tests.test_bottleneck_analysis.TestGPUComputeBottleneck::test_per_gpu_fp16_efficiency: AssertionError: GPU 0 FP16 Tensor Core: efficiency 31.59% is below threshold 75.00% (measured=477.978, theoretical=1513.000)
+assert 0.31591398244437896 >= 0.75
+- [failure] tests.test_bottleneck_analysis.TestGPUComputeBottleneck::test_aggregate_4gpu_fp16_tflops: AssertionError: 4-GPU aggregate FP16 TFLOPS: efficiency 29.91% is below threshold 75.00% (measured=1809.936, theoretical=6052.000)
+assert 0.2990641025347952 >= 0.75
 - [failure] tests.test_bottleneck_analysis.TestPCIeBottleneck::test_pcie_bottleneck_ratio_vs_hbm: AssertionError: HBM/PCIe ratio 31.7× < 40× – PCIe may not be the ingestion bottleneck
 assert 31.746031746031747 >= 40.0
 
 ### cpu
 
 - [failure] tests.test_cpu_validation.TestSingleCoreFP32::test_single_core_gflops_above_floor: AttributeError: 'CPUSpecs' object has no attribute 'avx512_fp32_flops_per_cycle_per_core'. Did you mean: 'simd_fp32_flops_per_cycle_per_core'?
-- [failure] tests.test_cpu_validation.TestAllCoreFP32Scaling::test_all_core_fp32_gflops: AssertionError: All-core FP32 GFLOPS (BLAS): efficiency 26.75% is below threshold 70.00% (measured=7287.016, theoretical=27238.400)
-assert 0.26752730753896187 >= 0.7
-- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[2]: AssertionError: Parallel speedup at 2 cores: efficiency 83.40% is below threshold 85.00% (measured=424.439, theoretical=508.891)
-assert 0.8340484327116333 >= 0.85
-- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[4]: AssertionError: Parallel speedup at 4 cores: efficiency 14.29% is below threshold 85.00% (measured=160.452, theoretical=1122.967)
-assert 0.14288246938137358 >= 0.85
-- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[8]: AssertionError: Parallel speedup at 8 cores: efficiency 0.31% is below threshold 85.00% (measured=6.389, theoretical=2031.079)
-assert 0.0031458064110784253 >= 0.85
-- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[16]: AssertionError: Parallel speedup at 16 cores: efficiency 0.11% is below threshold 85.00% (measured=4.872, theoretical=4482.323)
-assert 0.0010869388334792756 >= 0.85
-- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[32]: AssertionError: Parallel speedup at 32 cores: efficiency 0.05% is below threshold 85.00% (measured=4.463, theoretical=9000.100)
-assert 0.0004958489628036974 >= 0.85
-- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[64]: AssertionError: Parallel speedup at 64 cores: efficiency 0.03% is below threshold 85.00% (measured=4.724, theoretical=18197.715)
-assert 0.0002595676794268458 >= 0.85
-- [failure] tests.test_cpu_validation.TestIntegerThroughput::test_integer_vector_ops_throughput: AssertionError: Concurrent INT64 vector add throughput 21.35 GOPS < 56.00 GOPS (224 threads × 0.25 GOPS/thread floor)
-assert 21.354101254305142 >= 56.0
-- [failure] tests.test_cpu_validation.TestIntegerThroughput::test_integer_multiply_throughput: AssertionError: Concurrent INT64 multiply throughput 39.35 GOPS < 56.00 GOPS (224 threads × 0.25 GOPS/thread floor)
-assert 39.34511729619078 >= 56.0
-- [failure] tests.test_cpu_validation.TestCacheCoherency::test_false_sharing_detection: AssertionError: Expected padded (0.888s) < unpadded (0.862s)
-assert 0.8884903129946906 < 0.8623696630238555
+- [failure] tests.test_cpu_validation.TestAllCoreFP32Scaling::test_all_core_fp32_gflops: AssertionError: All-core FP32 GFLOPS (BLAS): efficiency 26.05% is below threshold 70.00% (measured=7095.134, theoretical=27238.400)
+assert 0.2604827907403243 >= 0.7
+- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[4]: AssertionError: Parallel speedup at 4 cores: efficiency 6.74% is below threshold 85.00% (measured=72.243, theoretical=1072.159)
+assert 0.06738127724876494 >= 0.85
+- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[8]: AssertionError: Parallel speedup at 8 cores: efficiency 0.26% is below threshold 85.00% (measured=6.095, theoretical=2342.638)
+assert 0.002601853902865249 >= 0.85
+- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[16]: AssertionError: Parallel speedup at 16 cores: efficiency 0.12% is below threshold 85.00% (measured=5.609, theoretical=4838.845)
+assert 0.001159159670273666 >= 0.85
+- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[32]: AssertionError: Parallel speedup at 32 cores: efficiency 0.06% is below threshold 85.00% (measured=5.081, theoretical=9075.926)
+assert 0.0005597988124748729 >= 0.85
+- [failure] tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[64]: AssertionError: Parallel speedup at 64 cores: efficiency 0.03% is below threshold 85.00% (measured=5.313, theoretical=18064.635)
+assert 0.0002941245472917233 >= 0.85
+- [failure] tests.test_cpu_validation.TestIntegerThroughput::test_integer_vector_ops_throughput: AssertionError: Concurrent INT64 vector add throughput 23.71 GOPS < 56.00 GOPS (224 threads × 0.25 GOPS/thread floor)
+assert 23.709933761795686 >= 56.0
+- [failure] tests.test_cpu_validation.TestIntegerThroughput::test_integer_multiply_throughput: AssertionError: Concurrent INT64 multiply throughput 36.93 GOPS < 56.00 GOPS (224 threads × 0.25 GOPS/thread floor)
+assert 36.931165837541656 >= 56.0
 
 ### memory
 
 - [failure] tests.test_memory_validation.TestRAMCapacity::test_total_ram_at_least_1tb: AssertionError: Total RAM 1007 GB < 1 TB
 assert 1006.9956436157227 >= 1024.0
-- [failure] tests.test_memory_validation.TestSingleThreadBandwidth::test_scale_bw_exceeds_15gbs: AssertionError: STREAM Scale 12.31 GB/s < 15 GB/s
-assert 12.314018330940955 >= 15.0
-- [failure] tests.test_memory_validation.TestSingleThreadBandwidth::test_triad_bw_exceeds_15gbs: AssertionError: STREAM Triad 12.15 GB/s < 15 GB/s
-assert 12.147721856935542 >= 15.0
-- [failure] tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[32-4.0]: AssertionError: Working-set 32 KB: latency 83.60 ns > 4.0 ns
-assert 83.60131431572881 <= 4.0
-- [failure] tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[512-8.0]: AssertionError: Working-set 512 KB: latency 90.44 ns > 8.0 ns
-assert 90.44337456742824 <= 8.0
-- [failure] tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[16384-30.0]: AssertionError: Working-set 16384 KB: latency 195.22 ns > 30.0 ns
-assert 195.2218500082381 <= 30.0
-- [failure] tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[524288-120.0]: AssertionError: Working-set 524288 KB: latency 233.94 ns > 120.0 ns
-assert 233.9418200426735 <= 120.0
-- [failure] tests.test_memory_validation.TestSustainedBandwidth::test_bandwidth_does_not_degrade: AssertionError: BW run 2 (12.12 GB/s) degraded > 15 % vs first run (47.53 GB/s)
-assert 0.7450064389859917 <= 0.15
+- [failure] tests.test_memory_validation.TestSingleThreadBandwidth::test_scale_bw_exceeds_15gbs: AssertionError: STREAM Scale 11.28 GB/s < 15 GB/s
+assert 11.280456482108326 >= 15.0
+- [failure] tests.test_memory_validation.TestSingleThreadBandwidth::test_triad_bw_exceeds_15gbs: AssertionError: STREAM Triad 11.88 GB/s < 15 GB/s
+assert 11.87695927351219 >= 15.0
+- [failure] tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[32-4.0]: AssertionError: Working-set 32 KB: latency 83.29 ns > 4.0 ns
+assert 83.29272466189863 <= 4.0
+- [failure] tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[512-8.0]: AssertionError: Working-set 512 KB: latency 87.26 ns > 8.0 ns
+assert 87.26184081916944 <= 8.0
+- [failure] tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[16384-30.0]: AssertionError: Working-set 16384 KB: latency 194.29 ns > 30.0 ns
+assert 194.28579000077661 <= 30.0
+- [failure] tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[524288-120.0]: AssertionError: Working-set 524288 KB: latency 235.67 ns > 120.0 ns
+assert 235.66586000015377 <= 120.0
+- [failure] tests.test_memory_validation.TestSustainedBandwidth::test_bandwidth_does_not_degrade: AssertionError: BW run 2 (39.43 GB/s) degraded > 15 % vs first run (47.49 GB/s)
+assert 0.16978049229886918 <= 0.15
 
 ### gpu
 
-- [failure] tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[0]: AssertionError: FP32 GFLOPS GPU 0: efficiency 55.52% is below threshold 70.00% (measured=37197.708, theoretical=67000.000)
-assert 0.555189674981243 >= 0.7
-- [failure] tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[1]: AssertionError: FP32 GFLOPS GPU 1: efficiency 54.73% is below threshold 70.00% (measured=36671.047, theoretical=67000.000)
-assert 0.5473290536180478 >= 0.7
-- [failure] tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[2]: AssertionError: FP32 GFLOPS GPU 2: efficiency 52.13% is below threshold 70.00% (measured=34924.735, theoretical=67000.000)
-assert 0.521264695085823 >= 0.7
-- [failure] tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[3]: AssertionError: FP32 GFLOPS GPU 3: efficiency 68.65% is below threshold 70.00% (measured=45997.801, theoretical=67000.000)
-assert 0.6865343487513104 >= 0.7
-- [failure] tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[0]: AssertionError: FP16 TFLOPS GPU 0: efficiency 31.66% is below threshold 75.00% (measured=478.966, theoretical=1513.000)
-assert 0.3165671841580488 >= 0.75
-- [failure] tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[1]: AssertionError: FP16 TFLOPS GPU 1: efficiency 31.72% is below threshold 75.00% (measured=479.998, theoretical=1513.000)
-assert 0.31724912784080156 >= 0.75
-- [failure] tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[2]: AssertionError: FP16 TFLOPS GPU 2: efficiency 28.08% is below threshold 75.00% (measured=424.841, theoretical=1513.000)
-assert 0.2807939085819351 >= 0.75
-- [failure] tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[3]: AssertionError: FP16 TFLOPS GPU 3: efficiency 29.07% is below threshold 75.00% (measured=439.832, theoretical=1513.000)
-assert 0.2907018526618181 >= 0.75
-- [failure] tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[0]: AssertionError: BF16 TFLOPS GPU 0: efficiency 25.91% is below threshold 75.00% (measured=512.696, theoretical=1979.000)
-assert 0.2590680805251704 >= 0.75
-- [failure] tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[1]: AssertionError: BF16 TFLOPS GPU 1: efficiency 25.92% is below threshold 75.00% (measured=512.877, theoretical=1979.000)
-assert 0.2591597891728717 >= 0.75
-- [failure] tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[2]: AssertionError: BF16 TFLOPS GPU 2: efficiency 23.33% is below threshold 75.00% (measured=461.739, theoretical=1979.000)
-assert 0.2333194946517316 >= 0.75
-- [failure] tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[3]: AssertionError: BF16 TFLOPS GPU 3: efficiency 24.33% is below threshold 75.00% (measured=481.402, theoretical=1979.000)
-assert 0.2432550310045876 >= 0.75
-- [failure] tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[0]: AssertionError: INT8-proxy TOPS GPU 0: efficiency 13.84% is below threshold 75.00% (measured=547.654, theoretical=3958.000)
-assert 0.13836633977546975 >= 0.75
-- [failure] tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[1]: AssertionError: INT8-proxy TOPS GPU 1: efficiency 13.88% is below threshold 75.00% (measured=549.173, theoretical=3958.000)
-assert 0.13875005126896786 >= 0.75
-- [failure] tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[2]: AssertionError: INT8-proxy TOPS GPU 2: efficiency 12.74% is below threshold 75.00% (measured=504.417, theoretical=3958.000)
-assert 0.12744237137166187 >= 0.75
-- [failure] tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[3]: AssertionError: INT8-proxy TOPS GPU 3: efficiency 13.58% is below threshold 75.00% (measured=537.586, theoretical=3958.000)
-assert 0.13582259679696718 >= 0.75
+- [failure] tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[0]: AssertionError: FP32 GFLOPS GPU 0: efficiency 36.07% is below threshold 70.00% (measured=24168.578, theoretical=67000.000)
+assert 0.36072503853902255 >= 0.7
+- [failure] tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[1]: AssertionError: FP32 GFLOPS GPU 1: efficiency 54.87% is below threshold 70.00% (measured=36761.214, theoretical=67000.000)
+assert 0.5486748406149198 >= 0.7
+- [failure] tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[2]: AssertionError: FP32 GFLOPS GPU 2: efficiency 53.19% is below threshold 70.00% (measured=35636.882, theoretical=67000.000)
+assert 0.5318937582298633 >= 0.7
+- [failure] tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[3]: AssertionError: FP32 GFLOPS GPU 3: efficiency 68.78% is below threshold 70.00% (measured=46080.061, theoretical=67000.000)
+assert 0.6877620997363648 >= 0.7
+- [failure] tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[0]: AssertionError: FP16 TFLOPS GPU 0: efficiency 31.58% is below threshold 75.00% (measured=477.814, theoretical=1513.000)
+assert 0.31580569083420135 >= 0.75
+- [failure] tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[1]: AssertionError: FP16 TFLOPS GPU 1: efficiency 31.59% is below threshold 75.00% (measured=477.994, theoretical=1513.000)
+assert 0.31592476349969084 >= 0.75
+- [failure] tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[2]: AssertionError: FP16 TFLOPS GPU 2: efficiency 28.10% is below threshold 75.00% (measured=425.163, theoretical=1513.000)
+assert 0.28100690708920706 >= 0.75
+- [failure] tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[3]: AssertionError: FP16 TFLOPS GPU 3: efficiency 29.30% is below threshold 75.00% (measured=443.349, theoretical=1513.000)
+assert 0.2930264347583894 >= 0.75
+- [failure] tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[0]: AssertionError: BF16 TFLOPS GPU 0: efficiency 25.95% is below threshold 75.00% (measured=513.460, theoretical=1979.000)
+assert 0.2594543154601441 >= 0.75
+- [failure] tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[1]: AssertionError: BF16 TFLOPS GPU 1: efficiency 25.90% is below threshold 75.00% (measured=512.632, theoretical=1979.000)
+assert 0.25903562500712995 >= 0.75
+- [failure] tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[2]: AssertionError: BF16 TFLOPS GPU 2: efficiency 23.41% is below threshold 75.00% (measured=463.366, theoretical=1979.000)
+assert 0.23414131608715041 >= 0.75
+- [failure] tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[3]: AssertionError: BF16 TFLOPS GPU 3: efficiency 24.25% is below threshold 75.00% (measured=479.871, theoretical=1979.000)
+assert 0.242481471890651 >= 0.75
+- [failure] tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[0]: AssertionError: INT8-proxy TOPS GPU 0: efficiency 13.86% is below threshold 75.00% (measured=548.543, theoretical=3958.000)
+assert 0.13859088218519344 >= 0.75
+- [failure] tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[1]: AssertionError: INT8-proxy TOPS GPU 1: efficiency 13.93% is below threshold 75.00% (measured=551.272, theoretical=3958.000)
+assert 0.13928038304458404 >= 0.75
+- [failure] tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[2]: AssertionError: INT8-proxy TOPS GPU 2: efficiency 12.73% is below threshold 75.00% (measured=503.757, theoretical=3958.000)
+assert 0.12727569244148984 >= 0.75
+- [failure] tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[3]: AssertionError: INT8-proxy TOPS GPU 3: efficiency 13.54% is below threshold 75.00% (measured=536.108, theoretical=3958.000)
+assert 0.13544923129144987 >= 0.75
 - [failure] tests.test_gpu_validation.TestGPUECC::test_gpu_ecc_enabled: AssertionError: GPU 0: ECC is not enabled (mode=[1, 1])
 assert [1, 1] == 1
  +  where 1 = pynvml.NVML_FEATURE_ENABLED
 - [failure] tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_gpu_pci_bus_numbers_are_unique: AssertionError: GPU 2: PCIe bus number 0x61 collides with another GPU
 assert 97 not in [97, 177]
-- [failure] tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[2]: AssertionError: PCIe D2H bandwidth GPU 2: efficiency 37.82% is below threshold 65.00% (measured=23.829, theoretical=63.000)
-assert 0.3782341608687158 >= 0.65
+- [failure] tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[2]: AssertionError: PCIe D2H bandwidth GPU 2: efficiency 38.14% is below threshold 65.00% (measured=24.028, theoretical=63.000)
+assert 0.38139346362324594 >= 0.65
+- [failure] tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[3]: AssertionError: PCIe D2H bandwidth GPU 3: efficiency 39.11% is below threshold 65.00% (measured=24.640, theoretical=63.000)
+assert 0.3911168913237322 >= 0.65
 
 ### interconnect
 
 - [failure] tests.test_interconnect_validation.TestPCIeTopology::test_pcie_gen5_sysfs: AssertionError: No PCIe Gen 5 (32 GT/s) links found in sysfs
 assert False
-- [failure] tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[0-1]: AssertionError: P2P UVA copy GPU 0→1 produced incorrect values
-assert tensor(False)
- +  where tensor(False) = <built-in method all of Tensor object at 0x7f14d82934d0>()
- +    where <built-in method all of Tensor object at 0x7f14d82934d0> = tensor([0., 0., 0., 
-- [failure] tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[1-0]: AssertionError: P2P UVA copy GPU 1→0 produced incorrect values
-assert tensor(False)
- +  where tensor(False) = <built-in method all of Tensor object at 0x7f14d83025d0>()
- +    where <built-in method all of Tensor object at 0x7f14d83025d0> = tensor([0., 0., 0., 
 
 ### node_validation
 
 - [failure] tests.test_node_validation.TestPCIeBandwidthDirect::test_d2h_bandwidth_all_gpus: Failed: D2H PCIe bandwidth validation failed.
-threshold=40.95 GB/s, boundary=1.00 GB/s, min=40.28 GB/s, mean=51.64 GB/s
+threshold=40.95 GB/s, boundary=1.00 GB/s, min=39.33 GB/s, mean=51.78 GB/s
 Per-GPU failures:
-GPU 3: 40.28 GB/s < 40.95 GB/s
-- [failure] tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_latency_binary: AssertionError: 2 P2P bandwidth values below 40.0 GB/s: ['17.2', '17.2']
-assert not [17.25, 17.23]
+GPU 0: 39.33 GB/s < 40.95 GB/s
+- [failure] tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_latency_binary: AssertionError: 3 P2P bandwidth values below 40.0 GB/s: ['17.3', '38.3', '39.8']
+assert not [17.27, 39.81, 38.27]
+- [failure] tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_pytorch_fallback: Failed: P2P bandwidth fallback validation failed.
+threshold=40.0 GB/s, measured_pairs=12, inaccessible_pairs=0
+Failures:
+GPU1->GPU2: 33.6 GB/s < 40.0 GB/s
+GPU1->GPU3: 33.5 GB/s < 40.0 GB/s
 - [failure] tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_multi_stream_bandwidth: Failed: P2P multi-stream stability validation failed.
-tested_pairs=12, required_min_stability_ratio=0.85, assertion_size=1GiB, observed_min_scaling_ratio=0.794, observed_avg_scaling_ratio=1.041, required_min_directional_symmetry=0.75, observed_min_directional_
-- [failure] tests.test_node_validation.TestCPUGPUPowerAndThrottling::test_sustained_gpu_power_stability: AssertionError: Power variance 57.4 W is too high (expected < 50 W)
-assert np.float64(57.391626369413764) < 50
+tested_pairs=12, required_min_stability_ratio=0.85, assertion_size=1GiB, observed_min_scaling_ratio=0.789, observed_avg_scaling_ratio=0.964, required_min_directional_symmetry=0.75, observed_min_directional_
+- [failure] tests.test_node_validation.TestCPUGPUPowerAndThrottling::test_sustained_gpu_power_stability: AssertionError: Power variance 57.6 W is too high (expected < 50 W)
+assert np.float64(57.64407180539518) < 50
 - [failure] tests.test_node_validation.TestNCCLAndNVLinkValidation::test_nccl_p2p_perf: AssertionError: NCCL sendrecv busbw 25.1 GB/s too low
-assert 25.05 >= 30.0
-- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[deepseek_r1_quantized-deepseek-ai/DeepSeek-R1-Distill-Qwen-7B-32-3000.0-True]: torch.AcceleratorError: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API
-- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[llama_7b-meta-llama/Meta-Llama-3.1-8B-Instruct-32-3000.0-False]: torch.AcceleratorError: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API
-- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_batch_throughput: torch.AcceleratorError: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API
+assert 25.07 >= 30.0
 - [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vllm_data_pipeline_saturation_inference_prefill: AssertionError: GPU utilization not sustained (>=90% ratio=0.00, mean=0.0%, target_ratio=0.50, shared_gpu=True)
 assert 0.0 >= 0.5
-- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vision_object_detection_yolo_fps: AssertionError: YOLO aggregate FPS too low: 92.9 < target 200.0
-assert 92.94495106042463 >= 200.0
-- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_encoder_training_throughput: torch.AcceleratorError: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API
-- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vllm_inference_throughput: torch.AcceleratorError: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API
-- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_one_dma_read_4kb_validation: torch.AcceleratorError: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API
-- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_looped_rdma_mmio_dma_stress_soak: torch.AcceleratorError: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API
-- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_llm_training_small_multigpu: AssertionError: TC-013: gradient sync ratio 21.4% exceeds threshold 15% — communication bottleneck detected; check NVLink status and NCCL topology
-assert 0.214175 <= 0.15
+- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_predictable_memory_orchestration_kv_cache_offload: AssertionError: Offload throughput degradation too high: 93.1% (baseline 658.1 -> offload 45.1)
+assert 93.14828946216544 <= 60
+- [failure] tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_llm_training_small_multigpu: AssertionError: TC-013: gradient sync ratio 21.3% exceeds threshold 15% — communication bottleneck detected; check NVLink status and NCCL topology
+assert 0.213325 <= 0.15
 
 ### agentic_ai
 
-- [failure] tests.test_agentic_ai_validation.TestToolInvocationOverhead::test_parallel_tool_dispatch_scalability: AssertionError: Tool dispatch scales poorly: 16 tools take 7.4× time of 1 tool
-assert 7.4356755629691405 < 5.0
+- [failure] tests.test_agentic_ai_validation.TestToolInvocationOverhead::test_parallel_tool_dispatch_scalability: AssertionError: Tool dispatch scales poorly: 16 tools take 7.1× time of 1 tool
+assert 7.050985136536467 < 5.0
 
 ### ai_pipeline
 
-- [failure] tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_tokenizer_multi_thread_scaling: AssertionError: 4-thread tokenizer scaling 0.53× < 2.0× single-thread
-assert 0.5254029624596774 >= 2.0
-- [failure] tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_async_prefetch_gpu_overlap_efficiency: AssertionError: Async prefetch overlap efficiency 25.2% < 60.0%
-assert 25.157076046922278 >= 60.0
-- [failure] tests.test_ai_pipeline_kpis.TestModelOrchestration::test_model_load_time_to_gpu: AssertionError: Model load bandwidth 0.16 GB/s < 1.0 GB/s
-assert 0.16018335238275 >= 1.0
-- [failure] tests.test_ai_pipeline_kpis.TestModelOrchestration::test_tensor_parallel_allreduce_overhead_fraction: AssertionError: AllReduce overhead 98.7% > 20.0% of compute
-assert 98.68103591038746 <= 20.0
-- [failure] tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO::test_model_weight_load_pipeline_bandwidth: AssertionError: Weight load pipeline 0.84 GB/s < 1.0 GB/s
-assert 0.8412086480859542 >= 1.0
+- [failure] tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_tokenizer_multi_thread_scaling: AssertionError: 4-thread tokenizer scaling 1.51× < 2.0× single-thread
+assert 1.5091894807137098 >= 2.0
+- [failure] tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_async_prefetch_gpu_overlap_efficiency: AssertionError: Async prefetch overlap efficiency 25.0% < 60.0%
+assert 24.987182701528184 >= 60.0
+- [failure] tests.test_ai_pipeline_kpis.TestModelOrchestration::test_model_load_time_to_gpu: AssertionError: Model load bandwidth 0.19 GB/s < 1.0 GB/s
+assert 0.18914551734399657 >= 1.0
+- [failure] tests.test_ai_pipeline_kpis.TestModelOrchestration::test_tensor_parallel_allreduce_overhead_fraction: AssertionError: AllReduce overhead 98.6% > 20.0% of compute
+assert 98.62941541171739 <= 20.0
+- [failure] tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO::test_model_weight_load_pipeline_bandwidth: AssertionError: Weight load pipeline 0.91 GB/s < 1.0 GB/s
+assert 0.9062301473010916 >= 1.0
 - [failure] tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs::test_time_to_first_token[2048]: torch.AcceleratorError: CUDA error: device-side assert triggered
 Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
 CUDA kernel errors might be asynchronously reported at some other API
@@ -245,20 +217,22 @@ CUDA kernel errors might be asynchronously reported at some other API
 
 ### system_health
 
+- [failure] tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[0]: AssertionError: GPU 0 clock ratio 20.51% below 80%; throttling suspected (current 360 MHz, max 1755 MHz)
+assert 0.20512820512820512 >= 0.8
 - [failure] tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[1]: AssertionError: GPU 1 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)
 assert 0.19658119658119658 >= 0.8
 - [failure] tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[2]: AssertionError: GPU 2 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)
 assert 0.19658119658119658 >= 0.8
 - [failure] tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[3]: AssertionError: GPU 3 clock ratio 19.33% below 80%; throttling suspected (current 345 MHz, max 1785 MHz)
 assert 0.19327731092436976 >= 0.8
-- [failure] tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_sustained_compute_no_thermal_throttle: AssertionError: SM clock dropped 46.2% during sustained load (initial 1755 MHz → min 945 MHz, max_temp 57 °C). Thermal or power-limit throttling detected.
-assert 0.46153846153846156 <= 0.1
-- [failure] tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_power_limit_headroom: AssertionError: GPU(s) exceeding 90 % power limit at rest: GPU0 96%
-assert not [(0, {'power_w': 337.146, 'limit_w': 350.0, 'ratio': 0.9632742857142857})]
+- [failure] tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_sustained_compute_no_thermal_throttle: AssertionError: SM clock dropped 47.0% during sustained load (initial 1755 MHz → min 930 MHz, max_temp 60 °C). Thermal or power-limit throttling detected.
+assert 0.4700854700854701 <= 0.1
+- [failure] tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_power_limit_headroom: AssertionError: GPU(s) exceeding 90 % power limit at rest: GPU0 99%
+assert not [(0, {'power_w': 345.936, 'limit_w': 350.0, 'ratio': 0.9883885714285714})]
 - [failure] tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_quantised_softmax_output_matches_fp16: AssertionError: Quantised softmax max error 2.56e-03 exceeds 1e-03
 assert 0.0025634765625 < 0.001
-- [failure] tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_speedup_over_eager: AssertionError: torch.compile speedup 0.812× < floor 1.05×. Compiled kernels may be suboptimal for this H100 PCIe configuration.
-assert 0.8121578871726854 >= 1.05
+- [failure] tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_speedup_over_eager: AssertionError: torch.compile speedup 0.811× < floor 1.05×. Compiled kernels may be suboptimal for this H100 PCIe configuration.
+assert 0.8108152349229382 >= 1.05
 
 ### vllm_prefill
 
@@ -267,14 +241,8 @@ assert 0.8121578871726854 >= 1.05
 ### mlperf_suite
 
 - [failure] tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003]: Failed: Timeout (>600.0s) from pytest-timeout.
-- [failure] tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_004]: Failed: AI_HOSTCPU_ML_TEST_ID_004: command failed (rc=1)
-executed_command: vllm serve meta-llama/Meta-Llama-3.1-8B-Instruct --tensor-parallel-size 4 --max-model-len 8192 --gpu-memory-utilization 0.90 --port 8000
-stderr_tail:
-568)                    ^^^^^^^^^^^
-- [failure] tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005]: Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)
-executed_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000
-stderr_tail:
-328)                    ^
+- [failure] tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_004]: Failed: Timeout (>600.0s) from pytest-timeout.
+- [failure] tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005]: Failed: Timeout (>600.0s) from pytest-timeout.
 - [failure] tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_006]: Failed: AI_HOSTCPU_ML_TEST_ID_006: command failed (rc=2)
 executed_command: /usr/bin/python /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch resnet50 gpu --scenario Offline --dataset-path /root/workloads/AIHeadNode/da
 - [failure] tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_007]: Failed: AI_HOSTCPU_ML_TEST_ID_007: command failed (rc=2)

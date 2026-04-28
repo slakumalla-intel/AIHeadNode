@@ -1,35 +1,35 @@
-16:08:24 INFO     ai_headnode_tests HBM3 bandwidth GPU 0                                measured=     1.853  theoretical=     2.000  efficiency= 92.66%  threshold=    80%
-16:08:24 INFO     ai_headnode_tests HBM3 bandwidth GPU 1                                measured=     1.854  theoretical=     2.000  efficiency= 92.68%  threshold=    80%
-16:08:24 INFO     ai_headnode_tests HBM3 bandwidth GPU 2                                measured=     1.856  theoretical=     2.000  efficiency= 92.80%  threshold=    80%
-16:08:24 INFO     ai_headnode_tests HBM3 bandwidth GPU 3                                measured=     3.572  theoretical=     2.000  efficiency=178.62%  threshold=    80%
-16:08:25 INFO     ai_headnode_tests FP32 GFLOPS GPU 0                                   measured= 37197.708  theoretical= 67000.000  efficiency= 55.52%  threshold=    70%
-16:08:25 INFO     ai_headnode_tests FP32 GFLOPS GPU 1                                   measured= 36671.047  theoretical= 67000.000  efficiency= 54.73%  threshold=    70%
-16:08:25 INFO     ai_headnode_tests FP32 GFLOPS GPU 2                                   measured= 34924.735  theoretical= 67000.000  efficiency= 52.13%  threshold=    70%
-16:08:25 INFO     ai_headnode_tests FP32 GFLOPS GPU 3                                   measured= 45997.801  theoretical= 67000.000  efficiency= 68.65%  threshold=    70%
-16:08:25 INFO     ai_headnode_tests FP16 TFLOPS GPU 0                                   measured=   478.966  theoretical=  1513.000  efficiency= 31.66%  threshold=    75%
-16:08:25 INFO     ai_headnode_tests FP16 TFLOPS GPU 1                                   measured=   479.998  theoretical=  1513.000  efficiency= 31.72%  threshold=    75%
-16:08:25 INFO     ai_headnode_tests FP16 TFLOPS GPU 2                                   measured=   424.841  theoretical=  1513.000  efficiency= 28.08%  threshold=    75%
-16:08:25 INFO     ai_headnode_tests FP16 TFLOPS GPU 3                                   measured=   439.832  theoretical=  1513.000  efficiency= 29.07%  threshold=    75%
-16:08:25 INFO     ai_headnode_tests BF16 TFLOPS GPU 0                                   measured=   512.696  theoretical=  1979.000  efficiency= 25.91%  threshold=    75%
-16:08:25 INFO     ai_headnode_tests BF16 TFLOPS GPU 1                                   measured=   512.877  theoretical=  1979.000  efficiency= 25.92%  threshold=    75%
-16:08:25 INFO     ai_headnode_tests BF16 TFLOPS GPU 2                                   measured=   461.739  theoretical=  1979.000  efficiency= 23.33%  threshold=    75%
-16:08:26 INFO     ai_headnode_tests BF16 TFLOPS GPU 3                                   measured=   481.402  theoretical=  1979.000  efficiency= 24.33%  threshold=    75%
-16:08:26 INFO     ai_headnode_tests INT8-proxy TOPS GPU 0                               measured=   547.654  theoretical=  3958.000  efficiency= 13.84%  threshold=    75%
-16:08:26 INFO     ai_headnode_tests INT8-proxy TOPS GPU 1                               measured=   549.173  theoretical=  3958.000  efficiency= 13.88%  threshold=    75%
-16:08:26 INFO     ai_headnode_tests INT8-proxy TOPS GPU 2                               measured=   504.417  theoretical=  3958.000  efficiency= 12.74%  threshold=    75%
-16:08:26 INFO     ai_headnode_tests INT8-proxy TOPS GPU 3                               measured=   537.586  theoretical=  3958.000  efficiency= 13.58%  threshold=    75%
-16:08:26 INFO     ai_headnode_tests FP64 TFLOPS GPU 0                                   measured=    35.853  theoretical=    34.000  efficiency=105.45%  threshold=    70%
-16:08:26 INFO     ai_headnode_tests FP64 TFLOPS GPU 1                                   measured=    36.056  theoretical=    34.000  efficiency=106.05%  threshold=    70%
-16:08:26 INFO     ai_headnode_tests FP64 TFLOPS GPU 2                                   measured=    32.254  theoretical=    34.000  efficiency= 94.86%  threshold=    70%
-16:08:26 INFO     ai_headnode_tests FP64 TFLOPS GPU 3                                   measured=    41.350  theoretical=    34.000  efficiency=121.62%  threshold=    70%
-16:08:26 INFO     ai_headnode_tests Multi-GPU FP16 aggregate (4 GPUs)                   measured=  1806.006  theoretical=  1915.360  efficiency= 94.29%  threshold=    80%
-16:08:27 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 0                            measured=    55.632  theoretical=    63.000  efficiency= 88.30%  threshold=    65%
-16:08:27 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 1                            measured=    55.929  theoretical=    63.000  efficiency= 88.78%  threshold=    65%
-16:08:28 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 2                            measured=    55.655  theoretical=    63.000  efficiency= 88.34%  threshold=    65%
-16:08:28 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 3                            measured=    55.391  theoretical=    63.000  efficiency= 87.92%  threshold=    65%
-16:08:28 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 0                            measured=    55.349  theoretical=    63.000  efficiency= 87.86%  threshold=    65%
-16:08:28 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 1                            measured=    55.359  theoretical=    63.000  efficiency= 87.87%  threshold=    65%
-16:08:28 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 2                            measured=    23.829  theoretical=    63.000  efficiency= 37.82%  threshold=    65%
-16:08:29 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 3                            measured=    57.179  theoretical=    63.000  efficiency= 90.76%  threshold=    65%
-16:08:29 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
-16:08:29 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/NODE_VALIDATION_REPORT.md
+03:01:44 INFO     ai_headnode_tests HBM3 bandwidth GPU 0                                measured=     1.853  theoretical=     2.000  efficiency= 92.65%  threshold=    80%
+03:01:44 INFO     ai_headnode_tests HBM3 bandwidth GPU 1                                measured=     1.854  theoretical=     2.000  efficiency= 92.72%  threshold=    80%
+03:01:44 INFO     ai_headnode_tests HBM3 bandwidth GPU 2                                measured=     1.853  theoretical=     2.000  efficiency= 92.67%  threshold=    80%
+03:01:44 INFO     ai_headnode_tests HBM3 bandwidth GPU 3                                measured=     3.557  theoretical=     2.000  efficiency=177.83%  threshold=    80%
+03:01:45 INFO     ai_headnode_tests FP32 GFLOPS GPU 0                                   measured= 24168.578  theoretical= 67000.000  efficiency= 36.07%  threshold=    70%
+03:01:45 INFO     ai_headnode_tests FP32 GFLOPS GPU 1                                   measured= 36761.214  theoretical= 67000.000  efficiency= 54.87%  threshold=    70%
+03:01:45 INFO     ai_headnode_tests FP32 GFLOPS GPU 2                                   measured= 35636.882  theoretical= 67000.000  efficiency= 53.19%  threshold=    70%
+03:01:45 INFO     ai_headnode_tests FP32 GFLOPS GPU 3                                   measured= 46080.061  theoretical= 67000.000  efficiency= 68.78%  threshold=    70%
+03:01:45 INFO     ai_headnode_tests FP16 TFLOPS GPU 0                                   measured=   477.814  theoretical=  1513.000  efficiency= 31.58%  threshold=    75%
+03:01:45 INFO     ai_headnode_tests FP16 TFLOPS GPU 1                                   measured=   477.994  theoretical=  1513.000  efficiency= 31.59%  threshold=    75%
+03:01:45 INFO     ai_headnode_tests FP16 TFLOPS GPU 2                                   measured=   425.163  theoretical=  1513.000  efficiency= 28.10%  threshold=    75%
+03:01:45 INFO     ai_headnode_tests FP16 TFLOPS GPU 3                                   measured=   443.349  theoretical=  1513.000  efficiency= 29.30%  threshold=    75%
+03:01:45 INFO     ai_headnode_tests BF16 TFLOPS GPU 0                                   measured=   513.460  theoretical=  1979.000  efficiency= 25.95%  threshold=    75%
+03:01:45 INFO     ai_headnode_tests BF16 TFLOPS GPU 1                                   measured=   512.632  theoretical=  1979.000  efficiency= 25.90%  threshold=    75%
+03:01:45 INFO     ai_headnode_tests BF16 TFLOPS GPU 2                                   measured=   463.366  theoretical=  1979.000  efficiency= 23.41%  threshold=    75%
+03:01:45 INFO     ai_headnode_tests BF16 TFLOPS GPU 3                                   measured=   479.871  theoretical=  1979.000  efficiency= 24.25%  threshold=    75%
+03:01:45 INFO     ai_headnode_tests INT8-proxy TOPS GPU 0                               measured=   548.543  theoretical=  3958.000  efficiency= 13.86%  threshold=    75%
+03:01:45 INFO     ai_headnode_tests INT8-proxy TOPS GPU 1                               measured=   551.272  theoretical=  3958.000  efficiency= 13.93%  threshold=    75%
+03:01:45 INFO     ai_headnode_tests INT8-proxy TOPS GPU 2                               measured=   503.757  theoretical=  3958.000  efficiency= 12.73%  threshold=    75%
+03:01:46 INFO     ai_headnode_tests INT8-proxy TOPS GPU 3                               measured=   536.108  theoretical=  3958.000  efficiency= 13.54%  threshold=    75%
+03:01:46 INFO     ai_headnode_tests FP64 TFLOPS GPU 0                                   measured=    36.013  theoretical=    34.000  efficiency=105.92%  threshold=    70%
+03:01:46 INFO     ai_headnode_tests FP64 TFLOPS GPU 1                                   measured=    36.039  theoretical=    34.000  efficiency=106.00%  threshold=    70%
+03:01:46 INFO     ai_headnode_tests FP64 TFLOPS GPU 2                                   measured=    32.390  theoretical=    34.000  efficiency= 95.27%  threshold=    70%
+03:01:46 INFO     ai_headnode_tests FP64 TFLOPS GPU 3                                   measured=    41.292  theoretical=    34.000  efficiency=121.45%  threshold=    70%
+03:01:46 INFO     ai_headnode_tests Multi-GPU FP16 aggregate (4 GPUs)                   measured=  1818.278  theoretical=  1919.862  efficiency= 94.71%  threshold=    80%
+03:01:47 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 0                            measured=    55.746  theoretical=    63.000  efficiency= 88.49%  threshold=    65%
+03:01:47 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 1                            measured=    55.901  theoretical=    63.000  efficiency= 88.73%  threshold=    65%
+03:01:47 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 2                            measured=    55.652  theoretical=    63.000  efficiency= 88.34%  threshold=    65%
+03:01:47 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 3                            measured=    55.717  theoretical=    63.000  efficiency= 88.44%  threshold=    65%
+03:01:47 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 0                            measured=    55.262  theoretical=    63.000  efficiency= 87.72%  threshold=    65%
+03:01:47 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 1                            measured=    55.294  theoretical=    63.000  efficiency= 87.77%  threshold=    65%
+03:01:48 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 2                            measured=    24.028  theoretical=    63.000  efficiency= 38.14%  threshold=    65%
+03:01:49 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 3                            measured=    24.640  theoretical=    63.000  efficiency= 39.11%  threshold=    65%
+03:01:49 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+03:01:49 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/NODE_VALIDATION_REPORT.md

@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-04-27T17:07:57.616000+00:00",
+  "generated_at_utc": "2026-04-28T04:42:12.181620+00:00",
   "host": "sc00901168s0075",
   "python": "3.12.12",
   "domains": [
@@ -8,32 +8,27 @@
       "description": "Roofline and bottleneck analysis",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:03:20.280859+00:00",
-      "finished_at_utc": "2026-04-27T16:03:33.004085+00:00",
+      "started_at_utc": "2026-04-28T02:57:13.391914+00:00",
+      "finished_at_utc": "2026-04-28T02:57:27.936289+00:00",
       "tests": 25,
-      "failures": 5,
+      "failures": 4,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 9.899,
+      "duration_sec": 10.051,
       "failed_tests": [
         {
           "nodeid": "tests.test_bottleneck_analysis.TestCPUComputeBottleneck::test_cpu_fp32_efficiency_report",
-          "message": "AssertionError: CPU FP32 (1 process, BLAS threads=224): efficiency 7.03% is below threshold 70.00% (measured=1.915, theoretical=27.238)\nassert 0.07029843576423664 >= 0.7",
+          "message": "AssertionError: CPU FP32 (1 process, BLAS threads=224): efficiency 7.05% is below threshold 70.00% (measured=1.919, theoretical=27.238)\nassert 0.07045469366717601 >= 0.7",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_bottleneck_analysis.TestGPUComputeBottleneck::test_per_gpu_fp16_efficiency",
-          "message": "AssertionError: GPU 0 FP16 Tensor Core: efficiency 31.62% is below threshold 75.00% (measured=478.387, theoretical=1513.000)\nassert 0.31618443124915063 >= 0.75",
+          "message": "AssertionError: GPU 0 FP16 Tensor Core: efficiency 31.59% is below threshold 75.00% (measured=477.978, theoretical=1513.000)\nassert 0.31591398244437896 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_bottleneck_analysis.TestGPUComputeBottleneck::test_aggregate_4gpu_fp16_tflops",
-          "message": "AssertionError: 4-GPU aggregate FP16 TFLOPS: efficiency 29.80% is below threshold 75.00% (measured=1803.664, theoretical=6052.000)\nassert 0.29802782333568895 >= 0.75",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_bottleneck_analysis.TestHBMBandwidthBottleneck::test_hbm_bandwidth_per_gpu_vs_theoretical",
-          "message": "AssertionError: GPU 2 HBM3 bandwidth: efficiency 9.16% is below threshold 80.00% (measured=0.183, theoretical=2.000)\nassert 0.0915859993385234 >= 0.8",
+          "message": "AssertionError: 4-GPU aggregate FP16 TFLOPS: efficiency 29.91% is below threshold 75.00% (measured=1809.936, theoretical=6052.000)\nassert 0.2990641025347952 >= 0.75",
           "kind": "failure"
         },
         {
@@ -51,13 +46,13 @@
       "description": "CPU validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:03:33.004328+00:00",
-      "finished_at_utc": "2026-04-27T16:08:04.166174+00:00",
+      "started_at_utc": "2026-04-28T02:57:27.936561+00:00",
+      "finished_at_utc": "2026-04-28T03:01:22.489009+00:00",
       "tests": 33,
-      "failures": 11,
+      "failures": 9,
       "errors": 0,
       "skipped": 1,
-      "duration_sec": 268.736,
+      "duration_sec": 232.45,
       "failed_tests": [
         {
           "nodeid": "tests.test_cpu_validation.TestSingleCoreFP32::test_single_core_gflops_above_floor",
@@ -66,52 +61,42 @@
         },
         {
           "nodeid": "tests.test_cpu_validation.TestAllCoreFP32Scaling::test_all_core_fp32_gflops",
-          "message": "AssertionError: All-core FP32 GFLOPS (BLAS): efficiency 26.75% is below threshold 70.00% (measured=7287.016, theoretical=27238.400)\nassert 0.26752730753896187 >= 0.7",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[2]",
-          "message": "AssertionError: Parallel speedup at 2 cores: efficiency 83.40% is below threshold 85.00% (measured=424.439, theoretical=508.891)\nassert 0.8340484327116333 >= 0.85",
+          "message": "AssertionError: All-core FP32 GFLOPS (BLAS): efficiency 26.05% is below threshold 70.00% (measured=7095.134, theoretical=27238.400)\nassert 0.2604827907403243 >= 0.7",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[4]",
-          "message": "AssertionError: Parallel speedup at 4 cores: efficiency 14.29% is below threshold 85.00% (measured=160.452, theoretical=1122.967)\nassert 0.14288246938137358 >= 0.85",
+          "message": "AssertionError: Parallel speedup at 4 cores: efficiency 6.74% is below threshold 85.00% (measured=72.243, theoretical=1072.159)\nassert 0.06738127724876494 >= 0.85",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[8]",
-          "message": "AssertionError: Parallel speedup at 8 cores: efficiency 0.31% is below threshold 85.00% (measured=6.389, theoretical=2031.079)\nassert 0.0031458064110784253 >= 0.85",
+          "message": "AssertionError: Parallel speedup at 8 cores: efficiency 0.26% is below threshold 85.00% (measured=6.095, theoretical=2342.638)\nassert 0.002601853902865249 >= 0.85",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[16]",
-          "message": "AssertionError: Parallel speedup at 16 cores: efficiency 0.11% is below threshold 85.00% (measured=4.872, theoretical=4482.323)\nassert 0.0010869388334792756 >= 0.85",
+          "message": "AssertionError: Parallel speedup at 16 cores: efficiency 0.12% is below threshold 85.00% (measured=5.609, theoretical=4838.845)\nassert 0.001159159670273666 >= 0.85",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[32]",
-          "message": "AssertionError: Parallel speedup at 32 cores: efficiency 0.05% is below threshold 85.00% (measured=4.463, theoretical=9000.100)\nassert 0.0004958489628036974 >= 0.85",
+          "message": "AssertionError: Parallel speedup at 32 cores: efficiency 0.06% is below threshold 85.00% (measured=5.081, theoretical=9075.926)\nassert 0.0005597988124748729 >= 0.85",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_cpu_validation.TestParallelSpeedup::test_parallel_speedup_at_n_cores[64]",
-          "message": "AssertionError: Parallel speedup at 64 cores: efficiency 0.03% is below threshold 85.00% (measured=4.724, theoretical=18197.715)\nassert 0.0002595676794268458 >= 0.85",
+          "message": "AssertionError: Parallel speedup at 64 cores: efficiency 0.03% is below threshold 85.00% (measured=5.313, theoretical=18064.635)\nassert 0.0002941245472917233 >= 0.85",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_cpu_validation.TestIntegerThroughput::test_integer_vector_ops_throughput",
-          "message": "AssertionError: Concurrent INT64 vector add throughput 21.35 GOPS < 56.00 GOPS (224 threads \u00d7 0.25 GOPS/thread floor)\nassert 21.354101254305142 >= 56.0",
+          "message": "AssertionError: Concurrent INT64 vector add throughput 23.71 GOPS < 56.00 GOPS (224 threads \u00d7 0.25 GOPS/thread floor)\nassert 23.709933761795686 >= 56.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_cpu_validation.TestIntegerThroughput::test_integer_multiply_throughput",
-          "message": "AssertionError: Concurrent INT64 multiply throughput 39.35 GOPS < 56.00 GOPS (224 threads \u00d7 0.25 GOPS/thread floor)\nassert 39.34511729619078 >= 56.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_cpu_validation.TestCacheCoherency::test_false_sharing_detection",
-          "message": "AssertionError: Expected padded (0.888s) < unpadded (0.862s)\nassert 0.8884903129946906 < 0.8623696630238555",
+          "message": "AssertionError: Concurrent INT64 multiply throughput 36.93 GOPS < 56.00 GOPS (224 threads \u00d7 0.25 GOPS/thread floor)\nassert 36.931165837541656 >= 56.0",
           "kind": "failure"
         }
       ],
@@ -124,13 +109,13 @@
       "description": "Memory subsystem validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:08:04.166366+00:00",
-      "finished_at_utc": "2026-04-27T16:08:21.908323+00:00",
+      "started_at_utc": "2026-04-28T03:01:22.489179+00:00",
+      "finished_at_utc": "2026-04-28T03:01:41.627883+00:00",
       "tests": 28,
       "failures": 8,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 15.259,
+      "duration_sec": 17.36,
       "failed_tests": [
         {
           "nodeid": "tests.test_memory_validation.TestRAMCapacity::test_total_ram_at_least_1tb",
@@ -139,37 +124,37 @@
         },
         {
           "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_scale_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Scale 12.31 GB/s < 15 GB/s\nassert 12.314018330940955 >= 15.0",
+          "message": "AssertionError: STREAM Scale 11.28 GB/s < 15 GB/s\nassert 11.280456482108326 >= 15.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_triad_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Triad 12.15 GB/s < 15 GB/s\nassert 12.147721856935542 >= 15.0",
+          "message": "AssertionError: STREAM Triad 11.88 GB/s < 15 GB/s\nassert 11.87695927351219 >= 15.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[32-4.0]",
-          "message": "AssertionError: Working-set 32 KB: latency 83.60 ns > 4.0 ns\nassert 83.60131431572881 <= 4.0",
+          "message": "AssertionError: Working-set 32 KB: latency 83.29 ns > 4.0 ns\nassert 83.29272466189863 <= 4.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[512-8.0]",
-          "message": "AssertionError: Working-set 512 KB: latency 90.44 ns > 8.0 ns\nassert 90.44337456742824 <= 8.0",
+          "message": "AssertionError: Working-set 512 KB: latency 87.26 ns > 8.0 ns\nassert 87.26184081916944 <= 8.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[16384-30.0]",
-          "message": "AssertionError: Working-set 16384 KB: latency 195.22 ns > 30.0 ns\nassert 195.2218500082381 <= 30.0",
+          "message": "AssertionError: Working-set 16384 KB: latency 194.29 ns > 30.0 ns\nassert 194.28579000077661 <= 30.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[524288-120.0]",
-          "message": "AssertionError: Working-set 524288 KB: latency 233.94 ns > 120.0 ns\nassert 233.9418200426735 <= 120.0",
+          "message": "AssertionError: Working-set 524288 KB: latency 235.67 ns > 120.0 ns\nassert 235.66586000015377 <= 120.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_memory_validation.TestSustainedBandwidth::test_bandwidth_does_not_degrade",
-          "message": "AssertionError: BW run 2 (12.12 GB/s) degraded > 15 % vs first run (47.53 GB/s)\nassert 0.7450064389859917 <= 0.15",
+          "message": "AssertionError: BW run 2 (39.43 GB/s) degraded > 15 % vs first run (47.49 GB/s)\nassert 0.16978049229886918 <= 0.15",
           "kind": "failure"
         }
       ],
@@ -182,92 +167,92 @@
       "description": "GPU validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:08:21.908527+00:00",
-      "finished_at_utc": "2026-04-27T16:08:30.912693+00:00",
+      "started_at_utc": "2026-04-28T03:01:41.628098+00:00",
+      "finished_at_utc": "2026-04-28T03:01:50.125747+00:00",
       "tests": 53,
-      "failures": 19,
+      "failures": 20,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 6.616,
+      "duration_sec": 6.141,
       "failed_tests": [
         {
           "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[0]",
-          "message": "AssertionError: FP32 GFLOPS GPU 0: efficiency 55.52% is below threshold 70.00% (measured=37197.708, theoretical=67000.000)\nassert 0.555189674981243 >= 0.7",
+          "message": "AssertionError: FP32 GFLOPS GPU 0: efficiency 36.07% is below threshold 70.00% (measured=24168.578, theoretical=67000.000)\nassert 0.36072503853902255 >= 0.7",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[1]",
-          "message": "AssertionError: FP32 GFLOPS GPU 1: efficiency 54.73% is below threshold 70.00% (measured=36671.047, theoretical=67000.000)\nassert 0.5473290536180478 >= 0.7",
+          "message": "AssertionError: FP32 GFLOPS GPU 1: efficiency 54.87% is below threshold 70.00% (measured=36761.214, theoretical=67000.000)\nassert 0.5486748406149198 >= 0.7",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[2]",
-          "message": "AssertionError: FP32 GFLOPS GPU 2: efficiency 52.13% is below threshold 70.00% (measured=34924.735, theoretical=67000.000)\nassert 0.521264695085823 >= 0.7",
+          "message": "AssertionError: FP32 GFLOPS GPU 2: efficiency 53.19% is below threshold 70.00% (measured=35636.882, theoretical=67000.000)\nassert 0.5318937582298633 >= 0.7",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[3]",
-          "message": "AssertionError: FP32 GFLOPS GPU 3: efficiency 68.65% is below threshold 70.00% (measured=45997.801, theoretical=67000.000)\nassert 0.6865343487513104 >= 0.7",
+          "message": "AssertionError: FP32 GFLOPS GPU 3: efficiency 68.78% is below threshold 70.00% (measured=46080.061, theoretical=67000.000)\nassert 0.6877620997363648 >= 0.7",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[0]",
-          "message": "AssertionError: FP16 TFLOPS GPU 0: efficiency 31.66% is below threshold 75.00% (measured=478.966, theoretical=1513.000)\nassert 0.3165671841580488 >= 0.75",
+          "message": "AssertionError: FP16 TFLOPS GPU 0: efficiency 31.58% is below threshold 75.00% (measured=477.814, theoretical=1513.000)\nassert 0.31580569083420135 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[1]",
-          "message": "AssertionError: FP16 TFLOPS GPU 1: efficiency 31.72% is below threshold 75.00% (measured=479.998, theoretical=1513.000)\nassert 0.31724912784080156 >= 0.75",
+          "message": "AssertionError: FP16 TFLOPS GPU 1: efficiency 31.59% is below threshold 75.00% (measured=477.994, theoretical=1513.000)\nassert 0.31592476349969084 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[2]",
-          "message": "AssertionError: FP16 TFLOPS GPU 2: efficiency 28.08% is below threshold 75.00% (measured=424.841, theoretical=1513.000)\nassert 0.2807939085819351 >= 0.75",
+          "message": "AssertionError: FP16 TFLOPS GPU 2: efficiency 28.10% is below threshold 75.00% (measured=425.163, theoretical=1513.000)\nassert 0.28100690708920706 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[3]",
-          "message": "AssertionError: FP16 TFLOPS GPU 3: efficiency 29.07% is below threshold 75.00% (measured=439.832, theoretical=1513.000)\nassert 0.2907018526618181 >= 0.75",
+          "message": "AssertionError: FP16 TFLOPS GPU 3: efficiency 29.30% is below threshold 75.00% (measured=443.349, theoretical=1513.000)\nassert 0.2930264347583894 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[0]",
-          "message": "AssertionError: BF16 TFLOPS GPU 0: efficiency 25.91% is below threshold 75.00% (measured=512.696, theoretical=1979.000)\nassert 0.2590680805251704 >= 0.75",
+          "message": "AssertionError: BF16 TFLOPS GPU 0: efficiency 25.95% is below threshold 75.00% (measured=513.460, theoretical=1979.000)\nassert 0.2594543154601441 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[1]",
-          "message": "AssertionError: BF16 TFLOPS GPU 1: efficiency 25.92% is below threshold 75.00% (measured=512.877, theoretical=1979.000)\nassert 0.2591597891728717 >= 0.75",
+          "message": "AssertionError: BF16 TFLOPS GPU 1: efficiency 25.90% is below threshold 75.00% (measured=512.632, theoretical=1979.000)\nassert 0.25903562500712995 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[2]",
-          "message": "AssertionError: BF16 TFLOPS GPU 2: efficiency 23.33% is below threshold 75.00% (measured=461.739, theoretical=1979.000)\nassert 0.2333194946517316 >= 0.75",
+          "message": "AssertionError: BF16 TFLOPS GPU 2: efficiency 23.41% is below threshold 75.00% (measured=463.366, theoretical=1979.000)\nassert 0.23414131608715041 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[3]",
-          "message": "AssertionError: BF16 TFLOPS GPU 3: efficiency 24.33% is below threshold 75.00% (measured=481.402, theoretical=1979.000)\nassert 0.2432550310045876 >= 0.75",
+          "message": "AssertionError: BF16 TFLOPS GPU 3: efficiency 24.25% is below threshold 75.00% (measured=479.871, theoretical=1979.000)\nassert 0.242481471890651 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[0]",
-          "message": "AssertionError: INT8-proxy TOPS GPU 0: efficiency 13.84% is below threshold 75.00% (measured=547.654, theoretical=3958.000)\nassert 0.13836633977546975 >= 0.75",
+          "message": "AssertionError: INT8-proxy TOPS GPU 0: efficiency 13.86% is below threshold 75.00% (measured=548.543, theoretical=3958.000)\nassert 0.13859088218519344 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[1]",
-          "message": "AssertionError: INT8-proxy TOPS GPU 1: efficiency 13.88% is below threshold 75.00% (measured=549.173, theoretical=3958.000)\nassert 0.13875005126896786 >= 0.75",
+          "message": "AssertionError: INT8-proxy TOPS GPU 1: efficiency 13.93% is below threshold 75.00% (measured=551.272, theoretical=3958.000)\nassert 0.13928038304458404 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[2]",
-          "message": "AssertionError: INT8-proxy TOPS GPU 2: efficiency 12.74% is below threshold 75.00% (measured=504.417, theoretical=3958.000)\nassert 0.12744237137166187 >= 0.75",
+          "message": "AssertionError: INT8-proxy TOPS GPU 2: efficiency 12.73% is below threshold 75.00% (measured=503.757, theoretical=3958.000)\nassert 0.12727569244148984 >= 0.75",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[3]",
-          "message": "AssertionError: INT8-proxy TOPS GPU 3: efficiency 13.58% is below threshold 75.00% (measured=537.586, theoretical=3958.000)\nassert 0.13582259679696718 >= 0.75",
+          "message": "AssertionError: INT8-proxy TOPS GPU 3: efficiency 13.54% is below threshold 75.00% (measured=536.108, theoretical=3958.000)\nassert 0.13544923129144987 >= 0.75",
           "kind": "failure"
         },
         {
@@ -282,7 +267,12 @@
         },
         {
           "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[2]",
-          "message": "AssertionError: PCIe D2H bandwidth GPU 2: efficiency 37.82% is below threshold 65.00% (measured=23.829, theoretical=63.000)\nassert 0.3782341608687158 >= 0.65",
+          "message": "AssertionError: PCIe D2H bandwidth GPU 2: efficiency 38.14% is below threshold 65.00% (measured=24.028, theoretical=63.000)\nassert 0.38139346362324594 >= 0.65",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[3]",
+          "message": "AssertionError: PCIe D2H bandwidth GPU 3: efficiency 39.11% is below threshold 65.00% (measured=24.640, theoretical=63.000)\nassert 0.3911168913237322 >= 0.65",
           "kind": "failure"
         }
       ],
@@ -295,27 +285,17 @@
       "description": "PCIe / NVLink / P2P interconnect validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:08:30.912939+00:00",
-      "finished_at_utc": "2026-04-27T16:09:50.077013+00:00",
+      "started_at_utc": "2026-04-28T03:01:50.125936+00:00",
+      "finished_at_utc": "2026-04-28T03:03:03.643933+00:00",
       "tests": 77,
-      "failures": 3,
+      "failures": 1,
       "errors": 0,
       "skipped": 4,
-      "duration_sec": 72.995,
+      "duration_sec": 67.352,
       "failed_tests": [
         {
           "nodeid": "tests.test_interconnect_validation.TestPCIeTopology::test_pcie_gen5_sysfs",
           "message": "AssertionError: No PCIe Gen 5 (32 GT/s) links found in sysfs\nassert False",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[0-1]",
-          "message": "AssertionError: P2P UVA copy GPU 0\u21921 produced incorrect values\nassert tensor(False)\n +  where tensor(False) = <built-in method all of Tensor object at 0x7f14d82934d0>()\n +    where <built-in method all of Tensor object at 0x7f14d82934d0> = tensor([0., 0., 0., ",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[1-0]",
-          "message": "AssertionError: P2P UVA copy GPU 1\u21920 produced incorrect values\nassert tensor(False)\n +  where tensor(False) = <built-in method all of Tensor object at 0x7f14d83025d0>()\n +    where <built-in method all of Tensor object at 0x7f14d83025d0> = tensor([0., 0., 0., ",
           "kind": "failure"
         }
       ],
@@ -328,52 +308,42 @@
       "description": "Node bring-up and workload acceptance",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:09:50.077206+00:00",
-      "finished_at_utc": "2026-04-27T16:30:34.540440+00:00",
+      "started_at_utc": "2026-04-28T03:03:03.644142+00:00",
+      "finished_at_utc": "2026-04-28T03:46:04.422074+00:00",
       "tests": 51,
-      "failures": 15,
+      "failures": 9,
       "errors": 0,
-      "skipped": 9,
-      "duration_sec": 1240.779,
+      "skipped": 7,
+      "duration_sec": 2577.366,
       "failed_tests": [
         {
           "nodeid": "tests.test_node_validation.TestPCIeBandwidthDirect::test_d2h_bandwidth_all_gpus",
-          "message": "Failed: D2H PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=40.28 GB/s, mean=51.64 GB/s\nPer-GPU failures:\nGPU 3: 40.28 GB/s < 40.95 GB/s",
+          "message": "Failed: D2H PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=39.33 GB/s, mean=51.78 GB/s\nPer-GPU failures:\nGPU 0: 39.33 GB/s < 40.95 GB/s",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_latency_binary",
-          "message": "AssertionError: 2 P2P bandwidth values below 40.0 GB/s: ['17.2', '17.2']\nassert not [17.25, 17.23]",
+          "message": "AssertionError: 3 P2P bandwidth values below 40.0 GB/s: ['17.3', '38.3', '39.8']\nassert not [17.27, 39.81, 38.27]",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_pytorch_fallback",
+          "message": "Failed: P2P bandwidth fallback validation failed.\nthreshold=40.0 GB/s, measured_pairs=12, inaccessible_pairs=0\nFailures:\nGPU1->GPU2: 33.6 GB/s < 40.0 GB/s\nGPU1->GPU3: 33.5 GB/s < 40.0 GB/s",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_multi_stream_bandwidth",
-          "message": "Failed: P2P multi-stream stability validation failed.\ntested_pairs=12, required_min_stability_ratio=0.85, assertion_size=1GiB, observed_min_scaling_ratio=0.794, observed_avg_scaling_ratio=1.041, required_min_directional_symmetry=0.75, observed_min_directional_",
+          "message": "Failed: P2P multi-stream stability validation failed.\ntested_pairs=12, required_min_stability_ratio=0.85, assertion_size=1GiB, observed_min_scaling_ratio=0.789, observed_avg_scaling_ratio=0.964, required_min_directional_symmetry=0.75, observed_min_directional_",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestCPUGPUPowerAndThrottling::test_sustained_gpu_power_stability",
-          "message": "AssertionError: Power variance 57.4 W is too high (expected < 50 W)\nassert np.float64(57.391626369413764) < 50",
+          "message": "AssertionError: Power variance 57.6 W is too high (expected < 50 W)\nassert np.float64(57.64407180539518) < 50",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestNCCLAndNVLinkValidation::test_nccl_p2p_perf",
-          "message": "AssertionError: NCCL sendrecv busbw 25.1 GB/s too low\nassert 25.05 >= 30.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[deepseek_r1_quantized-deepseek-ai/DeepSeek-R1-Distill-Qwen-7B-32-3000.0-True]",
-          "message": "torch.AcceleratorError: CUDA error: device-side assert triggered\nSearch for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[llama_7b-meta-llama/Meta-Llama-3.1-8B-Instruct-32-3000.0-False]",
-          "message": "torch.AcceleratorError: CUDA error: device-side assert triggered\nSearch for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_batch_throughput",
-          "message": "torch.AcceleratorError: CUDA error: device-side assert triggered\nSearch for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API",
+          "message": "AssertionError: NCCL sendrecv busbw 25.1 GB/s too low\nassert 25.07 >= 30.0",
           "kind": "failure"
         },
         {
@@ -382,33 +352,13 @@
           "kind": "failure"
         },
         {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vision_object_detection_yolo_fps",
-          "message": "AssertionError: YOLO aggregate FPS too low: 92.9 < target 200.0\nassert 92.94495106042463 >= 200.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_encoder_training_throughput",
-          "message": "torch.AcceleratorError: CUDA error: device-side assert triggered\nSearch for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vllm_inference_throughput",
-          "message": "torch.AcceleratorError: CUDA error: device-side assert triggered\nSearch for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_one_dma_read_4kb_validation",
-          "message": "torch.AcceleratorError: CUDA error: device-side assert triggered\nSearch for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_looped_rdma_mmio_dma_stress_soak",
-          "message": "torch.AcceleratorError: CUDA error: device-side assert triggered\nSearch for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API",
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_predictable_memory_orchestration_kv_cache_offload",
+          "message": "AssertionError: Offload throughput degradation too high: 93.1% (baseline 658.1 -> offload 45.1)\nassert 93.14828946216544 <= 60",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_llm_training_small_multigpu",
-          "message": "AssertionError: TC-013: gradient sync ratio 21.4% exceeds threshold 15% \u2014 communication bottleneck detected; check NVLink status and NCCL topology\nassert 0.214175 <= 0.15",
+          "message": "AssertionError: TC-013: gradient sync ratio 21.3% exceeds threshold 15% \u2014 communication bottleneck detected; check NVLink status and NCCL topology\nassert 0.213325 <= 0.15",
           "kind": "failure"
         }
       ],
@@ -421,17 +371,17 @@
       "description": "Agentic AI KPI validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:30:34.540633+00:00",
-      "finished_at_utc": "2026-04-27T16:30:51.018065+00:00",
+      "started_at_utc": "2026-04-28T03:46:04.422277+00:00",
+      "finished_at_utc": "2026-04-28T03:46:20.665257+00:00",
       "tests": 9,
       "failures": 1,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 14.245,
+      "duration_sec": 14.103,
       "failed_tests": [
         {
           "nodeid": "tests.test_agentic_ai_validation.TestToolInvocationOverhead::test_parallel_tool_dispatch_scalability",
-          "message": "AssertionError: Tool dispatch scales poorly: 16 tools take 7.4\u00d7 time of 1 tool\nassert 7.4356755629691405 < 5.0",
+          "message": "AssertionError: Tool dispatch scales poorly: 16 tools take 7.1\u00d7 time of 1 tool\nassert 7.050985136536467 < 5.0",
           "kind": "failure"
         }
       ],
@@ -444,37 +394,37 @@
       "description": "AI pipeline KPI validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:30:51.018227+00:00",
-      "finished_at_utc": "2026-04-27T16:31:51.147695+00:00",
+      "started_at_utc": "2026-04-28T03:46:20.665490+00:00",
+      "finished_at_utc": "2026-04-28T03:47:33.038089+00:00",
       "tests": 38,
       "failures": 18,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 55.789,
+      "duration_sec": 68.638,
       "failed_tests": [
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_tokenizer_multi_thread_scaling",
-          "message": "AssertionError: 4-thread tokenizer scaling 0.53\u00d7 < 2.0\u00d7 single-thread\nassert 0.5254029624596774 >= 2.0",
+          "message": "AssertionError: 4-thread tokenizer scaling 1.51\u00d7 < 2.0\u00d7 single-thread\nassert 1.5091894807137098 >= 2.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_async_prefetch_gpu_overlap_efficiency",
-          "message": "AssertionError: Async prefetch overlap efficiency 25.2% < 60.0%\nassert 25.157076046922278 >= 60.0",
+          "message": "AssertionError: Async prefetch overlap efficiency 25.0% < 60.0%\nassert 24.987182701528184 >= 60.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_model_load_time_to_gpu",
-          "message": "AssertionError: Model load bandwidth 0.16 GB/s < 1.0 GB/s\nassert 0.16018335238275 >= 1.0",
+          "message": "AssertionError: Model load bandwidth 0.19 GB/s < 1.0 GB/s\nassert 0.18914551734399657 >= 1.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_tensor_parallel_allreduce_overhead_fraction",
-          "message": "AssertionError: AllReduce overhead 98.7% > 20.0% of compute\nassert 98.68103591038746 <= 20.0",
+          "message": "AssertionError: AllReduce overhead 98.6% > 20.0% of compute\nassert 98.62941541171739 <= 20.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO::test_model_weight_load_pipeline_bandwidth",
-          "message": "AssertionError: Weight load pipeline 0.84 GB/s < 1.0 GB/s\nassert 0.8412086480859542 >= 1.0",
+          "message": "AssertionError: Weight load pipeline 0.91 GB/s < 1.0 GB/s\nassert 0.9062301473010916 >= 1.0",
           "kind": "failure"
         },
         {
@@ -552,14 +502,19 @@
       "description": "System health and reliability",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:31:51.147898+00:00",
-      "finished_at_utc": "2026-04-27T16:32:30.109995+00:00",
+      "started_at_utc": "2026-04-28T03:47:33.038280+00:00",
+      "finished_at_utc": "2026-04-28T03:48:12.491059+00:00",
       "tests": 39,
-      "failures": 7,
+      "failures": 8,
       "errors": 0,
       "skipped": 3,
-      "duration_sec": 34.512,
+      "duration_sec": 34.454,
       "failed_tests": [
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[0]",
+          "message": "AssertionError: GPU 0 clock ratio 20.51% below 80%; throttling suspected (current 360 MHz, max 1755 MHz)\nassert 0.20512820512820512 >= 0.8",
+          "kind": "failure"
+        },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[1]",
           "message": "AssertionError: GPU 1 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)\nassert 0.19658119658119658 >= 0.8",
@@ -577,12 +532,12 @@
         },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_sustained_compute_no_thermal_throttle",
-          "message": "AssertionError: SM clock dropped 46.2% during sustained load (initial 1755 MHz \u2192 min 945 MHz, max_temp 57 \u00b0C). Thermal or power-limit throttling detected.\nassert 0.46153846153846156 <= 0.1",
+          "message": "AssertionError: SM clock dropped 47.0% during sustained load (initial 1755 MHz \u2192 min 930 MHz, max_temp 60 \u00b0C). Thermal or power-limit throttling detected.\nassert 0.4700854700854701 <= 0.1",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_power_limit_headroom",
-          "message": "AssertionError: GPU(s) exceeding 90 % power limit at rest: GPU0 96%\nassert not [(0, {'power_w': 337.146, 'limit_w': 350.0, 'ratio': 0.9632742857142857})]",
+          "message": "AssertionError: GPU(s) exceeding 90 % power limit at rest: GPU0 99%\nassert not [(0, {'power_w': 345.936, 'limit_w': 350.0, 'ratio': 0.9883885714285714})]",
           "kind": "failure"
         },
         {
@@ -592,7 +547,7 @@
         },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_speedup_over_eager",
-          "message": "AssertionError: torch.compile speedup 0.812\u00d7 < floor 1.05\u00d7. Compiled kernels may be suboptimal for this H100 PCIe configuration.\nassert 0.8121578871726854 >= 1.05",
+          "message": "AssertionError: torch.compile speedup 0.811\u00d7 < floor 1.05\u00d7. Compiled kernels may be suboptimal for this H100 PCIe configuration.\nassert 0.8108152349229382 >= 1.05",
           "kind": "failure"
         }
       ],
@@ -605,13 +560,13 @@
       "description": "System config report validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-04-27T16:32:30.110186+00:00",
-      "finished_at_utc": "2026-04-27T16:32:32.739150+00:00",
+      "started_at_utc": "2026-04-28T03:48:12.491248+00:00",
+      "finished_at_utc": "2026-04-28T03:48:17.655597+00:00",
       "tests": 8,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 0.714,
+      "duration_sec": 0.841,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/system_config.xml",
       "log_file": "artifacts/reports/logs/system_config.log",
@@ -622,13 +577,13 @@
       "description": "vLLM prefill validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:32:32.739424+00:00",
-      "finished_at_utc": "2026-04-27T16:51:05.399634+00:00",
+      "started_at_utc": "2026-04-28T03:48:17.655786+00:00",
+      "finished_at_utc": "2026-04-28T04:07:10.774258+00:00",
       "tests": 3,
       "failures": 1,
       "errors": 0,
       "skipped": 1,
-      "duration_sec": 1110.551,
+      "duration_sec": 1130.979,
       "failed_tests": [
         {
           "nodeid": "tests.test_vllm_prefill_validation.TestVLLMPrefillValidation::test_vllm_4h100_prefill_validation",
@@ -645,13 +600,13 @@
       "description": "Performance suite catalog / execution",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-04-27T16:51:05.399832+00:00",
-      "finished_at_utc": "2026-04-27T16:55:15.818600+00:00",
+      "started_at_utc": "2026-04-28T04:07:10.774519+00:00",
+      "finished_at_utc": "2026-04-28T04:10:41.334478+00:00",
       "tests": 25,
       "failures": 0,
       "errors": 0,
       "skipped": 15,
-      "duration_sec": 248.181,
+      "duration_sec": 208.218,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/performance_suite.xml",
       "log_file": "artifacts/reports/logs/performance_suite.log",
@@ -662,13 +617,13 @@
       "description": "MLPerf suite catalog / execution",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-04-27T16:55:15.818807+00:00",
-      "finished_at_utc": "2026-04-27T17:07:57.615807+00:00",
+      "started_at_utc": "2026-04-28T04:10:41.334903+00:00",
+      "finished_at_utc": "2026-04-28T04:42:12.181441+00:00",
       "tests": 21,
       "failures": 19,
       "errors": 0,
       "skipped": 2,
-      "duration_sec": 759.975,
+      "duration_sec": 1889.065,
       "failed_tests": [
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003]",
@@ -677,12 +632,12 @@
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_004]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_004: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Meta-Llama-3.1-8B-Instruct --tensor-parallel-size 4 --max-model-len 8192 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n568)                    ^^^^^^^^^^^",
+          "message": "Failed: Timeout (>600.0s) from pytest-timeout.",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n328)                    ^",
+          "message": "Failed: Timeout (>600.0s) from pytest-timeout.",
           "kind": "failure"
         },
         {
@@ -776,9 +731,9 @@
     "passed_domains": 2,
     "failed_domains": 11,
     "tests": 410,
-    "failures": 107,
+    "failures": 98,
     "errors": 0,
-    "skipped": 35
+    "skipped": 33
   },
   "defaults_applied": {
     "ML_EXECUTE_CASES": "1",

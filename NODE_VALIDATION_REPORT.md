@@ -1,116 +1,64 @@
-# AI Head Node Overall Test Execution Report
+# AI HeadNode Consolidated Validation Report
 
-Generated: 2026-04-28 04:42:11
-Pytest command line: -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/mlperf_suite.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/mlperf_suite.log --log-file-level INFO tests/test_mlperf_suite.py -k test_mlperf_case_suite
-KPI source files: artifacts/node_validation_kpis.jsonl, artifacts/agentic_ai_kpis.jsonl, artifacts/performance_suite_kpis.jsonl, artifacts/vllm_prefill_kpis.jsonl, artifacts/ai_pipeline_kpis.jsonl, artifacts/system_health_kpis.jsonl
+- Updated: 2026-04-27
+- Source of truth: artifacts/reports/executive_summary_report.md
+- Detailed execution data: artifacts/reports/test_execution_report.md
+- Testcase-level evidence: artifacts/reports/bugtool_testcase_report_new.csv
 
-<style>
-.report-scroll { overflow-x: auto; border: 1px solid #d0d7de; border-radius: 6px; padding: 6px; }
-.report-table { border-collapse: collapse; width: 100%; min-width: 1100px; table-layout: auto; font-size: 12px; }
-.report-table th, .report-table td { border: 1px solid #d0d7de; padding: 6px 8px; vertical-align: top; }
-.report-table th { background: #f6f8fa; position: sticky; top: 0; z-index: 1; }
-.cell-wrap { white-space: normal; word-break: break-word; max-width: 420px; margin: 0 0 3px 0; }
-.summary-table { border-collapse: collapse; width: 100%; max-width: 720px; }
-.summary-table th, .summary-table td { border: 1px solid #d0d7de; padding: 6px 8px; }
-.summary-table th { background: #f6f8fa; text-align: left; }
-</style>
-
-## Summary
-
-- <span style="color:#1f6feb;font-weight:700">INFO</span>: Total testcases captured: 21
-- <span style="color:#1f6feb;font-weight:700">INFO</span>: Tests executed (pass + fail): 19
-- <span style="color:#1b8a3b;font-weight:700">PASS</span>: 0
-- <span style="color:#cc1f1a;font-weight:700">FAIL</span>: 19
-- <span style="color:#d97706;font-weight:700">SKIP</span>: 2
-- <span style="color:#cc1f1a;font-weight:700">FAIL</span>: 19 testcase failures detected in this run.
+## Top-Line Results
 
 | Metric | Count |
 |---|---:|
-| Testcases captured | 21 |
-| Tests executed | 19 |
-| Passed | 0 |
-| Failed | 19 |
-| Skipped | 2 |
+| Total mapped tests | 285 |
+| Executed | 246 |
+| PASS | 152 |
+| FAIL | 62 |
+| SKIP | 32 |
+| NOT_EXECUTED | 39 |
+| Pass rate (executed) | 61.8% |
 
-## Domain Summary
+## Suite-Level Summary
 
-| Domain | Testcases | Passed | Failed | Skipped | Pass Rate (Exec) |
+| Suite | Total | PASS | FAIL | SKIP | NOT_EXEC |
 |---|---:|---:|---:|---:|---:|
-| Functional Validation | 21 | 0 | 19 | 2 | 0.0% |
+| agentic_ai.xml | 9 | 8 | 1 | 0 | 0 |
+| ai_pipeline.xml | 20 | 7 | 13 | 0 | 0 |
+| bottleneck.xml | 20 | 16 | 4 | 0 | 0 |
+| cpu.xml | 26 | 21 | 4 | 0 | 0 |
+| gpu.xml | 21 | 19 | 2 | 0 | 0 |
+| interconnect.xml | 7 | 2 | 0 | 4 | 0 |
+| memory.xml | 20 | 16 | 4 | 0 | 0 |
+| mlperf_suite.xml | 21 | 0 | 19 | 2 | 0 |
+| node_validation.xml | 47 | 32 | 9 | 6 | 0 |
+| performance_suite.xml | 25 | 10 | 0 | 15 | 0 |
+| system_config.xml | 8 | 8 | 0 | 0 | 0 |
+| system_health.xml | 19 | 12 | 4 | 3 | 0 |
+| vllm_prefill.xml | 3 | 0 | 0 | 1 | 0 |
+| not yet executed | 39 | - | - | - | 39 |
 
-## Section Summary
+## Key Blockers
 
-| Section | Testcases | Passed | Failed | Skipped | Pass Rate (Exec) |
-|---|---:|---:|---:|---:|---:|
-| MLPerf | 21 | 0 | 19 | 2 | 0.0% |
+1. BLK-1 (P1): MLPerf datasets/models missing or timeout-driven failures (16+ impacted cases).
+2. BLK-2 (P0): CUDA device-side assert cascade in ai_pipeline (8 failing tests).
+3. BLK-3 (P0): GPU compute efficiency below threshold due to throttle/power constraints.
+4. BLK-4 (P2): vLLM prefill timeout (>600s).
+5. BLK-5 (P0): GPU power throttling and clock drop under load.
+6. BLK-6 (P1): PCIe/NVLink topology and bandwidth issues.
+7. BLK-7 (P2): RAM below 1 TiB target (1007 GB observed).
 
-## Failures and Skips
+## Recommended Action Priority
 
-| Domain | Section | TestCaseID | Test | Status | Outcome (2-3 lines) | KPI Snapshot |
-|---|---|---|---|---|---|---|
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: Timeout (>600.0s) from pytest-timeout.</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_004] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: Timeout (>600.0s) from pytest-timeout.</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: Timeout (>600.0s) from pytest-timeout.</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_006] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_006: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/vision/classification_and_detection/run_...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_007] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_007: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/vision/classification_and_detection/run_...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_008] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_008: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/medical_imaging/3d-unet-kits19/run_local...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_009] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_009: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/speech_recognition/rnnt/run_local.sh pyt...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_010] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_010: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/speech_recognition/whisper/run_local.sh...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_011] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_011: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py --...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_012] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_012: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/text_to_image/run_local.sh pytorch gpu -...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_013] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_013: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/graph/R-GAT/run_local.sh pytorch gpu --s...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_014] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_014: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/gpt-j/run_trai...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_015] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_015: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/r...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_016] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_016: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/image_segmentation/pytorch/tr...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_017] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_017: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/stable_diffusion/main.py --ba...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_018] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_018: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/r...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_019] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_019: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/large_language_model/megatron...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_020] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_020: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/llm_finetune/run_lora_finetun...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_021] | <span style="color:#cc1f1a;font-weight:700">FAIL</span> | <div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_021: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorc...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_001] | <span style="color:#d97706;font-weight:700">SKIP</span> | <div class="cell-wrap">Filtered by ML_CASE_IDS')</div><div class="cell-wrap">Skipped by design: environment, tools, or prerequisites unavailable.</div> | <div class="cell-wrap">-</div> |
-| Functional Validation | MLPerf | AI_HOSTCPU_FUNC_TEST_ID_030 | test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_002] | <span style="color:#d97706;font-weight:700">SKIP</span> | <div class="cell-wrap">Filtered by ML_CASE_IDS')</div><div class="cell-wrap">Skipped by design: environment, tools, or prerequisites unavailable.</div> | <div class="cell-wrap">-</div> |
+| Priority | Action | Expected Recovery |
+|---|---|---|
+| P0 | Resolve BLK-5 GPU power throttling | Improves BLK-3 and BLK-4 outcomes |
+| P0 | Fix BLK-2 CUDA assert root failure | Clears major ai_pipeline cascade |
+| P1 | Resolve BLK-1 MLPerf dataset/model readiness | Restores mlperf suite execution |
+| P1 | Resolve BLK-6 PCIe/NVLink issues | Recovers interconnect and P2P failures |
+| P2 | Tune BLK-4 timeout after power fix | Stabilizes vLLM prefill run |
+| P2 | Validate BLK-7 DIMM population | Restores memory capacity target |
 
-## KPI Highlights
+## Notes
 
-| Source | Test | KPI | Value |
-|---|---|---|---|
-| JSONL | test_time_to_first_token | prefill_throughput_tokens_per_sec | 94728.100 |
-| JSONL | test_dataloader_cpu_to_pinned_throughput | samples_per_sec | 40444.700 |
-| JSONL | test_vision_object_detection_yolo_fps | aggregate_fps_target | 200.000 |
-| JSONL | test_looped_rdma_mmio_dma_stress_soak | bandwidth_gbps | 0.614 |
-| JSONL | TC-AGENT-08: Latency percentiles | p95_latency_ms | 88.737 |
-| JSONL | test_hf_causal_lm_inference_latency | mean_latency_ms | 475.280 |
-
-## Domain Details
-
-
-### Functional Validation
-
-<div class="report-scroll">
-<table class="report-table">
-<thead><tr><th style="min-width: 180px;">Section</th><th style="min-width: 230px;">TestCaseID</th><th style="min-width: 280px;">Test</th><th style="min-width: 90px;">Status</th><th style="min-width: 320px;">Outcome (2-3 lines)</th><th style="min-width: 340px;">Success / Failure KPI Snapshot</th></tr></thead>
-<tbody>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: Timeout (>600.0s) from pytest-timeout.</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_004]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: Timeout (>600.0s) from pytest-timeout.</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: Timeout (>600.0s) from pytest-timeout.</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_006]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_006: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/vision/classification_and_detection/run_...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_007]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_007: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/vision/classification_and_detection/run_...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_008]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_008: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/medical_imaging/3d-unet-kits19/run_local...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_009]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_009: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/speech_recognition/rnnt/run_local.sh pyt...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_010]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_010: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/speech_recognition/whisper/run_local.sh...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_011]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_011: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py --...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_012]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_012: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/text_to_image/run_local.sh pytorch gpu -...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_013]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_013: command failed (rc=2) executed_command: /usr/bin/python /root/workloads/mlcommons/inference/graph/R-GAT/run_local.sh pytorch gpu --s...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_014]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_014: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/gpt-j/run_trai...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_015]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_015: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/r...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_016]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_016: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/image_segmentation/pytorch/tr...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_017]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_017: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/stable_diffusion/main.py --ba...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_018]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_018: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/r...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_019]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_019: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/large_language_model/megatron...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_020]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_020: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/llm_finetune/run_lora_finetun...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_021]</div></td><td><span style="color:#cc1f1a;font-weight:700">FAIL</span></td><td><div class="cell-wrap">Failed: AI_HOSTCPU_ML_TEST_ID_021: command failed (rc=1) executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorc...</div><div class="cell-wrap">Investigate thresholds, platform readiness, and benchmark runtime conditions.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_001]</div></td><td><span style="color:#d97706;font-weight:700">SKIP</span></td><td><div class="cell-wrap">Filtered by ML_CASE_IDS')</div><div class="cell-wrap">Skipped by design: environment, tools, or prerequisites unavailable.</div></td><td><div class="cell-wrap">-</div></td></tr>
-<tr><td><div class="cell-wrap">MLPerf</div></td><td><div class="cell-wrap">AI_HOSTCPU_FUNC_TEST_ID_030</div></td><td><div class="cell-wrap">test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_002]</div></td><td><span style="color:#d97706;font-weight:700">SKIP</span></td><td><div class="cell-wrap">Filtered by ML_CASE_IDS')</div><div class="cell-wrap">Skipped by design: environment, tools, or prerequisites unavailable.</div></td><td><div class="cell-wrap">-</div></td></tr>
-</tbody>
-</table>
-</div>
+- This file is intentionally concise and executive-oriented.
+- For per-test failure details, use artifacts/reports/test_execution_report.md.
+- For bugtool import and testcase evidence, use artifacts/reports/bugtool_testcase_report_new.csv.

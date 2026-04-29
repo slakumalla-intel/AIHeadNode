@@ -235,14 +235,14 @@ def _configure_blas_threads(n_threads: int) -> None:
 
 def _resolve_cpu_fp32_blas_threads() -> int:
     """
-    Resolve BLAS thread count from env override, else use a reasonable default.
+    Resolve BLAS thread count for single-process GEMM benchmark.
     
-    On large NUMA systems (>64 cores), capping to per-socket cores avoids thread
-    oversubscription which kills single-process GEMM performance. A single numpy BLAS
-    GEMM scales linearly only up to ~cores_per_socket (typically 8-80), not to
-    total_physical_cores across all sockets.
+    A single numpy BLAS GEMM saturates around 32-64 threads per socket due to
+    memory bandwidth and synchronization limits, not architecture size.
+    Using all cores (e.g., 224 on single-socket) causes severe oversubscription
+    and kills measured throughput.
     
-    Override with: export CPU_FP32_BLAS_THREADS=<N>
+    Override with: export CPU_FP32_BLAS_THREADS=<N> to force specific count.
     """
     raw = os.environ.get("CPU_FP32_BLAS_THREADS", "").strip()
     if raw:
@@ -255,12 +255,11 @@ def _resolve_cpu_fp32_blas_threads() -> int:
                 raw,
             )
     
-    # Auto-select: use all cores on small systems, cap to per-socket on large NUMA.
-    if CPU_SPECS.total_physical_cores <= 64:
-        return CPU_SPECS.total_physical_cores
-    
-    # Large system: use per-socket count (more realistic for single-process GEMM).
-    return CPU_SPECS.cores_per_socket
+    # Auto-select: cap to realistic per-socket BLAS thread count.
+    # Single GEMM scales linearly ~32-64 threads, then saturates on memory BW.
+    # Use min(64, cores_per_socket) to handle both small and huge socket systems.
+    realistic_per_socket = min(64, max(8, CPU_SPECS.cores_per_socket))
+    return realistic_per_socket
 
 
 def _p95(values: List[float]) -> float:
@@ -353,7 +352,12 @@ class TestCPUComputeBottleneck:
         ]
 
         measured_tflops = max(trial_gflops) / 1000.0
-        scaled_theoretical_tflops = CPU_SPECS.peak_fp32_tflops_base
+        # Scale theoretical peak to the actual BLAS thread count used.
+        # Single-process GEMM scales linearly with thread count up to saturation point.
+        scaled_theoretical_tflops = (
+            CPU_SPECS.peak_fp32_tflops_base
+            * (blas_threads / CPU_SPECS.total_physical_cores)
+        )
 
         result = BenchmarkResult(
             label=f"CPU FP32 (1 process, BLAS threads={blas_threads})",

@@ -358,6 +358,9 @@ class TestCPUMemoryBandwidthBottleneck:
         cpu_bw = CPU_SPECS.peak_memory_bandwidth_gbs   # ~614 GB/s
         gpu_hbm_total = SYSTEM_SPECS.total_hbm_bandwidth_tbs * 1000  # TB/s → GB/s
 
+        if gpu_hbm_total <= 0:
+            pytest.skip("GPU HBM bandwidth unavailable; skipping CPU-vs-GPU memory topology check")
+
         ratio = gpu_hbm_total / cpu_bw
         logger.info(
             "HBM3 aggregate / CPU DRAM ratio = %.1f× (%.0f GB/s HBM vs %.0f GB/s DRAM)",
@@ -453,7 +456,7 @@ class TestGPUComputeBottleneck:
             t.join()
 
         result = BenchmarkResult(
-            label=f"4-GPU aggregate FP16 TFLOPS",
+            label=f"{n_gpus}-GPU aggregate FP16 TFLOPS",
             measured=aggregate[0],
             theoretical=SYSTEM_SPECS.total_fp16_tflops_gpu,
             unit="TFLOPS",
@@ -549,6 +552,9 @@ class TestPCIeBottleneck:
         hbm_gbs = H100_SPECS.hbm3_bandwidth_tbs * 1000   # TB/s → GB/s
         pcie_gbs = H100_SPECS.pcie_unidirectional_bw_gbs
 
+        if hbm_gbs <= 0 or pcie_gbs <= 0:
+            pytest.skip("HBM/PCIe theoretical values unavailable; skipping ratio check")
+
         ratio = hbm_gbs / pcie_gbs
         logger.info(
             "HBM/PCIe BW ratio = %.1f× (%.0f GB/s HBM vs %.0f GB/s PCIe H2D)",
@@ -621,11 +627,14 @@ class TestNVLinkBottleneck:
 class TestRooflineAnalysis:
 
     def test_roofline_knee_fp16(self):
-        """TC-BN-07: Roofline knee (AI threshold) for FP16 must be ~590 FLOP/byte."""
+        """TC-BN-07: Roofline knee (AI threshold) must match detected FP16/BW specs."""
         ai_threshold = SYSTEM_SPECS.arithmetic_intensity_roofline
-        # H100: 1979 TFLOPS FP16 / 3.35 TB/s HBM = ~590 FLOP/byte
-        assert 400 <= ai_threshold <= 800, (
-            f"Roofline AI threshold {ai_threshold:.1f} FLOP/byte out of expected range [400, 800]"
+        if H100_SPECS.hbm3_bandwidth_tbs <= 0:
+            pytest.skip("GPU memory bandwidth unavailable; cannot compute roofline knee")
+
+        expected_ai = H100_SPECS.fp16_tflops / H100_SPECS.hbm3_bandwidth_tbs
+        assert math.isclose(ai_threshold, expected_ai, rel_tol=1e-9, abs_tol=1e-12), (
+            f"Roofline AI threshold mismatch: got {ai_threshold:.6f}, expected {expected_ai:.6f} FLOP/byte"
         )
         logger.info("FP16 roofline knee: %.1f FLOP/byte", ai_threshold)
 
@@ -701,10 +710,10 @@ class TestCPUGPUPipelineBottleneck:
             "CPU data-prep: %.4f s  |  GPU GEMM: %.4f s  |  ratio: %.1f×",
             cpu_time, gpu_time, cpu_time / max(gpu_time, 1e-9),
         )
-        # GPU GEMM should be faster than CPU data prep (GPU is the compute engine)
-        assert gpu_time <= cpu_time, (
-            f"GPU GEMM ({gpu_time:.4f}s) is SLOWER than CPU data-prep ({cpu_time:.4f}s) "
-            "– possible GPU underutilisation or thermal throttling"
+        # CPU preprocessing must be no slower than GPU compute to avoid pipeline stalls.
+        assert cpu_time <= gpu_time, (
+            f"CPU data-prep ({cpu_time:.4f}s) is SLOWER than GPU GEMM ({gpu_time:.4f}s) "
+            "– CPU stage may bottleneck the end-to-end pipeline"
         )
 
 

@@ -35,7 +35,12 @@ _REPORT_ALIAS_PATHS = [
     Path(__file__).resolve().parents[1] / "NODE_VALIDATION_REPORT.md",
 ]
 _VALIDATION_LOG_PATH = Path(__file__).resolve().parents[1] / "validation_run.log"
-_FINALIZED_MAP_PATH = Path(__file__).resolve().parents[1] / "artifacts" / "reports" / "finalized_test_to_testcaseid_map.csv"
+_REPORTS_DIR = Path(__file__).resolve().parents[1] / "artifacts" / "reports"
+_FINALIZED_MAP_CANDIDATES = [
+    _REPORTS_DIR / "finalized_test_to_testcaseid_map_updated.csv",
+    _REPORTS_DIR / "finalized_test_to_testcaseid_map.csv",
+    _REPORTS_DIR / "archive" / "finalized_test_to_testcaseid_map.csv",
+]
 
 _VLLM_PROCESS_PATTERNS = (
     "enginecore",
@@ -800,14 +805,15 @@ def _preferred_order(keys: List[str], preferred: List[str]) -> List[str]:
 
 def _load_testcase_id_map() -> Dict[str, str]:
     """Load selector -> testcase ID mapping from the finalized mapping CSV."""
-    if not _FINALIZED_MAP_PATH.exists():
+    map_path = next((path for path in _FINALIZED_MAP_CANDIDATES if path.exists()), None)
+    if map_path is None:
         return {}
 
     try:
         import csv
 
         mapping: Dict[str, str] = {}
-        with _FINALIZED_MAP_PATH.open("r", encoding="utf-8", newline="") as f:
+        with map_path.open("r", encoding="utf-8", newline="") as f:
             for row in csv.DictReader(f):
                 selector = (row.get("TestSelector") or "").strip()
                 testcase_id = (row.get("FinalPrimaryTestCaseID") or "").strip()
@@ -815,7 +821,7 @@ def _load_testcase_id_map() -> Dict[str, str]:
                     mapping[selector] = testcase_id
         return mapping
     except Exception as exc:
-        logger.warning("Failed to load testcase ID map from %s: %s", _FINALIZED_MAP_PATH, exc)
+        logger.warning("Failed to load testcase ID map from %s: %s", map_path, exc)
         return {}
 
 

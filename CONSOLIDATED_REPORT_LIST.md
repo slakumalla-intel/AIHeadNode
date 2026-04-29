@@ -11,7 +11,7 @@
 3. Bugtool testcase evidence (CSV)
 - artifacts/reports/bugtool_testcase_report_new.csv
 
-4. Canonical testcase mapping (285 mapped)
+4. Canonical testcase mapping (410 mapped)
 - artifacts/reports/finalized_test_to_testcaseid_map_updated.csv
 
 5. Top-level consolidated report copies
@@ -23,6 +23,7 @@
 - artifacts/reports/bugtool_testcase_report_new.md
 - artifacts/reports/junit/
 - artifacts/reports/logs/
+- artifacts/reports/archive/PERFORMANCE_METRICS_TABLE.md
 
 ## Active KPI Files (kept in artifacts/)
 
@@ -60,6 +61,7 @@ Archive currently contains:
 - test_methods_requested_layout.zip
 - test_methods_validation_description_commands.zip
 - test_methods_with_command_as_3rd_column.zip
+- PERFORMANCE_METRICS_TABLE.md
 
 Additional root-level status files moved to:
 - artifacts/archive/

@@ -233,6 +233,36 @@ def _configure_blas_threads(n_threads: int) -> None:
     os.environ["MKL_DYNAMIC"] = "FALSE"
 
 
+def _resolve_cpu_fp32_blas_threads() -> int:
+    """
+    Resolve BLAS thread count from env override, else use a reasonable default.
+    
+    On large NUMA systems (>64 cores), capping to per-socket cores avoids thread
+    oversubscription which kills single-process GEMM performance. A single numpy BLAS
+    GEMM scales linearly only up to ~cores_per_socket (typically 8-80), not to
+    total_physical_cores across all sockets.
+    
+    Override with: export CPU_FP32_BLAS_THREADS=<N>
+    """
+    raw = os.environ.get("CPU_FP32_BLAS_THREADS", "").strip()
+    if raw:
+        try:
+            parsed = int(raw)
+            return max(1, parsed)
+        except ValueError:
+            logger.warning(
+                "Invalid CPU_FP32_BLAS_THREADS=%r, will auto-cap based on system topology",
+                raw,
+            )
+    
+    # Auto-select: use all cores on small systems, cap to per-socket on large NUMA.
+    if CPU_SPECS.total_physical_cores <= 64:
+        return CPU_SPECS.total_physical_cores
+    
+    # Large system: use per-socket count (more realistic for single-process GEMM).
+    return CPU_SPECS.cores_per_socket
+
+
 def _p95(values: List[float]) -> float:
     if not values:
         return 0.0
@@ -299,8 +329,14 @@ class TestCPUComputeBottleneck:
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
 
-        blas_threads = CPU_SPECS.total_physical_cores
+        blas_threads = _resolve_cpu_fp32_blas_threads()
         _configure_blas_threads(blas_threads)
+        logger.info(
+            "CPU FP32 GEMM thread config: requested BLAS threads=%d (detected physical=%d, logical=%d)",
+            blas_threads,
+            CPU_SPECS.total_physical_cores,
+            CPU_SPECS.total_logical_threads,
+        )
 
         gemm_size = 4096
         warmup_iters = 3

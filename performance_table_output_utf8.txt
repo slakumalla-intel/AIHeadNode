@@ -1,0 +1,90 @@
+﻿========================================================================================================================
+PERFORMANCE METRICS BY CATEGORY
+========================================================================================================================
+
+
+### FUNCTIONAL PERFORMANCE
+------------------------------------------------------------------------------------------------------------------------
+Metric                                        Value              Test                                         
+------------------------------------------------------------------------------------------------------------------------
+failing_pairs                                 2.0000             test_p2p_bandwidth_pytorch_fallback          
+threshold_rel_error                           0.1500             test_fp8_e4m3_matmul_error_vs_fp16           
+threshold_rel_error                           0.1000             test_bf16_vs_fp16_matmul_equivalence         
+threshold_rel_error                           0.0500             test_int8_matmul_error_vs_fp16               
+fp8_vs_fp16_mean_rel_error                    0.0374             test_fp8_e4m3_matmul_error_vs_fp16           
+int8_vs_fp16_mean_rel_error                   0.0153             test_int8_matmul_error_vs_fp16               
+bf16_vs_fp16_mean_rel_error                   0.0029             test_bf16_vs_fp16_matmul_equivalence         
+softmax_max_abs_error                         0.0026             test_quantised_softmax_output_matches_fp16   
+corrected_ecc_errors                          0.0000             test_hbm_ecc_corrected_errors_below_threshold[0]
+failing_pair_count                            0.0000             test_p2p_multi_stream_bandwidth              
+grad_max_rel_error                            0.0000             test_ddp_gradient_sync_matches_single_gpu    
+max_abs_error                                 0.0000             test_compile_output_matches_eager            
+uncorrected_ecc_errors                        0.0000             test_hbm_ecc_uncorrected_errors_zero[0]      
+
+Total Functional metrics: 13
+
+
+### INFERENCE PERFORMANCE
+------------------------------------------------------------------------------------------------------------------------
+Metric                                        Value              Test                                         
+------------------------------------------------------------------------------------------------------------------------
+tokens_per_sec                                1540823.5000       test_tokenizer_throughput_by_seq_len         
+threads_4_tokens_per_sec                      1265423.9000       test_tokenizer_multi_thread_scaling          
+tokens_per_sec                                1262231.9000       test_tokenizer_throughput_by_seq_len         
+threads_1_tokens_per_sec                      896436.6000        test_tokenizer_multi_thread_scaling          
+tokens_per_sec                                788091.4000        test_tokenizer_throughput_by_seq_len         
+total_tokens_per_sec                          525912.0000        test_cpu_preprocessing_pipeline_throughput   
+tokens_per_sec                                441894.9000        test_tokenizer_throughput_by_seq_len         
+threshold_tokens_per_sec                      200000.0000        test_cpu_preprocessing_pipeline_throughput   
+prefill_throughput_tokens_per_sec             93292.9000         test_time_to_first_token                     
+throughput_batches_per_sec                    56770.9000         test_batch_assembly_gpu_latency              
+throughput_batches_per_sec                    56410.9000         test_batch_assembly_gpu_latency              
+throughput_batches_per_sec                    56357.5000         test_batch_assembly_gpu_latency              
+threshold_tokens_per_sec                      50000.0000         test_tokenizer_throughput_by_seq_len         
+offload_p99_latency_ms                        37882.6876         test_predictable_memory_orchestration_kv_cache_offload
+offload_p95_latency_ms                        37878.0599         test_predictable_memory_orchestration_kv_cache_offload
+
+Total Inference metrics: 103
+
+
+### NVBANDWIDTH PERFORMANCE
+------------------------------------------------------------------------------------------------------------------------
+Metric                                        Value              Test                                         
+------------------------------------------------------------------------------------------------------------------------
+busbw_peak_gbs                                60000000.0000      unknown                                      
+busbw_peak_gbs                                50000000.0000      unknown                                      
+busbw_peak_gbs                                30000000.0000      unknown                                      
+busbw_mean_gbs                                13838535.7330      unknown                                      
+busbw_mean_gbs                                13383004.2330      unknown                                      
+busbw_mean_gbs                                13179144.6000      unknown                                      
+busbw_mean_gbs                                12953826.4670      unknown                                      
+busbw_mean_gbs                                12520007.2670      unknown                                      
+busbw_mean_gbs                                6670806.0330       unknown                                      
+busbw_peak_gbs                                3000000.0000       unknown                                      
+busbw_mean_gbs                                814958.9430        unknown                                      
+busbw_peak_gbs                                3443.8000          unknown                                      
+peak_write_bw_gbs                             2264.8000          test_gpu_write_performance_limiters          
+busbw_mean_gbs                                622.2190           unknown                                      
+mean_bw_gbs                                   55.8900            test_nvbandwidth_host_to_device_memcpy_ce    
+
+Total NVBandwidth metrics: 46
+
+
+### P2P PERFORMANCE
+------------------------------------------------------------------------------------------------------------------------
+Metric                                        Value              Test                                         
+------------------------------------------------------------------------------------------------------------------------
+allreduce_time_ms                             11.6155            test_tensor_parallel_allreduce_overhead_fraction
+
+Total P2P metrics: 1
+
+
+### TRAINING PERFORMANCE
+------------------------------------------------------------------------------------------------------------------------
+Metric                                        Value              Test                                         
+------------------------------------------------------------------------------------------------------------------------
+compiled_time_s                               0.0082             test_compile_speedup_over_eager              
+
+Total Training metrics: 1
+
+========================================================================================================================

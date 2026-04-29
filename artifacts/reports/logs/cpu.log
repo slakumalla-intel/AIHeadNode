@@ -1,4 +1,4 @@
-02:57:29 INFO     cpu_validation 
+23:02:00 INFO     cpu_validation 
 ================================================================================
   TC-CPU-04: ALL-CORE FP32 GFLOPS BENCHMARK
 ================================================================================
@@ -8,44 +8,44 @@
   Theoretical peak (GFLOPS):27238.40
   Time budget:              3 minutes (180 seconds)
 ================================================================================
-02:57:31 INFO     cpu_validation   Worker 1/16 completed: 31.44 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 2/16 completed: 31.44 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 3/16 completed: 31.62 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 4/16 completed: 31.02 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 5/16 completed: 31.50 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 6/16 completed: 31.24 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 7/16 completed: 31.63 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 8/16 completed: 35.84 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 9/16 completed: 31.44 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 10/16 completed: 31.44 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 11/16 completed: 31.31 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 12/16 completed: 31.95 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 13/16 completed: 31.31 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 14/16 completed: 31.42 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 15/16 completed: 31.23 GFLOPS
-02:57:32 INFO     cpu_validation   Worker 16/16 completed: 30.96 GFLOPS
-02:57:33 INFO     cpu_validation 
+23:02:03 INFO     cpu_validation   Worker 1/16 completed: 31.77 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 2/16 completed: 31.66 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 3/16 completed: 31.39 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 4/16 completed: 31.72 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 5/16 completed: 31.16 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 6/16 completed: 31.42 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 7/16 completed: 25.31 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 8/16 completed: 31.54 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 9/16 completed: 31.64 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 10/16 completed: 31.16 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 11/16 completed: 30.95 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 12/16 completed: 31.59 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 13/16 completed: 35.80 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 14/16 completed: 31.59 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 15/16 completed: 31.85 GFLOPS
+23:02:03 INFO     cpu_validation   Worker 16/16 completed: 31.48 GFLOPS
+23:02:04 INFO     cpu_validation 
 ────────────────────────────────────────────────────────────────────────────────
   BENCHMARK RESULTS
 ────────────────────────────────────────────────────────────────────────────────
-  Elapsed time:             3.23 seconds
+  Elapsed time:             3.66 seconds
   Workers completed:        16/16
-  Sampled GFLOPS (16 cores): 506.80
-  Per-core avg:             31.67 GFLOPS/core
-  Extrapolated to all cores:7095.13 GFLOPS
+  Sampled GFLOPS (16 cores): 502.04
+  Per-core avg:             31.38 GFLOPS/core
+  Extrapolated to all cores:7028.53 GFLOPS
   Theoretical peak:         27238.40 GFLOPS
-  Efficiency:               26.0%
+  Efficiency:               25.8%
   Min required:             70.0%
 ────────────────────────────────────────────────────────────────────────────────
-02:57:33 INFO     ai_headnode_tests All-core FP32 GFLOPS (BLAS)                         measured=  7095.134  theoretical= 27238.400  efficiency= 26.05%  threshold=    70%
-02:57:36 INFO     ai_headnode_tests FP32 scaling efficiency (8 cores)                   measured=   283.767  theoretical=   286.488  efficiency= 99.05%  threshold=    85%
-02:57:37 INFO     ai_headnode_tests Aggregate DRAM bandwidth (multi-thread)             measured=  1789.579  theoretical=   307.200  efficiency=582.55%  threshold=    75%
-02:57:41 INFO     ai_headnode_tests Parallel speedup at 1 cores                         measured=   270.639  theoretical=   237.121  efficiency=114.14%  threshold=    85%
-02:57:41 INFO     ai_headnode_tests Parallel speedup at 2 cores                         measured=   543.870  theoretical=   519.451  efficiency=104.70%  threshold=    85%
-02:57:41 INFO     ai_headnode_tests Parallel speedup at 4 cores                         measured=    72.243  theoretical=  1072.159  efficiency=  6.74%  threshold=    85%
-02:57:44 INFO     ai_headnode_tests Parallel speedup at 8 cores                         measured=     6.095  theoretical=  2342.638  efficiency=  0.26%  threshold=    85%
-02:57:50 INFO     ai_headnode_tests Parallel speedup at 16 cores                        measured=     5.609  theoretical=  4838.845  efficiency=  0.12%  threshold=    85%
-02:58:01 INFO     ai_headnode_tests Parallel speedup at 32 cores                        measured=     5.081  theoretical=  9075.926  efficiency=  0.06%  threshold=    85%
-02:58:25 INFO     ai_headnode_tests Parallel speedup at 64 cores                        measured=     5.313  theoretical= 18064.635  efficiency=  0.03%  threshold=    85%
-03:01:21 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
-03:01:21 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/NODE_VALIDATION_REPORT.md
+23:02:04 INFO     ai_headnode_tests All-core FP32 GFLOPS (BLAS)                         measured=  7028.528  theoretical= 27238.400  efficiency= 25.80%  threshold=    70%
+23:02:08 INFO     ai_headnode_tests FP32 scaling efficiency (8 cores)                   measured=   283.794  theoretical=   286.365  efficiency= 99.10%  threshold=    85%
+23:02:10 INFO     ai_headnode_tests Aggregate DRAM bandwidth (multi-thread)             measured=  2464.037  theoretical=   307.200  efficiency=802.10%  threshold=    75%
+23:02:13 INFO     ai_headnode_tests Parallel speedup at 1 cores                         measured=   254.446  theoretical=   268.698  efficiency= 94.70%  threshold=    85%
+23:02:13 INFO     ai_headnode_tests Parallel speedup at 2 cores                         measured=   545.960  theoretical=   528.450  efficiency=103.31%  threshold=    85%
+23:02:14 INFO     ai_headnode_tests Parallel speedup at 4 cores                         measured=   285.266  theoretical=  1022.248  efficiency= 27.91%  threshold=    85%
+23:02:16 INFO     ai_headnode_tests Parallel speedup at 8 cores                         measured=     6.052  theoretical=  2192.089  efficiency=  0.28%  threshold=    85%
+23:02:23 INFO     ai_headnode_tests Parallel speedup at 16 cores                        measured=     4.644  theoretical=   614.420  efficiency=  0.76%  threshold=    85%
+23:02:37 INFO     ai_headnode_tests Parallel speedup at 32 cores                        measured=     4.480  theoretical=  8707.313  efficiency=  0.05%  threshold=    85%
+23:03:05 INFO     ai_headnode_tests Parallel speedup at 64 cores                        measured=     4.467  theoretical= 18280.312  efficiency=  0.02%  threshold=    85%
+23:06:03 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+23:06:03 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/NODE_VALIDATION_REPORT.md

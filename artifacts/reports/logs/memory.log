@@ -1,3 +1,3 @@
-03:01:31 INFO     ai_headnode_tests Aggregate STREAM Triad BW                           measured=   467.765  theoretical=   307.200  efficiency=152.27%  threshold=    75%
-03:01:41 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
-03:01:41 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/NODE_VALIDATION_REPORT.md
+23:06:15 INFO     ai_headnode_tests Aggregate STREAM Triad BW                           measured=   839.274  theoretical=   307.200  efficiency=273.20%  threshold=    75%
+23:06:25 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+23:06:25 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/NODE_VALIDATION_REPORT.md

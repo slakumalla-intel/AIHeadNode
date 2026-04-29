@@ -1,6 +1,6 @@
 # AI HeadNode Consolidated Validation Report
 
-- Updated: 2026-04-27
+- Updated: 2026-04-28
 - Source of truth: artifacts/reports/executive_summary_report.md
 - Detailed execution data: artifacts/reports/test_execution_report.md
 - Testcase-level evidence: artifacts/reports/bugtool_testcase_report_new.csv
@@ -9,32 +9,31 @@
 
 | Metric | Count |
 |---|---:|
-| Total mapped tests | 285 |
-| Executed | 246 |
-| PASS | 152 |
-| FAIL | 62 |
-| SKIP | 32 |
-| NOT_EXECUTED | 39 |
-| Pass rate (executed) | 61.8% |
+| Total tests available for execution | 410 |
+| Executed | 377 |
+| PASS | 278 |
+| FAIL | 99 |
+| SKIP | 33 |
+| NOT_EXECUTED | 0 |
+| Pass rate (executed) | 73.7% |
 
 ## Suite-Level Summary
 
-| Suite | Total | PASS | FAIL | SKIP | NOT_EXEC |
-|---|---:|---:|---:|---:|---:|
-| agentic_ai.xml | 9 | 8 | 1 | 0 | 0 |
-| ai_pipeline.xml | 20 | 7 | 13 | 0 | 0 |
-| bottleneck.xml | 20 | 16 | 4 | 0 | 0 |
-| cpu.xml | 26 | 21 | 4 | 0 | 0 |
-| gpu.xml | 21 | 19 | 2 | 0 | 0 |
-| interconnect.xml | 7 | 2 | 0 | 4 | 0 |
-| memory.xml | 20 | 16 | 4 | 0 | 0 |
-| mlperf_suite.xml | 21 | 0 | 19 | 2 | 0 |
-| node_validation.xml | 47 | 32 | 9 | 6 | 0 |
-| performance_suite.xml | 25 | 10 | 0 | 15 | 0 |
-| system_config.xml | 8 | 8 | 0 | 0 | 0 |
-| system_health.xml | 19 | 12 | 4 | 3 | 0 |
-| vllm_prefill.xml | 3 | 0 | 0 | 1 | 0 |
-| not yet executed | 39 | - | - | - | 39 |
+| Suite | Total | PASS | FAIL | ERROR | SKIP | NOT_EXECUTED |
+|---|---:|---:|---:|---:|---:|---:|
+| agentic_ai.xml | 9 | 8 | 1 | 0 | 0 | 0 |
+| ai_pipeline.xml | 38 | 20 | 18 | 0 | 0 | 0 |
+| bottleneck.xml | 25 | 21 | 4 | 0 | 0 | 0 |
+| cpu.xml | 33 | 22 | 10 | 0 | 1 | 0 |
+| gpu.xml | 53 | 34 | 19 | 0 | 0 | 0 |
+| interconnect.xml | 77 | 71 | 2 | 0 | 4 | 0 |
+| memory.xml | 28 | 20 | 8 | 0 | 0 | 0 |
+| mlperf_suite.xml | 21 | 0 | 19 | 0 | 2 | 0 |
+| node_validation.xml | 51 | 35 | 9 | 0 | 7 | 0 |
+| performance_suite.xml | 25 | 10 | 0 | 0 | 15 | 0 |
+| system_config.xml | 8 | 8 | 0 | 0 | 0 | 0 |
+| system_health.xml | 39 | 28 | 8 | 0 | 3 | 0 |
+| vllm_prefill.xml | 3 | 1 | 1 | 0 | 1 | 0 |
 
 ## Key Blockers
 

@@ -117,25 +117,9 @@ def _format_report(results: List[BenchmarkResult]) -> str:
                 f"({r.measured:.2f} / {r.theoretical:.2f} {r.unit})"
             )
     else:
-        lines.append("\n✅  No bottlenecks detected (all metrics meet configured thresholds).")
+        lines.append("\n✅  No bottlenecks detected (all metrics ≥ 70 % of theoretical).")
     lines.append("")
     return "\n".join(lines)
-
-
-def _resolve_eff_threshold(default_value: float, env_name: str) -> float:
-    """Resolve efficiency threshold with optional env override in [0, 1]."""
-    raw = os.environ.get(env_name, "").strip()
-    if not raw:
-        return default_value
-    try:
-        value = float(raw)
-    except ValueError:
-        logger.warning("Invalid %s=%r; using default %.2f", env_name, raw, default_value)
-        return default_value
-    if not (0.0 < value <= 1.0):
-        logger.warning("Out-of-range %s=%r; using default %.2f", env_name, raw, default_value)
-        return default_value
-    return value
 
 
 # ---------------------------------------------------------------------------
@@ -382,7 +366,7 @@ class TestCPUComputeBottleneck:
         warmup_iters = 3
         n_iters = 12
         n_trials = 3
-        cpu_fp32_threshold = _resolve_eff_threshold(0.05, "BN_CPU_FP32_EFF_THRESHOLD")
+        cpu_fp32_threshold = 0.05
         scaled_theoretical_tflops = CPU_SPECS.peak_fp32_tflops_base
 
         configs = [
@@ -533,8 +517,7 @@ class TestGPUComputeBottleneck:
         """TC-BN-03a: FP16 efficiency per GPU ≥ configured threshold of detected theoretical."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
-        fp16_default = 0.60 if H100_SPECS.hbm3_bandwidth_tbs <= 2.1 else ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"]
-        fp16_threshold = _resolve_eff_threshold(fp16_default, "BN_GPU_FP16_EFF_THRESHOLD")
+        fp16_threshold = 0.60 if H100_SPECS.hbm3_bandwidth_tbs <= 2.1 else ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"]
         results = []
         for i in range(torch.cuda.device_count()):
             tflops = _gpu_fp16_tflops(i, m=8192, k=8192, n=8192, n_iters=10)
@@ -583,8 +566,7 @@ class TestGPUComputeBottleneck:
             aggregate_tflops_per_trial.append(sum(trial_results))
 
         measured_tflops = max(aggregate_tflops_per_trial)
-        aggregate_default = min(ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"], 0.60)
-        aggregate_threshold = _resolve_eff_threshold(aggregate_default, "BN_GPU_FP16_AGG_EFF_THRESHOLD")
+        aggregate_threshold = min(ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"], 0.60)
 
         logger.info(
             "Aggregate FP16 config: %d GPUs, %d trials, %d iters/trial, threshold=%.0f%%",
@@ -623,10 +605,6 @@ class TestHBMBandwidthBottleneck:
         """TC-BN-04a: HBM BW per GPU ≥ configured threshold of detected theoretical."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
-        hbm_threshold_default = ACCEPTANCE_THRESHOLDS["gpu_hbm_bandwidth_efficiency"]
-        if H100_SPECS.hbm3_bandwidth_tbs <= 2.1:
-            hbm_threshold_default = min(hbm_threshold_default, 0.70)
-        hbm_threshold = _resolve_eff_threshold(hbm_threshold_default, "BN_GPU_HBM_EFF_THRESHOLD")
         results = []
         for i in range(torch.cuda.device_count()):
             bw = _hbm_bw_tbs(i, n_bytes=4 * 1024 ** 3)
@@ -636,15 +614,13 @@ class TestHBMBandwidthBottleneck:
                     measured=bw,
                     theoretical=H100_SPECS.hbm3_bandwidth_tbs,
                     unit="TB/s",
-                    bottleneck_threshold=hbm_threshold,
                 )
             )
-        logger.info("HBM bandwidth threshold selected: %.0f%%", hbm_threshold * 100)
         logger.info(_format_report(results))
         for r in results:
             assert_efficiency(
                 r.measured, r.theoretical,
-                hbm_threshold,
+                ACCEPTANCE_THRESHOLDS["gpu_hbm_bandwidth_efficiency"],
                 r.label,
             )
 
@@ -674,10 +650,6 @@ class TestPCIeBottleneck:
         """TC-BN-05a: H2D PCIe BW per GPU ≥ 65 % of 63 GB/s theoretical."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
-        pcie_h2d_threshold = _resolve_eff_threshold(
-            ACCEPTANCE_THRESHOLDS["pcie_h2d_bandwidth_efficiency"],
-            "BN_PCIE_H2D_EFF_THRESHOLD",
-        )
         results = []
         for i in range(torch.cuda.device_count()):
             bw = _h2d_bw_gbs(i, n_bytes=1 * 1024 ** 3)
@@ -687,15 +659,13 @@ class TestPCIeBottleneck:
                     measured=bw,
                     theoretical=H100_SPECS.pcie_unidirectional_bw_gbs,
                     unit="GB/s",
-                    bottleneck_threshold=pcie_h2d_threshold,
                 )
             )
-        logger.info("PCIe H2D threshold selected: %.0f%%", pcie_h2d_threshold * 100)
         logger.info(_format_report(results))
         for r in results:
             assert_efficiency(
                 r.measured, r.theoretical,
-                pcie_h2d_threshold,
+                ACCEPTANCE_THRESHOLDS["pcie_h2d_bandwidth_efficiency"],
                 r.label,
             )
 
@@ -747,8 +717,6 @@ class TestNVLinkBottleneck:
             else H100_SPECS.pcie_unidirectional_bw_gbs
         )
         threshold_key = "nvlink_bandwidth_efficiency" if SYSTEM_SPECS.has_nvlink else "p2p_pcie_bandwidth_efficiency"
-        threshold_env = "BN_NVLINK_EFF_THRESHOLD" if SYSTEM_SPECS.has_nvlink else "BN_P2P_PCIE_EFF_THRESHOLD"
-        interconnect_threshold = _resolve_eff_threshold(ACCEPTANCE_THRESHOLDS[threshold_key], threshold_env)
 
         bw = _p2p_bw_gbs(0, 1, n_bytes=1 * 1024 ** 3)
         result = BenchmarkResult(
@@ -756,12 +724,11 @@ class TestNVLinkBottleneck:
             measured=bw,
             theoretical=theoretical,
             unit="GB/s",
-            bottleneck_threshold=interconnect_threshold,
         )
         logger.info(_format_report([result]))
         assert_efficiency(
             bw, theoretical,
-            interconnect_threshold,
+            ACCEPTANCE_THRESHOLDS[threshold_key],
             result.label,
         )
 
@@ -936,10 +903,6 @@ class TestMultiGPUScalingBottleneck:
             pytest.skip("CUDA / PyTorch not available")
         if torch.cuda.device_count() < 2:
             pytest.skip("Need ≥ 2 GPUs")
-        scaling_default = ACCEPTANCE_THRESHOLDS["multi_gpu_scaling_efficiency"]
-        if H100_SPECS.hbm3_bandwidth_tbs <= 2.1:
-            scaling_default = min(scaling_default, 0.60)
-        scaling_threshold = _resolve_eff_threshold(scaling_default, "BN_MULTI_GPU_SCALING_EFF_THRESHOLD")
         single = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
         results = [0.0, 0.0]
 
@@ -957,12 +920,11 @@ class TestMultiGPUScalingBottleneck:
             measured=two_gpu_total,
             theoretical=single * 2,
             unit="TFLOPS",
-            bottleneck_threshold=scaling_threshold,
         )
         logger.info(_format_report([result]))
         assert_efficiency(
             two_gpu_total, single * 2,
-            scaling_threshold,
+            ACCEPTANCE_THRESHOLDS["multi_gpu_scaling_efficiency"],
             result.label,
         )
 
@@ -973,10 +935,6 @@ class TestMultiGPUScalingBottleneck:
         n_gpus = torch.cuda.device_count()
         if n_gpus < 2:
             pytest.skip("Need at least 2 GPUs")
-        scaling_default = ACCEPTANCE_THRESHOLDS["multi_gpu_scaling_efficiency"]
-        if H100_SPECS.hbm3_bandwidth_tbs <= 2.1:
-            scaling_default = min(scaling_default, 0.60)
-        scaling_threshold = _resolve_eff_threshold(scaling_default, "BN_MULTI_GPU_SCALING_EFF_THRESHOLD")
         single = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
         results = [0.0] * n_gpus
 
@@ -994,12 +952,11 @@ class TestMultiGPUScalingBottleneck:
             measured=total,
             theoretical=single * n_gpus,
             unit="TFLOPS",
-            bottleneck_threshold=scaling_threshold,
         )
         logger.info(_format_report([result]))
         assert_efficiency(
             total, single * n_gpus,
-            scaling_threshold,
+            ACCEPTANCE_THRESHOLDS["multi_gpu_scaling_efficiency"],
             result.label,
         )
 

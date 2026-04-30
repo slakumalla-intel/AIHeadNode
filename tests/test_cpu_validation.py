@@ -278,9 +278,18 @@ class TestAllCoreFP32Scaling:
             f"{'='*80}"
         )
         
-        # Keep runtime bounded: drastically reduced workload (matrix 128 instead of 256, 5 iters instead of 30)
-        # This prevents hangs on high-core-count systems like this 224-core machine
-        args = [(128, 5)] * sample_workers
+        # Use a workload heavy enough to reduce process-launch and Python overhead impact.
+        # Tiny kernels (e.g., 128x128x5) severely under-report BLAS throughput on large systems.
+        default_size = 512 if available_workers >= 64 else 384
+        default_iters = 40 if available_workers >= 64 else 60
+        size = max(128, int(os.environ.get("CPU_ALLCORE_GEMM_SIZE", str(default_size))))
+        n_iters = max(5, int(os.environ.get("CPU_ALLCORE_GEMM_ITERS", str(default_iters))))
+        logger.info(
+            "  All-core worker GEMM workload: size=%d, iters=%d (override with CPU_ALLCORE_GEMM_SIZE/CPU_ALLCORE_GEMM_ITERS)",
+            size,
+            n_iters,
+        )
+        args = [(size, n_iters)] * sample_workers
         t0 = time.perf_counter()
         sample_results = []
         

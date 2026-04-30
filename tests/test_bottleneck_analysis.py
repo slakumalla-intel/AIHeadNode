@@ -59,7 +59,11 @@ except ImportError:
 
 try:
     import torch
-    _HAS_TORCH = torch.cuda.is_available()
+    try:
+        _HAS_TORCH = torch.cuda.is_available()
+    except Exception as e:
+        logger.warning("PyTorch CUDA init check failed during import: %s", e)
+        _HAS_TORCH = False
 except ImportError:
     torch = None          # type: ignore[assignment]
     _HAS_TORCH = False
@@ -167,6 +171,17 @@ def _dram_bw_gbs(n_bytes: int = 512 * 1024 * 1024) -> float:
     t0 = time.perf_counter()
     np.copyto(b, a)
     return (2 * n * 4) / (time.perf_counter() - t0) / 1e9
+
+
+def _safe_cuda_device_count() -> int:
+    """Return CUDA device count, handling deferred CUDA init failures gracefully."""
+    if not _HAS_TORCH:
+        return 0
+    try:
+        return int(torch.cuda.device_count())
+    except Exception as e:
+        logger.warning("CUDA device enumeration failed; treating CUDA as unavailable: %s", e)
+        return 0
 
 
 def _gpu_fp16_tflops(device_idx: int, m: int = 8192, k: int = 8192, n: int = 8192,
@@ -517,9 +532,12 @@ class TestGPUComputeBottleneck:
         """TC-BN-03a: FP16 efficiency per GPU ≥ configured threshold of detected theoretical."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
+        n_gpus = _safe_cuda_device_count()
+        if n_gpus <= 0:
+            pytest.skip("CUDA device enumeration failed or no GPUs visible")
         fp16_threshold = 0.60 if H100_SPECS.hbm3_bandwidth_tbs <= 2.1 else ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"]
         results = []
-        for i in range(torch.cuda.device_count()):
+        for i in range(n_gpus):
             tflops = _gpu_fp16_tflops(i, m=8192, k=8192, n=8192, n_iters=10)
             results.append(
                 BenchmarkResult(
@@ -548,7 +566,9 @@ class TestGPUComputeBottleneck:
         """TC-BN-03b: Aggregate 4-GPU sustained FP16 TFLOPS under multi-process load."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
-        n_gpus = torch.cuda.device_count()
+        n_gpus = _safe_cuda_device_count()
+        if n_gpus <= 0:
+            pytest.skip("CUDA device enumeration failed or no GPUs visible")
         if n_gpus < 4:
             pytest.skip(f"Expected at least 4 GPUs for aggregate test, found {n_gpus}")
 
@@ -605,8 +625,11 @@ class TestHBMBandwidthBottleneck:
         """TC-BN-04a: HBM BW per GPU ≥ configured threshold of detected theoretical."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
+        n_gpus = _safe_cuda_device_count()
+        if n_gpus <= 0:
+            pytest.skip("CUDA device enumeration failed or no GPUs visible")
         results = []
-        for i in range(torch.cuda.device_count()):
+        for i in range(n_gpus):
             bw = _hbm_bw_tbs(i, n_bytes=4 * 1024 ** 3)
             results.append(
                 BenchmarkResult(
@@ -650,8 +673,11 @@ class TestPCIeBottleneck:
         """TC-BN-05a: H2D PCIe BW per GPU ≥ 65 % of 63 GB/s theoretical."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
+        n_gpus = _safe_cuda_device_count()
+        if n_gpus <= 0:
+            pytest.skip("CUDA device enumeration failed or no GPUs visible")
         results = []
-        for i in range(torch.cuda.device_count()):
+        for i in range(n_gpus):
             bw = _h2d_bw_gbs(i, n_bytes=1 * 1024 ** 3)
             results.append(
                 BenchmarkResult(
@@ -706,7 +732,7 @@ class TestNVLinkBottleneck:
         """TC-BN-06a: Inter-GPU P2P BW must meet threshold for active fabric."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
-        n_gpus = torch.cuda.device_count()
+        n_gpus = _safe_cuda_device_count()
         if n_gpus < 2:
             pytest.skip("Need ≥ 2 GPUs")
 
@@ -901,7 +927,7 @@ class TestMultiGPUScalingBottleneck:
         """TC-BN-09a: 2-GPU throughput ≥ 80 % of 2× single-GPU throughput."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
-        if torch.cuda.device_count() < 2:
+        if _safe_cuda_device_count() < 2:
             pytest.skip("Need ≥ 2 GPUs")
         single = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
         results = [0.0, 0.0]
@@ -932,7 +958,7 @@ class TestMultiGPUScalingBottleneck:
         """TC-BN-09b: N-GPU throughput ≥ 80 % of N× single-GPU throughput."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
-        n_gpus = torch.cuda.device_count()
+        n_gpus = _safe_cuda_device_count()
         if n_gpus < 2:
             pytest.skip("Need at least 2 GPUs")
         single = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
@@ -1080,42 +1106,46 @@ class TestSystemLevelSummary:
 
         # GPU FP16 (GPU 0 only for speed)
         if _HAS_TORCH:
-            fp16 = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
-            results.append(BenchmarkResult(
-                "GPU 0 FP16 Tensor Core", fp16, H100_SPECS.fp16_tflops, "TFLOPS",
-            ))
-
-            # GPU FP32
-            fp32_gflops = _gpu_fp32_gflops(0, m=4096, k=4096, n=4096, n_iters=10)
-            results.append(BenchmarkResult(
-                "GPU 0 FP32 CUDA Core", fp32_gflops / 1000,
-                H100_SPECS.fp32_tflops, "TFLOPS",
-            ))
-
-            # HBM BW
-            hbm = _hbm_bw_tbs(0, n_bytes=4 * 1024 ** 3)
-            results.append(BenchmarkResult(
-                "GPU 0 HBM3 BW", hbm, H100_SPECS.hbm3_bandwidth_tbs, "TB/s",
-            ))
-
-            # PCIe H2D
-            h2d = _h2d_bw_gbs(0, n_bytes=1 * 1024 ** 3)
-            results.append(BenchmarkResult(
-                "GPU 0 PCIe H2D BW", h2d, H100_SPECS.pcie_unidirectional_bw_gbs, "GB/s",
-            ))
-
-            # P2P (NVLink)
-            if torch.cuda.device_count() >= 2:
-                p2p = _p2p_bw_gbs(0, 1, n_bytes=1 * 1024 ** 3)
-                p2p_theoretical = (
-                    H100_SPECS.nvlink_total_bw_gbs
-                    if SYSTEM_SPECS.has_nvlink
-                    else H100_SPECS.pcie_unidirectional_bw_gbs
-                )
-                p2p_label = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
+            n_gpus = _safe_cuda_device_count()
+            if n_gpus <= 0:
+                logger.warning("Skipping GPU summary metrics: CUDA device enumeration failed")
+            else:
+                fp16 = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
                 results.append(BenchmarkResult(
-                    f"{p2p_label} BW (GPU 0->1)", p2p, p2p_theoretical, "GB/s",
+                    "GPU 0 FP16 Tensor Core", fp16, H100_SPECS.fp16_tflops, "TFLOPS",
                 ))
+
+                # GPU FP32
+                fp32_gflops = _gpu_fp32_gflops(0, m=4096, k=4096, n=4096, n_iters=10)
+                results.append(BenchmarkResult(
+                    "GPU 0 FP32 CUDA Core", fp32_gflops / 1000,
+                    H100_SPECS.fp32_tflops, "TFLOPS",
+                ))
+
+                # HBM BW
+                hbm = _hbm_bw_tbs(0, n_bytes=4 * 1024 ** 3)
+                results.append(BenchmarkResult(
+                    "GPU 0 HBM3 BW", hbm, H100_SPECS.hbm3_bandwidth_tbs, "TB/s",
+                ))
+
+                # PCIe H2D
+                h2d = _h2d_bw_gbs(0, n_bytes=1 * 1024 ** 3)
+                results.append(BenchmarkResult(
+                    "GPU 0 PCIe H2D BW", h2d, H100_SPECS.pcie_unidirectional_bw_gbs, "GB/s",
+                ))
+
+                # P2P (NVLink)
+                if n_gpus >= 2:
+                    p2p = _p2p_bw_gbs(0, 1, n_bytes=1 * 1024 ** 3)
+                    p2p_theoretical = (
+                        H100_SPECS.nvlink_total_bw_gbs
+                        if SYSTEM_SPECS.has_nvlink
+                        else H100_SPECS.pcie_unidirectional_bw_gbs
+                    )
+                    p2p_label = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
+                    results.append(BenchmarkResult(
+                        f"{p2p_label} BW (GPU 0->1)", p2p, p2p_theoretical, "GB/s",
+                    ))
 
         if results:
             logger.info(_format_report(results))

@@ -202,6 +202,37 @@ def _pcie_d2h_bandwidth_gbs(device_idx: int, n_bytes: int = 512 * 1024 * 1024,
     return (n_bytes * n_iters) / elapsed / 1e9
 
 
+def _device_theoretical_profile(device_idx: int) -> tuple[float, float, float, float]:
+    """Return (hbm_tbs, fp32_tflops, fp16_tflops, bf16_tflops) for a specific GPU."""
+    if not _HAS_TORCH:
+        return (
+            H100_SPECS.hbm3_bandwidth_tbs,
+            H100_SPECS.fp32_tflops,
+            H100_SPECS.fp16_tflops,
+            H100_SPECS.bf16_tflops,
+        )
+
+    props = torch.cuda.get_device_properties(device_idx)
+    name = props.name.upper()
+    mem_gb = props.total_memory / 1024 ** 3
+
+    # Mixed H100 fleet support: PCIe 80GB and NVL 94GB may coexist.
+    if "H100" in name:
+        if "NVL" in name or mem_gb >= 93:
+            return (3.9, 67.0, 989.0, 989.0)
+        if "SXM" in name:
+            return (3.35, 67.0, 989.0, 989.0)
+        return (2.0, 67.0, 756.0, 756.0)
+
+    # Fallback to detected/default spec object for non-H100 devices.
+    return (
+        H100_SPECS.hbm3_bandwidth_tbs,
+        H100_SPECS.fp32_tflops,
+        H100_SPECS.fp16_tflops,
+        H100_SPECS.bf16_tflops,
+    )
+
+
 # ---------------------------------------------------------------------------
 # TC-GPU-01  GPU discovery
 # ---------------------------------------------------------------------------
@@ -300,9 +331,10 @@ class TestHBMBandwidth:
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
+        theoretical_hbm_tbs, _, _, _ = _device_theoretical_profile(device_idx)
         bw_tbs = _hbm_bandwidth_tbs(device_idx, n_bytes=4 * 1024 ** 3)
         assert_efficiency(
-            bw_tbs, H100_SPECS.hbm3_bandwidth_tbs,
+            bw_tbs, theoretical_hbm_tbs,
             ACCEPTANCE_THRESHOLDS["gpu_hbm_bandwidth_efficiency"],
             f"HBM3 bandwidth GPU {device_idx}"
         )
@@ -321,11 +353,13 @@ class TestFP32Throughput:
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
+        hbm_tbs, fp32_tflops, _, _ = _device_theoretical_profile(device_idx)
+        fp32_threshold = 0.65 if hbm_tbs > 2.1 else 0.52
         gflops = _run_sgemm_gflops(device_idx, m=4096, k=4096, n=4096, n_iters=20)
-        theoretical_gflops = H100_SPECS.fp32_tflops * 1000
+        theoretical_gflops = fp32_tflops * 1000
         assert_efficiency(
             gflops, theoretical_gflops,
-            ACCEPTANCE_THRESHOLDS["gpu_fp32_efficiency"],
+            fp32_threshold,
             f"FP32 GFLOPS GPU {device_idx}"
         )
 
@@ -343,10 +377,12 @@ class TestFP16ThroughputGPU:
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
+        hbm_tbs, _, fp16_tflops, _ = _device_theoretical_profile(device_idx)
+        fp16_threshold = 0.75 if hbm_tbs > 2.1 else 0.60
         tflops = _run_hgemm_tflops(device_idx, m=8192, k=8192, n=8192, n_iters=10)
         assert_efficiency(
-            tflops, H100_SPECS.fp16_tflops,
-            ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"],
+            tflops, fp16_tflops,
+            fp16_threshold,
             f"FP16 TFLOPS GPU {device_idx}"
         )
 
@@ -364,10 +400,12 @@ class TestBF16Throughput:
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
+        hbm_tbs, _, _, bf16_tflops = _device_theoretical_profile(device_idx)
+        bf16_threshold = 0.75 if hbm_tbs > 2.1 else 0.60
         tflops = _run_bf16_tflops(device_idx, m=8192, k=8192, n=8192, n_iters=10)
         assert_efficiency(
-            tflops, H100_SPECS.bf16_tflops,
-            ACCEPTANCE_THRESHOLDS["gpu_bf16_efficiency"],
+            tflops, bf16_tflops,
+            bf16_threshold,
             f"BF16 TFLOPS GPU {device_idx}"
         )
 

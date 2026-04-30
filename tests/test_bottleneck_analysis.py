@@ -342,9 +342,17 @@ class TestCPUComputeBottleneck:
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
 
-        # Determine parallelism: one BLAS process per socket, or 4 if socket count unknown
-        num_processes = max(1, CPU_SPECS.sockets if CPU_SPECS.sockets > 1 else 4)
-        blas_threads_per_process = max(1, CPU_SPECS.cores_per_socket // num_processes)
+        # Optional override for controlled, limited-thread validation.
+        # If CPU_FP32_BLAS_THREADS is set, run a single process with exactly that many threads.
+        # This avoids engaging all cores on very large systems.
+        forced_threads = os.environ.get("CPU_FP32_BLAS_THREADS", "").strip()
+        if forced_threads:
+            num_processes = 1
+            blas_threads_per_process = _resolve_cpu_fp32_blas_threads()
+        else:
+            # Default parallelism: one BLAS process per socket, or 4 if socket count unknown.
+            num_processes = max(1, CPU_SPECS.sockets if CPU_SPECS.sockets > 1 else 4)
+            blas_threads_per_process = max(1, CPU_SPECS.cores_per_socket // num_processes)
         
         logger.info(
             "CPU FP32 multi-process GEMM config: %d processes × %d threads/process "

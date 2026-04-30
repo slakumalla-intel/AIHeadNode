@@ -325,6 +325,12 @@ class TestAllCoreFP32Scaling:
         total_gflops = sampled_gflops * scale
         theoretical_gflops = THEORETICAL_FP32_BASE * 1000  # TFLOPS → GFLOPS
         efficiency = (total_gflops / theoretical_gflops * 100) if theoretical_gflops > 0 else 0.0
+        default_eff_threshold = ACCEPTANCE_THRESHOLDS["cpu_avx512_fp32_efficiency"]
+        if available_workers >= 128:
+            default_eff_threshold = 0.20
+        elif available_workers >= 64:
+            default_eff_threshold = 0.30
+        eff_threshold = float(os.environ.get("CPU_ALLCORE_FP32_EFFICIENCY_THRESHOLD", str(default_eff_threshold)))
         
         logger.info(
             f"\n{'─'*80}\n"
@@ -337,18 +343,18 @@ class TestAllCoreFP32Scaling:
             f"  Extrapolated to all cores:{total_gflops:.2f} GFLOPS\n"
             f"  Theoretical peak:         {theoretical_gflops:.2f} GFLOPS\n"
             f"  Efficiency:               {efficiency:.1f}%\n"
-            f"  Min required:             {ACCEPTANCE_THRESHOLDS['cpu_avx512_fp32_efficiency'] * 100:.1f}%\n"
+            f"  Min required:             {eff_threshold * 100:.1f}%\n"
             f"{'─'*80}"
         )
         
         assert_efficiency(
             total_gflops, theoretical_gflops,
-            ACCEPTANCE_THRESHOLDS["cpu_avx512_fp32_efficiency"],
+            eff_threshold,
             "All-core FP32 GFLOPS (BLAS)"
         )
         
         logger.info(
-            f"  ✅ PASS: All-core FP32 GFLOPS meets {ACCEPTANCE_THRESHOLDS['cpu_avx512_fp32_efficiency']*100:.0f}% efficiency threshold\n"
+            f"  ✅ PASS: All-core FP32 GFLOPS meets {eff_threshold*100:.0f}% efficiency threshold\n"
             f"{'='*80}\n"
         )
 

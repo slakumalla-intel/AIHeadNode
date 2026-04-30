@@ -160,9 +160,10 @@ def _detect_gpu_fp16_tflops() -> float:
         if isinstance(name, bytes):
             name = name.decode()
         n = name.upper()
-        if "H100" in n and "SXM" in n:  return 1979.0
-        if "H100" in n:                  return 1513.0
-        if "H200" in n:                  return 1979.0
+        # Use dense Tensor Core peaks for utilization calculations.
+        if "H100" in n and "SXM" in n:  return 989.0
+        if "H100" in n:                  return 756.0
+        if "H200" in n:                  return 989.0
         if "A100" in n and "80" in n:    return 312.0
         if "A100" in n:                  return 312.0
         if "MI300X" in n:                return 1307.0
@@ -331,8 +332,8 @@ class GPUSpecs:
     fp64_tflops: float = 34.0          # Tensor Core FP64
     fp32_tflops: float = 67.0          # non-Tensor Core FP32
     tf32_tflops: float = 989.0         # Tensor Core TF32
-    fp16_tflops: float = 1979.0        # Tensor Core FP16 (dense)
-    bf16_tflops: float = 1979.0        # Tensor Core BF16 (dense)
+    fp16_tflops: float = 989.0         # Tensor Core FP16 (dense)
+    bf16_tflops: float = 989.0         # Tensor Core BF16 (dense)
     int8_tops: float = 3958.0          # Tensor Core INT8 (dense)
     fp8_tflops: float = 3958.0         # Tensor Core FP8 (dense)
 
@@ -344,8 +345,8 @@ class GPUSpecs:
     fp64_tflops: float = 34.0
     fp32_tflops: float = 67.0
     tf32_tflops: float = 989.0
-    fp16_tflops: float = 1979.0
-    bf16_tflops: float = 1979.0
+    fp16_tflops: float = 989.0
+    bf16_tflops: float = 989.0
     int8_tops: float = 3958.0
     fp8_tflops: float = 3958.0
 
@@ -408,7 +409,7 @@ H100_SPECS = GPUSpecs(
     has_high_bw_fabric=_NVLINK_AVAILABLE,
     memory_capacity_gb=_DETECTED_GPU_MEM_GB if _DETECTED_GPU_MEM_GB > 0 else 80.0,
     memory_bandwidth_tbs=_DETECTED_GPU_BW_TBS if _DETECTED_GPU_BW_TBS > 0 else 3.35,
-    fp16_tflops=_DETECTED_GPU_FP16 if _DETECTED_GPU_FP16 > 0 else 1979.0,
+    fp16_tflops=_DETECTED_GPU_FP16 if _DETECTED_GPU_FP16 > 0 else 989.0,
     tdp_watts=_DETECTED_GPU_TDP,
     max_temp_c=_DETECTED_GPU_TEMP,
 )

@@ -117,6 +117,7 @@ def _detect_gpu_memory_bandwidth_tbs() -> float:
         mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
         # Known BW by approximate capacity (GB):
         #   H100 SXM5 80 GB → 3.35 TB/s  |  H100 PCIe 80 GB → 2.0 TB/s
+        #   H100 NVL  94 GB → 3.9 TB/s
         #   A100  SXM 80 GB → 2.0 TB/s   |  MI300X 192 GB   → 5.3 TB/s
         #   A100  PCIe 40 GB→ 1.555 TB/s |  MI250X  128 GB  → 3.2 TB/s
         cap_gb = mem_info.total / 1024 ** 3
@@ -124,8 +125,12 @@ def _detect_gpu_memory_bandwidth_tbs() -> float:
         if isinstance(name, bytes):
             name = name.decode()
         name_upper = name.upper()
-        if "H100" in name_upper and cap_gb >= 79:
-            return 3.35 if "SXM" in name_upper else 2.0
+        if "H100" in name_upper:
+            if "NVL" in name_upper or cap_gb >= 93:
+                return 3.9
+            if "SXM" in name_upper:
+                return 3.35
+            return 2.0
         if "H200" in name_upper:
             return 4.8
         if "A100" in name_upper and cap_gb >= 79:
@@ -339,7 +344,7 @@ class GPUSpecs:
 
     # Accelerator memory (HBM or GDDR)
     memory_capacity_gb: float = 80.0        # per-GPU memory capacity
-    memory_bandwidth_tbs: float = 3.35     # per-GPU peak memory BW (TB/s)
+    memory_bandwidth_tbs: float = 2.0      # per-GPU peak memory BW (TB/s), conservative PCIe fallback
 
     # Compute peaks (per GPU, theoretical dense)
     fp64_tflops: float = 34.0
@@ -408,7 +413,7 @@ _DETECTED_GPU_TEMP   = _detect_gpu_max_temp_c()
 H100_SPECS = GPUSpecs(
     has_high_bw_fabric=_NVLINK_AVAILABLE,
     memory_capacity_gb=_DETECTED_GPU_MEM_GB if _DETECTED_GPU_MEM_GB > 0 else 80.0,
-    memory_bandwidth_tbs=_DETECTED_GPU_BW_TBS if _DETECTED_GPU_BW_TBS > 0 else 3.35,
+    memory_bandwidth_tbs=_DETECTED_GPU_BW_TBS if _DETECTED_GPU_BW_TBS > 0 else 2.0,
     fp16_tflops=_DETECTED_GPU_FP16 if _DETECTED_GPU_FP16 > 0 else 989.0,
     tdp_watts=_DETECTED_GPU_TDP,
     max_temp_c=_DETECTED_GPU_TEMP,

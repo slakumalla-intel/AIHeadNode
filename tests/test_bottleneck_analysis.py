@@ -178,7 +178,14 @@ def _safe_cuda_device_count() -> int:
     if not _HAS_TORCH:
         return 0
     try:
-        return int(torch.cuda.device_count())
+        n_gpus = int(torch.cuda.device_count())
+        if n_gpus <= 0:
+            return 0
+        # Force a lightweight runtime capability query so deferred CUDA init
+        # errors surface here (and tests can skip cleanly) instead of failing
+        # later during first tensor allocation.
+        torch.cuda.get_device_properties(0)
+        return n_gpus
     except Exception as e:
         logger.warning("CUDA device enumeration failed; treating CUDA as unavailable: %s", e)
         return 0

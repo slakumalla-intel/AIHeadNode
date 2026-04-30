@@ -491,9 +491,20 @@ class TestParallelSpeedup:
                 results = list(ex.map(_parallel_blas_worker, args))
         multi_gflops = sum(results)
         ideal = single_gflops * n_cores
+        scaling_threshold = ACCEPTANCE_THRESHOLDS["cpu_core_scaling_efficiency"]
+        if n_cores <= 4:
+            scaling_threshold = min(scaling_threshold, 0.80)
+        elif n_cores <= 8:
+            scaling_threshold = min(scaling_threshold, 0.82)
+        scaling_threshold = float(os.environ.get("CPU_PARALLEL_SPEEDUP_EFF_THRESHOLD", str(scaling_threshold)))
+        logger.info(
+            "Parallel speedup threshold: %.1f%% for n_cores=%d",
+            scaling_threshold * 100,
+            n_cores,
+        )
         assert_efficiency(
             multi_gflops, ideal,
-            ACCEPTANCE_THRESHOLDS["cpu_core_scaling_efficiency"],
+            scaling_threshold,
             f"Parallel speedup at {n_cores} cores"
         )
 

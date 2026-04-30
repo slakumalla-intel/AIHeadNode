@@ -338,94 +338,100 @@ def _cpu_blas_gflops_worker(args: Tuple[int, int, int, int]) -> float:
 @pytest.mark.cpu
 class TestCPUComputeBottleneck:
     def test_cpu_fp32_efficiency_report(self):
-        """TC-BN-01: Multi-process CPU FP32 GEMM vs full-chip theoretical peak."""
+        """TC-BN-01: CPU FP32 GEMM vs full-chip theoretical peak.
+
+        Runs two configurations sequentially and reports results for each:
+          Config A: 1 process  × 32 threads  (single-process, high-thread, NUMA-local)
+          Config B: 4 processes × 52 threads (multi-process, full-chip saturation)
+
+        The test passes if *either* configuration meets the 5% efficiency threshold.
+        """
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
-
-        # Optional override for controlled, limited-thread validation.
-        # If CPU_FP32_BLAS_THREADS is set, run a single process with exactly that many threads.
-        # This avoids engaging all cores on very large systems.
-        forced_threads = os.environ.get("CPU_FP32_BLAS_THREADS", "").strip()
-        if forced_threads:
-            num_processes = 1
-            blas_threads_per_process = _resolve_cpu_fp32_blas_threads()
-        else:
-            # Default parallelism: one BLAS process per socket, or 4 if socket count unknown.
-            num_processes = max(1, CPU_SPECS.sockets if CPU_SPECS.sockets > 1 else 4)
-            blas_threads_per_process = max(1, CPU_SPECS.cores_per_socket // num_processes)
-        
-        logger.info(
-            "CPU FP32 multi-process GEMM config: %d processes × %d threads/process "
-            "(detected: %d sockets, %d cores/socket, %d total cores)",
-            num_processes,
-            blas_threads_per_process,
-            CPU_SPECS.sockets,
-            CPU_SPECS.cores_per_socket,
-            CPU_SPECS.total_physical_cores,
-        )
 
         gemm_size = 4096
         warmup_iters = 3
         n_iters = 12
         n_trials = 3
-
-        # Run multi-process GEMM: spawn N independent processes in parallel.
-        aggregate_tflops_per_trial = []
-        worker_args = [(n_iters, gemm_size, warmup_iters, blas_threads_per_process)] * num_processes
-        for _ in range(n_trials):
-            with ProcessPoolExecutor(max_workers=num_processes) as executor:
-                trial_results = list(executor.map(_cpu_blas_gflops_worker, worker_args))
-            aggregate_tflops = sum(trial_results) / 1000.0
-            aggregate_tflops_per_trial.append(aggregate_tflops)
-
-        measured_tflops = max(aggregate_tflops_per_trial)
-        # Full-chip theoretical (all cores used in parallel processes)
+        cpu_fp32_threshold = 0.05
         scaled_theoretical_tflops = CPU_SPECS.peak_fp32_tflops_base
 
-        cpu_fp32_threshold = 0.05
-        result = BenchmarkResult(
-            label=f"CPU FP32 ({num_processes} processes × {blas_threads_per_process} threads)",
-            measured=measured_tflops,
-            theoretical=scaled_theoretical_tflops,
-            unit="TFLOPS",
-            bottleneck_threshold=cpu_fp32_threshold,
-        )
+        configs = [
+            {"num_processes": 1,  "blas_threads": 32,  "label": "Config A: 1 proc × 32 threads"},
+            {"num_processes": 4,  "blas_threads": 52,  "label": "Config B: 4 procs × 52 threads"},
+        ]
 
-        logger.info(_format_report([result]))
-        logger.info(
-            _format_cpu_fp32_analysis(
-                processes=num_processes,
-                blas_threads=blas_threads_per_process,
-                size=gemm_size,
-                n_iters=n_iters,
-                warmup_iters=warmup_iters,
-                trial_tflops=aggregate_tflops_per_trial,
-                theoretical_tflops=scaled_theoretical_tflops,
-            )
-        )
+        results = []
+        for cfg in configs:
+            num_processes = cfg["num_processes"]
+            blas_threads_per_process = cfg["blas_threads"]
+            label = cfg["label"]
 
-        # Multi-process GEMM threshold: 5% of peak.
-        # If measured efficiency is much lower than expected, BLAS library may not be
-        # multi-threaded (e.g., numpy using single-threaded reference BLAS instead of OpenBLAS/MKL),
-        # or thread affinity is disabled (threads scattered across NUMA sockets).
-        # Check: python -c "import numpy; numpy.show_config()" to verify BLAS backend.
-        # On NUMA systems, run with: numactl --cpunodebind=0 --membind=0 pytest ...
-        measured_efficiency = measured_tflops / scaled_theoretical_tflops
-        if measured_efficiency < 0.10:
-            logger.warning(
-                "CPU FP32 multi-process efficiency is very low (%0.1f%%). "
-                "Possible causes: (1) BLAS library is single-threaded, or "
-                "(2) thread affinity disabled (NO_AFFINITY in BLAS config). "
-                "On NUMA systems, run with: numactl --cpunodebind=0 --membind=0 pytest ...",
-                measured_efficiency * 100,
+            logger.info(
+                "CPU FP32 GEMM — %s  (detected: %d sockets, %d cores/socket, %d total cores)",
+                label,
+                CPU_SPECS.sockets,
+                CPU_SPECS.cores_per_socket,
+                CPU_SPECS.total_physical_cores,
             )
-        
-        assert_efficiency(
-            measured_tflops,
-            scaled_theoretical_tflops,
-            cpu_fp32_threshold,
-            result.label,
-        )
+
+            aggregate_tflops_per_trial = []
+            worker_args = [(n_iters, gemm_size, warmup_iters, blas_threads_per_process)] * num_processes
+            for _ in range(n_trials):
+                with ProcessPoolExecutor(max_workers=num_processes) as executor:
+                    trial_results = list(executor.map(_cpu_blas_gflops_worker, worker_args))
+                aggregate_tflops = sum(trial_results) / 1000.0
+                aggregate_tflops_per_trial.append(aggregate_tflops)
+
+            measured_tflops = max(aggregate_tflops_per_trial)
+            efficiency = measured_tflops / scaled_theoretical_tflops if scaled_theoretical_tflops > 0 else 0.0
+
+            result = BenchmarkResult(
+                label=f"CPU FP32 ({num_processes} processes × {blas_threads_per_process} threads)",
+                measured=measured_tflops,
+                theoretical=scaled_theoretical_tflops,
+                unit="TFLOPS",
+                bottleneck_threshold=cpu_fp32_threshold,
+            )
+            results.append(result)
+
+            logger.info(_format_report([result]))
+            logger.info(
+                _format_cpu_fp32_analysis(
+                    processes=num_processes,
+                    blas_threads=blas_threads_per_process,
+                    size=gemm_size,
+                    n_iters=n_iters,
+                    warmup_iters=warmup_iters,
+                    trial_tflops=aggregate_tflops_per_trial,
+                    theoretical_tflops=scaled_theoretical_tflops,
+                )
+            )
+
+            if efficiency < 0.10:
+                logger.warning(
+                    "[%s] CPU FP32 efficiency is very low (%.1f%%). "
+                    "Possible causes: (1) BLAS library is single-threaded, or "
+                    "(2) thread affinity disabled (NO_AFFINITY in BLAS config). "
+                    "On NUMA systems, run with: numactl --cpunodebind=0 --membind=0 pytest ...",
+                    label,
+                    efficiency * 100,
+                )
+
+        # Log combined summary
+        logger.info("=" * 60)
+        logger.info("TC-BN-01 Summary — both configurations")
+        logger.info(_format_report(results))
+        logger.info("=" * 60)
+
+        # Assert: both configurations must individually meet the 5% threshold.
+        for result in results:
+            assert_efficiency(
+                result.measured,
+                result.theoretical,
+                cpu_fp32_threshold,
+                result.label,
+            )
 
 # ---------------------------------------------------------------------------
 # TC-BN-02  CPU memory bandwidth bottleneck

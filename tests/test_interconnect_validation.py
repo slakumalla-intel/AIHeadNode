@@ -24,6 +24,7 @@ import logging
 import time
 import threading
 import math
+import os
 from typing import List, Tuple
 
 import pytest
@@ -109,6 +110,22 @@ def _adaptive_multistream_sweep_mb(device_idx: int, mode: str) -> List[int]:
 def _skip_if_no_gpu():
     if not _HAS_TORCH:
         pytest.skip("CUDA / PyTorch not available")
+
+
+def _safe_cuda_device_count() -> int:
+    """Best-effort CUDA device discovery that tolerates deferred init failures."""
+    if not _HAS_TORCH:
+        return 0
+    try:
+        count = torch.cuda.device_count()
+        if count <= 0:
+            return 0
+        # Force a light touch init so deferred launch/init failures surface here.
+        torch.cuda.get_device_properties(0)
+        return count
+    except Exception as e:
+        logger.warning("CUDA device enumeration failed, treating GPU as unavailable: %s", e)
+        return 0
 
 
 def _format_bandwidth_table(title: str, rows: List[Tuple[str, float, float]], unit: str = "GB/s") -> str:
@@ -239,6 +256,15 @@ def _is_cuda_launch_failure(exc: Exception) -> bool:
         or "device-side assert" in msg
         or "torch.acceleratorerror" in msg
     )
+
+
+def _handle_persistent_cuda_latency_failure(device_idx: int, direction: str, exc: Exception) -> None:
+    strict = os.getenv("INTERCONNECT_STRICT_CUDA", "0").strip().lower() in {"1", "true", "yes", "on"}
+    if strict:
+        raise RuntimeError(
+            f"GPU {device_idx} unstable during {direction.upper()} latency sweep (strict mode): {exc}"
+        ) from exc
+    pytest.skip(f"GPU {device_idx} unstable during {direction.upper()} latency sweep: {exc}")
 
 
 def _h2d_bandwidth_gbs(device_idx: int, n_bytes: int = 1 * 1024 ** 3,
@@ -688,7 +714,7 @@ def _copy_latency_stats_us(
         dev = torch.empty(n, device=device, dtype=torch.float32)
 
         if direction == "d2h":
-            dev.copy_(host, non_blocking=pinned)
+            host.copy_(dev, non_blocking=pinned)
         torch.cuda.synchronize(device)
 
         lat_us: List[float] = []
@@ -724,9 +750,7 @@ def _copy_latency_stats_us(
             return _measure_once()
         except Exception as e2:
             if _is_cuda_launch_failure(e2):
-                pytest.skip(
-                    f"GPU {device_idx} unstable during {direction.upper()} latency sweep: {e2}"
-                )
+                _handle_persistent_cuda_latency_failure(device_idx, direction, e2)
             raise
 
 
@@ -1347,7 +1371,8 @@ class TestMicroTransferLatency:
     def test_h2d_latency_sweep(self, device_idx: int):
         """TC-IC-16a: Capture H2D latency trend for micro transfer sizes."""
         _skip_if_no_gpu()
-        if device_idx >= torch.cuda.device_count():
+        n_gpus = _safe_cuda_device_count()
+        if device_idx >= n_gpus:
             pytest.skip(f"GPU {device_idx} not available")
 
         rows: List[Tuple[int, float, float, float]] = []
@@ -1372,7 +1397,8 @@ class TestMicroTransferLatency:
     def test_d2h_latency_sweep(self, device_idx: int):
         """TC-IC-16b: Capture D2H latency trend for micro transfer sizes."""
         _skip_if_no_gpu()
-        if device_idx >= torch.cuda.device_count():
+        n_gpus = _safe_cuda_device_count()
+        if device_idx >= n_gpus:
             pytest.skip(f"GPU {device_idx} not available")
 
         rows: List[Tuple[int, float, float, float]] = []

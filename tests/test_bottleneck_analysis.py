@@ -2,7 +2,7 @@
 Bottleneck analysis test suite for the AI Head Node.
 
 Compares measured performance against the theoretical peak specifications
-for a 160-core CPU + 4× NVIDIA H100 SXM5 platform and identifies
+for the detected CPU+GPU platform and identifies
 performance bottlenecks using roofline analysis.
 
 Test categories
@@ -514,7 +514,7 @@ class TestCPUMemoryBandwidthBottleneck:
 class TestGPUComputeBottleneck:
 
     def test_per_gpu_fp16_efficiency(self):
-        """TC-BN-03a: FP16 efficiency per GPU ≥ 75 % of 1979 TFLOPS theoretical."""
+        """TC-BN-03a: FP16 efficiency per GPU ≥ configured threshold of detected theoretical."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
         results = []
@@ -594,7 +594,7 @@ class TestGPUComputeBottleneck:
 class TestHBMBandwidthBottleneck:
 
     def test_hbm_bandwidth_per_gpu_vs_theoretical(self):
-        """TC-BN-04a: HBM3 BW per GPU ≥ 80 % of theoretical 3.35 TB/s."""
+        """TC-BN-04a: HBM BW per GPU ≥ configured threshold of detected theoretical."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
         results = []
@@ -756,7 +756,7 @@ class TestRooflineAnalysis:
     def test_roofline_memory_bound_regime(self):
         """TC-BN-07b: A kernel with AI=10 FLOP/byte must be memory-bound on H100."""
         # Expected BW-limited throughput at AI=10:
-        # 10 FLOP/byte × 3.35 TB/s HBM = 33.5 TFLOPS  (<< 1979 TFLOPS compute peak)
+        # 10 FLOP/byte × detected HBM TB/s = BW-limited TFLOPS (must stay below FP16 compute peak)
         ai = 10.0  # FLOP/byte
         bw_limited_tflops = ai * H100_SPECS.hbm3_bandwidth_tbs
         assert bw_limited_tflops < H100_SPECS.fp16_tflops, (
@@ -920,7 +920,7 @@ class TestSystemLevelSummary:
             "CPU DRAM BW peak (GB/s)": f"{CPU_SPECS.peak_memory_bandwidth_gbs:.1f}",
             "CPU L3 cache total (MB)": f"{CPU_SPECS.l3_cache_mb_total:.0f}",
             "GPU count": f"{SYSTEM_SPECS.gpu_count}",
-            "GPU model": "NVIDIA H100 SXM5",
+            "GPU model": "Detected accelerator (runtime)",
             "GPU FP32 peak/GPU (TFLOPS)": f"{H100_SPECS.fp32_tflops:.1f}",
             "GPU FP16 peak/GPU (TFLOPS)": f"{H100_SPECS.fp16_tflops:.1f}",
             "GPU BF16 peak/GPU (TFLOPS)": f"{H100_SPECS.bf16_tflops:.1f}",
@@ -997,7 +997,7 @@ class TestSystemLevelSummary:
             },
         ]
 
-        lines = ["\n", "=" * 90, "  KNOWN BOTTLENECKS — 160-core CPU + 4× H100 SXM5 PLATFORM", "=" * 90]
+        lines = ["\n", "=" * 90, "  KNOWN BOTTLENECKS — DETECTED CPU + GPU PLATFORM", "=" * 90]
         for bn in bottlenecks:
             lines.append(f"\n  ⚠  {bn['subsystem']}")
             lines.append(f"     Bottleneck : {bn['bottleneck']}")

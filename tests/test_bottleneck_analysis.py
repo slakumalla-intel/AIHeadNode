@@ -817,6 +817,12 @@ class TestCPUGPUPipelineBottleneck:
         torch.mm(a, b)
         torch.cuda.synchronize(device)
 
+        # Warm up pinned-memory allocation and one host-to-device transfer so the
+        # timed H2D samples reflect steady-state behavior rather than first-use cost.
+        warmup_host_tensor = torch.from_numpy(raw_batch).pin_memory()
+        _warmup_device_tensor = warmup_host_tensor.to(device, non_blocking=True)
+        torch.cuda.synchronize(device)
+
         cpu_preprocess_times = []
         h2d_times = []
         gpu_compute_times = []

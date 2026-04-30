@@ -465,10 +465,15 @@ class TestParallelSpeedup:
         if n_cores > available:
             pytest.skip(f"Only {available} logical CPUs available, need {n_cores}")
 
-        single_gflops = _numpy_fma_gflops(n_iters=50, size=256)
         args = [(256, 50)] * n_cores
-        with ProcessPoolExecutor(max_workers=n_cores) as ex:
-            results = list(ex.map(_parallel_blas_worker, args))
+        # Use the same single-threaded BLAS + process-pool path for both baseline
+        # and n-core runs to avoid oversubscription and path mismatch artifacts.
+        with _single_thread_blas_env():
+            mp_ctx = multiprocessing.get_context("spawn")
+            with ProcessPoolExecutor(max_workers=1, mp_context=mp_ctx) as ex:
+                single_gflops = list(ex.map(_parallel_blas_worker, [(256, 50)]))[0]
+            with ProcessPoolExecutor(max_workers=n_cores, mp_context=mp_ctx) as ex:
+                results = list(ex.map(_parallel_blas_worker, args))
         multi_gflops = sum(results)
         ideal = single_gflops * n_cores
         assert_efficiency(

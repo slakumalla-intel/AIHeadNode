@@ -480,27 +480,43 @@ class TestParallelSpeedup:
         if n_cores > available:
             pytest.skip(f"Only {available} logical CPUs available, need {n_cores}")
 
-        args = [(256, 50)] * n_cores
-        # Use the same single-threaded BLAS + process-pool path for both baseline
-        # and n-core runs to avoid oversubscription and path mismatch artifacts.
+        # Use a heavier workload for low core counts so process-launch overhead does
+        # not dominate the scaling measurement.
+        if n_cores <= 8:
+            size, n_iters = 512, 120
+        elif n_cores <= 32:
+            size, n_iters = 384, 80
+        else:
+            size, n_iters = 256, 50
+        n_trials = 3
+        args = [(size, n_iters)] * n_cores
+
+        # Use the same single-threaded BLAS + process-pool path for baseline and
+        # n-core runs; compute medians to reduce run-to-run noise.
+        baseline_runs = []
+        multi_runs = []
         with _single_thread_blas_env():
             mp_ctx = multiprocessing.get_context("spawn")
-            with ProcessPoolExecutor(max_workers=1, mp_context=mp_ctx) as ex:
-                single_gflops = list(ex.map(_parallel_blas_worker, [(256, 50)]))[0]
-            with ProcessPoolExecutor(max_workers=n_cores, mp_context=mp_ctx) as ex:
-                results = list(ex.map(_parallel_blas_worker, args))
-        multi_gflops = sum(results)
+            for _ in range(n_trials):
+                with ProcessPoolExecutor(max_workers=1, mp_context=mp_ctx) as ex:
+                    baseline_runs.append(list(ex.map(_parallel_blas_worker, [(size, n_iters)]))[0])
+                with ProcessPoolExecutor(max_workers=n_cores, mp_context=mp_ctx) as ex:
+                    results = list(ex.map(_parallel_blas_worker, args))
+                    multi_runs.append(sum(results))
+
+        single_gflops = sorted(baseline_runs)[n_trials // 2]
+        multi_gflops = sorted(multi_runs)[n_trials // 2]
         ideal = single_gflops * n_cores
         scaling_threshold = ACCEPTANCE_THRESHOLDS["cpu_core_scaling_efficiency"]
-        if n_cores <= 4:
-            scaling_threshold = min(scaling_threshold, 0.80)
-        elif n_cores <= 8:
-            scaling_threshold = min(scaling_threshold, 0.82)
         scaling_threshold = float(os.environ.get("CPU_PARALLEL_SPEEDUP_EFF_THRESHOLD", str(scaling_threshold)))
         logger.info(
-            "Parallel speedup threshold: %.1f%% for n_cores=%d",
-            scaling_threshold * 100,
+            "Parallel speedup config: n_cores=%d size=%d n_iters=%d baseline_runs=%s multi_runs=%s threshold=%.1f%%",
             n_cores,
+            size,
+            n_iters,
+            [round(x, 2) for x in baseline_runs],
+            [round(x, 2) for x in multi_runs],
+            scaling_threshold * 100,
         )
         assert_efficiency(
             multi_gflops, ideal,

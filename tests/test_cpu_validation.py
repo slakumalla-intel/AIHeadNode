@@ -241,7 +241,7 @@ class TestSingleCoreFP32:
             pytest.skip("numpy not installed")
         # Single-core theoretical: 64 FLOP/cycle × 1.9 GHz → ~121 GFLOPS (base)
         per_core_theoretical_gflops = (
-            CPU_SPECS.avx512_fp32_flops_per_cycle_per_core * CPU_SPECS.base_clock_ghz
+            CPU_SPECS.simd_fp32_flops_per_cycle_per_core * CPU_SPECS.base_clock_ghz
         )
         measured = _numpy_fma_gflops(n_iters=200, size=512)
         threshold = ACCEPTANCE_THRESHOLDS["cpu_avx512_fp32_efficiency"] * 0.5  # looser for single-core

@@ -24,6 +24,7 @@ import os
 import time
 import threading
 import logging
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
@@ -83,11 +84,12 @@ class BenchmarkResult:
     unit: str
     efficiency: float = 0.0
     bottleneck_flag: bool = False
+    bottleneck_threshold: float = 0.70
 
     def __post_init__(self):
         if self.theoretical > 0:
             self.efficiency = self.measured / self.theoretical
-            self.bottleneck_flag = self.efficiency < 0.70
+            self.bottleneck_flag = self.efficiency < self.bottleneck_threshold
 
 
 def _format_report(results: List[BenchmarkResult]) -> str:
@@ -317,6 +319,18 @@ def _p2p_bw_gbs(src: int, dst: int, n_bytes: int = 1 * 1024 ** 3) -> float:
     return n_bytes / (time.perf_counter() - t0) / 1e9
 
 
+def _cpu_blas_gflops_worker(args: Tuple[int, int, int, int]) -> float:
+    """Run one CPU BLAS GEMM benchmark in a separate process."""
+    n_iters, size, warmup_iters, blas_threads = args
+    _configure_blas_threads(blas_threads)
+    return _cpu_blas_gflops(
+        n_iters=n_iters,
+        size=size,
+        warmup_iters=warmup_iters,
+        blas_threads=blas_threads,
+    )
+
+
 # ---------------------------------------------------------------------------
 # TC-BN-01  CPU compute bottleneck
 # ---------------------------------------------------------------------------
@@ -347,32 +361,12 @@ class TestCPUComputeBottleneck:
         n_iters = 12
         n_trials = 3
 
-        # Run multi-process GEMM: spawn N processes in parallel, each doing independent GEMM
+        # Run multi-process GEMM: spawn N independent processes in parallel.
         aggregate_tflops_per_trial = []
-        for trial in range(n_trials):
-            trial_results = [0.0] * num_processes
-            lock = threading.Lock()
-
-            def _gemm_worker(proc_idx: int):
-                _configure_blas_threads(blas_threads_per_process)
-                gflops = _cpu_blas_gflops(
-                    n_iters=n_iters,
-                    size=gemm_size,
-                    warmup_iters=warmup_iters,
-                    blas_threads=blas_threads_per_process,
-                )
-                with lock:
-                    trial_results[proc_idx] = gflops
-
-            threads = [
-                threading.Thread(target=_gemm_worker, args=(i,))
-                for i in range(num_processes)
-            ]
-            for t in threads:
-                t.start()
-            for t in threads:
-                t.join()
-            
+        worker_args = [(n_iters, gemm_size, warmup_iters, blas_threads_per_process)] * num_processes
+        for _ in range(n_trials):
+            with ProcessPoolExecutor(max_workers=num_processes) as executor:
+                trial_results = list(executor.map(_cpu_blas_gflops_worker, worker_args))
             aggregate_tflops = sum(trial_results) / 1000.0
             aggregate_tflops_per_trial.append(aggregate_tflops)
 
@@ -380,11 +374,13 @@ class TestCPUComputeBottleneck:
         # Full-chip theoretical (all cores used in parallel processes)
         scaled_theoretical_tflops = CPU_SPECS.peak_fp32_tflops_base
 
+        cpu_fp32_threshold = 0.05
         result = BenchmarkResult(
             label=f"CPU FP32 ({num_processes} processes × {blas_threads_per_process} threads)",
             measured=measured_tflops,
             theoretical=scaled_theoretical_tflops,
             unit="TFLOPS",
+            bottleneck_threshold=cpu_fp32_threshold,
         )
 
         logger.info(_format_report([result]))
@@ -419,7 +415,7 @@ class TestCPUComputeBottleneck:
         assert_efficiency(
             measured_tflops,
             scaled_theoretical_tflops,
-            0.05,
+            cpu_fp32_threshold,
             result.label,
         )
 

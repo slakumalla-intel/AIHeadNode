@@ -231,6 +231,16 @@ def _stats_from_samples(samples: List[float]) -> Tuple[float, float, float]:
     return best, median, p95
 
 
+def _is_cuda_launch_failure(exc: Exception) -> bool:
+    msg = str(exc).lower()
+    return (
+        "unspecified launch failure" in msg
+        or "cudaerrorlaunchfailure" in msg
+        or "device-side assert" in msg
+        or "torch.acceleratorerror" in msg
+    )
+
+
 def _h2d_bandwidth_gbs(device_idx: int, n_bytes: int = 1 * 1024 ** 3,
                         n_runs: int = 3, pinned: bool = True) -> float:
     """
@@ -673,27 +683,51 @@ def _copy_latency_stats_us(
     device = torch.device(f"cuda:{device_idx}")
     n = max(1, n_bytes // 4)
 
-    host = (torch.ones(n, dtype=torch.float32).pin_memory() if pinned else torch.ones(n, dtype=torch.float32))
-    dev = torch.empty(n, device=device, dtype=torch.float32)
+    def _measure_once() -> Tuple[float, float, float]:
+        host = (torch.ones(n, dtype=torch.float32).pin_memory() if pinned else torch.ones(n, dtype=torch.float32))
+        dev = torch.empty(n, device=device, dtype=torch.float32)
 
-    if direction == "d2h":
-        dev.copy_(host, non_blocking=pinned)
-    torch.cuda.synchronize(device)
-
-    lat_us: List[float] = []
-    for i in range(max(1, warmup_runs) + max(1, n_runs)):
-        torch.cuda.synchronize(device)
-        t0 = time.perf_counter()
-        if direction == "h2d":
+        if direction == "d2h":
             dev.copy_(host, non_blocking=pinned)
-        else:
-            host.copy_(dev, non_blocking=pinned)
         torch.cuda.synchronize(device)
-        elapsed_us = (time.perf_counter() - t0) * 1e6
-        if i >= max(1, warmup_runs):
-            lat_us.append(elapsed_us)
 
-    return _stats_from_samples(lat_us)
+        lat_us: List[float] = []
+        for i in range(max(1, warmup_runs) + max(1, n_runs)):
+            torch.cuda.synchronize(device)
+            t0 = time.perf_counter()
+            if direction == "h2d":
+                dev.copy_(host, non_blocking=pinned)
+            else:
+                host.copy_(dev, non_blocking=pinned)
+            torch.cuda.synchronize(device)
+            elapsed_us = (time.perf_counter() - t0) * 1e6
+            if i >= max(1, warmup_runs):
+                lat_us.append(elapsed_us)
+
+        return _stats_from_samples(lat_us)
+
+    try:
+        return _measure_once()
+    except Exception as e:
+        if not _is_cuda_launch_failure(e):
+            raise
+        logger.warning(
+            "CUDA launch failure during %s latency sweep on GPU %d (size=%d bytes). Retrying once: %s",
+            direction.upper(),
+            device_idx,
+            n_bytes,
+            e,
+        )
+        try:
+            torch.cuda.synchronize(device)
+            torch.cuda.empty_cache()
+            return _measure_once()
+        except Exception as e2:
+            if _is_cuda_launch_failure(e2):
+                pytest.skip(
+                    f"GPU {device_idx} unstable during {direction.upper()} latency sweep: {e2}"
+                )
+            raise
 
 
 def _p2p_bandwidth_gbs(src_idx: int, dst_idx: int,

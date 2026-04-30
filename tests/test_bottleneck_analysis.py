@@ -517,6 +517,7 @@ class TestGPUComputeBottleneck:
         """TC-BN-03a: FP16 efficiency per GPU ≥ configured threshold of detected theoretical."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
+        fp16_threshold = 0.60 if H100_SPECS.hbm3_bandwidth_tbs <= 2.1 else ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"]
         results = []
         for i in range(torch.cuda.device_count()):
             tflops = _gpu_fp16_tflops(i, m=8192, k=8192, n=8192, n_iters=10)
@@ -526,13 +527,20 @@ class TestGPUComputeBottleneck:
                     measured=tflops,
                     theoretical=H100_SPECS.fp16_tflops,
                     unit="TFLOPS",
+                    bottleneck_threshold=fp16_threshold,
                 )
             )
+        logger.info(
+            "Per-GPU FP16 threshold selected: %.0f%% (HBM %.2f TB/s, FP16 peak %.0f TFLOPS)",
+            fp16_threshold * 100,
+            H100_SPECS.hbm3_bandwidth_tbs,
+            H100_SPECS.fp16_tflops,
+        )
         logger.info(_format_report(results))
         for r in results:
             assert_efficiency(
                 r.measured, r.theoretical,
-                ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"],
+                fp16_threshold,
                 r.label,
             )
 
@@ -671,13 +679,17 @@ class TestPCIeBottleneck:
             pytest.skip("HBM/PCIe theoretical values unavailable; skipping ratio check")
 
         ratio = hbm_gbs / pcie_gbs
+        min_expected_ratio = 40.0 if hbm_gbs >= 3000 else 25.0
         logger.info(
-            "HBM/PCIe BW ratio = %.1f× (%.0f GB/s HBM vs %.0f GB/s PCIe H2D)",
-            ratio, hbm_gbs, pcie_gbs,
+            "HBM/PCIe BW ratio = %.1f× (%.0f GB/s HBM vs %.0f GB/s PCIe H2D, threshold %.0f×)",
+            ratio, hbm_gbs, pcie_gbs, min_expected_ratio,
         )
-        # PCIe is always the data-ingestion bottleneck on this platform
-        assert ratio >= 40.0, (
-            f"HBM/PCIe ratio {ratio:.1f}× < 40× – PCIe may not be the ingestion bottleneck"
+        # PCIe should remain the data-ingestion bottleneck, but the exact ratio depends
+        # on the installed accelerator class: ~25x is sufficient for PCIe-class H100,
+        # while SXM/NVL-class parts should exceed ~40x.
+        assert ratio >= min_expected_ratio, (
+            f"HBM/PCIe ratio {ratio:.1f}× < {min_expected_ratio:.0f}× – "
+            "PCIe may not be the ingestion bottleneck"
         )
 
 

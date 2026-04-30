@@ -414,7 +414,11 @@ H100_SPECS = GPUSpecs(
     has_high_bw_fabric=_NVLINK_AVAILABLE,
     memory_capacity_gb=_DETECTED_GPU_MEM_GB if _DETECTED_GPU_MEM_GB > 0 else 80.0,
     memory_bandwidth_tbs=_DETECTED_GPU_BW_TBS if _DETECTED_GPU_BW_TBS > 0 else 2.0,
-    fp16_tflops=_DETECTED_GPU_FP16 if _DETECTED_GPU_FP16 > 0 else 989.0,
+    fp16_tflops=(
+        _DETECTED_GPU_FP16
+        if _DETECTED_GPU_FP16 > 0
+        else (756.0 if (_DETECTED_GPU_BW_TBS > 0 and _DETECTED_GPU_BW_TBS <= 2.1) else 989.0)
+    ),
     tdp_watts=_DETECTED_GPU_TDP,
     max_temp_c=_DETECTED_GPU_TEMP,
 )

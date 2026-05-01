@@ -474,36 +474,50 @@ def measure_p2p_bandwidth(src_device: int = 0, dst_device: int = 1,
 # =============================================================================
 
 def measure_h2d_transfer_stats(device_idx: int = 0) -> Dict[str, float]:
-    """Measure Host-to-Device (RAM->GPU) transfer latency and bandwidth at various sizes."""
+    """Measure Host-to-Device (RAM->GPU) transfer latency and bandwidth at various sizes (10KB-10GB)."""
     if not _HAS_TORCH:
         return {}
     try:
         torch.cuda.set_device(device_idx)
-        sizes_bytes = [1024, 10*1024, 100*1024, 1*1024*1024, 10*1024*1024]
+        # Extended size range: 10 KB to 10 GB
+        sizes_bytes = [
+            10*1024,          # 10 KB
+            100*1024,         # 100 KB
+            1*1024*1024,      # 1 MB
+            10*1024*1024,     # 10 MB
+            100*1024*1024,    # 100 MB
+            1*1024*1024*1024, # 1 GB
+            10*1024*1024*1024 # 10 GB
+        ]
         results = {}
         
         for size_bytes in sizes_bytes:
-            host_tensor = torch.randn(size_bytes // 4, dtype=torch.float32).pin_memory()
-            latencies_us = []
-            
-            # Warmup
-            for _ in range(3):
-                dev_tensor = host_tensor.to(f"cuda:{device_idx}", non_blocking=False)
-                torch.cuda.synchronize(device_idx)
-            
-            # Measure latency (single transfer)
-            for _ in range(20):
-                torch.cuda.synchronize(device_idx)
-                t0 = time.perf_counter()
-                dev_tensor = host_tensor.to(f"cuda:{device_idx}", non_blocking=False)
-                torch.cuda.synchronize(device_idx)
-                elapsed_us = (time.perf_counter() - t0) * 1e6
-                latencies_us.append(elapsed_us)
-            
-            latencies_us = sorted(latencies_us)
-            bw_gbs = (size_bytes / min(latencies_us) * 1e6) / 1e9 if latencies_us else 0.0
-            results[f"h2d_{size_bytes//1024}kb_us"] = np.median(latencies_us)
-            results[f"h2d_{size_bytes//1024}kb_bw_gbs"] = bw_gbs
+            try:
+                host_tensor = torch.randn(size_bytes // 4, dtype=torch.float32).pin_memory()
+                latencies_us = []
+                
+                # Warmup
+                for _ in range(2):
+                    dev_tensor = host_tensor.to(f"cuda:{device_idx}", non_blocking=False)
+                    torch.cuda.synchronize(device_idx)
+                
+                # Measure latency (single transfer)
+                for _ in range(5):
+                    torch.cuda.synchronize(device_idx)
+                    t0 = time.perf_counter()
+                    dev_tensor = host_tensor.to(f"cuda:{device_idx}", non_blocking=False)
+                    torch.cuda.synchronize(device_idx)
+                    elapsed_us = (time.perf_counter() - t0) * 1e6
+                    latencies_us.append(elapsed_us)
+                
+                latencies_us = sorted(latencies_us)
+                bw_gbs = (size_bytes / min(latencies_us) * 1e6) / 1e9 if latencies_us else 0.0
+                size_label = f"{size_bytes//(1024*1024*1024)}gb" if size_bytes >= 1024*1024*1024 else f"{size_bytes//(1024*1024)}mb" if size_bytes >= 1024*1024 else f"{size_bytes//1024}kb"
+                results[f"h2d_{size_label}_us"] = np.median(latencies_us)
+                results[f"h2d_{size_label}_bw_gbs"] = bw_gbs
+            except RuntimeError as e:
+                logger.warning(f"H2D measurement at {size_bytes/(1024*1024*1024):.1f}GB failed (likely OOM): {e}")
+                continue
         
         return results
     except Exception as e:
@@ -512,37 +526,51 @@ def measure_h2d_transfer_stats(device_idx: int = 0) -> Dict[str, float]:
 
 
 def measure_d2h_transfer_stats(device_idx: int = 0) -> Dict[str, float]:
-    """Measure Device-to-Host (GPU->RAM) transfer latency and bandwidth at various sizes."""
+    """Measure Device-to-Host (GPU->RAM) transfer latency and bandwidth at various sizes (10KB-10GB)."""
     if not _HAS_TORCH:
         return {}
     try:
         torch.cuda.set_device(device_idx)
-        sizes_bytes = [1024, 10*1024, 100*1024, 1*1024*1024, 10*1024*1024]
+        # Extended size range: 10 KB to 10 GB
+        sizes_bytes = [
+            10*1024,          # 10 KB
+            100*1024,         # 100 KB
+            1*1024*1024,      # 1 MB
+            10*1024*1024,     # 10 MB
+            100*1024*1024,    # 100 MB
+            1*1024*1024*1024, # 1 GB
+            10*1024*1024*1024 # 10 GB
+        ]
         results = {}
         
         for size_bytes in sizes_bytes:
-            dev_tensor = torch.randn(size_bytes // 4, dtype=torch.float32, device=f"cuda:{device_idx}")
-            host_tensor = torch.empty(size_bytes // 4, dtype=torch.float32).pin_memory()
-            latencies_us = []
-            
-            # Warmup
-            for _ in range(3):
-                host_tensor.copy_(dev_tensor, non_blocking=False)
-                torch.cuda.synchronize(device_idx)
-            
-            # Measure latency (single transfer)
-            for _ in range(20):
-                torch.cuda.synchronize(device_idx)
-                t0 = time.perf_counter()
-                host_tensor.copy_(dev_tensor, non_blocking=False)
-                torch.cuda.synchronize(device_idx)
-                elapsed_us = (time.perf_counter() - t0) * 1e6
-                latencies_us.append(elapsed_us)
-            
-            latencies_us = sorted(latencies_us)
-            bw_gbs = (size_bytes / min(latencies_us) * 1e6) / 1e9 if latencies_us else 0.0
-            results[f"d2h_{size_bytes//1024}kb_us"] = np.median(latencies_us)
-            results[f"d2h_{size_bytes//1024}kb_bw_gbs"] = bw_gbs
+            try:
+                dev_tensor = torch.randn(size_bytes // 4, dtype=torch.float32, device=f"cuda:{device_idx}")
+                host_tensor = torch.empty(size_bytes // 4, dtype=torch.float32).pin_memory()
+                latencies_us = []
+                
+                # Warmup
+                for _ in range(2):
+                    host_tensor.copy_(dev_tensor, non_blocking=False)
+                    torch.cuda.synchronize(device_idx)
+                
+                # Measure latency (single transfer)
+                for _ in range(5):
+                    torch.cuda.synchronize(device_idx)
+                    t0 = time.perf_counter()
+                    host_tensor.copy_(dev_tensor, non_blocking=False)
+                    torch.cuda.synchronize(device_idx)
+                    elapsed_us = (time.perf_counter() - t0) * 1e6
+                    latencies_us.append(elapsed_us)
+                
+                latencies_us = sorted(latencies_us)
+                bw_gbs = (size_bytes / min(latencies_us) * 1e6) / 1e9 if latencies_us else 0.0
+                size_label = f"{size_bytes//(1024*1024*1024)}gb" if size_bytes >= 1024*1024*1024 else f"{size_bytes//(1024*1024)}mb" if size_bytes >= 1024*1024 else f"{size_bytes//1024}kb"
+                results[f"d2h_{size_label}_us"] = np.median(latencies_us)
+                results[f"d2h_{size_label}_bw_gbs"] = bw_gbs
+            except RuntimeError as e:
+                logger.warning(f"D2H measurement at {size_bytes/(1024*1024*1024):.1f}GB failed (likely OOM): {e}")
+                continue
         
         return results
     except Exception as e:

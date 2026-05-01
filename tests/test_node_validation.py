@@ -645,20 +645,26 @@ def measure_kernel_launch_latency(device_idx: int = 0, n_samples: int = 100) -> 
         torch.cuda.set_device(device_idx)
         latencies = []
 
-        @torch.jit.script
+        # Use torch.compile for modern kernel compilation (replaces deprecated torch.jit.script)
         def dummy_kernel(x):
             return x + 1
 
+        try:
+            compiled_kernel = torch.compile(dummy_kernel, backend="eager", dynamic=False)
+        except Exception:
+            # Fallback to eager execution if torch.compile not available
+            compiled_kernel = dummy_kernel
+
         for _ in range(10):  # Warmup
             x = torch.ones(1, device=f"cuda:{device_idx}")
-            dummy_kernel(x)
+            compiled_kernel(x)
             torch.cuda.synchronize(device_idx)
 
         for _ in range(n_samples):
             x = torch.ones(1, device=f"cuda:{device_idx}")
             torch.cuda.synchronize(device_idx)
             t0 = time.perf_counter()
-            dummy_kernel(x)
+            compiled_kernel(x)
             torch.cuda.synchronize(device_idx)
             elapsed_us = (time.perf_counter() - t0) * 1e6
             latencies.append(elapsed_us)

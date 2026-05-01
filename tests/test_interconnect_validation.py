@@ -783,22 +783,51 @@ def _p2p_bandwidth_gbs(src_idx: int, dst_idx: int,
 class TestPCIeTopology:
 
     def test_pcie_gen5_sysfs(self):
-        """TC-IC-01: PCI root complex speed files must indicate PCIe Gen 5."""
+        """TC-IC-01: At least one NVIDIA GPU PCIe link should negotiate at Gen5 when visible."""
         import glob as _glob
-        speed_files = _glob.glob("/sys/bus/pci/devices/*/current_link_speed")
-        if not speed_files:
-            pytest.skip("PCIe sysfs speed files not accessible")
+
+        # Restrict to NVIDIA PCI devices so non-GPU links do not influence this test.
+        vendor_files = _glob.glob("/sys/bus/pci/devices/*/vendor")
+        if not vendor_files:
+            pytest.skip("PCIe sysfs vendor files not accessible")
+
+        gpu_speed_files: List[str] = []
+        for vf in vendor_files:
+            try:
+                with open(vf) as f:
+                    vendor = f.read().strip().lower()
+            except OSError:
+                continue
+            if vendor != "0x10de":
+                continue
+            dev_dir = os.path.dirname(vf)
+            speed_path = os.path.join(dev_dir, "current_link_speed")
+            if os.path.exists(speed_path):
+                gpu_speed_files.append(speed_path)
+
+        if not gpu_speed_files:
+            pytest.skip("No NVIDIA GPU current_link_speed files visible in sysfs")
+
         gen5_found = False
-        for sf in speed_files:
+        observed_speeds: List[str] = []
+        for sf in gpu_speed_files:
             try:
                 with open(sf) as f:
                     speed = f.read().strip()
+                if speed:
+                    observed_speeds.append(speed)
                 if "32 GT/s" in speed:   # PCIe Gen 5 = 32 GT/s
                     gen5_found = True
                     break
             except OSError:
                 continue
-        assert gen5_found, "No PCIe Gen 5 (32 GT/s) links found in sysfs"
+
+        if not observed_speeds:
+            pytest.skip("Unable to read NVIDIA GPU current_link_speed values from sysfs")
+
+        assert gen5_found, (
+            f"No NVIDIA GPU PCIe Gen 5 (32 GT/s) links found. Observed: {sorted(set(observed_speeds))}"
+        )
 
     def test_gpu_pcie_devices_visible(self):
         """TC-IC-01b: At least 4 NVIDIA PCI devices must be visible."""

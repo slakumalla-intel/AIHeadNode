@@ -473,6 +473,170 @@ def measure_p2p_bandwidth(src_device: int = 0, dst_device: int = 1,
 # CPU↔GPU Launch and Sync Overhead Tests
 # =============================================================================
 
+def measure_h2d_transfer_stats(device_idx: int = 0) -> Dict[str, float]:
+    """Measure Host-to-Device (RAM->GPU) transfer latency and bandwidth at various sizes."""
+    if not _HAS_TORCH:
+        return {}
+    try:
+        torch.cuda.set_device(device_idx)
+        sizes_bytes = [1024, 10*1024, 100*1024, 1*1024*1024, 10*1024*1024]
+        results = {}
+        
+        for size_bytes in sizes_bytes:
+            host_tensor = torch.randn(size_bytes // 4, dtype=torch.float32).pin_memory()
+            latencies_us = []
+            
+            # Warmup
+            for _ in range(3):
+                dev_tensor = host_tensor.to(f"cuda:{device_idx}", non_blocking=False)
+                torch.cuda.synchronize(device_idx)
+            
+            # Measure latency (single transfer)
+            for _ in range(20):
+                torch.cuda.synchronize(device_idx)
+                t0 = time.perf_counter()
+                dev_tensor = host_tensor.to(f"cuda:{device_idx}", non_blocking=False)
+                torch.cuda.synchronize(device_idx)
+                elapsed_us = (time.perf_counter() - t0) * 1e6
+                latencies_us.append(elapsed_us)
+            
+            latencies_us = sorted(latencies_us)
+            bw_gbs = (size_bytes / min(latencies_us) * 1e6) / 1e9 if latencies_us else 0.0
+            results[f"h2d_{size_bytes//1024}kb_us"] = np.median(latencies_us)
+            results[f"h2d_{size_bytes//1024}kb_bw_gbs"] = bw_gbs
+        
+        return results
+    except Exception as e:
+        logger.warning(f"H2D transfer measurement failed: {e}")
+        return {}
+
+
+def measure_d2h_transfer_stats(device_idx: int = 0) -> Dict[str, float]:
+    """Measure Device-to-Host (GPU->RAM) transfer latency and bandwidth at various sizes."""
+    if not _HAS_TORCH:
+        return {}
+    try:
+        torch.cuda.set_device(device_idx)
+        sizes_bytes = [1024, 10*1024, 100*1024, 1*1024*1024, 10*1024*1024]
+        results = {}
+        
+        for size_bytes in sizes_bytes:
+            dev_tensor = torch.randn(size_bytes // 4, dtype=torch.float32, device=f"cuda:{device_idx}")
+            host_tensor = torch.empty(size_bytes // 4, dtype=torch.float32).pin_memory()
+            latencies_us = []
+            
+            # Warmup
+            for _ in range(3):
+                host_tensor.copy_(dev_tensor, non_blocking=False)
+                torch.cuda.synchronize(device_idx)
+            
+            # Measure latency (single transfer)
+            for _ in range(20):
+                torch.cuda.synchronize(device_idx)
+                t0 = time.perf_counter()
+                host_tensor.copy_(dev_tensor, non_blocking=False)
+                torch.cuda.synchronize(device_idx)
+                elapsed_us = (time.perf_counter() - t0) * 1e6
+                latencies_us.append(elapsed_us)
+            
+            latencies_us = sorted(latencies_us)
+            bw_gbs = (size_bytes / min(latencies_us) * 1e6) / 1e9 if latencies_us else 0.0
+            results[f"d2h_{size_bytes//1024}kb_us"] = np.median(latencies_us)
+            results[f"d2h_{size_bytes//1024}kb_bw_gbs"] = bw_gbs
+        
+        return results
+    except Exception as e:
+        logger.warning(f"D2H transfer measurement failed: {e}")
+        return {}
+
+
+def measure_cpu_compute_time(n_iterations: int = 1000) -> float:
+    """Measure pure CPU compute time (matrix multiply in NumPy)."""
+    try:
+        size = 512
+        a = np.random.randn(size, size).astype(np.float32)
+        b = np.random.randn(size, size).astype(np.float32)
+        
+        t0 = time.perf_counter()
+        for _ in range(n_iterations):
+            _ = np.dot(a, b)
+        elapsed_us = (time.perf_counter() - t0) * 1e6 / n_iterations
+        return elapsed_us
+    except Exception as e:
+        logger.warning(f"CPU compute measurement failed: {e}")
+        return 0.0
+
+
+def measure_gpu_compute_time(device_idx: int = 0, n_iterations: int = 100) -> float:
+    """Measure GPU compute time (GEMM kernel via torch)."""
+    if not _HAS_TORCH:
+        return 0.0
+    try:
+        torch.cuda.set_device(device_idx)
+        size = 512
+        a = torch.randn(size, size, dtype=torch.float32, device=f"cuda:{device_idx}")
+        b = torch.randn(size, size, dtype=torch.float32, device=f"cuda:{device_idx}")
+        
+        # Warmup
+        for _ in range(5):
+            _ = torch.mm(a, b)
+        torch.cuda.synchronize(device_idx)
+        
+        # Measure
+        t0 = time.perf_counter()
+        for _ in range(n_iterations):
+            _ = torch.mm(a, b)
+        torch.cuda.synchronize(device_idx)
+        elapsed_us = (time.perf_counter() - t0) * 1e6 / n_iterations
+        return elapsed_us
+    except Exception as e:
+        logger.warning(f"GPU compute measurement failed: {e}")
+        return 0.0
+
+
+def measure_cpu_gpu_roundtrip_latency(device_idx: int = 0, n_samples: int = 50) -> Dict[str, float]:
+    """Measure end-to-end CPU→GPU→CPU data round-trip latency."""
+    if not _HAS_TORCH:
+        return {}
+    try:
+        torch.cuda.set_device(device_idx)
+        latencies_us = []
+        size_bytes = 1024 * 1024  # 1 MB
+        
+        host_tensor = torch.randn(size_bytes // 4, dtype=torch.float32).pin_memory()
+        dev_tensor = torch.empty(size_bytes // 4, dtype=torch.float32, device=f"cuda:{device_idx}")
+        host_result = torch.empty(size_bytes // 4, dtype=torch.float32).pin_memory()
+        
+        # Warmup
+        for _ in range(5):
+            dev_tensor.copy_(host_tensor, non_blocking=False)
+            torch.cuda.synchronize(device_idx)
+            host_result.copy_(dev_tensor, non_blocking=False)
+            torch.cuda.synchronize(device_idx)
+        
+        # Measure round-trip
+        for _ in range(n_samples):
+            torch.cuda.synchronize(device_idx)
+            t0 = time.perf_counter()
+            dev_tensor.copy_(host_tensor, non_blocking=False)
+            torch.cuda.synchronize(device_idx)
+            host_result.copy_(dev_tensor, non_blocking=False)
+            torch.cuda.synchronize(device_idx)
+            elapsed_us = (time.perf_counter() - t0) * 1e6
+            latencies_us.append(elapsed_us)
+        
+        latencies_us = sorted(latencies_us)
+        return {
+            "cpu_gpu_roundtrip_min_us": min(latencies_us),
+            "cpu_gpu_roundtrip_p50_us": np.percentile(latencies_us, 50),
+            "cpu_gpu_roundtrip_p95_us": np.percentile(latencies_us, 95),
+            "cpu_gpu_roundtrip_max_us": max(latencies_us),
+        }
+    except Exception as e:
+        logger.warning(f"CPU-GPU round-trip measurement failed: {e}")
+        return {}
+
+
 def measure_kernel_launch_latency(device_idx: int = 0, n_samples: int = 100) -> Dict[str, float]:
     """Measure CUDA kernel launch latency in microseconds."""
     if not _HAS_TORCH:
@@ -1894,6 +2058,51 @@ class TestCPUGPULaunchAndSyncOverhead:
                 "max_us": round(float(stats["max"]), 3),
             },
         )
+
+        # Measure and log additional metrics
+        logger.info("\n" + "=" * 80)
+        logger.info("Additional Data Movement and Compute Metrics")
+        logger.info("=" * 80)
+        
+        # H2D transfers
+        logger.info("\nHost-to-Device (RAM→GPU) Transfer Times:")
+        h2d_stats = measure_h2d_transfer_stats(device_idx=0)
+        for key, val in sorted(h2d_stats.items()):
+            if "bw_gbs" in key:
+                logger.info(f"  {key}: {val:.2f} GB/s")
+            else:
+                logger.info(f"  {key}: {val:.2f} µs")
+        
+        # D2H transfers
+        logger.info("\nDevice-to-Host (GPU→RAM) Transfer Times:")
+        d2h_stats = measure_d2h_transfer_stats(device_idx=0)
+        for key, val in sorted(d2h_stats.items()):
+            if "bw_gbs" in key:
+                logger.info(f"  {key}: {val:.2f} GB/s")
+            else:
+                logger.info(f"  {key}: {val:.2f} µs")
+        
+        # CPU compute
+        logger.info("\nCPU Compute Time (512×512 matrix multiply):")
+        cpu_compute_us = measure_cpu_compute_time(n_iterations=100)
+        logger.info(f"  avg per iteration: {cpu_compute_us:.2f} µs")
+        
+        # GPU compute
+        logger.info("\nGPU Compute Time (512×512 matrix multiply):")
+        gpu_compute_us = measure_gpu_compute_time(device_idx=0, n_iterations=100)
+        logger.info(f"  avg per iteration: {gpu_compute_us:.2f} µs")
+        
+        # CPU-GPU round-trip
+        logger.info("\nCPU↔GPU Round-Trip Latency (1 MB, H2D→D2H):")
+        roundtrip_stats = measure_cpu_gpu_roundtrip_latency(device_idx=0)
+        for key, val in sorted(roundtrip_stats.items()):
+            logger.info(f"  {key}: {val:.2f} µs")
+        
+        # Record extended KPI
+        extended_kpi = {**h2d_stats, **d2h_stats, **roundtrip_stats}
+        extended_kpi["cpu_compute_us"] = cpu_compute_us
+        extended_kpi["gpu_compute_us"] = gpu_compute_us
+        _record_kpi("test_kernel_launch_latency_stats_extended", extended_kpi)
 
         # Typical kernel launch latency: 1-10 microseconds
         assert stats["p50"] < 100, f"Median kernel launch latency {stats['p50']:.1f} µs seems high"

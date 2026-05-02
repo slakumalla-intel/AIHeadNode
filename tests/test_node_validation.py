@@ -37,7 +37,7 @@ from urllib.request import urlopen
 
 import numpy as np
 
-from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS
+from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
 
 try:
     import torch
@@ -5707,7 +5707,7 @@ class TestWorkloadAcceptanceHuggingFace:
         """AI_HOSTCPU_FUNC_TEST_ID_013: Small LLM fine-tuning (Gemma-270M) on all GPUs via DDP.
 
         Measures per-step latency, gradient-sync ratio, throughput and TFLOPS.
-        PASS criteria: gradient allreduce < 15% of total step time.
+        PASS criteria: gradient allreduce < 15% of step time (NVLink) or 25% (PCIe-only).
         Runtime target: < 10 minutes on 4× H100.
         """
         try:
@@ -5726,7 +5726,9 @@ class TestWorkloadAcceptanceHuggingFace:
         n_steps      = int(os.environ.get("LLM_TRAIN_SMALL_STEPS", "50"))
         warmup_steps = int(os.environ.get("LLM_TRAIN_SMALL_WARMUP", "5"))
         timeout_sec  = int(os.environ.get("LLM_TRAIN_SMALL_TIMEOUT_SEC", "3600"))
-        max_sync_ratio = float(os.environ.get("LLM_TRAIN_SMALL_MAX_SYNC_RATIO", "0.15"))
+        # Adjust threshold based on GPU interconnect: NVLink 15%, PCIe-only 25%
+        default_sync_ratio = "0.15" if _NVLINK_AVAILABLE else "0.25"
+        max_sync_ratio = float(os.environ.get("LLM_TRAIN_SMALL_MAX_SYNC_RATIO", default_sync_ratio))
         master_port  = int(os.environ.get("LLM_TRAIN_SMALL_MASTER_PORT", "29601"))
 
         cfg = {
@@ -5739,8 +5741,11 @@ class TestWorkloadAcceptanceHuggingFace:
         }
 
         logger.info(
-            "TC-013 LLM Training Small: model=%s world_size=%d batch=%d seq=%d steps=%d",
+            "TC-013 LLM Training Small: model=%s world_size=%d batch=%d seq=%d steps=%d "
+            "(interconnect=%s, sync_threshold=%.0f%%)",
             model_id, world_size, batch_size, seq_len, n_steps,
+            "NVLink" if _NVLINK_AVAILABLE else "PCIe-only",
+            max_sync_ratio * 100,
         )
 
         ctx          = mp.get_context("spawn")
@@ -5840,9 +5845,9 @@ class TestWorkloadAcceptanceHuggingFace:
     def test_llm_training_large_multigpu(self):
         """AI_HOSTCPU_FUNC_TEST_ID_014: Large LLM distributed fine-tuning (Llama-3 8B+).
 
-                Uses actual multi-GPU model sharding via DeepSpeed ZeRO for large models.
+        Uses actual multi-GPU model sharding via DeepSpeed ZeRO for large models.
         Validates:
-          * Gradient sync < 10% of step time
+          * Gradient sync < 10% of step time (NVLink) or 20% (PCIe-only)
           * TFLOPS stable across GPUs (CV < 10%)
           * Scaling efficiency ≥ 70% (vs single-GPU baseline)
         """
@@ -5862,7 +5867,9 @@ class TestWorkloadAcceptanceHuggingFace:
         n_steps      = int(os.environ.get("LLM_TRAIN_LARGE_STEPS", "20"))
         warmup_steps = int(os.environ.get("LLM_TRAIN_LARGE_WARMUP", "3"))
         timeout_sec  = int(os.environ.get("LLM_TRAIN_LARGE_TIMEOUT_SEC", "3600"))
-        max_sync_ratio  = float(os.environ.get("LLM_TRAIN_LARGE_MAX_SYNC_RATIO", "0.10"))
+        # Adjust threshold based on GPU interconnect: NVLink 10%, PCIe-only 20%
+        default_sync_ratio = "0.10" if _NVLINK_AVAILABLE else "0.20"
+        max_sync_ratio  = float(os.environ.get("LLM_TRAIN_LARGE_MAX_SYNC_RATIO", default_sync_ratio))
         min_scaling_eff = float(os.environ.get("LLM_TRAIN_LARGE_MIN_SCALING_EFF", "70.0"))
         master_port  = int(os.environ.get("LLM_TRAIN_LARGE_MASTER_PORT", "29602"))
         deepspeed_zero_stage = int(os.environ.get("LLM_TRAIN_LARGE_ZERO_STAGE", "3"))
@@ -5904,9 +5911,11 @@ class TestWorkloadAcceptanceHuggingFace:
 
         logger.info(
             "TC-014 LLM Training Large: model=%s world_size=%d batch=%d seq=%d "
-            "steps=%d deepspeed=%s zero_stage=%d",
+            "steps=%d deepspeed=%s zero_stage=%d (interconnect=%s, sync_threshold=%.0f%%)",
             model_id, world_size, batch_size, seq_len, n_steps, use_deepspeed,
             deepspeed_zero_stage,
+            "NVLink" if _NVLINK_AVAILABLE else "PCIe-only",
+            max_sync_ratio * 100,
         )
 
         ctx          = mp.get_context("spawn")

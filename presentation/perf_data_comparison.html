@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Data Comparison</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+        .slideshow-container { position: relative; width: 100%; height: 100vh; }
+        .slide {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 60px;
+            animation: fadeIn 0.5s;
+        }
+        .slide.active { display: flex; flex-direction: column; justify-content: center; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        h2 { font-size: 2.5em; margin-bottom: 40px; color: #00d4ff; }
+        .chart-container { position: relative; width: 100%; height: 500px; margin-top: 30px; }
+        .metric-card { background: rgba(0, 212, 255, 0.1); border: 2px solid #00d4ff; border-radius: 8px; padding: 20px; margin: 10px; display: inline-block; min-width: 180px; }
+        .metric-card .label { color: #888; font-size: 0.9em; }
+        .metric-card .value { font-size: 1.8em; font-weight: bold; color: #00ff88; margin-top: 10px; }
+        .nav-buttons { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; gap: 20px; z-index: 1000; }
+        button { background: linear-gradient(135deg, #00d4ff, #0099ff); color: white; border: none; padding: 12px 30px; font-size: 1.1em; border-radius: 25px; cursor: pointer; transition: all 0.3s; font-weight: bold; }
+        button:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .slide-counter { position: fixed; top: 30px; right: 30px; font-size: 1.2em; color: #00d4ff; }
+        .comparison-row { display: flex; gap: 50px; margin-bottom: 30px; }
+        .comparison-col { flex: 1; }
+        .comparison-col h3 { color: #00ff88; font-size: 1.3em; margin-bottom: 20px; border-bottom: 2px solid #00ff88; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        <!-- Slide 1: H2D vs D2H Bandwidth -->
+        <div class="slide active">
+            <h2>H2D vs D2H Bandwidth Comparison</h2>
+            <div class="chart-container">
+                <canvas id="bandwidthChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Slide 2: H2D vs D2H Latency -->
+        <div class="slide">
+            <h2>H2D vs D2H Transfer Latency (Log Scale)</h2>
+            <div class="chart-container">
+                <canvas id="latencyChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Slide 3: CPU vs GPU Compute + Round-Trip -->
+        <div class="slide">
+            <h2>CPU vs GPU Performance</h2>
+            <div class="comparison-row">
+                <div class="comparison-col">
+                    <h3>Compute Time (512×512 GEMM)</h3>
+                    <div style="font-size: 1.3em;">
+                        <div class="metric-card">
+                            <div class="label">CPU</div>
+                            <div class="value">320.1 µs</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">GPU</div>
+                            <div class="value">18.5 µs</div>
+                        </div>
+                        <div class="metric-card" style="background: rgba(0, 255, 136, 0.15); border-color: #00ff88;">
+                            <div class="label">Speedup</div>
+                            <div class="value" style="color: #00ff88;">17.3×</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comparison-col">
+                    <h3>Round-Trip Latency (1 MB)</h3>
+                    <div style="font-size: 1.3em;">
+                        <div class="metric-card">
+                            <div class="label">Min</div>
+                            <div class="value">65.6 µs</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">P50</div>
+                            <div class="value">72.3 µs</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">P95</div>
+                            <div class="value">79.0 µs</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">Max</div>
+                            <div class="value">2963 µs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="slide-counter">
+        <span id="slide-number">1</span> / <span id="total-slides">3</span>
+    </div>
+    
+    <div class="nav-buttons">
+        <button id="prev-btn" onclick="changeSlide(-1)">← Previous</button>
+        <button id="next-btn" onclick="changeSlide(1)">Next →</button>
+    </div>
+    
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        document.getElementById('total-slides').textContent = totalSlides;
+        
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('slide-number').textContent = currentSlide + 1;
+            document.getElementById('prev-btn').disabled = currentSlide === 0;
+            document.getElementById('next-btn').disabled = currentSlide === totalSlides - 1;
+            
+            if (currentSlide === 0) initBandwidthChart();
+            if (currentSlide === 1) initLatencyChart();
+        }
+        
+        function changeSlide(n) {
+            showSlide(currentSlide + n);
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && currentSlide > 0) changeSlide(-1);
+            if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) changeSlide(1);
+        });
+        
+        function initBandwidthChart() {
+            const ctx = document.getElementById('bandwidthChart');
+            if (ctx.chart) return;
+            ctx.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['10 KB', '100 KB', '1 MB', '10 MB', '100 MB', '1 GB', '10 GB'],
+                    datasets: [
+                        {
+                            label: 'H2D Bandwidth (GB/s)',
+                            data: [0.66, 5.92, 22.1, 33.3, 52.8, 56.0, 55.5],
+                            borderColor: '#00d4ff',
+                            backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#00d4ff',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'D2H Bandwidth (GB/s)',
+                            data: [0.89, 8.09, 31.4, 51.4, 55.1, 55.4, 55.3],
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#00ff88',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#b0b0b0', font: { size: 14 } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: 65, ticks: { color: '#888' }, grid: { color: 'rgba(0, 212, 255, 0.1)' } },
+                        x: { ticks: { color: '#888' }, grid: { color: 'rgba(0, 212, 255, 0.1)' } }
+                    }
+                }
+            });
+        }
+        
+        function initLatencyChart() {
+            const ctx = document.getElementById('latencyChart');
+            if (ctx.chart) return;
+            ctx.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['10 KB', '100 KB', '1 MB', '10 MB', '100 MB', '1 GB', '10 GB'],
+                    datasets: [
+                        {
+                            label: 'H2D Latency (µs)',
+                            data: [16.5, 18.4, 48.9, 317.2, 2183, 19172, 193660],
+                            borderColor: '#00d4ff',
+                            backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#00d4ff',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'D2H Latency (µs)',
+                            data: [12.0, 13.4, 33.8, 204.4, 1903, 19381, 194135],
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#00ff88',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { type: 'logarithmic', ticks: { color: '#888' }, grid: { color: 'rgba(0, 212, 255, 0.1)' } },
+                        x: { ticks: { color: '#888' }, grid: { color: 'rgba(0, 212, 255, 0.1)' } }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#b0b0b0', font: { size: 14 } } }
+                    }
+                }
+            });
+        }
+        
+        showSlide(0);
+    </script>
+</body>
+</html>

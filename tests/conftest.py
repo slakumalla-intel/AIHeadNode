@@ -166,14 +166,15 @@ def _terminate_stale_vllm_processes(tag: str, nodeid: str) -> None:
 
 
 def _release_torch_cuda_memory() -> None:
-    if _torch is None:
+    torch_mod = _get_torch()
+    if torch_mod is None:
         return
     try:
-        if _torch.cuda.is_available():
-            _torch.cuda.synchronize()
-            _torch.cuda.empty_cache()
-            if hasattr(_torch.cuda, "ipc_collect"):
-                _torch.cuda.ipc_collect()
+        if torch_mod.cuda.is_available():
+            torch_mod.cuda.synchronize()
+            torch_mod.cuda.empty_cache()
+            if hasattr(torch_mod.cuda, "ipc_collect"):
+                torch_mod.cuda.ipc_collect()
     except Exception:
         pass
 
@@ -1123,6 +1124,12 @@ def _write_final_report(config: pytest.Config) -> None:
 # Optional-dependency guards
 # ---------------------------------------------------------------------------
 
+# Configure CUDA/HF-related environment defaults before importing optional
+# runtime dependencies like torch. PyTorch captures CUDA visibility during
+# import/lazy-init; mutating CUDA_VISIBLE_DEVICES afterwards can produce
+# inconsistent device indexing in later CUDA calls.
+_configure_default_env()
+
 def _try_import(name: str):
     try:
         return __import__(name)
@@ -1132,9 +1139,22 @@ def _try_import(name: str):
 
 _numpy = _try_import("numpy")
 _psutil = _try_import("psutil")
-_torch = _try_import("torch")
 _pynvml = _try_import("pynvml")
 _multiprocessing = _try_import("multiprocessing")
+
+# Defer torch import until first actual use. Importing torch during conftest
+# module import can queue CUDA lazy checks before environment setup is fully
+# stable in some runtimes.
+_torch = None
+_torch_import_attempted = False
+
+
+def _get_torch():
+    global _torch, _torch_import_attempted
+    if not _torch_import_attempted:
+        _torch_import_attempted = True
+        _torch = _try_import("torch")
+    return _torch
 
 
 # ---------------------------------------------------------------------------
@@ -1142,7 +1162,6 @@ _multiprocessing = _try_import("multiprocessing")
 # ---------------------------------------------------------------------------
 
 def pytest_configure(config):
-    _configure_default_env()
     config.addinivalue_line("markers", "cpu: tests that exercise CPU compute")
     config.addinivalue_line("markers", "memory: tests that exercise the memory subsystem")
     config.addinivalue_line("markers", "gpu: tests that require NVIDIA GPU(s)")
@@ -1258,12 +1277,13 @@ def system_info() -> dict:
         info["total_ram_gb"] = None
 
     # GPU
-    if _torch and _torch.cuda.is_available():
-        info["gpu_count"] = _torch.cuda.device_count()
+    torch_mod = _get_torch()
+    if torch_mod and torch_mod.cuda.is_available():
+        info["gpu_count"] = torch_mod.cuda.device_count()
         info["gpu_names"] = [
-            _torch.cuda.get_device_name(i) for i in range(_torch.cuda.device_count())
+            torch_mod.cuda.get_device_name(i) for i in range(torch_mod.cuda.device_count())
         ]
-        info["cuda_version"] = _torch.version.cuda
+        info["cuda_version"] = torch_mod.version.cuda
     else:
         info["gpu_count"] = 0
         info["gpu_names"] = []
@@ -1286,7 +1306,8 @@ def numpy_available() -> bool:
 
 @pytest.fixture(scope="session")
 def torch_available() -> bool:
-    return _torch is not None and _torch.cuda.is_available()
+    torch_mod = _get_torch()
+    return torch_mod is not None and torch_mod.cuda.is_available()
 
 
 @pytest.fixture(scope="session")
@@ -1349,9 +1370,10 @@ def wall_timer():
 @pytest.fixture
 def torch_device_cuda():
     """Return a CUDA torch.device for GPU index 0, skip if unavailable."""
-    if _torch is None or not _torch.cuda.is_available():
+    torch_mod = _get_torch()
+    if torch_mod is None or not torch_mod.cuda.is_available():
         pytest.skip("CUDA / PyTorch not available")
-    return _torch.device("cuda:0")
+    return torch_mod.device("cuda:0")
 
 
 # ---------------------------------------------------------------------------

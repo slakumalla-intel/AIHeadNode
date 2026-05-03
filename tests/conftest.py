@@ -195,12 +195,20 @@ def _detect_nvidia_gpu_count() -> int:
 
 def _sanitize_cuda_visible_devices(value: str, gpu_count: int) -> str:
     """Keep only valid integer indices in range [0, gpu_count)."""
+    tokens = [part.strip() for part in value.split(",") if part.strip()]
+    if not tokens:
+        return value
+
+    # Preserve non-numeric token forms (for example GPU UUIDs). CUDA accepts
+    # these directly; rewriting them to numeric indices can break container
+    # visibility constraints.
+    if any(not token.isdigit() for token in tokens):
+        return ",".join(tokens)
+
     if gpu_count <= 0:
         return value
     valid: List[str] = []
-    for token in (part.strip() for part in value.split(",")):
-        if not token:
-            continue
+    for token in tokens:
         if token.isdigit() and int(token) < gpu_count:
             valid.append(token)
     if not valid:
@@ -208,7 +216,23 @@ def _sanitize_cuda_visible_devices(value: str, gpu_count: int) -> str:
     return ",".join(valid)
 
 
+def _visible_gpu_count_hint() -> int:
+    """Best-effort visible GPU count from env constraints before torch import."""
+    for env_name in ("CUDA_VISIBLE_DEVICES", "NVIDIA_VISIBLE_DEVICES"):
+        raw = os.environ.get(env_name, "").strip()
+        if not raw or raw.lower() in {"all", "none", "void"}:
+            continue
+        tokens = [token.strip() for token in raw.split(",") if token.strip()]
+        if tokens:
+            return len(tokens)
+    return _detect_nvidia_gpu_count()
+
+
 def _recommended_cuda_visible_devices() -> str:
+    nvidia_visible = os.environ.get("NVIDIA_VISIBLE_DEVICES", "").strip()
+    if nvidia_visible and nvidia_visible.lower() not in {"all", "none", "void"}:
+        return ",".join(token.strip() for token in nvidia_visible.split(",") if token.strip())
+
     gpu_count = _detect_nvidia_gpu_count()
     if gpu_count <= 0:
         return "0"
@@ -278,6 +302,8 @@ def _configure_default_env() -> None:
     os.environ.setdefault("RDMA_SOAK_LOOPS", "1000")
     os.environ.setdefault("SOAK_MAX_P95_US", "20000")
     
+    visible_gpu_hint = max(_visible_gpu_count_hint(), 1)
+
     # =========================================================================
     # Vision Workload Configuration (YOLO)
     # =========================================================================
@@ -288,7 +314,7 @@ def _configure_default_env() -> None:
     os.environ.setdefault("YOLO_DETECT_TIMEOUT_SEC", "240")
     os.environ.setdefault("YOLO_IMAGES_PER_GPU", "256")
     os.environ.setdefault("YOLO_HALF_PRECISION", "1")
-    os.environ.setdefault("YOLO_GPU_COUNT", "4")
+    os.environ.setdefault("YOLO_GPU_COUNT", str(visible_gpu_hint))
     os.environ.setdefault("YOLO_CPU_SAMPLE_INTERVAL_SEC", "0.5")
     os.environ.setdefault("YOLO_AGGREGATE_FPS_TARGET", "200")
     os.environ.setdefault("YOLO_CPU_UTIL_TARGET", "50")
@@ -304,7 +330,7 @@ def _configure_default_env() -> None:
     os.environ.setdefault("DIFFUSERS_STEPS", "1")
     os.environ.setdefault("DIFFUSERS_GUIDANCE_SCALE", "0.0")
     os.environ.setdefault("DIFFUSERS_WARMUP", "2")
-    os.environ.setdefault("DIFFUSERS_GPU_COUNT", "4")
+    os.environ.setdefault("DIFFUSERS_GPU_COUNT", str(visible_gpu_hint))
     os.environ.setdefault("DIFFUSERS_MASTER_PORT", "29501")
     os.environ.setdefault("DIFFUSERS_GENERATE_TIMEOUT_SEC", "600")
     os.environ.setdefault("DIFFUSERS_TARGET_IMG_PER_SEC", "10.0")

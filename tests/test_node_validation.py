@@ -830,6 +830,35 @@ def _resolve_nvbandwidth_binary() -> Optional[Path]:
 
     return None
 
+
+def _current_cuda_visible_devices() -> str:
+    """Return a conservative CUDA_VISIBLE_DEVICES string for subprocesses."""
+    existing = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
+    if existing and existing.lower() != "all":
+        return existing
+
+    if _HAS_TORCH:
+        try:
+            count = int(torch.cuda.device_count())
+            if count > 0:
+                return ",".join(str(i) for i in range(count))
+        except Exception:
+            pass
+
+    try:
+        out = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=index", "--format=csv,noheader,nounits"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+        rows = [line.strip() for line in out.splitlines() if line.strip()]
+        if rows:
+            return ",".join(str(i) for i in range(len(rows)))
+    except Exception:
+        pass
+
+    return "0"
+
 def _run_nvbandwidth(testcase: str, timeout: int = 120) -> Dict:
     """Run a single nvbandwidth test-case and parse the bandwidth matrix.
 
@@ -847,11 +876,11 @@ def _run_nvbandwidth(testcase: str, timeout: int = 120) -> Dict:
         return {"testcase": testcase, "raw": "", "values": [],
                 "matrix": [], "error": f"nvbandwidth binary not found from {_NVBANDWIDTH_BIN}"}
     try:
+        visible_devices = _current_cuda_visible_devices()
         result = subprocess.run(
             [str(nvbandwidth_bin), "-t", testcase],
             capture_output=True, text=True, timeout=timeout,
-            env={**os.environ, "CUDA_VISIBLE_DEVICES": ",".join(
-                str(i) for i in range(4))},  # expose all GPUs
+            env={**os.environ, "CUDA_VISIBLE_DEVICES": visible_devices},
         )
         raw = result.stdout + result.stderr
         values: List[float] = []

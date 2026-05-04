@@ -47,7 +47,9 @@ import pytest
 
 logger = logging.getLogger(__name__)
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DATASET_ROOT = REPO_ROOT / "datasets"
+# Prefer /mnt/datasets when the download script has pre-populated it.
+_DATASETS_MOUNT = Path(os.environ.get("DATASETS_ROOT", "/mnt/datasets"))
+DEFAULT_DATASET_ROOT = _DATASETS_MOUNT if _DATASETS_MOUNT.exists() else REPO_ROOT / "datasets"
 
 
 # ---------------------------------------------------------------------------
@@ -59,8 +61,13 @@ def _configure_mlperf_env_defaults() -> None:
     os.environ.setdefault("ML_SKIP_LARGE_CASES", "1")
     os.environ.setdefault("ML_CMD_TIMEOUT_SEC", "3600")
     os.environ.setdefault("ML_SUITE_KPI_FILE", "artifacts/mlperf_suite_kpis.jsonl")
-    os.environ.setdefault("ML_NUM_GPUS", "4")
-    os.environ.setdefault("ML_TENSOR_PARALLEL", "4")
+    _detected_gpus = str(max(
+        len([x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",") if x.strip()])
+        if os.environ.get("CUDA_VISIBLE_DEVICES", "").strip() else 0,
+        1,
+    ))
+    os.environ.setdefault("ML_NUM_GPUS", _detected_gpus)
+    os.environ.setdefault("ML_TENSOR_PARALLEL", _detected_gpus)
     os.environ.setdefault("MLPERF_DATA_DIR", str(DEFAULT_DATASET_ROOT))
     os.environ.setdefault("MLPERF_MODEL_DIR", str(DEFAULT_DATASET_ROOT))
     os.environ.setdefault("MLPERF_OUTPUT_DIR", "artifacts/mlperf_results")
@@ -547,7 +554,7 @@ MLPERF_CASES: List[MLPerfCase] = [
         prerequisites=[
             "vLLM >=0.5 installed",
             "mistralai/Mixtral-8x7B-Instruct-v0.1 model downloaded",
-            "ShareGPT dataset at ${MLPERF_DATA_DIR}/sharegpt/ShareGPT_V3_unfiltered_cleaned_split.json",
+            f"ShareGPT dataset at ${{MLPERF_DATA_DIR}}/sharegpt/ShareGPT_V3_unfiltered_cleaned_split.json (also: {os.environ.get('SHAREGPT_DATASET_PATH', '')})",
         ],
         commands=[
             "vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 "

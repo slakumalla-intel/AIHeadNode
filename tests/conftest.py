@@ -246,21 +246,34 @@ def _configure_default_env() -> None:
     """Set environment variable defaults for all workload tests."""
     
     # =========================================================================
+    # Storage root for pre-downloaded models and datasets.
+    # Default: /mnt/datasets  (set DATASETS_ROOT to override)
+    # =========================================================================
+    _datasets_root = os.environ.get("DATASETS_ROOT", "/mnt/datasets")
+    _hf_home = os.path.join(_datasets_root, "huggingface")
+    _hf_cache = os.path.join(_hf_home, "hub")
+
+    # =========================================================================
     # HuggingFace & Large Model Configuration
     # =========================================================================
+    os.environ.setdefault("DATASETS_ROOT", _datasets_root)
     os.environ.setdefault("HF_ENABLE_LARGE_MODELS", "1")
-    os.environ.setdefault("HF_HOME", str(Path.home() / ".cache" / "huggingface"))
-    os.environ.setdefault("HUGGINGFACE_HUB_CACHE", str(Path.home() / ".cache" / "huggingface" / "hub"))
+    os.environ.setdefault("HF_HOME", _hf_home)
+    os.environ.setdefault("HUGGINGFACE_HUB_CACHE", _hf_cache)
+    # Allow local-only resolution; tests fall back to remote if cache miss.
     os.environ.setdefault("HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD", "1")
-    
-    # Model IDs
+
+    # Model IDs – runtime resolves from local HF cache first.
     os.environ.setdefault("HF_LLAMA_7B_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")
     os.environ.setdefault("HF_LLAMA_70B_MODEL", "meta-llama/Meta-Llama-3.1-70B-Instruct")
-    os.environ.setdefault("HF_QWEN_70B_MODEL", "Qwen/Qwen-72B")
+    os.environ.setdefault("HF_QWEN_70B_MODEL", "Qwen/Qwen2.5-72B-Instruct")
     os.environ.setdefault("HF_DEEPSEEK_R1_QUANT_MODEL", "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B")
     os.environ.setdefault("HF_INFERENCE_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")
     os.environ.setdefault("HF_TRAINING_MODEL", "bert-base-uncased")
     os.environ.setdefault("HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC", "300")
+    os.environ.setdefault("HF_LLAMA_33_70B_MODEL", "meta-llama/Llama-3.3-70B-Instruct")
+    os.environ.setdefault("HF_MIXTRAL_8X22B_MODEL", "mistralai/Mixtral-8x22B-Instruct-v0.1")
+    os.environ.setdefault("HF_DEEPSEEK_R1_70B_MODEL", "deepseek-ai/DeepSeek-R1-Distill-Llama-70B")
     
     # =========================================================================
     # KV Cache Offload Configuration
@@ -285,6 +298,9 @@ def _configure_default_env() -> None:
         os.environ.pop(legacy_name, None)
 
     os.environ.setdefault("NODE_VLLM_KV_OFFLOAD_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")
+    # MLPerf / vLLM dataset directories under shared storage root
+    os.environ.setdefault("MLPERF_DATA_DIR", _datasets_root)
+    os.environ.setdefault("MLPERF_MODEL_DIR", _datasets_root)
     os.environ.setdefault("NODE_VLLM_KV_CONTEXT_LENGTH", "8192")
     os.environ.setdefault("NODE_VLLM_KV_BATCH_SIZE", "4")
     os.environ.setdefault("NODE_VLLM_KV_NUM_PROMPTS", "10")
@@ -307,7 +323,12 @@ def _configure_default_env() -> None:
     # =========================================================================
     # Vision Workload Configuration (YOLO)
     # =========================================================================
-    os.environ.setdefault("YOLO_DETECT_MODEL", "yolov8x.pt")
+    _yolo_dir = os.path.join(_datasets_root, "yolo")
+    _yolo_default_weights = os.path.join(_yolo_dir, "yolov8x.pt")
+    os.environ.setdefault(
+        "YOLO_DETECT_MODEL",
+        _yolo_default_weights if os.path.exists(_yolo_default_weights) else "yolov8x.pt",
+    )
     os.environ.setdefault("YOLO_DETECT_BATCH", "128")
     os.environ.setdefault("YOLO_DETECT_IMGSZ", "640")
     os.environ.setdefault("YOLO_DETECT_SOURCE", "https://ultralytics.com/images/bus.jpg")
@@ -322,6 +343,10 @@ def _configure_default_env() -> None:
     # =========================================================================
     # Vision Workload Configuration (Diffusers)
     # =========================================================================
+    # ShareGPT dataset path (used by MLPerf LLM vLLM runner)
+    _sharegpt_file = os.path.join(_datasets_root, "sharegpt", "ShareGPT_V3_unfiltered_cleaned_split.json")
+    os.environ.setdefault("SHAREGPT_DATASET_PATH", _sharegpt_file)
+
     os.environ.setdefault("DIFFUSERS_MODEL_ID", "stabilityai/sd-turbo")
     os.environ.setdefault("DIFFUSERS_NUM_IMAGES", "32")
     os.environ.setdefault("DIFFUSERS_IMAGES_PER_GPU", os.environ.get("DIFFUSERS_NUM_IMAGES", "32"))
@@ -338,7 +363,7 @@ def _configure_default_env() -> None:
     # =========================================================================
     # PyTorch & CUDA Configuration
     # =========================================================================
-    os.environ.setdefault("TORCH_HOME", str(Path.home() / ".cache" / "torch"))
+    os.environ.setdefault("TORCH_HOME", os.path.join(_datasets_root, "torch"))
     gpu_count = _detect_nvidia_gpu_count()
     if "CUDA_VISIBLE_DEVICES" in os.environ:
         os.environ["CUDA_VISIBLE_DEVICES"] = _sanitize_cuda_visible_devices(

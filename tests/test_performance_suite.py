@@ -51,18 +51,29 @@ def _configure_performance_env_defaults() -> None:
     os.environ.setdefault("PERF_VLLM_BENCH_NUM_PROMPTS_CAP", "500")
     os.environ.setdefault("PERF_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
     os.environ.setdefault("PERF_AUTO_INSTALL_TIMEOUT_SEC", "1800")
-    os.environ.setdefault(
-        "PERF_CUDA_VISIBLE_DEVICES",
-        os.environ.get("CUDA_VISIBLE_DEVICES", "0,1,2,3"),
-    )
-    os.environ.setdefault("PERF_REQUIRE_4GPUS", "1")
+    # Derive visible GPU list from environment; avoid hard-coding 4.
+    _raw_cvd = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
+    if not _raw_cvd:
+        try:
+            import subprocess as _sp
+            _smi = _sp.check_output(
+                ["nvidia-smi", "--query-gpu=index", "--format=csv,noheader,nounits"],
+                stderr=_sp.DEVNULL, text=True,
+            )
+            _raw_cvd = ",".join(str(i) for i in range(len([l for l in _smi.splitlines() if l.strip()])))
+        except Exception:
+            _raw_cvd = "0"
+    os.environ.setdefault("PERF_CUDA_VISIBLE_DEVICES", _raw_cvd)
+    _n_perf_gpus = str(max(len([x for x in _raw_cvd.split(",") if x.strip()]), 1))
+    os.environ.setdefault("PERF_REQUIRE_4GPUS", "0")
+    os.environ.setdefault("PERF_NUM_GPUS", _n_perf_gpus)
 
     # Ensure subprocesses (mpirun/nccl-tests) can run under root in containerized lab environments.
     os.environ.setdefault("OMPI_ALLOW_RUN_AS_ROOT", "1")
     os.environ.setdefault("OMPI_ALLOW_RUN_AS_ROOT_CONFIRM", "1")
 
     # Keep CUDA mask consistent for commands that depend on inherited environment.
-    os.environ.setdefault("CUDA_VISIBLE_DEVICES", os.environ.get("PERF_CUDA_VISIBLE_DEVICES", "0,1,2,3"))
+    os.environ.setdefault("CUDA_VISIBLE_DEVICES", _raw_cvd)
 
 
 _configure_performance_env_defaults()
@@ -234,6 +245,12 @@ def _normalize_command(command: str) -> str:
 
 def _prepare_command(command: str) -> str:
     """Rewrite commands to use auto-derived paths and safe runtime defaults."""
+    # Expand env-var placeholders before tokenising.
+    _perf_cvd = os.environ.get("PERF_CUDA_VISIBLE_DEVICES", os.environ.get("CUDA_VISIBLE_DEVICES", "0"))
+    _perf_np = os.environ.get("PERF_NUM_GPUS", str(max(len([x for x in _perf_cvd.split(",") if x.strip()]), 1)))
+    command = command.replace("${PERF_CUDA_VISIBLE_DEVICES}", _perf_cvd)
+    command = command.replace("${PERF_NUM_GPUS}", _perf_np)
+
     normalized = _normalize_command(command)
     try:
         parts = shlex.split(normalized)
@@ -301,6 +318,7 @@ def _prepare_command(command: str) -> str:
 
     # Normalize command-level GPU masking to configured performance device set.
     perf_gpu_devices = os.environ.get("PERF_CUDA_VISIBLE_DEVICES", "").strip()
+    perf_n_gpus = os.environ.get("PERF_NUM_GPUS", "").strip()
     if perf_gpu_devices:
         idx = 0
         while idx < len(parts) - 1:
@@ -309,6 +327,11 @@ def _prepare_command(command: str) -> str:
                 idx += 2
                 continue
             idx += 1
+    if perf_n_gpus:
+        for idx, token in enumerate(parts):
+            if token == "-np" and idx + 1 < len(parts):
+                parts[idx + 1] = perf_n_gpus
+                break
 
     if len(parts) >= 3 and parts[0] in {"python", "python3"} and parts[1] == "-m":
         # Always use the active interpreter so module resolution matches this pytest env.
@@ -761,7 +784,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Find saturation limits and topology bottlenecks",
         prerequisites=["nccl-tests built", "mpirun available"],
         commands=[
-            "mpirun -np 4 --allow-run-as-root -x CUDA_VISIBLE_DEVICES=0,1,2,3 ./build/all_reduce_perf -g 1 -b 1K -e 4G -f 2 -n 100",
+            "mpirun -np ${PERF_NUM_GPUS} --allow-run-as-root -x CUDA_VISIBLE_DEVICES=${PERF_CUDA_VISIBLE_DEVICES} ./build/all_reduce_perf -g 1 -b 1K -e 4G -f 2 -n 100",
         ],
         expected="High busbw at larger sizes; smooth scaling trend",
     ),
@@ -774,7 +797,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Expose launch overhead and protocol-switch jitter",
         prerequisites=["nccl-tests built", "mpirun available"],
         commands=[
-            "mpirun -np 4 --allow-run-as-root -x CUDA_VISIBLE_DEVICES=0,1,2,3 ./build/all_reduce_perf -g 1 -b 8 -e 256K -f 2 -n 200",
+            "mpirun -np ${PERF_NUM_GPUS} --allow-run-as-root -x CUDA_VISIBLE_DEVICES=${PERF_CUDA_VISIBLE_DEVICES} ./build/all_reduce_perf -g 1 -b 8 -e 256K -f 2 -n 200",
         ],
         expected="Low tiny-message latency with no large jitter spikes",
     ),
@@ -787,7 +810,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Validate stable bus utilization in realistic DL message range",
         prerequisites=["nccl-tests built", "mpirun available"],
         commands=[
-            "mpirun -np 4 --allow-run-as-root -x CUDA_VISIBLE_DEVICES=0,1,2,3 ./build/all_reduce_perf -g 1 -b 256K -e 256M -f 2 -n 100",
+            "mpirun -np ${PERF_NUM_GPUS} --allow-run-as-root -x CUDA_VISIBLE_DEVICES=${PERF_CUDA_VISIBLE_DEVICES} ./build/all_reduce_perf -g 1 -b 256K -e 256M -f 2 -n 100",
         ],
         expected="Consistent busbw across middle sizes",
     ),
@@ -800,7 +823,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Compare ReduceScatter efficiency to AllReduce",
         prerequisites=["nccl-tests built", "mpirun available"],
         commands=[
-            "mpirun -np 4 --allow-run-as-root -x CUDA_VISIBLE_DEVICES=0,1,2,3 ./build/reduce_scatter_perf -g 1 -b 1K -e 4G -f 2 -n 100",
+            "mpirun -np ${PERF_NUM_GPUS} --allow-run-as-root -x CUDA_VISIBLE_DEVICES=${PERF_CUDA_VISIBLE_DEVICES} ./build/reduce_scatter_perf -g 1 -b 1K -e 4G -f 2 -n 100",
         ],
         expected="Strong busbw/algbw at scale and comparable or better efficiency than AllReduce",
     ),
@@ -813,7 +836,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Catch gather path regressions for sharding/embedding flows",
         prerequisites=["nccl-tests built", "mpirun available"],
         commands=[
-            "mpirun -np 4 --allow-run-as-root -x CUDA_VISIBLE_DEVICES=0,1,2,3 ./build/all_gather_perf -g 1 -b 1K -e 4G -f 2 -n 100",
+            "mpirun -np ${PERF_NUM_GPUS} --allow-run-as-root -x CUDA_VISIBLE_DEVICES=${PERF_CUDA_VISIBLE_DEVICES} ./build/all_gather_perf -g 1 -b 1K -e 4G -f 2 -n 100",
         ],
         expected="Large-message busbw remains healthy; no severe drop vs peers",
     ),
@@ -826,7 +849,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Detect topology/P2P sensitivity for worst-case shuffle",
         prerequisites=["nccl-tests built", "mpirun available"],
         commands=[
-            "mpirun -np 4 --allow-run-as-root -x CUDA_VISIBLE_DEVICES=0,1,2,3 ./build/alltoall_perf -g 1 -b 1K -e 4G -f 2 -n 100",
+            "mpirun -np ${PERF_NUM_GPUS} --allow-run-as-root -x CUDA_VISIBLE_DEVICES=${PERF_CUDA_VISIBLE_DEVICES} ./build/alltoall_perf -g 1 -b 1K -e 4G -f 2 -n 100",
         ],
         expected="Lower than AllReduce is expected; major drops imply topology/P2P issues",
     ),
@@ -839,7 +862,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Quantify direct P2P benefit by disabling it",
         prerequisites=["nccl-tests built", "mpirun available"],
         commands=[
-            "mpirun -np 4 --allow-run-as-root -x CUDA_VISIBLE_DEVICES=0,1,2,3 -x NCCL_P2P_DISABLE=1 ./build/all_reduce_perf -g 1 -b 8M -e 2G -f 2 -n 100",
+            "mpirun -np ${PERF_NUM_GPUS} --allow-run-as-root -x CUDA_VISIBLE_DEVICES=${PERF_CUDA_VISIBLE_DEVICES} -x NCCL_P2P_DISABLE=1 ./build/all_reduce_perf -g 1 -b 8M -e 2G -f 2 -n 100",
         ],
         expected="Performance drops compared with P2P-enabled baseline",
     ),
@@ -852,7 +875,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Establish best-case reference for comparison with P2P-disabled case",
         prerequisites=["nccl-tests built", "mpirun available"],
         commands=[
-            "mpirun -np 4 --allow-run-as-root -x CUDA_VISIBLE_DEVICES=0,1,2,3 ./build/all_reduce_perf -g 1 -b 8M -e 4G -f 2 -n 100",
+            "mpirun -np ${PERF_NUM_GPUS} --allow-run-as-root -x CUDA_VISIBLE_DEVICES=${PERF_CUDA_VISIBLE_DEVICES} ./build/all_reduce_perf -g 1 -b 8M -e 4G -f 2 -n 100",
         ],
         expected="Best observed result among paired P2P path tests",
     ),
@@ -896,13 +919,12 @@ def test_performance_case_suite(case: PerformanceCase):
     if not execute:
         pytest.skip("Catalog validated. Set PERF_EXECUTE_CASES=1 to execute benchmark commands")
 
-    require_4_gpus = _env_flag("PERF_REQUIRE_4GPUS", "1")
+    require_4_gpus = _env_flag("PERF_REQUIRE_4GPUS", "0")
     visible_gpu_count = _visible_gpu_count()
     if require_4_gpus and visible_gpu_count < 4:
         pytest.skip(
             "Performance execution requires 4 visible GPUs; "
-            f"found {visible_gpu_count}. Set PERF_CUDA_VISIBLE_DEVICES=0,1,2,3 "
-            "or disable requirement with PERF_REQUIRE_4GPUS=0."
+            f"found {visible_gpu_count}. Set PERF_REQUIRE_4GPUS=0 to allow running with fewer GPUs."
         )
 
     # Internal Python implementation for tokenizer case gives deterministic local validation.

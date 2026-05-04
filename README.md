@@ -23,12 +23,13 @@ A **vendor-neutral** Linux-first validation and competitive benchmarking suite f
 ## Table of Contents
 
 1. [Quick Start](#quick-start)
-2. [Running Tests](#running-tests)
-3. [Test Modules](#test-modules)
-4. [Competitive Analysis KPIs](#competitive-analysis-kpis)
-5. [Environment Variables](#environment-variables)
-6. [Specialized Workflows](#specialized-workflows)
-7. [Artifacts & Reports](#artifacts--reports)
+2. [Pre-Downloading Models & Datasets](#pre-downloading-models--datasets)
+3. [Running Tests](#running-tests)
+4. [Test Modules](#test-modules)
+5. [Competitive Analysis KPIs](#competitive-analysis-kpis)
+6. [Environment Variables](#environment-variables)
+7. [Specialized Workflows](#specialized-workflows)
+8. [Artifacts & Reports](#artifacts--reports)
 
 ---
 
@@ -80,6 +81,11 @@ export PERF_NVBANDWIDTH_BIN=/opt/nvbandwidth/nvbandwidth
 export PERF_NCCL_TESTS_DIR=/opt/nccl-tests/build
 ```
 
+> **GPU count is auto-detected.** `CUDA_VISIBLE_DEVICES`, `YOLO_GPU_COUNT`,
+> `DIFFUSERS_GPU_COUNT`, `PERF_NUM_GPUS`, `ML_NUM_GPUS`, and `ML_TENSOR_PARALLEL`
+> are all derived at runtime from `nvidia-smi` / `CUDA_VISIBLE_DEVICES`.
+> No hardcoded 4-GPU assumption remains in any test file.
+
 ### Run All Tests (Recommended)
 
 ```bash
@@ -91,6 +97,86 @@ Outputs:
 - Per-domain JUnit XML: `artifacts/reports/junit/*.xml`
 - Consolidated JSON status: `artifacts/workload_status_report.json`
 - Consolidated Markdown report: `artifacts/workload_status_report.md`
+
+---
+
+## Pre-Downloading Models & Datasets
+
+All HuggingFace models and public datasets required by every test suite can be
+pre-downloaded to a dedicated storage volume (recommended: at least 1 TB) before
+running any tests. The download script uses `HF_TOKEN` from the environment so
+**the token is never written into any source file**.
+
+### Storage Layout
+
+```
+/mnt/datasets/          ← DATASETS_ROOT (override with $DATASETS_ROOT)
+  huggingface/
+    hub/                ← HF_HOME / HUGGINGFACE_HUB_CACHE
+      models--meta-llama--Meta-Llama-3.1-8B-Instruct/
+      models--Qwen--Qwen2.5-72B-Instruct/
+      ...               (all models listed below)
+  yolo/
+    yolov8x.pt
+    yolov8n.pt
+  sharegpt/
+    ShareGPT_V3_unfiltered_cleaned_split.json
+  torch/               ← TORCH_HOME
+  test_env.sh          ← generated; source before pytest
+```
+
+### Running the Download Script
+
+```bash
+export HF_TOKEN=<your_huggingface_token>
+
+# Optional: change storage root (default /mnt/datasets)
+export DATASETS_ROOT=/mnt/datasets
+
+bash scripts/download_models_datasets.sh
+```
+
+Models downloaded (all individually under 400 GB):
+
+| Model | Approx. Size |
+|---|---|
+| openai-community/gpt2 | 500 MB |
+| bert-base-uncased | 440 MB |
+| stabilityai/sd-turbo | 3 GB |
+| openai/whisper-large-v3 | 3 GB |
+| google/gemma-2-2b | 5 GB |
+| EleutherAI/gpt-j-6b | 24 GB |
+| deepseek-ai/DeepSeek-R1-Distill-Qwen-7B | 15 GB |
+| meta-llama/Meta-Llama-3.1-8B-Instruct | 16 GB |
+| meta-llama/Meta-Llama-3-8B | 16 GB |
+| meta-llama/Meta-Llama-3.1-70B-Instruct | 140 GB |
+| meta-llama/Llama-3.3-70B-Instruct | 140 GB |
+| deepseek-ai/DeepSeek-R1-Distill-Llama-70B | 140 GB |
+| Qwen/Qwen2.5-72B-Instruct | 144 GB |
+| Qwen/Qwen-72B | 144 GB |
+| mistralai/Mixtral-8x22B-Instruct-v0.1 | 280 GB |
+| YOLO weights (yolov8x.pt + yolov8n.pt) | 280 MB |
+| ShareGPT dataset | 300 MB |
+| **deepseek-ai/DeepSeek-R1 (671B)** | **SKIPPED — exceeds 400 GB** |
+
+### Source the Generated Environment File
+
+After the script finishes it writes `/mnt/datasets/test_env.sh` containing all
+required environment variable exports. Source it before every pytest run:
+
+```bash
+source /mnt/datasets/test_env.sh
+pytest -vv tests/
+```
+
+Alternatively, set `DATASETS_ROOT` manually and `tests/conftest.py` will derive
+all paths automatically:
+
+```bash
+export DATASETS_ROOT=/mnt/datasets
+export HF_TOKEN=<your_token>
+pytest -vv tests/
+```
 
 ---
 
@@ -298,11 +384,29 @@ ML_SUITE_KPI_FILE=artifacts/mlperf_suite_kpis.jsonl
 VLLM_PREFILL_KPI_FILE=artifacts/vllm_prefill_kpis.jsonl
 ```
 
+### Storage & Cache Defaults
+
+All paths default to `/mnt/datasets` when that directory exists. Override with:
+
+```bash
+DATASETS_ROOT=/mnt/datasets          # root for all models, datasets, weights
+HF_HOME=${DATASETS_ROOT}/huggingface
+HUGGINGFACE_HUB_CACHE=${HF_HOME}/hub
+TORCH_HOME=${DATASETS_ROOT}/torch
+YOLO_DETECT_MODEL=${DATASETS_ROOT}/yolo/yolov8x.pt   # auto if file exists
+SHAREGPT_DATASET_PATH=${DATASETS_ROOT}/sharegpt/ShareGPT_V3_unfiltered_cleaned_split.json
+```
+
+When `/mnt/datasets` is absent the suite falls back to `~/.cache/huggingface`
+(standard HuggingFace defaults).
+
 ### GPU / CUDA Defaults
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3
-CUDA_DEVICE_ORDER=PCI_BUS_ID
+# CUDA_VISIBLE_DEVICES is auto-detected from nvidia-smi at startup.
+# No value is hardcoded. Override explicitly if needed:
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_DEVICE_ORDER=PCI_BUS_ID
 ```
 
 ### Model & Workload Defaults
@@ -313,6 +417,13 @@ HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1                 # Allow remote model fetc
 HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC=300             # Enterprise latency baseline
 HF_INFERENCE_MODEL=meta-llama/Meta-Llama-3.1-8B-Instruct
 HF_TRAINING_MODEL=bert-base-uncased
+HF_LLAMA_7B_MODEL=meta-llama/Meta-Llama-3.1-8B-Instruct
+HF_LLAMA_70B_MODEL=meta-llama/Meta-Llama-3.1-70B-Instruct
+HF_QWEN_70B_MODEL=Qwen/Qwen2.5-72B-Instruct
+HF_DEEPSEEK_R1_QUANT_MODEL=deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+HF_LLAMA_33_70B_MODEL=meta-llama/Llama-3.3-70B-Instruct
+HF_MIXTRAL_8X22B_MODEL=mistralai/Mixtral-8x22B-Instruct-v0.1
+HF_DEEPSEEK_R1_70B_MODEL=deepseek-ai/DeepSeek-R1-Distill-Llama-70B
 NODE_WORKLOAD_AUTO_INSTALL=1                           # Auto-install node workloads
 NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC=1800            # Installation timeout (30 min)
 ```
@@ -388,44 +499,42 @@ export PERF_EXECUTE_CASES=0
 pytest -vv tests/test_performance_suite.py
 ```
 
-### MLPerf Inference Suite (4x H100)
+### MLPerf Inference Suite
 
-Download models and datasets:
+Pre-download all required models and datasets (one-time setup):
 
 ```bash
-chmod +x scripts/download_mlperf_models.sh
-scripts/download_mlperf_models.sh --model-dir /models/mlperf
-
-chmod +x scripts/download_mlperf_datasets.sh
-scripts/download_mlperf_datasets.sh --data-dir /data/mlperf
+export HF_TOKEN=<your_token>
+export DATASETS_ROOT=/mnt/datasets   # 1 TB+ recommended
+bash scripts/download_models_datasets.sh
 ```
 
-Run via orchestration script:
+Then run via pytest:
 
 ```bash
-chmod +x scripts/run_mlperf_h100x4.sh
-scripts/run_mlperf_h100x4.sh \
-  --data-dir /data/mlperf \
-  --model-dir /models/mlperf \
-  --num-gpus 4 \
-  --tp-size 4
-```
+# Source the generated environment file first
+source /mnt/datasets/test_env.sh
 
-Or run pytest suite directly:
-
-```bash
 # Custom case IDs and timeout
 export ML_CASE_IDS=001,006,014
 export ML_CMD_TIMEOUT_SEC=3600
 pytest -vv tests/test_mlperf_suite.py -k test_mlperf_case_suite
 
-# Catalog-only mode
+# Catalog-only mode (no execution)
 export ML_EXECUTE_CASES=0
 pytest -vv tests/test_mlperf_suite.py
 
 # Or use orchestrator
 python scripts/run_all_workloads.py --only mlperf_suite
 ```
+
+> `ML_NUM_GPUS` and `ML_TENSOR_PARALLEL` are auto-detected from
+> `CUDA_VISIBLE_DEVICES` / `nvidia-smi`. Override explicitly if needed:
+> `export ML_NUM_GPUS=4 ML_TENSOR_PARALLEL=4`
+
+Legacy per-suite download scripts (`download_mlperf_models.sh`,
+`download_mlperf_datasets.sh`, `run_mlperf_h100x4.sh`) are still present for
+MLPerf-specific datasets not covered by the general download script.
 
 ### Agentic AI Validation
 
@@ -490,18 +599,12 @@ KPIs written to `artifacts/agentic_ai_kpis.jsonl`. Full documentation:
 ## MLPerf Workflow
 
 ```bash
-# Download models and datasets
-scripts/download_mlperf_models.sh --model-dir /models/mlperf
-scripts/download_mlperf_datasets.sh --data-dir /data/mlperf
+# One-time pre-download (uses /mnt/datasets by default)
+export HF_TOKEN=<your_token>
+bash scripts/download_models_datasets.sh
 
-# Run on N GPUs (vendor-agnostic; script detects GPU count)
-scripts/run_mlperf_h100x4.sh \
-	--data-dir /data/mlperf --model-dir /models/mlperf \
-	--num-gpus 4 --tp-size 4
-
-# Or via pytest
-# Optional: force catalog-only mode
-# export ML_EXECUTE_CASES=0
+# Source generated env and run
+source /mnt/datasets/test_env.sh
 export ML_CASE_IDS=001,006,014
 export ML_CMD_TIMEOUT_SEC=3600
 pytest -vv tests/test_mlperf_suite.py -k test_mlperf_case_suite
@@ -548,6 +651,13 @@ export NODE_VALIDATION_KPI_FILE=artifacts/node_validation_kpis.jsonl
 | `GPU_FP16_TFLOPS` | auto | GPU FP16 peak override (TFLOPS) |
 | `GPU_MIN_CC_MAJOR` | `7` | Minimum CUDA compute capability major version |
 | `CPU_SIMD_FP32_FLOPS_PER_CYCLE` | `64` (AVX-512) / `16` (AVX2) | CPU SIMD width override |
+| `DATASETS_ROOT` | `/mnt/datasets` | Root directory for all pre-downloaded models and datasets |
+| `HF_HOME` | `$DATASETS_ROOT/huggingface` | HuggingFace home (overrides `~/.cache/huggingface`) |
+| `HUGGINGFACE_HUB_CACHE` | `$HF_HOME/hub` | HuggingFace model cache |
+| `TORCH_HOME` | `$DATASETS_ROOT/torch` | PyTorch model cache |
+| `YOLO_DETECT_MODEL` | `$DATASETS_ROOT/yolo/yolov8x.pt` (if exists) | YOLO weights path |
+| `SHAREGPT_DATASET_PATH` | `$DATASETS_ROOT/sharegpt/ShareGPT_V3_unfiltered_cleaned_split.json` | ShareGPT dataset |
+| `HF_TOKEN` | _(required for gated models)_ | HuggingFace access token |
 | `HF_ENABLE_LARGE_MODELS` | `1` | Enable >7B parameter model tests |
 | `HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD` | `1` | Allow HuggingFace Hub downloads |
 | `NODE_WORKLOAD_AUTO_INSTALL` | `1` | Auto-install missing Python packages |
@@ -556,9 +666,14 @@ export NODE_VALIDATION_KPI_FILE=artifacts/node_validation_kpis.jsonl
 | `PERF_EXECUTE_CASES` | `1` | Enable performance case execution (`0` = catalog-only mode) |
 | `PERF_CASE_IDS` | all | Comma-separated performance case IDs |
 | `PERF_CMD_TIMEOUT_SEC` | `1800` | Per-case timeout |
+| `PERF_NUM_GPUS` | auto-detected | GPU count for NCCL `mpirun -np` |
+| `PERF_CUDA_VISIBLE_DEVICES` | auto-detected | CUDA mask for performance benchmarks |
+| `PERF_REQUIRE_4GPUS` | `0` | Set to `1` to hard-require 4 GPUs for perf suite |
 | `ML_EXECUTE_CASES` | `1` | Enable MLPerf case execution (`0` = catalog-only mode) |
 | `ML_CASE_IDS` | all | Comma-separated MLPerf case IDs |
 | `ML_CMD_TIMEOUT_SEC` | `3600` | Per-MLPerf-case timeout |
+| `ML_NUM_GPUS` | auto-detected | GPU count for MLPerf runs |
+| `ML_TENSOR_PARALLEL` | auto-detected | Tensor-parallel degree for vLLM/MLPerf |
 | `PIPELINE_EXECUTE` | `1` | Enable AI pipeline execution-gated tests |
 | `AGENTIC_EXECUTE` | `1` | Enable live GPU inference in agentic tests |
 | `AGENTIC_MODEL_ID` | `facebook/opt-125m` | HuggingFace model for agentic tests |

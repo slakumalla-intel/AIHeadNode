@@ -27,6 +27,9 @@ TESTCASE_ALL_CSV = REPORTS_DIR / "testcase_list_all_410_generated.csv"
 WORKLOAD_JSON = ROOT / "artifacts" / "workload_status_report.json"
 WORKLOAD_MD = ROOT / "artifacts" / "workload_status_report.md"
 EXEC_KPI_MD = ROOT / "artifacts" / "EXECUTIVE_KPI_STATUS.md"
+KPI_VALUES_CSV = ROOT / "artifacts" / "KPI_VALUES.csv"
+KPI_COMPARE_CSV = REPORTS_DIR / "kpi_expected_vs_actual.csv"
+KPI_COMPARE_MD = REPORTS_DIR / "kpi_expected_vs_actual.md"
 
 
 @dataclass
@@ -160,6 +163,261 @@ def write_csv(path: Path, header: list[str], rows: list[dict[str, str]]) -> None
         writer = csv.DictWriter(f, fieldnames=header)
         writer.writeheader()
         writer.writerows(rows)
+
+
+def load_kpi_values() -> dict[str, list[float]]:
+    values: dict[str, list[float]] = defaultdict(list)
+    if not KPI_VALUES_CSV.exists():
+        return values
+
+    with KPI_VALUES_CSV.open("r", encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            metric = (row.get("metric") or "").strip()
+            value_raw = (row.get("value") or "").strip()
+            if not metric:
+                continue
+            try:
+                value = float(value_raw)
+            except Exception:
+                continue
+            values[metric].append(value)
+    return values
+
+
+def load_kpi_rows() -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    if not KPI_VALUES_CSV.exists():
+        return rows
+    with KPI_VALUES_CSV.open("r", encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(
+                {
+                    "metric": (row.get("metric") or "").strip(),
+                    "value": (row.get("value") or "").strip(),
+                    "test": (row.get("test") or "").strip(),
+                }
+            )
+    return rows
+
+
+def _to_float(v: str) -> float | None:
+    try:
+        return float(v)
+    except Exception:
+        return None
+
+
+def _pick_actual_metric(test_name: str, expected_metric: str, available: set[str]) -> tuple[str | None, str | None]:
+    # Returns (actual_metric, operator)
+    if expected_metric in {"threshold_gbs", "min_threshold_gbs"}:
+        for m in [
+            "min_gbs",
+            "mean_gbs",
+            "end_to_end_gbs",
+            "load_bandwidth_gbs",
+            "read_bandwidth_gbs",
+            "write_bandwidth_gbs",
+            "mean_busbw_gbs",
+            "mean_bw_gbs",
+            "unidir_min_gbs",
+        ]:
+            if m in available:
+                return m, ">="
+        return None, ">="
+
+    if expected_metric == "threshold_tokens_per_sec":
+        for m in ["tokens_per_sec", "total_tokens_per_sec", "throughput_tokens_per_sec"]:
+            if m in available:
+                return m, ">="
+        return None, ">="
+
+    if expected_metric == "threshold_samples_per_sec":
+        return ("samples_per_sec", ">=") if "samples_per_sec" in available else (None, ">=")
+
+    if expected_metric == "threshold_ms":
+        for m in ["ttft_p95_ms", "mean_latency_ms", "p95_latency_ms"]:
+            if m in available:
+                return m, "<="
+        return None, "<="
+
+    if expected_metric == "threshold_us_per_batch":
+        return ("assemble_us_per_batch", "<=") if "assemble_us_per_batch" in available else (None, "<=")
+
+    if expected_metric == "threshold_rel_error":
+        for m in ["bf16_vs_fp16_mean_rel_error", "fp8_vs_fp16_mean_rel_error", "int8_vs_fp16_mean_rel_error"]:
+            if m in available:
+                return m, "<="
+        return None, "<="
+
+    if expected_metric == "threshold_iops":
+        return ("iops", ">=") if "iops" in available else (None, ">=")
+
+    if expected_metric == "threshold_gbps":
+        return ("throughput_gbps", ">=") if "throughput_gbps" in available else (None, ">=")
+
+    if expected_metric == "threshold_comm_overhead_pct":
+        return ("comm_overhead_pct", "<=") if "comm_overhead_pct" in available else (None, "<=")
+
+    if expected_metric == "threshold_sync_pct":
+        return ("mean_sync_pct", "<=") if "mean_sync_pct" in available else (None, "<=")
+
+    if expected_metric == "threshold_scaling_ratio":
+        return ("scaling_ratio", ">=") if "scaling_ratio" in available else (None, ">=")
+
+    if expected_metric == "threshold_overlap_pct":
+        return ("overlap_efficiency_pct", ">=") if "overlap_efficiency_pct" in available else (None, ">=")
+
+    if expected_metric == "threshold_blocks_per_sec":
+        return ("blocks_per_sec", ">=") if "blocks_per_sec" in available else (None, ">=")
+
+    if expected_metric == "threshold_restore_gbs":
+        return ("restore_bandwidth_gbs", ">=") if "restore_bandwidth_gbs" in available else (None, ">=")
+
+    if expected_metric == "threshold_save_gbs":
+        return ("save_bandwidth_gbs", ">=") if "save_bandwidth_gbs" in available else (None, ">=")
+
+    if expected_metric == "threshold_tps":
+        return ("throughput_tokens_per_sec", ">=") if "throughput_tokens_per_sec" in available else (None, ">=")
+
+    if expected_metric == "throughput_target_img_per_sec":
+        return ("throughput_img_per_sec", ">=") if "throughput_img_per_sec" in available else (None, ">=")
+
+    if expected_metric == "floor_ratio":
+        return ("speedup_ratio", ">=") if "speedup_ratio" in available else (None, ">=")
+
+    if expected_metric == "expected_sum":
+        return ("actual_sum", "==") if "actual_sum" in available else (None, "==")
+
+    if expected_metric == "expected":
+        return ("final_val", "==") if "final_val" in available else (None, "==")
+
+    if expected_metric == "threshold":
+        if "softmax_max_abs_error" in available:
+            return "softmax_max_abs_error", "<="
+        if "corrected_ecc_errors" in available:
+            return "corrected_ecc_errors", "<="
+        return None, None
+
+    if expected_metric == "threshold_c":
+        return ("temperature_c", "<=") if "temperature_c" in available else (None, "<=")
+
+    if expected_metric == "cpu_under_70_ratio_target":
+        return ("cpu_under_70_ratio", ">=") if "cpu_under_70_ratio" in available else (None, ">=")
+
+    if expected_metric == "gpu_over_90_ratio_target":
+        return ("gpu_over_90_ratio", ">=") if "gpu_over_90_ratio" in available else (None, ">=")
+
+    if expected_metric.startswith("gpu") and expected_metric.endswith("_limit_w"):
+        pwr_metric = expected_metric.replace("_limit_w", "_power_w")
+        if pwr_metric in available:
+            return pwr_metric, "<="
+        return None, "<="
+
+    return None, None
+
+
+def build_kpi_comparison(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    by_test_metric: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
+    for r in rows:
+        test_name = r["test"]
+        metric = r["metric"]
+        val = _to_float(r["value"])
+        if not test_name or not metric or val is None:
+            continue
+        by_test_metric[test_name][metric].append(val)
+
+    expected_metrics = [
+        "threshold_gbs",
+        "min_threshold_gbs",
+        "threshold_tokens_per_sec",
+        "threshold_samples_per_sec",
+        "threshold_ms",
+        "threshold_us_per_batch",
+        "threshold_rel_error",
+        "threshold_iops",
+        "threshold_gbps",
+        "threshold_comm_overhead_pct",
+        "threshold_sync_pct",
+        "threshold_scaling_ratio",
+        "threshold_overlap_pct",
+        "threshold_blocks_per_sec",
+        "threshold_restore_gbs",
+        "threshold_save_gbs",
+        "threshold_tps",
+        "throughput_target_img_per_sec",
+        "floor_ratio",
+        "expected_sum",
+        "expected",
+        "threshold",
+        "threshold_c",
+        "cpu_under_70_ratio_target",
+        "gpu_over_90_ratio_target",
+        "gpu0_limit_w",
+        "gpu1_limit_w",
+        "gpu2_limit_w",
+        "gpu3_limit_w",
+    ]
+
+    out: list[dict[str, str]] = []
+    for test_name, metric_map in sorted(by_test_metric.items()):
+        available = set(metric_map.keys())
+        for em in expected_metrics:
+            if em not in metric_map:
+                continue
+            expected_vals = sorted(set(metric_map[em]))
+            am, op = _pick_actual_metric(test_name, em, available)
+            for ev in expected_vals:
+                if not am or am not in metric_map or not op:
+                    out.append(
+                        {
+                            "test": test_name,
+                            "expected_metric": em,
+                            "expected_value": f"{ev:.6g}",
+                            "actual_metric": "N/A",
+                            "actual_value": "N/A",
+                            "operator": op or "N/A",
+                            "result": "N/A",
+                            "gap": "N/A",
+                        }
+                    )
+                    continue
+
+                actual_vals = metric_map[am]
+                if op in {">=", ">"}:
+                    actual = min(actual_vals)
+                elif op in {"<=", "<"}:
+                    actual = max(actual_vals)
+                else:
+                    actual = actual_vals[0]
+
+                if op == ">=":
+                    ok = actual >= ev
+                    gap = actual - ev
+                elif op == "<=":
+                    ok = actual <= ev
+                    gap = ev - actual
+                elif op == "==":
+                    ok = abs(actual - ev) < 1e-9
+                    gap = actual - ev
+                else:
+                    ok = False
+                    gap = float("nan")
+
+                out.append(
+                    {
+                        "test": test_name,
+                        "expected_metric": em,
+                        "expected_value": f"{ev:.6g}",
+                        "actual_metric": am,
+                        "actual_value": f"{actual:.6g}",
+                        "operator": op,
+                        "result": "PASS" if ok else "FAIL",
+                        "gap": f"{gap:.6g}",
+                    }
+                )
+    return out
 
 
 def main() -> None:
@@ -422,6 +680,10 @@ def main() -> None:
         )
     WORKLOAD_MD.write_text("\n".join(wmd).rstrip() + "\n", encoding="utf-8")
 
+    # KPI comparisons from numeric KPI dataset.
+    kpi_rows = load_kpi_rows()
+    kpi_cmp = build_kpi_comparison(kpi_rows)
+
     # executive KPI status (derived from latest suite results)
     suite_rows = []
     for suite, svals in per_suite.items():
@@ -435,6 +697,7 @@ def main() -> None:
         reverse=True,
     )
     top_fail_suites = [x for x in top_fail_suites if x[1] > 0][:5]
+    kpi_values = load_kpi_values()
 
     exec_lines = []
     exec_lines.append("# AI HeadNode - Executive KPI Status Report")
@@ -455,6 +718,38 @@ def main() -> None:
     exec_lines.append(f"| **Tests Failing** | {status_counts.get('FAIL', 0)} | {'PASS' if status_counts.get('FAIL', 0) == 0 else 'AT_RISK'} |")
     exec_lines.append(f"| **Pass Rate** | {pass_rate:.1f}% | {'PASS' if pass_rate >= 80.0 else 'AT_RISK'} |")
     exec_lines.append(f"| **Test Coverage** | {executed / total * 100.0 if total else 0.0:.1f}% | {'PASS' if total and (executed / total) >= 0.9 else 'AT_RISK'} |")
+    exec_lines.append(f"| **Numeric KPI Points** | {sum(len(v) for v in kpi_values.values())} | PASS |")
+    exec_lines.append("")
+    exec_lines.append("---")
+    exec_lines.append("")
+    exec_lines.append("## KPI Numeric Highlights")
+    exec_lines.append("")
+    exec_lines.append("| KPI | Representative Value | Notes |")
+    exec_lines.append("|---|---:|---|")
+
+    highlight_keys = [
+        ("bidir_mean_gbs", "GB/s", "P2P bidirectional bandwidth"),
+        ("unidir_mean_gbs", "GB/s", "P2P unidirectional bandwidth"),
+        ("throughput_tokens_per_sec", "tok/s", "Inference throughput"),
+        ("mean_latency_ms", "ms", "Inference latency"),
+        ("clock_drop_ratio", "ratio", "GPU clock-drop ratio under load"),
+        ("comm_overhead_pct", "%", "Tensor-parallel communication overhead"),
+    ]
+
+    for key, unit, label in highlight_keys:
+        vals = kpi_values.get(key, [])
+        if vals:
+            rep = sum(vals) / len(vals)
+            if unit == "%":
+                shown = f"{rep:.2f}{unit}"
+            elif unit == "ratio":
+                shown = f"{rep:.4f}"
+            else:
+                shown = f"{rep:.2f} {unit}"
+        else:
+            shown = "N/A"
+        exec_lines.append(f"| {key} | {shown} | {label} |")
+
     exec_lines.append("")
     exec_lines.append("---")
     exec_lines.append("")
@@ -476,7 +771,105 @@ def main() -> None:
         for idx, (suite, fails) in enumerate(top_fail_suites, start=1):
             exec_lines.append(f"{idx}. {suite.replace('.xml', '')}: {fails} failing tests")
 
+    exec_lines.append("")
+    exec_lines.append("## KPI Gaps (Fail Only)")
+    exec_lines.append("")
+    if kpi_cmp:
+        fail_rows = [r for r in kpi_cmp if r["result"] == "FAIL"]
+        if fail_rows:
+            exec_lines.append("| Test | Expected | Actual | Rule | Gap |")
+            exec_lines.append("|---|---:|---:|---|---:|")
+            for r in fail_rows[:20]:
+                expected = f"{r['expected_value']} ({r['expected_metric']})"
+                actual = f"{r['actual_value']} ({r['actual_metric']})"
+                exec_lines.append(
+                    f"| {r['test']} | {expected} | {actual} | {r['operator']} | {r['gap']} |"
+                )
+            if len(fail_rows) > 20:
+                exec_lines.append("")
+                exec_lines.append(
+                    f"_Showing first 20 of {len(fail_rows)} KPI gaps. Full list in artifacts/reports/kpi_expected_vs_actual.md._"
+                )
+        else:
+            exec_lines.append("All mapped KPI comparisons are passing.")
+    else:
+        exec_lines.append("No KPI comparison rows available.")
+
+    exec_lines.append("")
+    exec_lines.append("## KPI Test Health Table")
+    exec_lines.append("")
+    if kpi_cmp:
+        exec_lines.append("| Test | Actual Metric Value | Better Metric Value | Health |")
+        exec_lines.append("|---|---|---|---|")
+
+        def _health_cell(result: str) -> str:
+            if result == "PASS":
+                return '<span style="color:green"><b>GOOD</b></span>'
+            if result == "FAIL":
+                return '<span style="color:red"><b>BAD</b></span>'
+            return '<span style="color:#b58900"><b>N/A</b></span>'
+
+        for r in sorted(kpi_cmp, key=lambda x: (x["test"], x["expected_metric"])):
+            actual_text = f"{r['actual_value']} ({r['actual_metric']})"
+            better_text = f"{r['operator']} {r['expected_value']} ({r['expected_metric']})"
+            exec_lines.append(
+                f"| {r['test']} | {actual_text} | {better_text} | {_health_cell(r['result'])} |"
+            )
+    else:
+        exec_lines.append("No KPI comparison rows available.")
+
     EXEC_KPI_MD.write_text("\n".join(exec_lines).rstrip() + "\n", encoding="utf-8")
+
+    # KPI expected vs actual table (from KPI_VALUES.csv)
+    if kpi_cmp:
+        write_csv(
+            KPI_COMPARE_CSV,
+            [
+                "test",
+                "expected_metric",
+                "expected_value",
+                "actual_metric",
+                "actual_value",
+                "operator",
+                "result",
+                "gap",
+            ],
+            kpi_cmp,
+        )
+
+        total_cmp = len(kpi_cmp)
+        pass_cmp = sum(1 for r in kpi_cmp if r["result"] == "PASS")
+        fail_cmp = sum(1 for r in kpi_cmp if r["result"] == "FAIL")
+        na_cmp = sum(1 for r in kpi_cmp if r["result"] == "N/A")
+        top_rows = kpi_cmp[:120]
+
+        km = []
+        km.append("# KPI Expected vs Actual Comparison")
+        km.append("")
+        km.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        km.append("Source: artifacts/KPI_VALUES.csv")
+        km.append("")
+        km.append("## Summary")
+        km.append("")
+        km.append(f"- Total comparisons: {total_cmp}")
+        km.append(f"- PASS: {pass_cmp}")
+        km.append(f"- FAIL: {fail_cmp}")
+        km.append(f"- N/A mapping: {na_cmp}")
+        km.append("")
+        km.append("## Comparison Table")
+        km.append("")
+        km.append("| Test | Expected Metric | Expected | Actual Metric | Actual | Rule | Result | Gap |")
+        km.append("|---|---|---:|---|---:|---|---|---:|")
+        for r in top_rows:
+            test_short = r["test"]
+            km.append(
+                f"| {test_short} | {r['expected_metric']} | {r['expected_value']} | {r['actual_metric']} | {r['actual_value']} | {r['operator']} | {r['result']} | {r['gap']} |"
+            )
+        if total_cmp > len(top_rows):
+            km.append("")
+            km.append(f"_Showing first {len(top_rows)} rows. Full table is in CSV._")
+
+        KPI_COMPARE_MD.write_text("\n".join(km).rstrip() + "\n", encoding="utf-8")
 
     print(f"WROTE={EXEC_SUMMARY_MD.relative_to(ROOT)}")
     print(f"WROTE={EXEC_REPORT_MD.relative_to(ROOT)}")
@@ -486,6 +879,9 @@ def main() -> None:
     print(f"WROTE={WORKLOAD_JSON.relative_to(ROOT)}")
     print(f"WROTE={WORKLOAD_MD.relative_to(ROOT)}")
     print(f"WROTE={EXEC_KPI_MD.relative_to(ROOT)}")
+    if kpi_cmp:
+        print(f"WROTE={KPI_COMPARE_CSV.relative_to(ROOT)}")
+        print(f"WROTE={KPI_COMPARE_MD.relative_to(ROOT)}")
     print(f"TOTAL={total}")
     print(f"UNMAPPED_GENERATED={generated_counter}")
 

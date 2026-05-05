@@ -1,32 +1,31 @@
-# Workload Execution Status Report
+# Workload Status Report
 
-Generated (UTC): 2026-04-29T03:13:44.110613+00:00
-Host: artifact-report-regeneration
+Generated: 2026-05-05T14:12:48
 
 ## Summary
 
-- Domains run: 13
-- Passed: 2
-- Failed: 11
-- Total tests: 410
-- Failures: 99
-- Errors: 0
-- Skipped: 33
+- Total: 410
+- Executed: 375
+- PASS: 303
+- FAIL: 72
+- ERROR: 0
+- SKIP: 35
+- Pass rate (executed): 80.8%
 
-## Domain Status
+## Workloads
 
-| Domain | Status | Tests | Failures | Errors | Skipped | Duration (s) | XML | Log |
-|---|---|---:|---:|---:|---:|---:|---|---|
-| agentic_ai | FAIL | 9 | 1 | 0 | 0 | 13.978 | artifacts/reports/junit/agentic_ai.xml | artifacts/reports/logs/agentic_ai.log |
-| ai_pipeline | FAIL | 38 | 18 | 0 | 0 | 71.763 | artifacts/reports/junit/ai_pipeline.xml | artifacts/reports/logs/ai_pipeline.log |
-| bottleneck | FAIL | 25 | 4 | 0 | 0 | 10.267 | artifacts/reports/junit/bottleneck.xml | artifacts/reports/logs/bottleneck.log |
-| cpu | FAIL | 33 | 10 | 0 | 1 | 244.21 | artifacts/reports/junit/cpu.xml | artifacts/reports/logs/cpu.log |
-| gpu | FAIL | 53 | 19 | 0 | 0 | 4.822 | artifacts/reports/junit/gpu.xml | artifacts/reports/logs/gpu.log |
-| interconnect | FAIL | 77 | 2 | 0 | 4 | 76.349 | artifacts/reports/junit/interconnect.xml | artifacts/reports/logs/interconnect.log |
-| memory | FAIL | 28 | 8 | 0 | 0 | 19.301 | artifacts/reports/junit/memory.xml | artifacts/reports/logs/memory.log |
-| mlperf_suite | FAIL | 21 | 19 | 0 | 2 | 1825.83 | artifacts/reports/junit/mlperf_suite.xml | artifacts/reports/logs/mlperf_suite.log |
-| node_validation | FAIL | 51 | 9 | 0 | 7 | 2584.5 | artifacts/reports/junit/node_validation.xml | artifacts/reports/logs/node_validation.log |
-| performance_suite | PASS | 25 | 0 | 0 | 15 | 217.564 | artifacts/reports/junit/performance_suite.xml | artifacts/reports/logs/performance_suite.log |
-| system_config | PASS | 8 | 0 | 0 | 0 | 0.917 | artifacts/reports/junit/system_config.xml | artifacts/reports/logs/system_config.log |
-| system_health | FAIL | 39 | 8 | 0 | 3 | 34.654 | artifacts/reports/junit/system_health.xml | artifacts/reports/logs/system_health.log |
-| vllm_prefill | FAIL | 3 | 1 | 0 | 1 | 1134.083 | artifacts/reports/junit/vllm_prefill.xml | artifacts/reports/logs/vllm_prefill.log |
+| Suite | Status | Tests | PASS | FAIL | ERROR | SKIP |
+|---|---|---:|---:|---:|---:|---:|
+| agentic_ai.xml | FAIL | 9 | 8 | 1 | 0 | 0 |
+| ai_pipeline.xml | FAIL | 38 | 20 | 17 | 0 | 1 |
+| bottleneck.xml | FAIL | 25 | 24 | 1 | 0 | 0 |
+| cpu.xml | FAIL | 33 | 31 | 1 | 0 | 1 |
+| gpu.xml | FAIL | 53 | 44 | 9 | 0 | 0 |
+| interconnect.xml | FAIL | 77 | 72 | 1 | 0 | 4 |
+| memory.xml | FAIL | 28 | 21 | 7 | 0 | 0 |
+| mlperf_suite.xml | FAIL | 21 | 0 | 19 | 0 | 2 |
+| node_validation.xml | FAIL | 51 | 36 | 7 | 0 | 8 |
+| performance_suite.xml | FAIL | 25 | 9 | 1 | 0 | 15 |
+| system_config.xml | PASS | 8 | 8 | 0 | 0 | 0 |
+| system_health.xml | FAIL | 39 | 28 | 8 | 0 | 3 |
+| vllm_prefill.xml | PASS | 3 | 2 | 0 | 0 | 1 |

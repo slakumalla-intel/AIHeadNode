@@ -1,6 +1,6 @@
 # AI HeadNode - Executive KPI Status Report
 
-**Generated:** 2026-05-05 14:51:10
+**Generated:** 2026-05-05 15:27:06
 **Report Type:** Management Summary
 **Status:** Test Execution Complete
 
@@ -24,8 +24,8 @@
 
 | KPI | Representative Value | Notes |
 |---|---:|---|
-| bidir_mean_gbs | 609.39 GB/s | P2P bidirectional bandwidth |
-| unidir_mean_gbs | 575.03 GB/s | P2P unidirectional bandwidth |
+| bidir_min_gbs | 17.26 GB/s | P2P bidirectional bandwidth (worst link) |
+| unidir_min_gbs | 9.93 GB/s | P2P unidirectional bandwidth (worst link) |
 | throughput_tokens_per_sec | 3146.86 tok/s | Inference throughput |
 | mean_latency_ms | 879.44 ms | Inference latency |
 | clock_drop_ratio | 0.4957 | GPU clock-drop ratio under load |

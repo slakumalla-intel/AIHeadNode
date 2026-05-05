@@ -728,8 +728,8 @@ def main() -> None:
     exec_lines.append("|---|---:|---|")
 
     highlight_keys = [
-        ("bidir_mean_gbs", "GB/s", "P2P bidirectional bandwidth"),
-        ("unidir_mean_gbs", "GB/s", "P2P unidirectional bandwidth"),
+        ("bidir_min_gbs", "GB/s", "P2P bidirectional bandwidth (worst link)"),
+        ("unidir_min_gbs", "GB/s", "P2P unidirectional bandwidth (worst link)"),
         ("throughput_tokens_per_sec", "tok/s", "Inference throughput"),
         ("mean_latency_ms", "ms", "Inference latency"),
         ("clock_drop_ratio", "ratio", "GPU clock-drop ratio under load"),

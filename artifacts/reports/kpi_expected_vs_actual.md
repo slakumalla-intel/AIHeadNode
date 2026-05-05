@@ -1,6 +1,6 @@
 # KPI Expected vs Actual Comparison
 
-Generated: 2026-05-05 14:51:10
+Generated: 2026-05-05 15:27:06
 Source: artifacts/KPI_VALUES.csv
 
 ## Summary

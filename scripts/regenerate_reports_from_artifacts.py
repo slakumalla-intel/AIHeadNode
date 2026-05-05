@@ -26,6 +26,7 @@ BUGTOOL_MD = REPORTS_DIR / "bugtool_testcase_report_new.md"
 TESTCASE_ALL_CSV = REPORTS_DIR / "testcase_list_all_410_generated.csv"
 WORKLOAD_JSON = ROOT / "artifacts" / "workload_status_report.json"
 WORKLOAD_MD = ROOT / "artifacts" / "workload_status_report.md"
+EXEC_KPI_MD = ROOT / "artifacts" / "EXECUTIVE_KPI_STATUS.md"
 
 
 @dataclass
@@ -421,6 +422,62 @@ def main() -> None:
         )
     WORKLOAD_MD.write_text("\n".join(wmd).rstrip() + "\n", encoding="utf-8")
 
+    # executive KPI status (derived from latest suite results)
+    suite_rows = []
+    for suite, svals in per_suite.items():
+        fail_total = svals["FAIL"] + svals["ERROR"]
+        status = "PASS" if fail_total == 0 else "AT_RISK"
+        suite_rows.append((suite, svals["Total"], svals["PASS"], fail_total, svals["SKIP"], status))
+
+    top_fail_suites = sorted(
+        ((suite, vals["FAIL"] + vals["ERROR"]) for suite, vals in per_suite.items()),
+        key=lambda x: x[1],
+        reverse=True,
+    )
+    top_fail_suites = [x for x in top_fail_suites if x[1] > 0][:5]
+
+    exec_lines = []
+    exec_lines.append("# AI HeadNode - Executive KPI Status Report")
+    exec_lines.append("")
+    exec_lines.append(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    exec_lines.append("**Report Type:** Management Summary")
+    exec_lines.append("**Status:** Test Execution Complete")
+    exec_lines.append("")
+    exec_lines.append("---")
+    exec_lines.append("")
+    exec_lines.append("## Overall Validation Status")
+    exec_lines.append("")
+    exec_lines.append("| Metric | Value | Status |")
+    exec_lines.append("|---|---|---|")
+    exec_lines.append(f"| **Total Tests Available** | {total} | {'PASS' if total else 'AT_RISK'} |")
+    exec_lines.append(f"| **Tests Executed** | {executed} | {'PASS' if executed else 'AT_RISK'} |")
+    exec_lines.append(f"| **Tests Passing** | {status_counts.get('PASS', 0)} | {'PASS' if status_counts.get('PASS', 0) >= executed * 0.75 else 'AT_RISK'} |")
+    exec_lines.append(f"| **Tests Failing** | {status_counts.get('FAIL', 0)} | {'PASS' if status_counts.get('FAIL', 0) == 0 else 'AT_RISK'} |")
+    exec_lines.append(f"| **Pass Rate** | {pass_rate:.1f}% | {'PASS' if pass_rate >= 80.0 else 'AT_RISK'} |")
+    exec_lines.append(f"| **Test Coverage** | {executed / total * 100.0 if total else 0.0:.1f}% | {'PASS' if total and (executed / total) >= 0.9 else 'AT_RISK'} |")
+    exec_lines.append("")
+    exec_lines.append("---")
+    exec_lines.append("")
+    exec_lines.append("## Domain-Level Status")
+    exec_lines.append("")
+    exec_lines.append("| Domain | Total | Pass | Fail | Skip | Status |")
+    exec_lines.append("|---|---:|---:|---:|---:|---|")
+    for suite, total_s, pass_s, fail_s, skip_s, status_s in suite_rows:
+        domain = suite.replace('.xml', '')
+        exec_lines.append(
+            f"| {domain} | {total_s} | {pass_s} | {fail_s} | {skip_s} | {status_s} |"
+        )
+    exec_lines.append("")
+    exec_lines.append("## Critical Focus Areas")
+    exec_lines.append("")
+    if not top_fail_suites:
+        exec_lines.append("- No failing suites detected.")
+    else:
+        for idx, (suite, fails) in enumerate(top_fail_suites, start=1):
+            exec_lines.append(f"{idx}. {suite.replace('.xml', '')}: {fails} failing tests")
+
+    EXEC_KPI_MD.write_text("\n".join(exec_lines).rstrip() + "\n", encoding="utf-8")
+
     print(f"WROTE={EXEC_SUMMARY_MD.relative_to(ROOT)}")
     print(f"WROTE={EXEC_REPORT_MD.relative_to(ROOT)}")
     print(f"WROTE={BUGTOOL_CSV.relative_to(ROOT)}")
@@ -428,6 +485,7 @@ def main() -> None:
     print(f"WROTE={TESTCASE_ALL_CSV.relative_to(ROOT)}")
     print(f"WROTE={WORKLOAD_JSON.relative_to(ROOT)}")
     print(f"WROTE={WORKLOAD_MD.relative_to(ROOT)}")
+    print(f"WROTE={EXEC_KPI_MD.relative_to(ROOT)}")
     print(f"TOTAL={total}")
     print(f"UNMAPPED_GENERATED={generated_counter}")
 

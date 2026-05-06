@@ -1,105 +1,105 @@
 {
-  "generated_at": "2026-05-05T15:27:06",
-  "source": "artifacts/reports/junit/*.xml",
+  "generated_at": "2026-05-05T18:50:11",
+  "source": "alltests.log",
   "summary": {
     "total": 410,
-    "executed": 375,
-    "pass": 303,
-    "fail": 72,
+    "executed": 123,
+    "pass": 101,
+    "fail": 22,
     "error": 0,
-    "skip": 35,
-    "pass_rate_executed": 80.8
+    "skip": 287,
+    "pass_rate_executed": 82.11
   },
   "workloads": [
     {
       "suite": "agentic_ai.xml",
-      "status": "FAIL",
+      "status": "PASS",
       "tests": 9,
-      "pass": 8,
-      "fail": 1,
+      "pass": 0,
+      "fail": 0,
       "error": 0,
-      "skip": 0
+      "skip": 9
     },
     {
       "suite": "ai_pipeline.xml",
       "status": "FAIL",
       "tests": 38,
-      "pass": 20,
-      "fail": 17,
+      "pass": 0,
+      "fail": 12,
       "error": 0,
-      "skip": 1
+      "skip": 26
     },
     {
       "suite": "bottleneck.xml",
-      "status": "FAIL",
+      "status": "PASS",
       "tests": 25,
-      "pass": 24,
-      "fail": 1,
+      "pass": 4,
+      "fail": 0,
       "error": 0,
-      "skip": 0
+      "skip": 21
     },
     {
       "suite": "cpu.xml",
-      "status": "FAIL",
+      "status": "PASS",
       "tests": 33,
-      "pass": 31,
-      "fail": 1,
+      "pass": 16,
+      "fail": 0,
       "error": 0,
-      "skip": 1
+      "skip": 17
     },
     {
       "suite": "gpu.xml",
       "status": "FAIL",
       "tests": 53,
-      "pass": 44,
-      "fail": 9,
+      "pass": 18,
+      "fail": 2,
       "error": 0,
-      "skip": 0
+      "skip": 33
     },
     {
       "suite": "interconnect.xml",
       "status": "FAIL",
       "tests": 77,
-      "pass": 72,
+      "pass": 33,
       "fail": 1,
       "error": 0,
-      "skip": 4
+      "skip": 43
     },
     {
       "suite": "memory.xml",
       "status": "FAIL",
       "tests": 28,
-      "pass": 21,
+      "pass": 20,
       "fail": 7,
       "error": 0,
-      "skip": 0
+      "skip": 1
     },
     {
       "suite": "mlperf_suite.xml",
-      "status": "FAIL",
+      "status": "PASS",
       "tests": 21,
       "pass": 0,
-      "fail": 19,
+      "fail": 0,
       "error": 0,
-      "skip": 2
+      "skip": 21
     },
     {
       "suite": "node_validation.xml",
-      "status": "FAIL",
+      "status": "PASS",
       "tests": 51,
-      "pass": 36,
-      "fail": 7,
+      "pass": 0,
+      "fail": 0,
       "error": 0,
-      "skip": 8
+      "skip": 51
     },
     {
       "suite": "performance_suite.xml",
-      "status": "FAIL",
+      "status": "PASS",
       "tests": 25,
-      "pass": 9,
-      "fail": 1,
+      "pass": 0,
+      "fail": 0,
       "error": 0,
-      "skip": 15
+      "skip": 25
     },
     {
       "suite": "system_config.xml",
@@ -112,12 +112,12 @@
     },
     {
       "suite": "system_health.xml",
-      "status": "FAIL",
+      "status": "PASS",
       "tests": 39,
-      "pass": 28,
-      "fail": 8,
+      "pass": 0,
+      "fail": 0,
       "error": 0,
-      "skip": 3
+      "skip": 39
     },
     {
       "suite": "vllm_prefill.xml",

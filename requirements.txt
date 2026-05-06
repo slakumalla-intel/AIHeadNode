@@ -1,4 +1,8 @@
 # Core test dependencies
+# Required so torch/vision/audio +cu128 wheels can be resolved during plain
+# `pip install -r requirements.txt` on Linux GPU nodes.
+--extra-index-url https://download.pytorch.org/whl/cu128
+
 numpy>=1.24.0
 psutil>=5.9.0
 pytest>=7.4.0
@@ -9,9 +13,9 @@ transformers-stream-generator>=0.0.5
 # Use the PyTorch CUDA 12.8 wheel index for Linux x86_64 GPU nodes.
 # Example:
 #   pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128
-torch==2.10.0+cu128 ; platform_system == "Linux" and platform_machine == "x86_64"
-torchvision==0.25.0+cu128 ; platform_system == "Linux" and platform_machine == "x86_64"
-torchaudio==2.10.0+cu128 ; platform_system == "Linux" and platform_machine == "x86_64"
+torch==2.11.0+cu128 ; platform_system == "Linux" and platform_machine == "x86_64"
+torchvision==0.26.0+cu128 ; platform_system == "Linux" and platform_machine == "x86_64"
+torchaudio==2.11.0+cu128 ; platform_system == "Linux" and platform_machine == "x86_64"
 nvidia-ml-py>=12.535.77
 
 # Optional accelerators

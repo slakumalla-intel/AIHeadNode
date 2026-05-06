@@ -1449,12 +1449,14 @@ class TestInferencePipelineKPIs:
         if not _HAS_NVML:
             pytest.skip("pynvml not available – cannot measure GPU utilisation")
 
-        tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
+        tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID, padding_side="left")
         tokenizer.pad_token = tokenizer.eos_token
+        tokenizer.pad_token_id = tokenizer.eos_token_id
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, torch_dtype=torch.float16, device_map="cuda:0"
+            _MODEL_ID, dtype=torch.float16, device_map="cuda:0"
         )
         model.eval()
+        model.generation_config.pad_token_id = tokenizer.pad_token_id
 
         batch_size, seq_len, n_gen = 8, 128, 64
         texts = ["AI inference test batch " * 5] * batch_size

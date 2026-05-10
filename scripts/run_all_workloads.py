@@ -39,12 +39,21 @@ DEFAULT_ENV: Dict[str, str] = {
     "HEALTH_EXECUTE": "1",
     # GPU / CUDA defaults
     "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
-    # HuggingFace / model defaults
+    # HuggingFace / model defaults (prefer local datasets root)
+    "DATASETS_ROOT": "/mnt/datasets",
+    "HF_HOME": "/mnt/datasets/huggingface",
+    "HUGGINGFACE_HUB_CACHE": "/mnt/datasets/huggingface/hub",
+    "TRANSFORMERS_CACHE": "/mnt/datasets/huggingface/hub",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
     "HF_ENABLE_LARGE_MODELS": "1",
-    "HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD": "1",
+    "HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD": "0",
     "HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC": "300",
-    "HF_INFERENCE_MODEL": "meta-llama/Meta-Llama-3.1-8B-Instruct",
-    "HF_TRAINING_MODEL": "bert-base-uncased",
+    "HF_INFERENCE_MODEL": "/mnt/datasets/models/meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "HF_TRAINING_MODEL": "/mnt/datasets/models/bert-base-uncased",
+    "NODE_VLLM_KV_OFFLOAD_MODEL": "/mnt/datasets/models/meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "MLPERF_DATA_DIR": "/mnt/datasets",
+    "MLPERF_MODEL_DIR": "/mnt/datasets",
     # Node workload and install behavior
     "NODE_WORKLOAD_AUTO_INSTALL": "1",
     "NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC": "1800",

@@ -72,7 +72,10 @@ _HF_INFERENCE_MODEL = os.environ.get(
     "HF_INFERENCE_MODEL",
     "openai-community/gpt2",
 )  # small causal-LM, ~500 MB
-_HF_TRAINING_MODEL  = "bert-base-uncased"  # encoder, fast fine-tune loop
+_HF_TRAINING_MODEL = os.environ.get(
+    "HF_TRAINING_MODEL",
+    "bert-base-uncased",
+)  # encoder, fast fine-tune loop
 
 _HF_DEEPSEEK_R1_QUANT_MODEL = os.environ.get(
     "HF_DEEPSEEK_R1_QUANT_MODEL",

@@ -2708,16 +2708,6 @@ def _resolve_supported_context_length(model_id: str, requested_context_length: i
     except ImportError:
         return requested_context_length
 
-    def _is_local_model_path(model_id: str) -> bool:
-        """Return True when model_id is intended as a filesystem path."""
-        p = Path(model_id)
-        if p.is_absolute():
-            return True
-        if model_id.startswith("./") or model_id.startswith("../"):
-            return True
-        # Handle Windows drive-style paths if logs are replayed cross-platform.
-        return bool(re.match(r"^[A-Za-z]:[\\/]", model_id))
-
     try:
         config = _hf_from_pretrained(AutoConfig, model_id)
     except Exception as exc:
@@ -2745,6 +2735,17 @@ def _resolve_supported_context_length(model_id: str, requested_context_length: i
 
     derived_context_length = min(candidates) if candidates else requested_context_length
     return min(requested_context_length, derived_context_length)
+
+
+def _is_local_model_path(model_id: str) -> bool:
+    """Return True when model_id is intended as a filesystem path."""
+    p = Path(model_id)
+    if p.is_absolute():
+        return True
+    if model_id.startswith("./") or model_id.startswith("../"):
+        return True
+    # Handle Windows drive-style paths if logs are replayed cross-platform.
+    return bool(re.match(r"^[A-Za-z]:[\\/]", model_id))
 
 
 def _extract_vllm_derived_max_model_len(error_text: str) -> Optional[int]:

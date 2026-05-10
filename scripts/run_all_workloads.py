@@ -49,9 +49,9 @@ DEFAULT_ENV: Dict[str, str] = {
     "HF_ENABLE_LARGE_MODELS": "1",
     "HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD": "0",
     "HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC": "300",
-    "HF_INFERENCE_MODEL": "/mnt/datasets/models/meta-llama/Meta-Llama-3.1-8B-Instruct",
-    "HF_TRAINING_MODEL": "/mnt/datasets/models/bert-base-uncased",
-    "NODE_VLLM_KV_OFFLOAD_MODEL": "/mnt/datasets/models/meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "HF_INFERENCE_MODEL": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "HF_TRAINING_MODEL": "bert-base-uncased",
+    "NODE_VLLM_KV_OFFLOAD_MODEL": "meta-llama/Meta-Llama-3.1-8B-Instruct",
     "MLPERF_DATA_DIR": "/mnt/datasets",
     "MLPERF_MODEL_DIR": "/mnt/datasets",
     # Node workload and install behavior

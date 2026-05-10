@@ -266,20 +266,19 @@ def _configure_default_env() -> None:
     # Allow local-only resolution; tests fall back to remote if cache miss.
     os.environ.setdefault("HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD", "0")
 
-    # Model IDs – prefer explicit local model directories under DATASETS_ROOT.
-    _models_root = os.path.join(_datasets_root, "models")
-    os.environ.setdefault("HF_LLAMA_7B_MODEL", os.path.join(_models_root, "meta-llama", "Meta-Llama-3.1-8B-Instruct"))
-    os.environ.setdefault("HF_LLAMA_70B_MODEL", os.path.join(_models_root, "meta-llama", "Meta-Llama-3.1-70B-Instruct"))
-    os.environ.setdefault("HF_QWEN_70B_MODEL", os.path.join(_models_root, "Qwen", "Qwen2.5-72B-Instruct"))
-    os.environ.setdefault("HF_DEEPSEEK_R1_QUANT_MODEL", os.path.join(_models_root, "deepseek-ai", "DeepSeek-R1-Distill-Qwen-7B"))
-    os.environ.setdefault("HF_INFERENCE_MODEL", os.path.join(_models_root, "meta-llama", "Meta-Llama-3.1-8B-Instruct"))
-    os.environ.setdefault("HF_TRAINING_MODEL", os.path.join(_models_root, "bert-base-uncased"))
+    # Model IDs – use repo IDs so transformers resolves via local HF cache under HF_HOME/HUGGINGFACE_HUB_CACHE.
+    os.environ.setdefault("HF_LLAMA_7B_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")
+    os.environ.setdefault("HF_LLAMA_70B_MODEL", "meta-llama/Meta-Llama-3.1-70B-Instruct")
+    os.environ.setdefault("HF_QWEN_70B_MODEL", "Qwen/Qwen2.5-72B-Instruct")
+    os.environ.setdefault("HF_DEEPSEEK_R1_QUANT_MODEL", "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B")
+    os.environ.setdefault("HF_INFERENCE_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")
+    os.environ.setdefault("HF_TRAINING_MODEL", "bert-base-uncased")
     os.environ.setdefault("HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC", "300")
-    os.environ.setdefault("HF_LLAMA_33_70B_MODEL", os.path.join(_models_root, "meta-llama", "Llama-3.3-70B-Instruct"))
-    os.environ.setdefault("HF_MIXTRAL_8X22B_MODEL", os.path.join(_models_root, "mistralai", "Mixtral-8x22B-Instruct-v0.1"))
-    os.environ.setdefault("HF_DEEPSEEK_R1_70B_MODEL", os.path.join(_models_root, "deepseek-ai", "DeepSeek-R1-Distill-Llama-70B"))
-    os.environ.setdefault("PIPELINE_MODEL_ID", os.path.join(_models_root, "openai-community", "gpt2"))
-    os.environ.setdefault("AGENTIC_MODEL_ID", os.path.join(_models_root, "openai-community", "gpt2"))
+    os.environ.setdefault("HF_LLAMA_33_70B_MODEL", "meta-llama/Llama-3.3-70B-Instruct")
+    os.environ.setdefault("HF_MIXTRAL_8X22B_MODEL", "mistralai/Mixtral-8x22B-Instruct-v0.1")
+    os.environ.setdefault("HF_DEEPSEEK_R1_70B_MODEL", "deepseek-ai/DeepSeek-R1-Distill-Llama-70B")
+    os.environ.setdefault("PIPELINE_MODEL_ID", "openai-community/gpt2")
+    os.environ.setdefault("AGENTIC_MODEL_ID", "openai-community/gpt2")
     
     # =========================================================================
     # KV Cache Offload Configuration
@@ -303,7 +302,7 @@ def _configure_default_env() -> None:
             os.environ[new_name] = legacy_value
         os.environ.pop(legacy_name, None)
 
-    os.environ.setdefault("NODE_VLLM_KV_OFFLOAD_MODEL", os.path.join(_models_root, "meta-llama", "Meta-Llama-3.1-8B-Instruct"))
+    os.environ.setdefault("NODE_VLLM_KV_OFFLOAD_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")
     # MLPerf / vLLM dataset directories under shared storage root
     os.environ.setdefault("MLPERF_DATA_DIR", _datasets_root)
     os.environ.setdefault("MLPERF_MODEL_DIR", _datasets_root)

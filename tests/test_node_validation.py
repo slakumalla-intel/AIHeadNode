@@ -2708,6 +2708,16 @@ def _resolve_supported_context_length(model_id: str, requested_context_length: i
     except ImportError:
         return requested_context_length
 
+    def _is_local_model_path(model_id: str) -> bool:
+        """Return True when model_id is intended as a filesystem path."""
+        p = Path(model_id)
+        if p.is_absolute():
+            return True
+        if model_id.startswith("./") or model_id.startswith("../"):
+            return True
+        # Handle Windows drive-style paths if logs are replayed cross-platform.
+        return bool(re.match(r"^[A-Za-z]:[\\/]", model_id))
+
     try:
         config = _hf_from_pretrained(AutoConfig, model_id)
     except Exception as exc:
@@ -3346,6 +3356,13 @@ def _run_hf_causal_latency_workload(
             model_id,
         )
 
+    is_local_path = _is_local_model_path(model_id)
+    if is_local_path and not Path(model_id).exists():
+        pytest.skip(
+            f"Configured local model path does not exist: {model_id}. "
+            "Populate this directory under /mnt/datasets or set the model env var to a valid path."
+        )
+
     tok_t0 = time.perf_counter()
     try:
         tokenizer = _hf_from_pretrained(
@@ -3355,6 +3372,11 @@ def _run_hf_causal_latency_workload(
         )
     except Exception as exc:
         if force_local_only:
+            if is_local_path:
+                pytest.skip(
+                    f"Local tokenizer assets unavailable at {model_id}: {exc}. "
+                    "Remote fallback is disabled for local path mode."
+                )
             logger.warning(
                 "Large model %s not found in local cache (%s). Falling back to remote download.",
                 model_id,
@@ -3407,6 +3429,11 @@ def _run_hf_causal_latency_workload(
         logger.info("Model load completed in %.1fs", time.perf_counter() - model_t0)
     except Exception as exc:
         if force_local_only:
+            if is_local_path:
+                pytest.skip(
+                    f"Local model weights unavailable at {model_id}: {exc}. "
+                    "Remote fallback is disabled for local path mode."
+                )
             logger.warning(
                 "Large model %s weights not available locally (%s). Falling back to remote download.",
                 model_id,

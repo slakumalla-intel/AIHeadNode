@@ -52,6 +52,21 @@ _DATASETS_MOUNT = Path(os.environ.get("DATASETS_ROOT", "/mnt/datasets"))
 DEFAULT_DATASET_ROOT = _DATASETS_MOUNT if _DATASETS_MOUNT.exists() else REPO_ROOT / "datasets"
 
 
+def _detect_mlperf_subdir(kind: str) -> str:
+    """Best-effort detection for MLCommons inference/training repo roots."""
+    candidates = [
+        REPO_ROOT / "mlcommons" / kind,
+        REPO_ROOT.parent / "mlcommons" / kind,
+        Path("/root/workloads/AIHeadNode/mlcommons") / kind,
+        Path("/root/workloads/mlcommons") / kind,
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    # Fallback keeps prior behavior if nothing is present.
+    return f"/root/workloads/mlcommons/{kind}"
+
+
 # ---------------------------------------------------------------------------
 # Environment defaults
 # ---------------------------------------------------------------------------
@@ -72,8 +87,8 @@ def _configure_mlperf_env_defaults() -> None:
     os.environ.setdefault("MLPERF_MODEL_DIR", str(DEFAULT_DATASET_ROOT))
     os.environ.setdefault("MLPERF_OUTPUT_DIR", "artifacts/mlperf_results")
     os.environ.setdefault("MLPERF_LOADGEN_SCENARIO", "Offline")
-    os.environ.setdefault("MLPERF_INFERENCE_DIR", "/root/workloads/mlcommons/inference")
-    os.environ.setdefault("MLPERF_TRAINING_DIR", "/root/workloads/mlcommons/training")
+    os.environ.setdefault("MLPERF_INFERENCE_DIR", _detect_mlperf_subdir("inference"))
+    os.environ.setdefault("MLPERF_TRAINING_DIR", _detect_mlperf_subdir("training"))
     os.environ.setdefault("ML_VLLM_GPU_MEMORY_UTIL", "0.90")
     os.environ.setdefault("ML_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
     os.environ.setdefault("ML_AUTO_INSTALL_TIMEOUT_SEC", "600")
@@ -206,6 +221,9 @@ def _prepare_command(command: str) -> str:
     }
     for placeholder, value in substitutions.items():
         cmd = cmd.replace(placeholder, value)
+
+    # run_local.sh launchers are shell scripts; execute with bash.
+    cmd = re.sub(r"^python3\s+([^\s]+\.sh)(\s|$)", r"bash \1\2", cmd)
 
     # Use active Python interpreter for python3 commands
     if cmd.startswith("python3 ") or cmd == "python3":

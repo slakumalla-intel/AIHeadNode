@@ -51,6 +51,10 @@ def _configure_performance_env_defaults() -> None:
     os.environ.setdefault("PERF_VLLM_BENCH_NUM_PROMPTS_CAP", "500")
     os.environ.setdefault("PERF_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
     os.environ.setdefault("PERF_AUTO_INSTALL_TIMEOUT_SEC", "1800")
+    os.environ.setdefault(
+        "PERF_TOKENIZER_MODEL",
+        os.environ.get("HF_INFERENCE_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct"),
+    )
     # Derive visible GPU list from environment; avoid hard-coding 4.
     _raw_cvd = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
     if not _raw_cvd:
@@ -521,12 +525,49 @@ def _benchmark_tokenizer_micro(case_id: str) -> Dict:
         else:
             pytest.skip("transformers not installed")
 
-    model_id = os.environ.get("PERF_TOKENIZER_MODEL", "meta-llama/Llama-3.1-8B")
+    model_id = os.environ.get("PERF_TOKENIZER_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")
     lens = [int(x) for x in os.environ.get("PERF_TOKENIZER_LENS", "128,512,2048,8192").split(",")]
     threads = [int(x) for x in os.environ.get("PERF_TOKENIZER_THREADS", "1,2,4,8,16").split(",")]
     total_texts = int(os.environ.get("PERF_TOKENIZER_ITERS", "2000"))
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    local_only = _env_flag("HF_HUB_OFFLINE", "0") or _env_flag("TRANSFORMERS_OFFLINE", "0")
+    candidate_models: List[str] = [
+        model_id,
+        os.environ.get("HF_INFERENCE_MODEL", ""),
+        "meta-llama/Meta-Llama-3.1-8B-Instruct",
+        "meta-llama/Meta-Llama-3-8B",
+        "openai-community/gpt2",
+    ]
+    deduped_candidates: List[str] = []
+    for candidate in candidate_models:
+        c = (candidate or "").strip()
+        if c and c not in deduped_candidates:
+            deduped_candidates.append(c)
+
+    tokenizer = None
+    load_errors: List[str] = []
+    selected_model = model_id
+    for candidate in deduped_candidates:
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(candidate, local_files_only=local_only)
+            selected_model = candidate
+            if candidate != model_id:
+                logger.warning(
+                    "PERF tokenizer model '%s' unavailable; using fallback '%s'",
+                    model_id,
+                    candidate,
+                )
+            break
+        except Exception as exc:
+            load_errors.append(f"{candidate}: {exc}")
+
+    if tokenizer is None:
+        mode = "offline" if local_only else "online"
+        pytest.skip(
+            "No usable tokenizer model found for performance case 001 "
+            f"(mode={mode}). Tried: {', '.join(deduped_candidates)}. "
+            f"Errors: {' | '.join(load_errors)}"
+        )
 
     metrics: Dict[str, Dict[str, float]] = {}
     for seq_len in lens:
@@ -553,8 +594,8 @@ def _benchmark_tokenizer_micro(case_id: str) -> Dict:
         values = [seq_metrics[k] for k in sorted(seq_metrics.keys(), key=lambda s: int(s.split("_")[1]))]
         assert all(v > 0 for v in values), f"{seq_key}: tokenizer throughput must be > 0"
 
-    _record_kpi(case_id, {"tokenizer": model_id, "throughput_tokens_per_sec": metrics})
-    return {"tokenizer": model_id, "throughput_tokens_per_sec": metrics}
+    _record_kpi(case_id, {"tokenizer": selected_model, "throughput_tokens_per_sec": metrics})
+    return {"tokenizer": selected_model, "throughput_tokens_per_sec": metrics}
 
 
 PERFORMANCE_CASES: List[PerformanceCase] = [

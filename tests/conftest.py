@@ -1277,14 +1277,14 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
 
 
 def pytest_runtest_setup(item: pytest.Item) -> None:
-    if _is_vllm_related_item(item):
-        _terminate_stale_vllm_processes("pre-test", item.nodeid)
+    # Guard all tests against residual vLLM workers from prior cases.
+    _terminate_stale_vllm_processes("pre-test", item.nodeid)
 
 
 def pytest_runtest_teardown(item: pytest.Item, nextitem: Optional[pytest.Item]) -> None:
     if _is_vllm_related_item(item):
         _release_torch_cuda_memory()
-        _terminate_stale_vllm_processes("post-test", item.nodeid)
+    _terminate_stale_vllm_processes("post-test", item.nodeid)
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:

@@ -187,6 +187,31 @@ def _nvml_mem_util_pct(device: int = 0) -> float:
         return -1.0
 
 
+def _cuda_context_healthy(device: int = 0) -> bool:
+    """Return False when CUDA context is poisoned (e.g., prior device-side assert)."""
+    if not _HAS_TORCH or _CUDA_DEVICE_COUNT == 0:
+        return True
+    try:
+        torch.cuda.synchronize(device)
+        # mem_get_info is a reliable touchpoint that surfaces deferred CUDA errors.
+        torch.cuda.mem_get_info(device)
+        return True
+    except Exception as exc:
+        logger.warning("CUDA context unhealthy on cuda:%s: %s", device, exc)
+        return False
+
+
+@pytest.fixture(autouse=True)
+def _guard_inference_cuda_context(request: pytest.FixtureRequest):
+    """Skip inference KPI tests when a prior test left CUDA in an error state."""
+    if "inference_kpis" in request.keywords and not _cuda_context_healthy(0):
+        pytest.skip(
+            "CUDA context is in an error state from a prior kernel failure "
+            "(device-side assert). Restart the pytest process or run with "
+            "CUDA_LAUNCH_BLOCKING=1 to identify the first failing kernel."
+        )
+
+
 def _poll_gpu_utilisation(device: int, interval: float, results: list, stop_event: threading.Event):
     """Background thread: poll GPU util% and mem-util% at `interval` seconds."""
     while not stop_event.is_set():

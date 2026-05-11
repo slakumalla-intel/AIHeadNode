@@ -18,6 +18,18 @@
 - NODE_VALIDATION_REPORT.md
 - TESTCASE_EXECUTION_FINAL_REPORT.md
 
+## Comparative Analysis Reports
+
+6. Two-log comparison report (DMR vs GNR)
+- artifacts/reports/alltests_vs_gnr_alltests_comparison.md
+- Verdict-based tables: RED (underperforming), MATCHING (stable), EXCEEDS (outperforming)
+- 76 performance metrics + 24 threshold metrics analyzed
+
+7. Domain-wise performance analysis with improvement roadmap
+- artifacts/reports/domain_wise_performance_analysis.md
+- Critical issues: CPU parallel scaling, GPU compute, Multi-GPU bottlenecks
+- Actionable recommendations with priority matrix and success metrics
+
 ## Optional Supporting Files
 
 - artifacts/reports/bugtool_testcase_report_new.md

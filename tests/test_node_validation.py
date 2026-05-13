@@ -862,6 +862,57 @@ def _current_cuda_visible_devices() -> str:
 
     return "0"
 
+
+def _cuda_memory_snapshot() -> List[Dict[str, float]]:
+    """Return logical visible GPU memory stats for the current process."""
+    snapshot: List[Dict[str, float]] = []
+    if not _HAS_TORCH:
+        return snapshot
+
+    try:
+        visible_count = int(torch.cuda.device_count())
+    except Exception:
+        visible_count = 0
+
+    for gpu_idx in range(visible_count):
+        try:
+            free_bytes, total_bytes = torch.cuda.mem_get_info(gpu_idx)
+            snapshot.append(
+                {
+                    "gpu": gpu_idx,
+                    "free_gib": free_bytes / (1024 ** 3),
+                    "total_gib": total_bytes / (1024 ** 3),
+                    "used_gib": (total_bytes - free_bytes) / (1024 ** 3),
+                }
+            )
+        except Exception:
+            snapshot.append(
+                {
+                    "gpu": gpu_idx,
+                    "free_gib": -1.0,
+                    "total_gib": -1.0,
+                    "used_gib": -1.0,
+                }
+            )
+    return snapshot
+
+
+def _format_cuda_memory_snapshot(snapshot: List[Dict[str, float]]) -> str:
+    """Render a compact per-GPU memory summary for logs and failures."""
+    if not snapshot:
+        return "no visible CUDA devices"
+
+    chunks = []
+    for item in snapshot:
+        if item["free_gib"] < 0:
+            chunks.append(f"gpu{item['gpu']}: unavailable")
+        else:
+            chunks.append(
+                f"gpu{item['gpu']}: free={item['free_gib']:.1f}GiB "
+                f"used={item['used_gib']:.1f}GiB total={item['total_gib']:.1f}GiB"
+            )
+    return "; ".join(chunks)
+
 def _run_nvbandwidth(testcase: str, timeout: int = 120) -> Dict:
     """Run a single nvbandwidth test-case and parse the bandwidth matrix.
 
@@ -3407,6 +3458,46 @@ def _run_hf_causal_latency_workload(
     if prefer_4bit_quant:
         try:
             from transformers import BitsAndBytesConfig
+            required_gpus = int(os.environ.get("HF_QUANTIZED_ENTERPRISE_REQUIRED_GPUS", "4"))
+            reserved_gib = float(os.environ.get("HF_QUANTIZED_RESERVED_GPU_GIB", "6"))
+
+            torch.cuda.empty_cache()
+            visible_devices = _current_cuda_visible_devices()
+            memory_snapshot = _cuda_memory_snapshot()
+            logger.info(
+                "HF quantized workload visible CUDA devices=%s; memory before load: %s",
+                visible_devices or "<auto>",
+                _format_cuda_memory_snapshot(memory_snapshot),
+            )
+
+            visible_gpu_count = len(memory_snapshot)
+            if visible_gpu_count < required_gpus:
+                pytest.fail(
+                    f"Quantized enterprise workload {model_id} requires {required_gpus} visible GPU(s), "
+                    f"but only {visible_gpu_count} are available. "
+                    f"CUDA_VISIBLE_DEVICES={visible_devices or '<unset>'}. "
+                    f"Memory snapshot: {_format_cuda_memory_snapshot(memory_snapshot)}"
+                )
+
+            max_memory = {}
+            insufficient_budget = []
+            for item in memory_snapshot[:required_gpus]:
+                budget_gib = int(max(item["free_gib"] - reserved_gib, 0.0))
+                if budget_gib <= 0:
+                    insufficient_budget.append(
+                        f"gpu{item['gpu']} free={item['free_gib']:.1f}GiB reserve={reserved_gib:.1f}GiB"
+                    )
+                    continue
+                max_memory[item["gpu"]] = f"{budget_gib}GiB"
+
+            if insufficient_budget:
+                pytest.fail(
+                    f"Insufficient free GPU memory for quantized enterprise workload {model_id}. "
+                    f"Require {required_gpus} GPU(s) with at least {reserved_gib:.1f}GiB headroom. "
+                    f"Offending devices: {', '.join(insufficient_budget)}. "
+                    f"Full snapshot: {_format_cuda_memory_snapshot(memory_snapshot)}"
+                )
+
             model_kwargs["quantization_config"] = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_compute_dtype=torch.float16,
@@ -3414,6 +3505,8 @@ def _run_hf_causal_latency_workload(
                 bnb_4bit_use_double_quant=True,
             )
             model_kwargs["device_map"] = "auto"
+            model_kwargs["max_memory"] = max_memory
+            model_kwargs["low_cpu_mem_usage"] = True
             use_quantized_load = True
         except Exception as exc:
             logger.warning("4-bit quantization config unavailable: %s", exc)

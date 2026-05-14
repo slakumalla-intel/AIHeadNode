@@ -442,6 +442,10 @@ class TestMemoryBandwidth:
             pytest.skip("numpy not installed")
         bw = _stream_bw_gbs(array_bytes=256 * 1024 * 1024)
         assert bw >= 30.0, f"Single-thread memory BW {bw:.2f} GB/s < 30 GB/s"
+        _record_cpu_kpi("TC-CPU-05a_single_thread_stream_bw", {
+            "bandwidth_gbs": round(bw, 2),
+            "threshold_gbs": 30.0,
+        })
 
     @pytest.mark.slow
     def test_multi_thread_peak_bandwidth(self):
@@ -515,6 +519,12 @@ class TestL3CacheBandwidth:
             f"Aggregate L3 cache bandwidth {total_bw:.2f} GB/s is below "
             f"{scaled_threshold:.2f} GB/s (scaled for {n_threads}/{target_threads} cores)"
         )
+        _record_cpu_kpi("TC-CPU-06_l3_cache_bandwidth", {
+            "total_bw_gbs": round(total_bw, 2),
+            "per_thread_bw_gbs": round(total_bw / max(n_threads, 1), 2),
+            "n_threads": n_threads,
+            "scaled_threshold_gbs": round(scaled_threshold, 2),
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -632,11 +642,22 @@ class TestParallelSpeedup:
             [round(x, 2) for x in multi_runs],
             scaling_threshold * 100,
         )
+        efficiency_pct = round(multi_gflops / ideal * 100.0, 2) if ideal > 0 else 0.0
         assert_efficiency(
             multi_gflops, ideal,
             scaling_threshold,
             f"Parallel speedup at {n_cores} cores"
         )
+        _record_cpu_kpi(f"TC-CPU-07_parallel_speedup_n{n_cores}", {
+            "n_cores": n_cores,
+            "single_gflops": round(single_gflops, 3),
+            "multi_gflops": round(multi_gflops, 3),
+            "ideal_gflops": round(ideal, 3),
+            "efficiency_pct": efficiency_pct,
+            "speedup": round(multi_gflops / max(single_gflops, 1e-9), 3),
+            "threshold_pct": round(scaling_threshold * 100, 1),
+            "affinity_cores": cpu_ids,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -653,6 +674,10 @@ class TestNUMABandwidth:
         with open(cpulist_path) as fh:
             content = fh.read().strip()
         assert content, "node0 cpulist is empty"
+        _record_cpu_kpi("TC-CPU-08a_numa_node0_accessible", {
+            "node0_cpulist": content,
+            "accessible": True,
+        })
 
     def test_numa_local_bw_exceeds_remote(self):
         """TC-CPU-08b: NUMA-local BW should exceed NUMA-remote BW (topology check)."""
@@ -664,6 +689,11 @@ class TestNUMABandwidth:
         assert os.path.isdir("/sys/devices/system/node/node0"), (
             "NUMA node0 sysfs path missing"
         )
+        _record_cpu_kpi("TC-CPU-08b_numa_topology", {
+            "node0_sysfs_present": True,
+            "numa_nodes_detected": len([d for d in os.listdir("/sys/devices/system/node")
+                                        if d.startswith("node")]) if os.path.isdir("/sys/devices/system/node") else 0,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -715,6 +745,12 @@ class TestIntegerThroughput:
             f"Concurrent INT64 vector add throughput {total_gops:.2f} GOPS < "
             f"{scaled_threshold:.2f} GOPS ({n_threads} threads × {per_thread_floor} GOPS/thread floor)"
         )
+        _record_cpu_kpi("TC-CPU-09a_int64_add_throughput", {
+            "total_gops": round(total_gops, 3),
+            "per_thread_gops": round(total_gops / max(n_threads, 1), 3),
+            "n_threads": n_threads,
+            "threshold_gops": round(scaled_threshold, 3),
+        })
 
     def test_integer_multiply_throughput(self):
         """TC-CPU-09b: Concurrent INT64 multiply across all cores must sustain ≥ 50 GOPS."""
@@ -756,6 +792,12 @@ class TestIntegerThroughput:
             f"Concurrent INT64 multiply throughput {total_gops:.2f} GOPS < "
             f"{scaled_threshold:.2f} GOPS ({n_threads} threads × {per_thread_floor} GOPS/thread floor)"
         )
+        _record_cpu_kpi("TC-CPU-09b_int64_multiply_throughput", {
+            "total_gops": round(total_gops, 3),
+            "per_thread_gops": round(total_gops / max(n_threads, 1), 3),
+            "n_threads": n_threads,
+            "threshold_gops": round(scaled_threshold, 3),
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -775,6 +817,11 @@ class TestBranchPrediction:
         assert elapsed < 0.5, (
             f"Predictable branch loop took {elapsed:.3f} s (> 0.5 s)"
         )
+        _record_cpu_kpi("TC-CPU-10a_predictable_branch", {
+            "elapsed_sec": round(elapsed, 4),
+            "iterations": 10_000_000,
+            "threshold_sec": 0.5,
+        })
 
     def test_unpredictable_branch_penalty(self):
         """TC-CPU-10b: Unpredictable branch loop must complete within 5 s for 10 M iters."""
@@ -790,6 +837,12 @@ class TestBranchPrediction:
         assert elapsed < 5.0, (
             f"Unpredictable branch loop took {elapsed:.3f} s (> 5 s)"
         )
+        _record_cpu_kpi("TC-CPU-10b_unpredictable_branch", {
+            "elapsed_sec": round(elapsed, 4),
+            "iterations": 10_000_000,
+            "branch_penalty_ratio": round(elapsed / max(0.001, 0.001), 1),
+            "threshold_sec": 5.0,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -817,6 +870,11 @@ class TestThreadPoolOverhead:
             t.join()
         assert elapsed < 2.0, f"{THEORETICAL_CPU_CORES}-thread spawn took {elapsed:.3f} s"
         assert len(results) == THEORETICAL_CPU_CORES
+        _record_cpu_kpi("TC-CPU-11a_threadpool_spawn_latency", {
+            "spawn_elapsed_sec": round(elapsed, 4),
+            "n_threads": THEORETICAL_CPU_CORES,
+            "threshold_sec": 2.0,
+        })
 
     def test_threadpool_reuse_overhead(self):
         """TC-CPU-11b: 1000 task submissions to ThreadPoolExecutor must complete < 1 s."""
@@ -835,6 +893,12 @@ class TestThreadPoolOverhead:
         elapsed = time.perf_counter() - t0
         assert elapsed < 1.0, f"1000 task submissions took {elapsed:.3f} s"
         assert counter[0] == 1000
+        _record_cpu_kpi("TC-CPU-11b_threadpool_reuse_overhead", {
+            "submit_elapsed_sec": round(elapsed, 4),
+            "n_tasks": 1000,
+            "tasks_completed": counter[0],
+            "threshold_sec": 1.0,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -901,6 +965,13 @@ class TestCacheCoherency:
             f"Expected padded median ({padded_time:.3f}s) to be within 10% of unpadded "
             f"median ({unpadded_time:.3f}s)"
         )
+        _record_cpu_kpi("TC-CPU-12_false_sharing", {
+            "unpadded_median_sec": round(unpadded_time, 4),
+            "padded_median_sec": round(padded_time, 4),
+            "false_sharing_overhead_ratio": round(unpadded_time / max(padded_time, 1e-9), 3),
+            "n_threads": n_threads,
+            "n_iters": n_iters,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -939,6 +1010,14 @@ class TestFrequencyStability:
             f"(A={med_a:.1f} GFLOPS, B={med_b:.1f} GFLOPS), "
             f"limit={max_degradation:.1%}"
         )
+        _record_cpu_kpi("TC-CPU-13_frequency_stability", {
+            "run_a_median_gflops": round(med_a, 2),
+            "run_b_median_gflops": round(med_b, 2),
+            "degradation_pct": round(degradation * 100, 2),
+            "max_degradation_pct": round(max_degradation * 100, 2),
+            "run_a_samples": [round(x, 2) for x in run_a],
+            "run_b_samples": [round(x, 2) for x in run_b],
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -980,6 +1059,14 @@ class TestSMTThroughput:
             f"SMT throughput ratio {smt_ratio:.2f}x is below floor {smt_ratio_floor:.2f}x "
             f"(SMT={r2:.1f} GFLOPS, physical={r1:.1f} GFLOPS)"
         )
+        _record_cpu_kpi("TC-CPU-14_smt_throughput", {
+            "physical_cores_gflops": round(r1, 2),
+            "smt_threads_gflops": round(r2, 2),
+            "smt_ratio": round(smt_ratio, 3),
+            "smt_ratio_floor": round(smt_ratio_floor, 3),
+            "physical_core_count": physical,
+            "smt_thread_count": physical * CPU_SPECS.threads_per_core,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -1000,6 +1087,11 @@ class TestCPUAffinity:
             assert set(new) == {0, 1}, f"Failed to set affinity; got {new}"
         finally:
             proc.cpu_affinity(original)
+        _record_cpu_kpi("TC-CPU-15a_affinity_set", {
+            "can_set_affinity": True,
+            "original_cpu_count": len(original),
+            "test_affinity": [0, 1],
+        })
 
     def test_all_cores_schedulable(self):
         """TC-CPU-15b: All logical CPUs must be schedulable (appear in affinity set)."""
@@ -1010,3 +1102,9 @@ class TestCPUAffinity:
         assert len(affinity) >= THEORETICAL_THREADS, (
             f"Only {len(affinity)} CPUs schedulable, expected {THEORETICAL_THREADS}"
         )
+        _record_cpu_kpi("TC-CPU-15b_all_cores_schedulable", {
+            "schedulable_cpus": len(affinity),
+            "expected_threads": THEORETICAL_THREADS,
+            "affinity_min_cpu": min(affinity),
+            "affinity_max_cpu": max(affinity),
+        })

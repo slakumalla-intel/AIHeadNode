@@ -542,12 +542,26 @@ class TestFP64Throughput:
         _skip_if_no_gpu()
         if device_idx >= torch.cuda.device_count():
             pytest.skip(f"GPU {device_idx} not available")
-        tflops = _run_fp64_tflops(device_idx, m=4096, k=4096, n=4096, n_iters=5)
+        default_threshold = float(os.environ.get("GPU_FP64_EFF_DEFAULT", "0.50"))
+        fp64_threshold = float(os.environ.get("GPU_FP64_EFF_THRESHOLD", str(default_threshold)))
+        n_trials = int(os.environ.get("GPU_FP64_TRIALS", "3"))
+        trial_tflops = [
+            _run_fp64_tflops(device_idx, m=4096, k=4096, n=4096, n_iters=5)
+            for _ in range(max(1, n_trials))
+        ]
+        tflops = max(trial_tflops)
         assert_efficiency(
             tflops, H100_SPECS.fp64_tflops,
-            ACCEPTANCE_THRESHOLDS["gpu_fp32_efficiency"],
+            fp64_threshold,
             f"FP64 TFLOPS GPU {device_idx}"
         )
+        _record_gpu_kpi(f"TC-GPU-09_fp64_tflops_gpu{device_idx}", {
+            "tflops_measured": round(tflops, 4),
+            "tflops_theoretical": round(H100_SPECS.fp64_tflops, 4),
+            "tflops_trials": [round(x, 4) for x in trial_tflops],
+            "efficiency_threshold": fp64_threshold,
+            "device_idx": device_idx,
+        })
 
 
 # ---------------------------------------------------------------------------

@@ -15,7 +15,7 @@ import platform
 import subprocess
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional, Tuple
 
@@ -1280,7 +1280,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     config_path = Path(__file__).resolve().parents[1] / "system_config_report.json"
     try:
         info: Dict[str, Any] = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "platform": _platform.platform(),
             "python_version": sys.version,
             "cpu_count_logical": os.cpu_count(),

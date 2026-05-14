@@ -148,9 +148,28 @@ def _stream_bw_gbs(array_bytes: int = 512 * 1024 * 1024) -> float:
     return bytes_moved / elapsed / 1e9
 
 
-def _parallel_blas_worker(args: Tuple[int, int]) -> float:
-    """Worker for ProcessPoolExecutor: run BLAS SGEMM and return GFLOPS."""
-    size, n_iters = args
+def _parallel_blas_worker(args: Tuple) -> float:
+    """Worker for ProcessPoolExecutor: run BLAS SGEMM and return GFLOPS.
+
+    Args may be (size, n_iters) or (size, n_iters, cpu_id).
+    When cpu_id is provided (and psutil is available) the worker pins itself
+    to that logical CPU before running so that cores are used in sequential
+    order (0, 1, 2, …).  Pass cpu_id=-1 to skip affinity pinning.
+    """
+    if len(args) == 3:
+        size, n_iters, cpu_id = args
+    else:
+        size, n_iters = args
+        cpu_id = -1
+
+    if cpu_id >= 0 and _HAS_PSUTIL:
+        try:
+            import psutil as _psutil
+            _psutil.Process().cpu_affinity([cpu_id])
+        except (AttributeError, OSError):
+            # cpu_affinity not supported on this platform (e.g. macOS)
+            pass
+
     return _numpy_fma_gflops(n_iters=n_iters, size=size)
 
 
@@ -489,7 +508,39 @@ class TestParallelSpeedup:
         else:
             size, n_iters = 256, 50
         n_trials = 3
-        args = [(size, n_iters)] * n_cores
+
+        # ------------------------------------------------------------------ #
+        # Determine which logical CPU IDs to pin each worker to.
+        #
+        # Default: sequential IDs starting from 0 → [0, 1, 2, …, n_cores-1]
+        #
+        # Manual override: set the CPU_AFFINITY_CORES environment variable to
+        # a comma-separated list of logical CPU IDs, e.g.
+        #   CPU_AFFINITY_CORES=0,2,4,6   (use 4 specific cores)
+        # The list must have at least n_cores entries; extra entries are ignored.
+        # Set CPU_AFFINITY_CORES=none to disable affinity pinning entirely.
+        # ------------------------------------------------------------------ #
+        affinity_env = os.environ.get("CPU_AFFINITY_CORES", "").strip()
+        if affinity_env.lower() == "none":
+            cpu_ids = [-1] * n_cores   # -1 → skip pinning
+        elif affinity_env:
+            parsed = [int(x) for x in affinity_env.split(",") if x.strip()]
+            if len(parsed) < n_cores:
+                pytest.fail(
+                    f"CPU_AFFINITY_CORES has {len(parsed)} entries but n_cores={n_cores}; "
+                    "provide at least as many IDs as cores under test."
+                )
+            cpu_ids = parsed[:n_cores]
+        else:
+            cpu_ids = list(range(n_cores))   # sequential: 0, 1, 2, …
+
+        args = [(size, n_iters, cpu_ids[i]) for i in range(n_cores)]
+
+        logger.info(
+            "Core affinity map for %d-core run: %s",
+            n_cores,
+            cpu_ids,
+        )
 
         # Use the same single-threaded BLAS + process-pool path for baseline and
         # n-core runs; compute medians to reduce run-to-run noise.
@@ -499,7 +550,7 @@ class TestParallelSpeedup:
             mp_ctx = multiprocessing.get_context("spawn")
             for _ in range(n_trials):
                 with ProcessPoolExecutor(max_workers=1, mp_context=mp_ctx) as ex:
-                    baseline_runs.append(list(ex.map(_parallel_blas_worker, [(size, n_iters)]))[0])
+                    baseline_runs.append(list(ex.map(_parallel_blas_worker, [(size, n_iters, cpu_ids[0])]))[0])
                 with ProcessPoolExecutor(max_workers=n_cores, mp_context=mp_ctx) as ex:
                     results = list(ex.map(_parallel_blas_worker, args))
                     multi_runs.append(sum(results))

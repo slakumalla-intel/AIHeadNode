@@ -21,10 +21,12 @@ TC-MEM-12  Sustained bandwidth over 30-second window
 """
 
 import math
+import json
 import os
 import time
 import threading
 import ctypes
+from pathlib import Path
 from typing import List
 
 import pytest
@@ -53,6 +55,30 @@ THEORETICAL_MEM_GB     = SYSTEM_SPECS.total_memory_gb
 THEORETICAL_MEM_BW_GBS = CPU_SPECS.peak_memory_bandwidth_gbs  # ~614 GB/s
 L3_TOTAL_MB            = CPU_SPECS.l3_cache_mb_total           # 640 MB
 THEORETICAL_STORAGE_GB = SYSTEM_SPECS.total_storage_gb
+
+
+# ---------------------------------------------------------------------------
+# KPI recording
+# ---------------------------------------------------------------------------
+
+def _mem_kpi_path() -> Path:
+    return Path(os.environ.get("MEMORY_KPI_FILE", "artifacts/memory_validation_kpis.jsonl"))
+
+
+def _record_mem_kpi(test_name: str, metrics: dict) -> None:
+    import logging as _logging
+    import time as _t
+    _logger = _logging.getLogger("memory_validation")
+    out = _mem_kpi_path()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "timestamp": _t.strftime("%Y-%m-%dT%H:%M:%S"),
+        "test": test_name,
+        "metrics": metrics,
+    }
+    with out.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(payload, default=str) + "\n")
+    _logger.info("MEM KPI [%s]: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
 
 
 # ---------------------------------------------------------------------------
@@ -298,6 +324,10 @@ class TestAggregateMemoryBandwidth:
             ACCEPTANCE_THRESHOLDS["cpu_memory_bandwidth_efficiency"],
             "Aggregate STREAM Triad BW"
         )
+        _record_mem_kpi("TC-MEM-04_aggregate_stream_triad", {
+            "bandwidth_gbs": round(total_bw, 2),
+            "theoretical_gbs": round(THEORETICAL_MEM_BW_GBS, 2),
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -350,6 +380,11 @@ class TestMemoryLatency:
         assert latency <= max_latency_ns, (
             f"Working-set {ws_kb} KB: latency {latency:.2f} ns > {max_latency_ns} ns"
         )
+        _record_mem_kpi(f"TC-MEM-06_latency_ws{ws_kb}kb", {
+            "latency_ns": round(latency, 2),
+            "max_latency_ns": max_latency_ns,
+            "ws_kb": ws_kb,
+        })
 
 
 # ---------------------------------------------------------------------------

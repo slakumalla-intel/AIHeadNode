@@ -24,6 +24,7 @@ TC-CPU-15  Hyper-Threading throughput gain vs. physical-core-only run
 """
 
 import logging
+import json
 import math
 import os
 import signal
@@ -32,6 +33,7 @@ import threading
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from contextlib import contextmanager
+from pathlib import Path
 from typing import List, Tuple
 
 import pytest
@@ -40,6 +42,26 @@ from tests.theoretical_specs import CPU_SPECS, ACCEPTANCE_THRESHOLDS
 from tests.conftest import assert_efficiency
 
 logger = logging.getLogger("cpu_validation")
+
+# ---------------------------------------------------------------------------
+# KPI recording
+# ---------------------------------------------------------------------------
+
+def _cpu_kpi_path() -> Path:
+    return Path(os.environ.get("CPU_KPI_FILE", "artifacts/cpu_validation_kpis.jsonl"))
+
+
+def _record_cpu_kpi(test_name: str, metrics: dict) -> None:
+    out = _cpu_kpi_path()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "test": test_name,
+        "metrics": metrics,
+    }
+    with out.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(payload, default=str) + "\n")
+    logger.info("CPU KPI [%s]: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
 
 
 @contextmanager
@@ -268,6 +290,10 @@ class TestSingleCoreFP32:
             measured, per_core_theoretical_gflops, threshold,
             "Single-core FP32 GFLOPS"
         )
+        _record_cpu_kpi("TC-CPU-03_single_core_fp32", {
+            "gflops_measured": round(measured, 2),
+            "gflops_theoretical": round(per_core_theoretical_gflops, 2),
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -371,6 +397,10 @@ class TestAllCoreFP32Scaling:
             eff_threshold,
             "All-core FP32 GFLOPS (BLAS)"
         )
+        _record_cpu_kpi("TC-CPU-04_allcore_fp32", {
+            "tflops_measured": round(total_gflops / 1000, 3),
+            "cores_used": sample_workers,
+        })
         
         logger.info(
             f"  ✅ PASS: All-core FP32 GFLOPS meets {eff_threshold*100:.0f}% efficiency threshold\n"
@@ -436,6 +466,10 @@ class TestMemoryBandwidth:
             ACCEPTANCE_THRESHOLDS["cpu_memory_bandwidth_efficiency"],
             "Aggregate DRAM bandwidth (multi-thread)"
         )
+        _record_cpu_kpi("TC-CPU-05_dram_bandwidth", {
+            "bandwidth_gbs": round(total_bw, 2),
+            "theoretical_gbs": round(THEORETICAL_MEM_BW, 2),
+        })
 
 
 # ---------------------------------------------------------------------------

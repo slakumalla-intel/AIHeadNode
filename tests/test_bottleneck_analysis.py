@@ -20,6 +20,7 @@ TC-BN-10  System-level throughput summary report
 """
 
 import math
+import json
 import os
 import time
 import threading
@@ -27,6 +28,7 @@ import multiprocessing as mp
 import logging
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import pytest
@@ -40,6 +42,26 @@ from tests.theoretical_specs import (
 from tests.conftest import assert_efficiency
 
 logger = logging.getLogger("bottleneck_analysis")
+
+# ---------------------------------------------------------------------------
+# KPI recording
+# ---------------------------------------------------------------------------
+
+def _bn_kpi_path() -> Path:
+    return Path(os.environ.get("BOTTLENECK_KPI_FILE", "artifacts/bottleneck_kpis.jsonl"))
+
+
+def _record_bn_kpi(test_name: str, metrics: dict) -> None:
+    out = _bn_kpi_path()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "test": test_name,
+        "metrics": metrics,
+    }
+    with out.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(payload, default=str) + "\n")
+    logger.info("BN KPI [%s]: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
 
 # ---------------------------------------------------------------------------
 # Optional imports
@@ -1156,6 +1178,15 @@ class TestSystemLevelSummary:
 
         if results:
             logger.info(_format_report(results))
+            _record_bn_kpi("TC-BN-10_system_throughput_summary", {
+                r.label: {
+                    "measured": r.measured,
+                    "theoretical": r.theoretical,
+                    "unit": r.unit,
+                    "efficiency_pct": round(100.0 * r.measured / r.theoretical, 1) if r.theoretical else None,
+                }
+                for r in results
+            })
 
         # Test always passes – the report is the output
         assert True

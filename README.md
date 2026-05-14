@@ -266,6 +266,8 @@ pytest -vv --log-file=validation.log --log-file-level=INFO 2>&1 | tee validation
 | `tests/test_mlperf_suite.py` | TC-MLPERF-* | MLPerf Inference suite orchestration | `mlperf_suite_kpis.jsonl` |
 | `tests/test_system_health_and_reliability.py` | TC-SHR-* | System health, thermals, error logs | — |
 | `tests/test_system_config_report.py` | TC-CFG-* | Configuration report generation | — |
+| `tests/test_functional_test_plan_mapping.py` | AI_HOSTCPU_FUNC_TEST_ID_001–054 | Functional test-plan ID catalog mapping test selectors to plan IDs | — |
+| `tests/test_agentic_test_plan_mapping.py` | AI_HOSTCPU_AGENTIC_TEST_ID_### | Agentic test-plan ID catalog for tests not covered by FUNC/PERF/ML catalogs | — |
 
 ---
 
@@ -631,6 +633,7 @@ suitable for import into any analytics pipeline for competitive comparison.
 | `artifacts/node_validation_kpis.jsonl` | Node bring-up and health checks |
 | `artifacts/performance_suite_kpis.jsonl` | Catalog performance cases |
 | `artifacts/mlperf_suite_kpis.jsonl` | MLPerf Inference results |
+| `artifacts/bottleneck_kpis.jsonl` | Bottleneck / roofline analysis results |
 
 Override the node KPI output path:
 
@@ -677,5 +680,11 @@ export NODE_VALIDATION_KPI_FILE=artifacts/node_validation_kpis.jsonl
 | `PIPELINE_EXECUTE` | `1` | Enable AI pipeline execution-gated tests |
 | `AGENTIC_EXECUTE` | `1` | Enable live GPU inference in agentic tests |
 | `AGENTIC_MODEL_ID` | `facebook/opt-125m` | HuggingFace model for agentic tests |
+| `WORKLOADS_ROOT` | `/root/workloads` | Root directory for pre-built binary workloads (nvbandwidth, nccl-tests) |
+| `CPU_KPI_FILE` | `artifacts/cpu_validation_kpis.jsonl` | CPU KPI output path |
+| `GPU_KPI_FILE` | `artifacts/gpu_validation_kpis.jsonl` | GPU KPI output path |
+| `MEMORY_KPI_FILE` | `artifacts/memory_validation_kpis.jsonl` | Memory KPI output path |
+| `INTERCONNECT_KPI_FILE` | `artifacts/interconnect_kpis.jsonl` | Interconnect KPI output path |
+| `BOTTLENECK_KPI_FILE` | `artifacts/bottleneck_kpis.jsonl` | Bottleneck analysis KPI output path |
 
 > Linux is the supported execution target for this validation suite.

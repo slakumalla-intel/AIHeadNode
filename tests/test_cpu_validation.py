@@ -549,16 +549,45 @@ class TestParallelSpeedup:
         # Default: sequential IDs starting from 0 → [0, 1, 2, …, n_cores-1]
         #
         # Manual override: set the CPU_AFFINITY_CORES environment variable to
-        # a comma-separated list of logical CPU IDs, e.g.
+        # a comma-separated list of logical CPU IDs and/or ranges, e.g.
         #   CPU_AFFINITY_CORES=0,2,4,6   (use 4 specific cores)
+        #   CPU_AFFINITY_CORES=0-63      (use logical cores 0 through 63)
+        #   CPU_AFFINITY_CORES=0-15,32-47,96
         # The list must have at least n_cores entries; extra entries are ignored.
         # Set CPU_AFFINITY_CORES=none to disable affinity pinning entirely.
         # ------------------------------------------------------------------ #
+        def _parse_affinity_list(raw: str) -> List[int]:
+            ids: List[int] = []
+            for token in raw.split(","):
+                token = token.strip()
+                if not token:
+                    continue
+                if "-" in token:
+                    parts = token.split("-", 1)
+                    if len(parts) != 2 or not parts[0].strip() or not parts[1].strip():
+                        raise ValueError(f"Invalid CPU range token: '{token}'")
+                    start = int(parts[0])
+                    end = int(parts[1])
+                    if start < 0 or end < 0:
+                        raise ValueError(f"CPU IDs must be non-negative: '{token}'")
+                    if end < start:
+                        raise ValueError(f"CPU range end must be >= start: '{token}'")
+                    ids.extend(range(start, end + 1))
+                else:
+                    cpu = int(token)
+                    if cpu < 0:
+                        raise ValueError(f"CPU IDs must be non-negative: '{token}'")
+                    ids.append(cpu)
+            return ids
+
         affinity_env = os.environ.get("CPU_AFFINITY_CORES", "").strip()
         if affinity_env.lower() == "none":
             cpu_ids = [-1] * n_cores   # -1 → skip pinning
         elif affinity_env:
-            parsed = [int(x) for x in affinity_env.split(",") if x.strip()]
+            try:
+                parsed = _parse_affinity_list(affinity_env)
+            except ValueError as exc:
+                pytest.fail(f"Invalid CPU_AFFINITY_CORES='{affinity_env}': {exc}")
             if len(parsed) < n_cores:
                 pytest.fail(
                     f"CPU_AFFINITY_CORES has {len(parsed)} entries but n_cores={n_cores}; "

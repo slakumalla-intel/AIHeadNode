@@ -21,6 +21,9 @@ TC-GPU-15  CUDA stream concurrency (overlapping kernels)
 """
 
 import time
+import json
+import os
+from pathlib import Path
 from typing import List
 
 import pytest
@@ -57,6 +60,29 @@ EXPECTED_GPU_COUNT = SYSTEM_SPECS.gpu_count   # 4
 H100_KEYWORDS      = {"H100", "H200"}         # acceptable GPU model identifiers
 MAX_GPU_TEMP_C     = 83.0                      # H100 max operating temp (°C)
 H100_TDP_W         = 700.0                     # H100 SXM5 TDP in watts
+
+
+# ---------------------------------------------------------------------------
+# KPI recording
+# ---------------------------------------------------------------------------
+
+def _gpu_kpi_path() -> Path:
+    return Path(os.environ.get("GPU_KPI_FILE", "artifacts/gpu_validation_kpis.jsonl"))
+
+
+def _record_gpu_kpi(test_name: str, metrics: dict) -> None:
+    import logging as _logging
+    _logger = _logging.getLogger("gpu_validation")
+    out = _gpu_kpi_path()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "test": test_name,
+        "metrics": metrics,
+    }
+    with out.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(payload, default=str) + "\n")
+    _logger.info("GPU KPI [%s]: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
 
 
 # ---------------------------------------------------------------------------
@@ -338,6 +364,11 @@ class TestHBMBandwidth:
             ACCEPTANCE_THRESHOLDS["gpu_hbm_bandwidth_efficiency"],
             f"HBM3 bandwidth GPU {device_idx}"
         )
+        _record_gpu_kpi(f"TC-GPU-04_hbm_bandwidth_gpu{device_idx}", {
+            "bandwidth_tbs": round(bw_tbs, 4),
+            "theoretical_tbs": round(theoretical_hbm_tbs, 4),
+            "device_idx": device_idx,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -362,6 +393,11 @@ class TestFP32Throughput:
             fp32_threshold,
             f"FP32 GFLOPS GPU {device_idx}"
         )
+        _record_gpu_kpi(f"TC-GPU-05_fp32_gflops_gpu{device_idx}", {
+            "gflops_measured": round(gflops, 2),
+            "tflops_theoretical": round(fp32_tflops, 2),
+            "device_idx": device_idx,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -385,6 +421,11 @@ class TestFP16ThroughputGPU:
             fp16_threshold,
             f"FP16 TFLOPS GPU {device_idx}"
         )
+        _record_gpu_kpi(f"TC-GPU-06_fp16_tflops_gpu{device_idx}", {
+            "tflops_measured": round(tflops, 4),
+            "tflops_theoretical": round(fp16_tflops, 4),
+            "device_idx": device_idx,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -408,6 +449,10 @@ class TestBF16Throughput:
             bf16_threshold,
             f"BF16 TFLOPS GPU {device_idx}"
         )
+        _record_gpu_kpi(f"TC-GPU-07_bf16_tflops_gpu{device_idx}", {
+            "tflops_measured": round(tflops, 4),
+            "device_idx": device_idx,
+        })
 
 
 # ---------------------------------------------------------------------------

@@ -386,7 +386,13 @@ def _configure_default_env() -> None:
     os.environ.setdefault("PIPELINE_KPI_FILE", "artifacts/ai_pipeline_kpis.jsonl")
     os.environ.setdefault("HEALTH_KPI_FILE", "artifacts/system_health_kpis.jsonl")
     os.environ.setdefault("ML_SUITE_KPI_FILE", "artifacts/mlperf_suite_kpis.jsonl")
-    os.environ.setdefault("NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth")
+    os.environ.setdefault("CPU_KPI_FILE", "artifacts/cpu_validation_kpis.jsonl")
+    os.environ.setdefault("GPU_KPI_FILE", "artifacts/gpu_validation_kpis.jsonl")
+    os.environ.setdefault("MEMORY_KPI_FILE", "artifacts/memory_validation_kpis.jsonl")
+    os.environ.setdefault("INTERCONNECT_KPI_FILE", "artifacts/interconnect_kpis.jsonl")
+    os.environ.setdefault("BOTTLENECK_KPI_FILE", "artifacts/bottleneck_kpis.jsonl")
+    _workloads_root = os.environ.get("WORKLOADS_ROOT", "/root/workloads")
+    os.environ.setdefault("NVBANDWIDTH_BIN", os.path.join(_workloads_root, "nvbandwidth"))
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
     os.environ.setdefault("PYTEST_TIMEOUT", "600")
     os.environ.setdefault("NODE_WORKLOAD_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
@@ -398,8 +404,8 @@ def _configure_default_env() -> None:
     os.environ.setdefault("PERF_CMD_TIMEOUT_SEC", "1800")
     os.environ.setdefault("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")
     os.environ.setdefault("VLLM_PREFILL_KPI_FILE", "artifacts/vllm_prefill_kpis.jsonl")
-    os.environ.setdefault("PERF_NVBANDWIDTH_BIN", os.environ.get("NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth"))
-    os.environ.setdefault("PERF_NCCL_TESTS_DIR", "/root/workloads/nccl-tests/build")
+    os.environ.setdefault("PERF_NVBANDWIDTH_BIN", os.environ.get("NVBANDWIDTH_BIN", os.path.join(_workloads_root, "nvbandwidth")))
+    os.environ.setdefault("PERF_NCCL_TESTS_DIR", os.path.join(_workloads_root, "nccl-tests", "build"))
     os.environ.setdefault("PERF_VLLM_GPU_MEMORY_UTILIZATION", "0.70")
     os.environ.setdefault("PERF_VLLM_FP8_DTYPE_FALLBACK", "bfloat16")
     os.environ.setdefault("PERF_VLLM_BENCHMARK_MODULE", "vllm.benchmarks.benchmark_serving")
@@ -1251,6 +1257,60 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "stream_correctness: CUDA stream ordering and event synchronisation correctness")
     setattr(config, "_overall_report_rows", {})
     setattr(config, "_testcase_id_map", _load_testcase_id_map())
+
+
+def pytest_sessionstart(session: pytest.Session) -> None:
+    """Capture system configuration at the very start of the session, before any tests run."""
+    import platform as _platform
+    config_path = Path(__file__).resolve().parents[1] / "system_config_report.json"
+    try:
+        info: Dict[str, Any] = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "platform": _platform.platform(),
+            "python_version": sys.version,
+            "cpu_count_logical": os.cpu_count(),
+            "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES", ""),
+            "cuda_device_order": os.environ.get("CUDA_DEVICE_ORDER", ""),
+            "datasets_root": os.environ.get("DATASETS_ROOT", ""),
+            "workloads_root": os.environ.get("WORKLOADS_ROOT", "/root/workloads"),
+        }
+        # psutil info
+        if _psutil is not None:
+            info["cpu_count_physical"] = _psutil.cpu_count(logical=False)
+            vm = _psutil.virtual_memory()
+            info["total_ram_gb"] = round(vm.total / 1024 ** 3, 2)
+
+        # GPU info via nvidia-smi
+        try:
+            smi_out = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=index,name,pci.bus_id,memory.total,driver_version",
+                 "--format=csv,noheader,nounits"],
+                timeout=30,
+            ).decode().strip()
+            gpus = []
+            for line in smi_out.splitlines():
+                parts = [p.strip() for p in line.split(",")]
+                if len(parts) >= 5:
+                    gpus.append({
+                        "index": parts[0],
+                        "name": parts[1],
+                        "pci_bus_id": parts[2],
+                        "memory_mib": parts[3],
+                        "driver_version": parts[4],
+                    })
+            info["gpus"] = gpus
+            info["gpu_count"] = len(gpus)
+        except Exception as exc:
+            info["gpus"] = []
+            info["gpu_count"] = 0
+            info["gpu_query_error"] = str(exc)
+
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with config_path.open("w", encoding="utf-8") as fh:
+            json.dump(info, fh, indent=2, default=str)
+        logger.info("System config captured: %s", config_path)
+    except Exception as exc:
+        logger.warning("pytest_sessionstart: failed to capture system config – %s", exc)
 
 
 @pytest.hookimpl(hookwrapper=True)

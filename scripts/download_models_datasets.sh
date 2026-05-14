@@ -229,6 +229,8 @@ cat > "${ENV_FILE}" <<ENVEOF
 export DATASETS_ROOT="${DATASETS_ROOT}"
 export HF_HOME="${HF_HOME}"
 export HUGGINGFACE_HUB_CACHE="${HF_HOME}/hub"
+export TORCH_HOME="${DATASETS_ROOT}/torch"
+export SHAREGPT_DATASET_PATH="${SHAREGPT_DIR}/ShareGPT_V3_unfiltered_cleaned_split.json"
 
 # HuggingFace model IDs → all resolved from local cache
 export HF_INFERENCE_MODEL="meta-llama/Meta-Llama-3.1-8B-Instruct"

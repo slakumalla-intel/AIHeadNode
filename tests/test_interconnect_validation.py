@@ -21,10 +21,12 @@ TC-IC-15  Multistream D2H PCIe sweep (adaptive by CUDA memory)
 """
 
 import logging
+import json
 import time
 import threading
 import math
 import os
+from pathlib import Path
 from typing import List, Tuple
 
 import pytest
@@ -33,6 +35,26 @@ from tests.theoretical_specs import H100_SPECS, SYSTEM_SPECS, ACCEPTANCE_THRESHO
 from tests.conftest import assert_efficiency
 
 logger = logging.getLogger("interconnect_validation")
+
+# ---------------------------------------------------------------------------
+# KPI recording
+# ---------------------------------------------------------------------------
+
+def _ic_kpi_path() -> Path:
+    return Path(os.environ.get("INTERCONNECT_KPI_FILE", "artifacts/interconnect_kpis.jsonl"))
+
+
+def _record_ic_kpi(test_name: str, metrics: dict) -> None:
+    out = _ic_kpi_path()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "test": test_name,
+        "metrics": metrics,
+    }
+    with out.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(payload, default=str) + "\n")
+    logger.info("IC KPI [%s]: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
 
 try:
     import torch
@@ -875,6 +897,11 @@ class TestH2DBandwidth:
             ACCEPTANCE_THRESHOLDS["pcie_h2d_bandwidth_efficiency"],
             f"H2D PCIe BW GPU {device_idx}"
         )
+        _record_ic_kpi(f"TC-IC-02_h2d_bandwidth_gpu{device_idx}", {
+            "bandwidth_gbs": round(bw, 2),
+            "theoretical_gbs": THEORETICAL_H2D_BW,
+            "device_idx": device_idx,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -902,6 +929,11 @@ class TestD2HBandwidth:
             ACCEPTANCE_THRESHOLDS["pcie_d2h_bandwidth_efficiency"],
             f"D2H PCIe BW GPU {device_idx}"
         )
+        _record_ic_kpi(f"TC-IC-03_d2h_bandwidth_gpu{device_idx}", {
+            "bandwidth_gbs": round(bw, 2),
+            "theoretical_gbs": THEORETICAL_H2D_BW,
+            "device_idx": device_idx,
+        })
 
 
 # ---------------------------------------------------------------------------
@@ -1047,6 +1079,12 @@ class TestP2PBandwidth:
             threshold,
             f"{P2P_FABRIC_LABEL} P2P BW GPU {src}->{dst}"
         )
+        _record_ic_kpi(f"TC-IC-07_p2p_bandwidth_gpu{src}_to_{dst}", {
+            "bandwidth_gbs": round(bw, 2),
+            "theoretical_gbs": THEORETICAL_P2P_BW,
+            "src": src,
+            "dst": dst,
+        })
 
 
 # ---------------------------------------------------------------------------

@@ -261,10 +261,25 @@ def _configure_default_env() -> None:
     os.environ.setdefault("HF_HOME", _hf_home)
     os.environ.setdefault("HUGGINGFACE_HUB_CACHE", _hf_cache)
     os.environ.setdefault("TRANSFORMERS_CACHE", _hf_cache)
-    os.environ.setdefault("HF_HUB_OFFLINE", "1")
-    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
-    # Allow local-only resolution; tests fall back to remote if cache miss.
-    os.environ.setdefault("HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD", "0")
+    os.environ.setdefault("HF_DATASETS_CACHE", _hf_cache)
+
+    # Offline mode policy:
+    #   • If the local HF hub cache directory (/mnt/datasets/huggingface/hub/) exists
+    #     and is populated, assume all required models are present locally → offline=1
+    #     (never hit the internet; fail fast on a missing model rather than silently
+    #     pulling a multi-GB checkpoint mid-run).
+    #   • If the local cache is absent or empty, allow HF Hub downloads → offline=0
+    #     (models are fetched from huggingface.co and stored in the cache for reuse).
+    #   • Pre-setting HF_HUB_OFFLINE or TRANSFORMERS_OFFLINE before invoking pytest
+    #     overrides both defaults (setdefault is a no-op when the variable is already set).
+    _hub_cache_populated = os.path.isdir(_hf_cache) and bool(os.listdir(_hf_cache))
+    _offline_default = "1" if _hub_cache_populated else "0"
+    os.environ.setdefault("HF_HUB_OFFLINE", _offline_default)
+    os.environ.setdefault("TRANSFORMERS_OFFLINE", _offline_default)
+    # When local cache is present, disallow implicit remote large-model downloads.
+    # When cache is absent, allow downloads so tests are not skipped en masse.
+    _remote_download_default = "0" if _hub_cache_populated else "1"
+    os.environ.setdefault("HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD", _remote_download_default)
 
     # Model IDs – use repo IDs so transformers resolves via local HF cache under HF_HOME/HUGGINGFACE_HUB_CACHE.
     os.environ.setdefault("HF_LLAMA_7B_MODEL", "meta-llama/Meta-Llama-3.1-8B-Instruct")

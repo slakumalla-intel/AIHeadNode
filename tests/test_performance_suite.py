@@ -710,6 +710,20 @@ def _known_skip_reason_from_result(result: Dict) -> Optional[str]:
     return None
 
 
+def _benchmark_all_requests_failed(result: Dict) -> bool:
+    text = f"{result.get('stdout_tail', '')}\n{result.get('stderr_tail', '')}".lower()
+    successful_match = re.search(r"successful requests:\s*(\d+)", text)
+    failed_match = re.search(r"failed requests:\s*(\d+)", text)
+    if successful_match and failed_match:
+        try:
+            successful = int(successful_match.group(1))
+            failed = int(failed_match.group(1))
+            return failed > 0 and successful == 0
+        except ValueError:
+            return False
+    return "all requests failed" in text
+
+
 def _run_command(command: str, timeout_sec: int, already_prepared: bool = False) -> Dict:
     start = time.perf_counter()
     prepared_command = command if already_prepared else _prepare_command(command)
@@ -1356,19 +1370,40 @@ def test_performance_case_suite(case: PerformanceCase):
                     continue  # Skip the serve command; it's already running
                 result = _run_command(prepared_cmd, timeout_sec=timeout_sec, already_prepared=True)
                 command_results.append(result)
+                skip_reason = _known_skip_reason_from_result(result)
+                if skip_reason:
+                    _record_kpi(
+                        case.case_id,
+                        {
+                            "mode": "execution",
+                            "status": "skipped",
+                            "reason": skip_reason,
+                            "results": command_results,
+                        },
+                    )
+                    pytest.skip(f"{case.case_id}: {skip_reason}")
+
+                if _benchmark_all_requests_failed(result):
+                    reason = "vLLM benchmark completed but all requests failed"
+                    _record_kpi(
+                        case.case_id,
+                        {
+                            "mode": "execution",
+                            "status": "skipped",
+                            "reason": reason,
+                            "results": command_results,
+                        },
+                    )
+                    pytest.skip(f"{case.case_id}: {reason}")
+
                 if result["returncode"] != 0:
-                    skip_reason = _known_skip_reason_from_result(result)
-                    if skip_reason:
-                        _record_kpi(
-                            case.case_id,
-                            {
-                                "mode": "execution",
-                                "status": "skipped",
-                                "reason": skip_reason,
-                                "results": command_results,
-                            },
-                        )
-                        pytest.skip(f"{case.case_id}: {skip_reason}")
+                    _record_kpi(case.case_id, {"mode": "execution", "status": "failed", "results": command_results})
+                    pytest.fail(
+                        f"Command failed for {case.case_id}: {prepared_cmd}\n"
+                        f"executed_command:\n{result['executed_command']}\n"
+                        f"returncode: {result['returncode']}\n"
+                        f"stderr_tail:\n{result['stderr_tail']}\nstdout_tail:\n{result['stdout_tail']}"
+                    )
         else:
             # No vllm serve command; run prepared commands sequentially
             for prepared_cmd in prepared_commands:

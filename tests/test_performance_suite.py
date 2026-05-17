@@ -24,6 +24,7 @@ import os
 import re
 import shlex
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -629,6 +630,51 @@ def _is_vllm_serve_command(prepared_command: str) -> bool:
     except ValueError:
         return False
     return len(parts) >= 2 and Path(parts[0]).name == "vllm" and parts[1] == "serve"
+
+
+def _vllm_serve_host_port(prepared_command: str) -> tuple[str, int]:
+    host = "127.0.0.1"
+    port = 8000
+    try:
+        parts = shlex.split(prepared_command)
+    except ValueError:
+        return host, port
+
+    if "--host" in parts:
+        host_idx = parts.index("--host")
+        if host_idx + 1 < len(parts):
+            host = parts[host_idx + 1]
+    if "--port" in parts:
+        port_idx = parts.index("--port")
+        if port_idx + 1 < len(parts):
+            try:
+                port = int(parts[port_idx + 1])
+            except ValueError:
+                pass
+    return host, port
+
+
+def _wait_for_vllm_serve_ready(
+    prepared_command: str,
+    serve_process: subprocess.Popen,
+    timeout_sec: int,
+) -> Optional[str]:
+    host, port = _vllm_serve_host_port(prepared_command)
+    connect_host = "127.0.0.1" if host in {"0.0.0.0", "::"} else host
+    deadline = time.time() + max(timeout_sec, 1)
+    last_error: Optional[str] = None
+
+    while time.time() < deadline:
+        if serve_process.poll() is not None:
+            return f"vLLM server exited with code {serve_process.returncode} before listening on {host}:{port}"
+        try:
+            with socket.create_connection((connect_host, port), timeout=1):
+                return None
+        except OSError as exc:
+            last_error = str(exc)
+            time.sleep(1)
+
+    return last_error or f"Timed out waiting for vLLM server to listen on {host}:{port}"
 
 
 def _known_skip_reason_from_result(result: Dict) -> Optional[str]:
@@ -1244,21 +1290,28 @@ def test_performance_case_suite(case: PerformanceCase):
                 stderr=subprocess.PIPE,
                 text=True,
             )
-            
-            # Wait for server to become ready (check for common ready indicators in output)
-            import time as time_module
-            max_wait = 60  # seconds
-            start_wait = time_module.time()
-            while serve_process.poll() is None and (time_module.time() - start_wait) < max_wait:
-                time_module.sleep(1)
-            
+
+            ready_timeout_sec = int(os.environ.get("PERF_VLLM_SERVE_READY_TIMEOUT_SEC", "300"))
+            start_wait = time.time()
+            readiness_error = _wait_for_vllm_serve_ready(
+                prepared_serve,
+                serve_process,
+                timeout_sec=ready_timeout_sec,
+            )
+
             # Skip benchmark commands if serve failed to start
-            if serve_process.returncode is not None:
+            if readiness_error is not None:
+                if serve_process.poll() is None:
+                    serve_process.terminate()
+                    try:
+                        serve_process.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        serve_process.kill()
                 stdout, stderr = serve_process.communicate()
                 result = {
                     "command": prepared_serve,
                     "executed_command": prepared_serve,
-                    "returncode": serve_process.returncode,
+                    "returncode": serve_process.returncode if serve_process.returncode is not None else -1,
                     "stdout_tail": stdout[-4000:],
                     "stderr_tail": stderr[-4000:],
                 }
@@ -1266,7 +1319,7 @@ def test_performance_case_suite(case: PerformanceCase):
                 skip_reason = _known_skip_reason_from_result(result)
                 if skip_reason:
                     pytest.skip(f"vLLM server failed to start: {skip_reason}")
-                pytest.skip(f"vLLM server exited with code {serve_process.returncode}")
+                pytest.skip(f"vLLM server was not ready: {readiness_error}")
 
             # Record serve startup success
             command_results.append({
@@ -1274,7 +1327,7 @@ def test_performance_case_suite(case: PerformanceCase):
                 "executed_command": prepared_serve,
                 "returncode": 0,
                 "status": "background_started",
-                "elapsed_sec": round(time_module.time() - start_wait, 3),
+                "elapsed_sec": round(time.time() - start_wait, 3),
             })
 
             # Now run benchmark commands (all except the serve command, already prepared)

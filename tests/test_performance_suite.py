@@ -410,6 +410,7 @@ def _prepare_command(command: str) -> str:
     _perf_np = os.environ.get("PERF_NUM_GPUS", str(max(len([x for x in _perf_cvd.split(",") if x.strip()]), 1)))
     command = command.replace("${PERF_CUDA_VISIBLE_DEVICES}", _perf_cvd)
     command = command.replace("${PERF_NUM_GPUS}", _perf_np)
+    command = os.path.expandvars(command)
 
     normalized = _normalize_command(command)
     try:
@@ -523,11 +524,17 @@ def _prepare_command(command: str) -> str:
             model_idx = parts.index("--model")
             if model_idx + 1 < len(parts):
                 parts[model_idx + 1] = _resolve_hf_model_reference(parts[model_idx + 1])
-        if "--dataset-name" in parts and "--dataset-path" not in parts:
+        if "--dataset-name" in parts:
             dataset_idx = parts.index("--dataset-name")
             if dataset_idx + 1 < len(parts) and parts[dataset_idx + 1].lower() == "sharegpt":
                 sharegpt_path = _sharegpt_dataset_path()
-                if sharegpt_path.exists():
+                if "--dataset-path" in parts:
+                    dataset_path_idx = parts.index("--dataset-path")
+                    if dataset_path_idx + 1 < len(parts):
+                        dataset_path_value = parts[dataset_path_idx + 1].strip()
+                        if dataset_path_value.startswith("$") or "${" in dataset_path_value:
+                            parts[dataset_path_idx + 1] = str(sharegpt_path)
+                elif sharegpt_path.exists():
                     parts.extend(["--dataset-path", str(sharegpt_path)])
 
         cap = int(os.environ.get("PERF_VLLM_BENCH_NUM_PROMPTS_CAP", "500"))

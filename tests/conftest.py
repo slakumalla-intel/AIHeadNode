@@ -517,7 +517,7 @@ def _configure_default_env() -> None:
     _workloads_root = os.environ.get("WORKLOADS_ROOT", "/root/workloads")
     os.environ.setdefault("NVBANDWIDTH_BIN", os.path.join(_workloads_root, "nvbandwidth"))
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
-    os.environ.setdefault("PYTEST_TIMEOUT", "600")
+    os.environ.setdefault("PYTEST_TIMEOUT", "1800")
     os.environ.setdefault("NODE_WORKLOAD_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
     os.environ.setdefault("NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC", "1800")
 

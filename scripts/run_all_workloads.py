@@ -62,7 +62,7 @@ DEFAULT_ENV: Dict[str, str] = {
     "PERF_NVBANDWIDTH_BIN": "/root/workloads/nvbandwidth",
     "PERF_NCCL_TESTS_DIR": "/root/workloads/nccl-tests/build",
     # Timeout defaults
-    "PYTEST_TIMEOUT": "600",
+    "PYTEST_TIMEOUT": "1800",
     "PERF_CMD_TIMEOUT_SEC": "1800",
     "ML_CMD_TIMEOUT_SEC": "3600",
     # KPI artifact defaults

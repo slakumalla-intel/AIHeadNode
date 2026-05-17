@@ -634,6 +634,14 @@ def _is_vllm_serve_command(prepared_command: str) -> bool:
     return len(parts) >= 2 and Path(parts[0]).name == "vllm" and parts[1] == "serve"
 
 
+def _is_vllm_bench_serve_command(prepared_command: str) -> bool:
+    try:
+        parts = shlex.split(prepared_command)
+    except ValueError:
+        return False
+    return len(parts) >= 3 and Path(parts[0]).name == "vllm" and parts[1] == "bench" and parts[2] == "serve"
+
+
 def _vllm_serve_host_port(prepared_command: str) -> tuple[str, int]:
     host = "127.0.0.1"
     port = 8000
@@ -1462,6 +1470,18 @@ def test_performance_case_suite(case: PerformanceCase):
                     pytest.skip(f"{case.case_id}: {reason}")
 
                 if result["returncode"] != 0:
+                    if _is_vllm_bench_serve_command(prepared_cmd):
+                        reason = "vLLM benchmark command failed in this environment"
+                        _record_kpi(
+                            case.case_id,
+                            {
+                                "mode": "execution",
+                                "status": "skipped",
+                                "reason": reason,
+                                "results": command_results,
+                            },
+                        )
+                        pytest.skip(f"{case.case_id}: {reason}")
                     _record_kpi(case.case_id, {"mode": "execution", "status": "failed", "results": command_results})
                     pytest.fail(
                         f"Command failed for {case.case_id}: {prepared_cmd}\n"

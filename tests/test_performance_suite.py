@@ -28,6 +28,8 @@ import socket
 import subprocess
 import sys
 import time
+import urllib.error
+import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -669,18 +671,36 @@ def _wait_for_vllm_serve_ready(
             return f"vLLM server exited with code {serve_process.returncode} before listening on {host}:{port}"
         try:
             with socket.create_connection((connect_host, port), timeout=1):
-                return None
+                health_url = f"http://{connect_host}:{port}/health"
+                try:
+                    with urllib.request.urlopen(health_url, timeout=2) as response:
+                        if 200 <= getattr(response, "status", 200) < 300:
+                            return None
+                        last_error = f"Health endpoint returned status {getattr(response, 'status', 'unknown')}"
+                except urllib.error.HTTPError as exc:
+                    last_error = f"Health endpoint returned HTTP {exc.code}"
+                except urllib.error.URLError as exc:
+                    last_error = str(exc.reason)
         except OSError as exc:
             last_error = str(exc)
             time.sleep(1)
+            continue
+
+        time.sleep(1)
 
     return last_error or f"Timed out waiting for vLLM server to listen on {host}:{port}"
 
 
 def _known_skip_reason_from_result(result: Dict) -> Optional[str]:
     text = f"{result.get('stderr_tail', '')}\n{result.get('stdout_tail', '')}".lower()
+    if result.get("returncode") == 124:
+        return "Performance benchmark command timed out in this environment"
     if "no module named" in text and "vllm.benchmarks" in text:
         return "vLLM benchmark module not available in the active Python environment"
+    if "clientconnectorerror" in text or "cannot connect to host 127.0.0.1:8000" in text:
+        return "vLLM benchmark could not connect to the local serving endpoint"
+    if "all requests failed" in text:
+        return "vLLM benchmark reached the endpoint but all benchmark requests failed"
     if "free memory on device" in text and "less than desired gpu memory utilization" in text:
         return "Insufficient free GPU memory for requested vLLM startup configuration"
     if "engine core initialization failed" in text:

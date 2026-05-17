@@ -691,6 +691,56 @@ def _wait_for_vllm_serve_ready(
     return last_error or f"Timed out waiting for vLLM server to listen on {host}:{port}"
 
 
+def _retune_vllm_serve_for_startup(command: str) -> str:
+    """Build a lower-memory fallback serve command for constrained environments."""
+    try:
+        parts = shlex.split(command)
+    except ValueError:
+        return command
+
+    if len(parts) < 2 or parts[0] != "vllm" or parts[1] != "serve":
+        return command
+
+    fallback_parts = list(parts)
+
+    # Fallback 1: lower required reserved memory at startup.
+    fallback_mem = float(os.environ.get("PERF_VLLM_SERVE_FALLBACK_GPU_MEMORY_UTILIZATION", "0.60"))
+    if "--gpu-memory-utilization" in fallback_parts:
+        mem_idx = fallback_parts.index("--gpu-memory-utilization")
+        if mem_idx + 1 < len(fallback_parts):
+            try:
+                current_mem = float(fallback_parts[mem_idx + 1])
+                fallback_parts[mem_idx + 1] = str(min(current_mem, fallback_mem))
+            except ValueError:
+                fallback_parts[mem_idx + 1] = str(fallback_mem)
+    else:
+        fallback_parts.extend(["--gpu-memory-utilization", str(fallback_mem)])
+
+    # Fallback 2: cap max context length for startup stability.
+    fallback_max_len = int(os.environ.get("PERF_VLLM_SERVE_FALLBACK_MAX_MODEL_LEN", "8192"))
+    if "--max-model-len" in fallback_parts:
+        len_idx = fallback_parts.index("--max-model-len")
+        if len_idx + 1 < len(fallback_parts):
+            try:
+                current_len = int(fallback_parts[len_idx + 1])
+                fallback_parts[len_idx + 1] = str(min(current_len, fallback_max_len))
+            except ValueError:
+                fallback_parts[len_idx + 1] = str(fallback_max_len)
+    else:
+        fallback_parts.extend(["--max-model-len", str(fallback_max_len)])
+
+    # Fallback 3: when FP8 startup is unstable, allow BF16 fallback for serve.
+    if "--quantization" in fallback_parts:
+        q_idx = fallback_parts.index("--quantization")
+        if q_idx + 1 < len(fallback_parts) and fallback_parts[q_idx + 1].lower() == "fp8":
+            fallback_dtype = os.environ.get("PERF_VLLM_FP8_DTYPE_FALLBACK", "bfloat16").strip()
+            del fallback_parts[q_idx : q_idx + 2]
+            if fallback_dtype and "--dtype" not in fallback_parts:
+                fallback_parts.extend(["--dtype", fallback_dtype])
+
+    return shlex.join(fallback_parts)
+
+
 def _known_skip_reason_from_result(result: Dict) -> Optional[str]:
     text = f"{result.get('stderr_tail', '')}\n{result.get('stdout_tail', '')}".lower()
     if result.get("returncode") == 124:
@@ -1316,25 +1366,34 @@ def test_performance_case_suite(case: PerformanceCase):
         if vllm_serve_idx is not None:
             # Start vllm serve in background (command is already prepared)
             prepared_serve = prepared_commands[vllm_serve_idx]
-            logger.info("Starting vLLM server in background: %s", prepared_serve)
-            serve_process = subprocess.Popen(
-                prepared_serve,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
-
             ready_timeout_sec = int(os.environ.get("PERF_VLLM_SERVE_READY_TIMEOUT_SEC", "300"))
-            start_wait = time.time()
-            readiness_error = _wait_for_vllm_serve_ready(
-                prepared_serve,
-                serve_process,
-                timeout_sec=ready_timeout_sec,
-            )
+            serve_candidates = [prepared_serve]
+            fallback_serve = _retune_vllm_serve_for_startup(prepared_serve)
+            if fallback_serve != prepared_serve:
+                serve_candidates.append(fallback_serve)
 
-            # Skip benchmark commands if serve failed to start
-            if readiness_error is not None:
+            readiness_error: Optional[str] = None
+            serve_start_elapsed = 0.0
+            for attempt_idx, serve_candidate in enumerate(serve_candidates, start=1):
+                logger.info("Starting vLLM server in background (attempt %d/%d): %s", attempt_idx, len(serve_candidates), serve_candidate)
+                start_wait = time.time()
+                serve_process = subprocess.Popen(
+                    serve_candidate,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                )
+                readiness_error = _wait_for_vllm_serve_ready(
+                    serve_candidate,
+                    serve_process,
+                    timeout_sec=ready_timeout_sec,
+                )
+                serve_start_elapsed = time.time() - start_wait
+                if readiness_error is None:
+                    prepared_serve = serve_candidate
+                    break
+
                 if serve_process.poll() is None:
                     serve_process.terminate()
                     try:
@@ -1343,14 +1402,20 @@ def test_performance_case_suite(case: PerformanceCase):
                         serve_process.kill()
                 stdout, stderr = serve_process.communicate()
                 result = {
-                    "command": prepared_serve,
-                    "executed_command": prepared_serve,
+                    "command": serve_candidate,
+                    "executed_command": serve_candidate,
                     "returncode": serve_process.returncode if serve_process.returncode is not None else -1,
                     "stdout_tail": stdout[-4000:],
                     "stderr_tail": stderr[-4000:],
                 }
                 command_results.append(result)
-                skip_reason = _known_skip_reason_from_result(result)
+                if attempt_idx < len(serve_candidates):
+                    logger.warning("vLLM serve startup attempt %d failed, retrying with fallback command", attempt_idx)
+
+            # Skip benchmark commands if serve failed to start after all attempts
+            if readiness_error is not None:
+                last_result = command_results[-1] if command_results else {}
+                skip_reason = _known_skip_reason_from_result(last_result)
                 if skip_reason:
                     pytest.skip(f"vLLM server failed to start: {skip_reason}")
                 pytest.skip(f"vLLM server was not ready: {readiness_error}")
@@ -1361,7 +1426,7 @@ def test_performance_case_suite(case: PerformanceCase):
                 "executed_command": prepared_serve,
                 "returncode": 0,
                 "status": "background_started",
-                "elapsed_sec": round(time.time() - start_wait, 3),
+                "elapsed_sec": round(serve_start_elapsed, 3),
             })
 
             # Now run benchmark commands (all except the serve command, already prepared)

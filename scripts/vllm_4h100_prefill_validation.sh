@@ -20,6 +20,30 @@ mkdir -p "$OUTDIR"
 CSV="$OUTDIR/summary.csv"
 LOG="$OUTDIR/run.log"
 
+# ============================================================================
+# Cleanup handler to ensure all vLLM processes are terminated
+# ============================================================================
+cleanup() {
+  local exit_code=$?
+  echo "[INFO] Cleanup: Terminating vLLM worker processes..." | tee -a "$LOG"
+  
+  # Kill all vLLM worker processes
+  pkill -9 -f "VLLM::Worker" 2>/dev/null || true
+  pkill -9 -f "vllm.entrypoints.cli.main" 2>/dev/null || true
+  pkill -9 -f "bench latency" 2>/dev/null || true
+  pkill -9 -f "vllm.entrypoints" 2>/dev/null || true
+  
+  # Release GPU memory
+  if command -v nvidia-smi >/dev/null 2>&1; then
+    echo "[INFO] Cleanup: Releasing GPU memory..." | tee -a "$LOG"
+    nvidia-smi -i 0,1,2,3 -pm 1 2>/dev/null || true
+  fi
+  
+  exit "$exit_code"
+}
+
+trap cleanup EXIT INT TERM
+
 echo "model,input_len,output_len,batch_size,tp,dtype,status,latency_json,perf_log" > "$CSV"
 
 echo "==================================================" | tee -a "$LOG"
@@ -115,6 +139,12 @@ for LEN in $INPUT_LENS; do
 
     nvidia-smi --query-gpu=index,name,temperature.gpu,power.draw,utilization.gpu,memory.used,memory.total \
       --format=csv,noheader,nounits > "$OUTDIR/${CASE}.nvidia_smi.csv" || true
+
+    # Cleanup worker processes after each case to prevent GPU memory accumulation
+    echo "[INFO] Post-case cleanup - killing vLLM workers..." | tee -a "$LOG"
+    pkill -9 -f "VLLM::Worker" 2>/dev/null || true
+    pkill -9 -f "vllm.entrypoints.cli.main" 2>/dev/null || true
+    sleep 1
   done
 done
 

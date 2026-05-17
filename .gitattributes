@@ -1,0 +1,8 @@
+# Enforce LF for POSIX shell scripts across platforms
+*.sh text eol=lf
+
+# Keep Python/config files normalized for Linux CI
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf

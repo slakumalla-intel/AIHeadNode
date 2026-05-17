@@ -34,12 +34,37 @@ from typing import Dict, List, Optional
 import numpy as np
 import pytest
 
+from tests.kpi_efficiency import enrich_efficiency_kpis
+
 
 logger = logging.getLogger(__name__)
 
 
+_HF_MODEL_PATH_CACHE: Dict[str, str] = {}
+_HF_MODEL_ALIASES: Dict[str, str] = {
+    "meta-llama/Llama-3.1-70B-Instruct": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+    "meta-llama/Llama-3.1-8B-Instruct": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "mistralai/Mixtral-8x22B-v0.1": "mistralai/Mixtral-8x22B-Instruct-v0.1",
+    "deepseek-ai/DeepSeek-R1": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+}
+
+
 def _configure_performance_env_defaults() -> None:
     """Set safe default environment values for performance-case execution."""
+    datasets_root = os.environ.get("DATASETS_ROOT", "/mnt/datasets")
+    hf_home = os.path.join(datasets_root, "huggingface")
+    hf_cache = os.path.join(hf_home, "hub")
+
+    os.environ.setdefault("DATASETS_ROOT", datasets_root)
+    os.environ.setdefault("HF_HOME", hf_home)
+    os.environ.setdefault("HUGGINGFACE_HUB_CACHE", hf_cache)
+    os.environ.setdefault("TRANSFORMERS_CACHE", hf_cache)
+    os.environ.setdefault("HF_DATASETS_CACHE", hf_cache)
+    os.environ.setdefault(
+        "SHAREGPT_DATASET_PATH",
+        os.path.join(datasets_root, "sharegpt", "ShareGPT_V3_unfiltered_cleaned_split.json"),
+    )
+
     os.environ.setdefault("PERF_EXECUTE_CASES", "1")
     os.environ.setdefault("PERF_CMD_TIMEOUT_SEC", "1800")
     os.environ.setdefault("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")
@@ -104,18 +129,27 @@ def _kpi_output_path() -> Path:
 def _record_kpi(case_id: str, metrics: Dict) -> None:
     out_path = _kpi_output_path()
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    enriched_metrics = enrich_efficiency_kpis(metrics, os.environ)
     payload = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "case_id": case_id,
-        "metrics": metrics,
+        "metrics": enriched_metrics,
     }
     with out_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, default=str) + "\n")
-    logger.info("KPI %s: %s", case_id, json.dumps(metrics, default=str, sort_keys=True))
+    logger.info("KPI %s: %s", case_id, json.dumps(enriched_metrics, default=str, sort_keys=True))
 
 
 def _env_flag(name: str, default: str = "0") -> bool:
     return os.environ.get(name, default).lower() in {"1", "true", "yes", "on"}
+
+
+def _hf_auth_token() -> Optional[str]:
+    for name in ("HF_TOKEN", "HUGGINGFACE_HUB_TOKEN", "HUGGING_FACE_HUB_TOKEN"):
+        value = os.environ.get(name, "").strip()
+        if value:
+            return value
+    return None
 
 
 def _auto_install_python_packages(package_specs: List[str]) -> Dict[str, str]:
@@ -239,12 +273,134 @@ def _required_binaries_from_commands(commands: List[str]) -> List[str]:
     return sorted(set(bins))
 
 
+def _package_spec_for_requirement(requirement: str) -> Optional[str]:
+    root = requirement.split(".", 1)[0]
+    if requirement == "vllm" or root == "vllm":
+        return "vllm"
+    if requirement == "transformers" or root == "transformers":
+        return "transformers"
+    if requirement == "huggingface_hub" or root == "huggingface_hub":
+        return "huggingface_hub"
+    if requirement == "python3":
+        return None
+    return root or None
+
+
+def _sharegpt_dataset_path() -> Path:
+    configured = os.environ.get("SHAREGPT_DATASET_PATH", "").strip()
+    if configured:
+        return Path(configured)
+    return Path(os.environ.get("DATASETS_ROOT", "/mnt/datasets")) / "sharegpt" / "ShareGPT_V3_unfiltered_cleaned_split.json"
+
+
+def _hf_cache_dir() -> Path:
+    configured = os.environ.get("HUGGINGFACE_HUB_CACHE", "").strip()
+    if configured:
+        return Path(configured)
+    return Path(os.environ.get("DATASETS_ROOT", "/mnt/datasets")) / "huggingface" / "hub"
+
+
+def _resolve_cached_hf_snapshot_dir(repo_id: str) -> Optional[str]:
+    normalized_repo_id = _HF_MODEL_ALIASES.get(repo_id, repo_id)
+    cache_root = _hf_cache_dir()
+    repo_cache_dir = cache_root / f"models--{normalized_repo_id.replace('/', '--')}"
+    snapshots_dir = repo_cache_dir / "snapshots"
+    if not snapshots_dir.is_dir():
+        return None
+
+    ref_file = repo_cache_dir / "refs" / "main"
+    if ref_file.is_file():
+        ref_name = ref_file.read_text(encoding="utf-8").strip()
+        if ref_name:
+            snapshot_dir = snapshots_dir / ref_name
+            if snapshot_dir.is_dir():
+                return str(snapshot_dir)
+
+    snapshot_candidates = [entry for entry in snapshots_dir.iterdir() if entry.is_dir()]
+    if not snapshot_candidates:
+        return None
+    snapshot_candidates.sort(key=lambda item: item.stat().st_mtime, reverse=True)
+    return str(snapshot_candidates[0])
+
+
+def _resolve_hf_model_reference(model_ref: str) -> str:
+    candidate = (model_ref or "").strip()
+    if not candidate:
+        return model_ref
+
+    candidate = _HF_MODEL_ALIASES.get(candidate, candidate)
+
+    if candidate in _HF_MODEL_PATH_CACHE:
+        return _HF_MODEL_PATH_CACHE[candidate]
+
+    path_candidate = Path(candidate)
+    if path_candidate.exists():
+        resolved = str(path_candidate)
+        _HF_MODEL_PATH_CACHE[candidate] = resolved
+        return resolved
+
+    if "/" not in candidate or candidate.startswith("."):
+        return model_ref
+
+    datasets_root = Path(os.environ.get("DATASETS_ROOT", "/mnt/datasets"))
+    nested_candidate = datasets_root / candidate
+    if nested_candidate.exists():
+        resolved = str(nested_candidate)
+        _HF_MODEL_PATH_CACHE[candidate] = resolved
+        return resolved
+
+    cached_snapshot = _resolve_cached_hf_snapshot_dir(candidate)
+    if cached_snapshot:
+        _HF_MODEL_PATH_CACHE[candidate] = cached_snapshot
+        return cached_snapshot
+
+    logger.warning(
+        "Unable to resolve local Hugging Face model %s under cache root %s; leaving reference unchanged",
+        candidate,
+        _hf_cache_dir(),
+    )
+    return model_ref
+
+
 def _normalize_command(command: str) -> str:
     # Keep commands runnable in non-root CI or local env by dropping sudo prefix.
     command = command.strip()
     if command.startswith("sudo "):
         return command[len("sudo ") :]
     return command
+
+
+def _rewrite_legacy_vllm_benchmark_parts(parts: List[str]) -> List[str]:
+    rewritten: List[str] = ["vllm", "bench", "serve"]
+    idx = 3
+    saw_percentile_metrics = False
+    saw_metric_percentiles = False
+    while idx < len(parts):
+        token = parts[idx]
+        if token == "--dataset":
+            rewritten.append("--dataset-name")
+            if idx + 1 < len(parts):
+                rewritten.append(parts[idx + 1])
+                idx += 2
+                continue
+        if token == "--percentiles":
+            if idx + 1 < len(parts):
+                rewritten.extend(["--metric-percentiles", parts[idx + 1]])
+                saw_metric_percentiles = True
+                idx += 2
+                continue
+        if token == "--percentile-metrics":
+            saw_percentile_metrics = True
+        if token == "--metric-percentiles":
+            saw_metric_percentiles = True
+        rewritten.append(token)
+        idx += 1
+
+    if not saw_percentile_metrics:
+        rewritten.extend(["--percentile-metrics", "ttft,tpot,itl,e2el"])
+    if not saw_metric_percentiles:
+        rewritten.extend(["--metric-percentiles", "50,90,99"])
+    return rewritten
 
 
 def _prepare_command(command: str) -> str:
@@ -337,16 +493,18 @@ def _prepare_command(command: str) -> str:
                 parts[idx + 1] = perf_n_gpus
                 break
 
-    if len(parts) >= 3 and parts[0] in {"python", "python3"} and parts[1] == "-m":
-        # Always use the active interpreter so module resolution matches this pytest env.
-        parts[0] = sys.executable
+    if len(parts) >= 3 and Path(parts[0]).name in {"python", "python3"} and parts[1] == "-m":
         if parts[2] == "vllm.benchmarks.benchmark_serving":
+            parts = _rewrite_legacy_vllm_benchmark_parts(parts)
+        else:
+            # Always use the active interpreter so module resolution matches this pytest env.
+            parts[0] = sys.executable
             parts[2] = os.environ.get(
                 "PERF_VLLM_BENCHMARK_MODULE",
-                "vllm.benchmarks.benchmark_serving",
+                parts[2],
             )
 
-        if "vllm.benchmarks" in parts[2]:
+        if len(parts) >= 3 and "vllm.benchmarks" in parts[2]:
             cap = int(os.environ.get("PERF_VLLM_BENCH_NUM_PROMPTS_CAP", "500"))
             if cap > 0:
                 if "--num-prompts" in parts:
@@ -360,7 +518,35 @@ def _prepare_command(command: str) -> str:
                 else:
                     parts.extend(["--num-prompts", str(cap)])
 
+    if len(parts) >= 3 and parts[0] == "vllm" and parts[1] == "bench" and parts[2] == "serve":
+        if "--model" in parts:
+            model_idx = parts.index("--model")
+            if model_idx + 1 < len(parts):
+                parts[model_idx + 1] = _resolve_hf_model_reference(parts[model_idx + 1])
+        if "--dataset-name" in parts and "--dataset-path" not in parts:
+            dataset_idx = parts.index("--dataset-name")
+            if dataset_idx + 1 < len(parts) and parts[dataset_idx + 1].lower() == "sharegpt":
+                sharegpt_path = _sharegpt_dataset_path()
+                if sharegpt_path.exists():
+                    parts.extend(["--dataset-path", str(sharegpt_path)])
+
+        cap = int(os.environ.get("PERF_VLLM_BENCH_NUM_PROMPTS_CAP", "500"))
+        if cap > 0:
+            if "--num-prompts" in parts:
+                idx = parts.index("--num-prompts")
+                if idx + 1 < len(parts):
+                    try:
+                        existing = int(parts[idx + 1])
+                        parts[idx + 1] = str(min(existing, cap))
+                    except ValueError:
+                        parts[idx + 1] = str(cap)
+            else:
+                parts.extend(["--num-prompts", str(cap)])
+
     if len(parts) >= 2 and parts[0] == "vllm" and parts[1] == "serve":
+        if len(parts) >= 3 and not parts[2].startswith("-"):
+            parts[2] = _resolve_hf_model_reference(parts[2])
+
         if "--tensor-parallel-size" in parts:
             tp_idx = parts.index("--tensor-parallel-size")
             if tp_idx + 1 < len(parts):
@@ -419,8 +605,12 @@ def _missing_python_modules_from_commands(commands: List[str]) -> List[str]:
             parts = shlex.split(prepared)
         except ValueError:
             continue
-        if len(parts) >= 3 and parts[1] == "-m":
+        if len(parts) >= 3 and Path(parts[0]).name in {"python", "python3"} and parts[1] == "-m":
             module_name = parts[2]
+            if module_name == "vllm.benchmarks.benchmark_serving":
+                # Deprecated entrypoint; runtime normalization should convert this to
+                # `vllm bench serve`, so do not preflight-skip on the old module path.
+                continue
             if not _module_exists(module_name):
                 missing.append(module_name)
     return sorted(set(missing))
@@ -447,12 +637,9 @@ def _known_skip_reason_from_result(result: Dict) -> Optional[str]:
     return None
 
 
-def _run_command(command: str, timeout_sec: int) -> Dict:
+def _run_command(command: str, timeout_sec: int, already_prepared: bool = False) -> Dict:
     start = time.perf_counter()
-    prepared_command = _prepare_command(command)
-    if _is_vllm_serve_command(prepared_command):
-        # Avoid hanging the test session on long-lived API server commands.
-        prepared_command = f"{prepared_command} --help"
+    prepared_command = command if already_prepared else _prepare_command(command)
     logger.info("Executing performance command: %s", prepared_command)
     try:
         result = subprocess.run(
@@ -638,8 +825,8 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Focus on inter-token latency (ITL) to ensure CPU is not the limiting path",
         prerequisites=["vLLM installed", "model access"],
         commands=[
-            "vllm serve meta-llama/Llama-3.1-70B-Instruct --quantization fp8 --tensor-parallel-size 4 --max-model-len 32768",
-            "python3 -m vllm.benchmarks.benchmark_serving --backend vllm --model meta-llama/Llama-3.1-70B-Instruct --dataset sharegpt --max-concurrency 128 --num-prompts 1000 --percentiles 50,90,99",
+            "vllm serve meta-llama/Meta-Llama-3.1-70B-Instruct --quantization fp8 --tensor-parallel-size 4 --max-model-len 32768",
+            "vllm bench serve --backend vllm --model meta-llama/Meta-Llama-3.1-70B-Instruct --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --max-concurrency 128 --num-prompts 1000 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
         ],
         expected="Stable serving with ITL and tail latency within scenario SLO",
     ),
@@ -652,8 +839,8 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Compare BF16/FP16 against FP8; ensure ITL stability and expected GPU utilization",
         prerequisites=["vLLM installed", "model access"],
         commands=[
-            "vllm serve meta-llama/Llama-3.1-8B-Instruct --dtype bfloat16 --tensor-parallel-size 1 --max-model-len 8192",
-            "python3 -m vllm.benchmarks.benchmark_serving --backend vllm --model meta-llama/Llama-3.1-8B-Instruct --dataset sharegpt --num-prompts 1000 --percentiles 50,90,99",
+            "vllm serve meta-llama/Meta-Llama-3.1-8B-Instruct --dtype bfloat16 --tensor-parallel-size 1 --max-model-len 8192",
+            "vllm bench serve --backend vllm --model meta-llama/Meta-Llama-3.1-8B-Instruct --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --num-prompts 1000 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
         ],
         expected="P99 meets configured SLO with stable utilization profile",
     ),
@@ -666,8 +853,8 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Validate multi-GPU large-model serving stability and tail latency under KV pressure",
         prerequisites=["vLLM installed", "4 GPUs", "model access"],
         commands=[
-            "vllm serve meta-llama/Llama-3.1-70B-Instruct --quantization fp8 --tensor-parallel-size 4 --max-model-len 32768 --disable-log-stats",
-            "python3 -m vllm.benchmarks.benchmark_serving --backend vllm --model meta-llama/Llama-3.1-70B-Instruct --dataset sharegpt --max-concurrency 128 --num-prompts 1000 --percentiles 50,90,99",
+            "vllm serve meta-llama/Meta-Llama-3.1-70B-Instruct --quantization fp8 --tensor-parallel-size 4 --max-model-len 32768 --disable-log-stats",
+            "vllm bench serve --backend vllm --model meta-llama/Meta-Llama-3.1-70B-Instruct --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --max-concurrency 128 --num-prompts 1000 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
         ],
         expected="No OOM/crash and tail latency within defined SLO",
     ),
@@ -680,8 +867,8 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Compare throughput and scheduler behavior against FP8",
         prerequisites=["vLLM installed", "4 GPUs", "model access"],
         commands=[
-            "vllm serve meta-llama/Llama-3.1-70B-Instruct --dtype bfloat16 --tensor-parallel-size 4 --max-model-len 16384",
-            "python3 -m vllm.benchmarks.benchmark_serving --backend vllm --model meta-llama/Llama-3.1-70B-Instruct --dataset sharegpt --max-concurrency 128 --num-prompts 1000 --percentiles 50,90,99",
+            "vllm serve meta-llama/Meta-Llama-3.1-70B-Instruct --dtype bfloat16 --tensor-parallel-size 4 --max-model-len 16384",
+            "vllm bench serve --backend vllm --model meta-llama/Meta-Llama-3.1-70B-Instruct --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --max-concurrency 128 --num-prompts 1000 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
         ],
         expected="Stable baseline; no runaway tail latency; throughput lower than FP8",
     ),
@@ -694,7 +881,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Capture real-world prompt distribution latency and tail behavior",
         prerequisites=["vLLM or compatible server", "ShareGPT dataset"],
         commands=[
-            "python3 -m vllm.benchmarks.benchmark_serving --backend vllm --dataset sharegpt --request-rate poisson --max-concurrency 256 --num-prompts 3000 --percentiles 50,99",
+            "vllm bench serve --backend vllm --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --request-rate poisson --max-concurrency 256 --num-prompts 3000 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,99",
         ],
         expected="Meets scenario-specific P50/P99 SLO",
     ),
@@ -707,8 +894,8 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Compare routing/memory sensitivity (MoE) against dense behavior",
         prerequisites=["vLLM installed", "model access", "4 GPUs"],
         commands=[
-            "vllm serve mistralai/Mixtral-8x22B-v0.1 --tensor-parallel-size 4 --quantization fp8 --max-model-len 32768 --disable-log-stats",
-            "python3 -m vllm.benchmarks.benchmark_serving --backend vllm --model mistralai/Mixtral-8x22B-v0.1 --dataset sharegpt --max-concurrency 128 --num-prompts 1000 --percentiles 50,90,99",
+            "vllm serve mistralai/Mixtral-8x22B-Instruct-v0.1 --tensor-parallel-size 4 --quantization fp8 --max-model-len 32768 --disable-log-stats",
+            "vllm bench serve --backend vllm --model mistralai/Mixtral-8x22B-Instruct-v0.1 --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --max-concurrency 128 --num-prompts 1000 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
         ],
         expected="Stable run; record tokens/sec and P99 for MoE-vs-dense comparison",
     ),
@@ -721,7 +908,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Validate resilience, recovery, and burst-tail behavior",
         prerequisites=["vLLM benchmark tools", "model access"],
         commands=[
-            "python3 -m vllm.benchmarks.benchmark_serving --backend vllm --dataset sharegpt --request-rate burst --burst-length 30 --burst-rps 200 --max-concurrency 512 --percentiles 50,99",
+            "vllm bench serve --backend vllm --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --request-rate burst --burst-length 30 --burst-rps 200 --max-concurrency 512 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,99",
         ],
         expected="No OOM/crash, recovers after burst, P99 within burst SLO",
     ),
@@ -797,8 +984,8 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Validate stable operation when model+KV exceed pure HBM budget",
         prerequisites=["vLLM installed", "DeepSeek model access", "8 GPUs recommended"],
         commands=[
-            "vllm serve deepseek-ai/DeepSeek-R1 --tensor-parallel-size 8 --dtype float8 --max-model-len 16384 --enable-chunked-prefill --trust-remote-code",
-            "python3 -m vllm.benchmarks.benchmark_serving --backend vllm --model deepseek-ai/DeepSeek-R1 --dataset sharegpt --max-concurrency 128 --num-prompts 500 --percentiles 50,90,99",
+            "vllm serve deepseek-ai/DeepSeek-R1-Distill-Llama-70B --tensor-parallel-size 8 --dtype float8 --max-model-len 16384 --enable-chunked-prefill --trust-remote-code",
+            "vllm bench serve --backend vllm --model deepseek-ai/DeepSeek-R1-Distill-Llama-70B --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --max-concurrency 128 --num-prompts 500 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
         ],
         expected="Latency increases are controlled; no runaway tail and no OOM",
     ),
@@ -811,8 +998,8 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Validate host memory extension path and CPU overhead stability",
         prerequisites=["vLLM installed", "DeepSeek model access", "CXL path configured"],
         commands=[
-            "vllm serve deepseek-ai/DeepSeek-R1 --tensor-parallel-size 8 --dtype float8 --max-model-len 16384 --enable-chunked-prefill --trust-remote-code",
-            "python3 -m vllm.benchmarks.benchmark_serving --backend vllm --model deepseek-ai/DeepSeek-R1 --dataset sharegpt --max-concurrency 128 --num-prompts 500 --percentiles 50,90,99",
+            "vllm serve deepseek-ai/DeepSeek-R1-Distill-Llama-70B --tensor-parallel-size 8 --dtype float8 --max-model-len 16384 --enable-chunked-prefill --trust-remote-code",
+            "vllm bench serve --backend vllm --model deepseek-ai/DeepSeek-R1-Distill-Llama-70B --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --max-concurrency 128 --num-prompts 500 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
         ],
         expected="Stable with CXL offload enabled; record host BW, CPU util, latency tails",
     ),
@@ -973,50 +1160,180 @@ def test_performance_case_suite(case: PerformanceCase):
         _benchmark_tokenizer_micro(case.case_id)
         return
 
-    required_bins = _required_binaries_from_commands(case.commands)
+    # Normalize all case commands up-front so every downstream path — preflight,
+    # binary/module detection, background serve launch, and _run_command — all
+    # operate on the same prepared strings. This ensures legacy command forms
+    # (e.g. `python3 -m vllm.benchmarks.benchmark_serving`) are rewritten to the
+    # current CLI (`vllm bench serve`) before any execution decision is made.
+    prepared_commands: List[str] = [_prepare_command(cmd) for cmd in case.commands]
+    for raw, prepared in zip(case.commands, prepared_commands):
+        if raw != prepared:
+            logger.info("Command rewritten: %s -> %s", raw, prepared)
+
+    required_bins = _required_binaries_from_commands(prepared_commands)
     missing = [b for b in required_bins if not _binary_exists(b)]
     if missing:
-        pytest.skip(f"Missing required binaries: {missing}")
+        auto_install = _env_flag("PERF_AUTO_INSTALL", "1")
+        if auto_install:
+            package_specs = sorted(
+                {
+                    package_spec
+                    for package_spec in (_package_spec_for_requirement(item) for item in missing)
+                    if package_spec
+                }
+            )
+            if package_specs:
+                logger.info("Auto-installing packages for missing binaries: %s", package_specs)
+                install_results = _auto_install_python_packages(package_specs)
+                for pkg, status in install_results.items():
+                    logger.info("  %s: %s", pkg, status)
+                missing = [b for b in required_bins if not _binary_exists(b)]
+        if missing:
+            pytest.skip(f"Missing required binaries: {missing}")
 
-    missing_modules = _missing_python_modules_from_commands(case.commands)
+    missing_modules = _missing_python_modules_from_commands(prepared_commands)
     if missing_modules:
-        pytest.skip(f"Missing required Python module(s): {missing_modules}")
+        # Attempt auto-install if enabled before giving up
+        auto_install = _env_flag("PERF_AUTO_INSTALL", "1")
+        if auto_install:
+            packages_to_install = {
+                package_spec
+                for package_spec in (_package_spec_for_requirement(module) for module in missing_modules)
+                if package_spec
+            }
+
+            if packages_to_install:
+                logger.info("Auto-installing missing Python packages: %s", packages_to_install)
+                install_results = _auto_install_python_packages(sorted(packages_to_install))
+                for pkg, status in install_results.items():
+                    logger.info("  %s: %s", pkg, status)
+
+                # Re-check after install attempt
+                missing_modules = _missing_python_modules_from_commands(prepared_commands)
+
+        if missing_modules:
+            pytest.skip(f"Missing required Python module(s): {missing_modules}")
 
     timeout_sec = int(os.environ.get("PERF_CMD_TIMEOUT_SEC", "1800"))
     command_results: List[Dict] = []
-    for command in case.commands:
-        result = _run_command(command, timeout_sec=timeout_sec)
-        command_results.append(result)
-        if result["returncode"] != 0:
-            skip_reason = _known_skip_reason_from_result(result)
-            if skip_reason:
-                _record_kpi(
-                    case.case_id,
-                    {
-                        "mode": "execution",
-                        "status": "skipped",
-                        "reason": skip_reason,
-                        "results": command_results,
-                    },
-                )
-                pytest.skip(f"{case.case_id}: {skip_reason}")
+
+    # Special handling for vllm serve + benchmark pattern (serve must run in background)
+    serve_process = None
+    try:
+        vllm_serve_idx = None
+        for idx, cmd in enumerate(prepared_commands):
+            if _is_vllm_serve_command(cmd):
+                vllm_serve_idx = idx
+                break
+
+        if vllm_serve_idx is not None:
+            # Start vllm serve in background (command is already prepared)
+            prepared_serve = prepared_commands[vllm_serve_idx]
+            logger.info("Starting vLLM server in background: %s", prepared_serve)
+            serve_process = subprocess.Popen(
+                prepared_serve,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            
+            # Wait for server to become ready (check for common ready indicators in output)
+            import time as time_module
+            max_wait = 60  # seconds
+            start_wait = time_module.time()
+            while serve_process.poll() is None and (time_module.time() - start_wait) < max_wait:
+                time_module.sleep(1)
+            
+            # Skip benchmark commands if serve failed to start
+            if serve_process.returncode is not None:
+                stdout, stderr = serve_process.communicate()
+                result = {
+                    "command": prepared_serve,
+                    "executed_command": prepared_serve,
+                    "returncode": serve_process.returncode,
+                    "stdout_tail": stdout[-4000:],
+                    "stderr_tail": stderr[-4000:],
+                }
+                command_results.append(result)
+                skip_reason = _known_skip_reason_from_result(result)
+                if skip_reason:
+                    pytest.skip(f"vLLM server failed to start: {skip_reason}")
+                pytest.skip(f"vLLM server exited with code {serve_process.returncode}")
+
+            # Record serve startup success
+            command_results.append({
+                "command": prepared_serve,
+                "executed_command": prepared_serve,
+                "returncode": 0,
+                "status": "background_started",
+                "elapsed_sec": round(time_module.time() - start_wait, 3),
+            })
+
+            # Now run benchmark commands (all except the serve command, already prepared)
+            for idx, prepared_cmd in enumerate(prepared_commands):
+                if idx == vllm_serve_idx:
+                    continue  # Skip the serve command; it's already running
+                result = _run_command(prepared_cmd, timeout_sec=timeout_sec, already_prepared=True)
+                command_results.append(result)
+                if result["returncode"] != 0:
+                    skip_reason = _known_skip_reason_from_result(result)
+                    if skip_reason:
+                        _record_kpi(
+                            case.case_id,
+                            {
+                                "mode": "execution",
+                                "status": "skipped",
+                                "reason": skip_reason,
+                                "results": command_results,
+                            },
+                        )
+                        pytest.skip(f"{case.case_id}: {skip_reason}")
+        else:
+            # No vllm serve command; run prepared commands sequentially
+            for prepared_cmd in prepared_commands:
+                result = _run_command(prepared_cmd, timeout_sec=timeout_sec, already_prepared=True)
+                command_results.append(result)
+                if result["returncode"] != 0:
+                    skip_reason = _known_skip_reason_from_result(result)
+                    if skip_reason:
+                        _record_kpi(
+                            case.case_id,
+                            {
+                                "mode": "execution",
+                                "status": "skipped",
+                                "reason": skip_reason,
+                                "results": command_results,
+                            },
+                        )
+                        pytest.skip(f"{case.case_id}: {skip_reason}")
 
             _record_kpi(case.case_id, {"mode": "execution", "status": "failed", "results": command_results})
             logger.error(
                 "Performance case %s failed. command=%s executed_command=%s returncode=%s\nstderr_tail:\n%s\nstdout_tail:\n%s",
                 case.case_id,
-                command,
+                prepared_cmd,
                 result["executed_command"],
                 result["returncode"],
                 result["stderr_tail"],
                 result["stdout_tail"],
             )
             pytest.fail(
-                f"Command failed for {case.case_id}: {command}\n"
+                f"Command failed for {case.case_id}: {prepared_cmd}\n"
                 f"executed_command:\n{result['executed_command']}\n"
                 f"returncode: {result['returncode']}\n"
                 f"stderr_tail:\n{result['stderr_tail']}\nstdout_tail:\n{result['stdout_tail']}"
             )
+    finally:
+        # Clean up vllm serve background process if it's still running
+        if serve_process is not None and serve_process.poll() is None:
+            logger.info("Terminating vLLM server background process")
+            serve_process.terminate()
+            try:
+                serve_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                serve_process.kill()
+                serve_process.wait()
 
     # Extract NCCL busbw metrics where applicable.
     aggregated_metrics: Dict[str, object] = {

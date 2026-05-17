@@ -49,6 +49,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pytest
 
+from tests.kpi_efficiency import enrich_efficiency_kpis
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -90,10 +92,15 @@ except Exception:
 
 def _write_kpi(test: str, metrics: Dict[str, Any]) -> None:
     _KPI_FILE.parent.mkdir(parents=True, exist_ok=True)
-    record = {"test": test, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "metrics": metrics}
+    enriched_metrics = enrich_efficiency_kpis(metrics, os.environ)
+    record = {
+        "test": test,
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "metrics": enriched_metrics,
+    }
     with _KPI_FILE.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
-    logger.info("[KPI] %s → %s", test, metrics)
+    logger.info("[KPI] %s -> %s", test, enriched_metrics)
 
 
 def _gpu_count() -> int:

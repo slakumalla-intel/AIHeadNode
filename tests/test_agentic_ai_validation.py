@@ -58,6 +58,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 import pytest
 
+from tests.kpi_efficiency import enrich_efficiency_kpis
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -103,14 +105,15 @@ def _record_kpi(test_name: str, metrics: dict) -> None:
     """Record KPI metrics to JSONL file."""
     out = _kpi_path()
     out.parent.mkdir(parents=True, exist_ok=True)
+    enriched_metrics = enrich_efficiency_kpis(metrics, os.environ)
     payload = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "test": test_name,
-        "metrics": metrics,
+        "metrics": enriched_metrics,
     }
     with out.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(payload, default=str) + "\n")
-    logger.info("KPI [%s]: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
+    logger.info("KPI [%s]: %s", test_name, json.dumps(enriched_metrics, default=str, sort_keys=True))
 
 
 # ---------------------------------------------------------------------------

@@ -37,6 +37,8 @@ from urllib.request import urlopen
 
 import numpy as np
 
+from tests.kpi_efficiency import enrich_efficiency_kpis
+
 from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
 
 try:
@@ -2820,17 +2822,18 @@ def _record_kpi(test_name: str, metrics: Dict) -> None:
     """Append KPI metrics to a JSONL file for post-run reporting."""
     out_path = _kpi_output_path()
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    enriched_metrics = enrich_efficiency_kpis(metrics, os.environ)
     payload = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "test": test_name,
-        "metrics": metrics,
+        "metrics": enriched_metrics,
     }
     with out_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, default=str) + "\n")
 
     # Emit KPI values directly to test logs so workload-category runs show
     # throughput/latency/utilization numbers without opening the JSONL artifact.
-    logger.info("KPI %s: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
+    logger.info("KPI %s: %s", test_name, json.dumps(enriched_metrics, default=str, sort_keys=True))
 
 
 def _ensure_directory(path: Path) -> None:

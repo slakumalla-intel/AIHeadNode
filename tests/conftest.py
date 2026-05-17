@@ -46,6 +46,12 @@ _VLLM_PROCESS_PATTERNS = (
     "enginecore",
     "vllm.benchmarks.benchmark_serving",
     "vllm.entrypoints.openai.api_server",
+    "vllm.entrypoints.cli.main",
+    "vllm.entrypoints.llm",
+    "VLLM::Worker",  # Tensor-parallel worker processes (TP0, TP1, etc.)
+    "vllm_worker",
+    "bench latency",  # vLLM bench latency subprocess
+    "vllm serve",  # vLLM serve subprocess
 )
 
 
@@ -136,17 +142,25 @@ def _terminate_stale_vllm_processes(tag: str, nodeid: str) -> None:
         nodeid,
     )
 
+    # First pass: SIGTERM to allow graceful shutdown
     for pid, cmd in stale:
         try:
             logger.warning("[%s] Terminating stale vLLM PID=%s cmd=%s", tag, pid, cmd[:220])
             if _psutil is not None:
                 proc = _psutil.Process(pid)
-                proc.terminate()
+                # Try to kill the entire process group if available
+                try:
+                    pgid = os.getpgid(pid)
+                    os.killpg(pgid, signal.SIGTERM)
+                except (OSError, ProcessLookupError):
+                    # Fallback to individual process
+                    proc.terminate()
             else:
                 os.kill(pid, signal.SIGTERM)
         except Exception:
             continue
 
+    # Wait for graceful termination
     deadline = time.time() + 5.0
     while time.time() < deadline:
         remaining = _find_stale_vllm_processes()
@@ -154,15 +168,106 @@ def _terminate_stale_vllm_processes(tag: str, nodeid: str) -> None:
             return
         time.sleep(0.2)
 
-    # Escalate to hard kill when process did not terminate gracefully.
-    for pid, _cmd in _find_stale_vllm_processes():
+    # Second pass: Escalate to hard kill when process did not terminate gracefully
+    remaining = _find_stale_vllm_processes()
+    for pid, cmd in remaining:
         try:
+            logger.warning("[%s] Hard-killing stale vLLM PID=%s (graceful shutdown failed)", tag, pid)
             if _psutil is not None:
-                _psutil.Process(pid).kill()
+                proc = _psutil.Process(pid)
+                # Try to kill the entire process group with SIGKILL
+                try:
+                    pgid = os.getpgid(pid)
+                    os.killpg(pgid, signal.SIGKILL)
+                except (OSError, ProcessLookupError):
+                    # Fallback to individual process
+                    proc.kill()
             else:
                 os.kill(pid, signal.SIGKILL)
         except Exception:
             continue
+
+    # Final check: GPU cleanup to release any remaining GPU memory
+    _release_gpu_memory_via_nvidia_smi()
+
+
+def _release_gpu_memory_via_nvidia_smi() -> None:
+    """Force-release GPU memory by killing any lingering GPU processes detected via nvidia-smi."""
+    if not sys.platform.startswith("linux"):
+        return
+
+    try:
+        # Query all processes holding GPU memory
+        result = subprocess.run(
+            ["nvidia-smi", "pmon", "-c", "1"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=10,
+        )
+        
+        # Parse output to find PIDs with GPU memory usage
+        pids_to_kill = set()
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            # Skip header lines and empty lines
+            if not line or line.startswith("#") or line.startswith("gpu"):
+                continue
+            parts = line.split()
+            if len(parts) >= 4:
+                try:
+                    # Column format: gpu pid type sm mem enc dec
+                    pid = int(parts[1])
+                    # Filter out kernel/system pids
+                    if pid > 0 and pid != os.getpid():
+                        pids_to_kill.add(pid)
+                except (ValueError, IndexError):
+                    continue
+
+        # Check for vLLM-specific PIDs in the pmon output
+        result2 = subprocess.run(
+            ["nvidia-smi", "dmon", "-c", "1"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=10,
+        )
+        
+        for line in result2.stdout.splitlines():
+            line = line.strip()
+            if "VLLM" in line.upper() or "vllm" in line.lower():
+                parts = line.split()
+                if parts:
+                    try:
+                        # Try to extract PID from the line
+                        for part in parts:
+                            try:
+                                pid = int(part)
+                                if 0 < pid < 1000000 and pid != os.getpid():
+                                    pids_to_kill.add(pid)
+                            except ValueError:
+                                continue
+                    except Exception:
+                        continue
+
+        # Kill any remaining PIDs found in GPU context
+        for pid in pids_to_kill:
+            try:
+                if _psutil is not None and _psutil.pid_exists(pid):
+                    proc = _psutil.Process(pid)
+                    cmd = " ".join(proc.cmdline()).lower()
+                    if any(pattern in cmd for pattern in _VLLM_PROCESS_PATTERNS):
+                        logger.warning("[GPU cleanup] Force-killing GPU process PID=%d", pid)
+                        try:
+                            pgid = os.getpgid(pid)
+                            os.killpg(pgid, signal.SIGKILL)
+                        except (OSError, ProcessLookupError):
+                            os.kill(pid, signal.SIGKILL)
+            except Exception:
+                continue
+
+    except Exception as e:
+        logger.debug("[GPU cleanup] nvidia-smi-based cleanup error: %s", e)
 
 
 def _release_torch_cuda_memory() -> None:
@@ -406,6 +511,9 @@ def _configure_default_env() -> None:
     os.environ.setdefault("MEMORY_KPI_FILE", "artifacts/memory_validation_kpis.jsonl")
     os.environ.setdefault("INTERCONNECT_KPI_FILE", "artifacts/interconnect_kpis.jsonl")
     os.environ.setdefault("BOTTLENECK_KPI_FILE", "artifacts/bottleneck_kpis.jsonl")
+    os.environ.setdefault("KPI_COST_PER_HOUR_USD", "0")
+    os.environ.setdefault("GPU_COST_PER_HOUR_USD", "0")
+    os.environ.setdefault("NODE_COST_PER_HOUR_USD", "0")
     _workloads_root = os.environ.get("WORKLOADS_ROOT", "/root/workloads")
     os.environ.setdefault("NVBANDWIDTH_BIN", os.path.join(_workloads_root, "nvbandwidth"))
     os.environ.setdefault("PYTHONUNBUFFERED", "1")

@@ -45,6 +45,8 @@ from typing import Dict, List, Optional
 
 import pytest
 
+from tests.kpi_efficiency import enrich_efficiency_kpis
+
 logger = logging.getLogger(__name__)
 REPO_ROOT = Path(__file__).resolve().parents[1]
 # Prefer /mnt/datasets when the download script has pre-populated it.
@@ -127,14 +129,15 @@ def _record_kpi(case_id: str, metrics: Dict) -> None:
     """Append a single KPI record to the JSONL output file."""
     out_path = _kpi_output_path()
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    enriched_metrics = enrich_efficiency_kpis(metrics, os.environ)
     payload = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "case_id": case_id,
-        "metrics": metrics,
+        "metrics": enriched_metrics,
     }
     with out_path.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(payload, default=str) + "\n")
-    logger.info("KPI %s: %s", case_id, json.dumps(metrics, default=str, sort_keys=True))
+    logger.info("KPI %s: %s", case_id, json.dumps(enriched_metrics, default=str, sort_keys=True))
 
 
 # ---------------------------------------------------------------------------

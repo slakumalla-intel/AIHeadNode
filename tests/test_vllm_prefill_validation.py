@@ -36,6 +36,8 @@ import logging
 import pytest
 from pathlib import Path
 
+from tests.kpi_efficiency import enrich_efficiency_kpis
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,15 +50,16 @@ def _record_kpi(test_name: str, metrics: dict) -> None:
     """Append KPI metrics to a JSONL file for post-run reporting."""
     out_path = _kpi_output_path()
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    enriched_metrics = enrich_efficiency_kpis(metrics, os.environ)
     payload = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "test": test_name,
-        "metrics": metrics,
+        "metrics": enriched_metrics,
     }
     with out_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, default=str) + "\n")
 
-    logger.info("KPI %s: %s", test_name, json.dumps(metrics, default=str, sort_keys=True))
+    logger.info("KPI %s: %s", test_name, json.dumps(enriched_metrics, default=str, sort_keys=True))
 
 
 def _extract_vllm_metrics(json_file: Path) -> dict:

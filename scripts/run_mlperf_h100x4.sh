@@ -85,6 +85,41 @@ done
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+# Global variable to track the current vLLM server PID
+CURRENT_VLLM_PID=""
+
+cleanup_all() {
+  local exit_code=$?
+  log "Cleanup: Terminating all child processes and vLLM workers..."
+  
+  # Kill the tracked vLLM server process if running
+  if [[ -n "$CURRENT_VLLM_PID" ]] && kill -0 "$CURRENT_VLLM_PID" 2>/dev/null; then
+    kill "$CURRENT_VLLM_PID" 2>/dev/null || true
+  fi
+  
+  # Aggressively kill all vLLM-related processes
+  kill_vllm "$VLLM_PORT"
+  
+  # Kill any remaining vLLM processes
+  pkill -9 -f "VLLM::Worker" 2>/dev/null || true
+  pkill -9 -f "vllm.entrypoints" 2>/dev/null || true
+  pkill -9 -f "vllm.benchmarks.benchmark_serving" 2>/dev/null || true
+  pkill -9 -f "bench latency" 2>/dev/null || true
+  pkill -9 -f "vllm serve" 2>/dev/null || true
+  
+  # Release GPU memory via nvidia-smi if available
+  if command -v nvidia-smi >/dev/null 2>&1; then
+    log "Cleanup: Releasing GPU memory..."
+    nvidia-smi -i 0,1,2,3 -pm 1 2>/dev/null || true
+  fi
+  
+  exit "$exit_code"
+}
+
+# Register cleanup handler for normal exit and signals
+trap cleanup_all EXIT INT TERM
+
 run() {
   if [[ "$DRY_RUN" == "true" ]]; then echo "[DRY-RUN] $*"
   else echo "[RUN] $*"; "$@"; fi
@@ -137,11 +172,55 @@ wait_for_vllm() {
 kill_vllm() {
   local port="$1"
   local pid
+  
+  # Kill the main vLLM server by port
   pid=$(lsof -ti tcp:"$port" 2>/dev/null || true)
   if [[ -n "$pid" ]]; then
     log "Stopping vLLM server (PID ${pid})..."
-    kill "$pid" 2>/dev/null || true
-    sleep 3
+    # Kill process group to catch all subprocesses
+    if kill -0 "$pid" 2>/dev/null; then
+      kill -TERM "$pid" 2>/dev/null || true
+      sleep 2
+      kill -KILL "$pid" 2>/dev/null || true
+    fi
+  fi
+  
+  # Kill all vLLM worker processes (TP0, TP1, etc.)
+  local worker_pids
+  worker_pids=$(pgrep -f "VLLM::Worker" 2>/dev/null || true)
+  if [[ -n "$worker_pids" ]]; then
+    log "Terminating vLLM worker processes..."
+    while read -r wpid; do
+      if [[ -n "$wpid" ]]; then
+        kill -TERM "$wpid" 2>/dev/null || true
+      fi
+    done <<< "$worker_pids"
+    sleep 2
+    worker_pids=$(pgrep -f "VLLM::Worker" 2>/dev/null || true)
+    while read -r wpid; do
+      if [[ -n "$wpid" ]]; then
+        kill -KILL "$wpid" 2>/dev/null || true
+      fi
+    done <<< "$worker_pids"
+  fi
+  
+  # Kill any vllm.entrypoints processes
+  local entry_pids
+  entry_pids=$(pgrep -f "vllm.entrypoints" 2>/dev/null || true)
+  if [[ -n "$entry_pids" ]]; then
+    log "Terminating vLLM entrypoint processes..."
+    while read -r epid; do
+      if [[ -n "$epid" ]]; then
+        kill -TERM "$epid" 2>/dev/null || true
+      fi
+    done <<< "$entry_pids"
+    sleep 1
+    epids=$(pgrep -f "vllm.entrypoints" 2>/dev/null || true)
+    while read -r epid; do
+      if [[ -n "$epid" ]]; then
+        kill -KILL "$epid" 2>/dev/null || true
+      fi
+    done <<< "$entry_pids"
   fi
 }
 
@@ -206,7 +285,7 @@ run_vllm_benchmark() {
       --port "$VLLM_PORT" \
       $extra_serve_args \
       >"$log_serve" 2>&1 &
-    VLLM_PID=$!
+    CURRENT_VLLM_PID=$!
     wait_for_vllm "$VLLM_HOST" "$VLLM_PORT" 300
   fi
 
@@ -227,8 +306,13 @@ run_vllm_benchmark() {
     record_result "$case_id" "failed" "benchmark_serving exited non-zero; see ${log_bench}"
   fi
 
-  if [[ "$NO_VLLM_SERVER" == "false" ]] && [[ -n "${VLLM_PID:-}" ]]; then
-    kill_vllm "$VLLM_PORT" || kill "$VLLM_PID" 2>/dev/null || true
+  if [[ "$NO_VLLM_SERVER" == "false" ]]; then
+    log "${case_id}: Cleanup - stopping vLLM server..."
+    kill_vllm "$VLLM_PORT" || true
+    sleep 2
+    # Force cleanup of any remaining workers
+    pkill -9 -f "VLLM::Worker" 2>/dev/null || true
+    CURRENT_VLLM_PID=""
   fi
 }
 

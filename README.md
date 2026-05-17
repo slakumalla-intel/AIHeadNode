@@ -386,6 +386,80 @@ ML_SUITE_KPI_FILE=artifacts/mlperf_suite_kpis.jsonl
 VLLM_PREFILL_KPI_FILE=artifacts/vllm_prefill_kpis.jsonl
 ```
 
+### Derived Efficiency KPIs
+
+The suite now auto-derives two cross-suite value metrics when enough source
+fields are present in a KPI payload:
+
+- `performance_per_watt`
+- `performance_per_dollar`
+
+Formulas:
+
+- `performance_per_watt = performance_rate / power_watts`
+- `performance_per_dollar = (performance_rate * 3600) / cost_per_hour_usd`
+
+Where `performance_rate` is inferred from the first available metric in this
+priority set:
+
+- `throughput_tokens_per_sec`
+- `tokens_per_sec`
+- `samples_per_sec`
+- `requests_per_sec`
+- `throughput_qps`
+- `qps`
+- `aggregate_fps`
+- `throughput_fps`
+- `tflops`
+- `gflops`
+
+Power source resolution order:
+
+1. Existing KPI payload fields such as `mean_power_watts`, `avg_power_watts`,
+  `power_watts`, `gpu_power_watts`, `mean_w`, or `power_w`.
+2. Fallback to `GPU_TDP_WATTS * gpu_count` when explicit power metrics are not
+  present.
+
+Cost source resolution order:
+
+1. Existing KPI payload fields such as `cost_per_hour_usd`,
+  `hourly_cost_usd`, `node_cost_per_hour_usd`, or `total_cost_per_hour_usd`.
+2. Environment fallback values in order:
+  `KPI_COST_PER_HOUR_USD`, `NODE_COST_PER_HOUR_USD`,
+  or `GPU_COST_PER_HOUR_USD * gpu_count`.
+
+Notes:
+
+- If the required denominator is not available (or <= 0), that derived metric
+  is omitted instead of writing a zero.
+- Existing explicit fields are preserved; derivation only fills missing values.
+
+### Efficiency KPI Environment Example
+
+Use one of the following patterns before running pytest.
+
+Linux/macOS:
+
+```bash
+export GPU_TDP_WATTS=700
+export NODE_COST_PER_HOUR_USD=18.50
+
+# Optional alternatives (use one pricing model):
+# export KPI_COST_PER_HOUR_USD=18.50
+# export GPU_COST_PER_HOUR_USD=4.60
+```
+
+Windows PowerShell:
+
+```powershell
+$env:GPU_TDP_WATTS = "700"
+$env:NODE_COST_PER_HOUR_USD = "18.50"
+
+# Optional alternatives (use one pricing model):
+# $env:KPI_COST_PER_HOUR_USD = "18.50"
+# $env:GPU_COST_PER_HOUR_USD = "4.60"
+```
+
 ### Storage & Cache Defaults
 
 All paths default to `/mnt/datasets` when that directory exists. Override with:

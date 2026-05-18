@@ -78,7 +78,7 @@ def _configure_performance_env_defaults() -> None:
     os.environ.setdefault("PERF_VLLM_GPU_MEMORY_UTILIZATION", "0.70")
     os.environ.setdefault("PERF_VLLM_FP8_DTYPE_FALLBACK", "bfloat16")
     os.environ.setdefault("PERF_VLLM_BENCHMARK_MODULE", "vllm.benchmarks.benchmark_serving")
-    os.environ.setdefault("PERF_VLLM_BENCH_NUM_PROMPTS_CAP", "500")
+    os.environ.setdefault("PERF_VLLM_BENCH_NUM_PROMPTS_CAP", "100")
     os.environ.setdefault("PERF_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
     os.environ.setdefault("PERF_AUTO_INSTALL_TIMEOUT_SEC", "1800")
     os.environ.setdefault(

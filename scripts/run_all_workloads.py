@@ -62,6 +62,7 @@ DEFAULT_ENV: Dict[str, str] = {
     "NVBANDWIDTH_BIN": "/root/workloads/nvbandwidth",
     "PERF_NVBANDWIDTH_BIN": "/root/workloads/nvbandwidth",
     "PERF_NCCL_TESTS_DIR": "/root/workloads/nccl-tests/build",
+    "PERF_VLLM_BENCH_NUM_PROMPTS_CAP": "100",
     # Timeout defaults
     "PYTEST_TIMEOUT": "1800",
     "PERF_CMD_TIMEOUT_SEC": "1800",

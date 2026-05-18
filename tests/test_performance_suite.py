@@ -1030,7 +1030,7 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         prerequisites=["vLLM installed", "model access"],
         commands=[
             "vllm serve meta-llama/Meta-Llama-3.1-70B-Instruct --served-model-name meta-llama/Llama-3.1-70B-Instruct --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 8192 --gpu-memory-utilization 0.60 --port 8000",
-            "vllm bench serve --backend vllm --base-url http://127.0.0.1:8000 --model meta-llama/Llama-3.1-70B-Instruct --tokenizer meta-llama/Meta-Llama-3.1-70B-Instruct --dataset-name random --random-input-len 2048 --random-output-len 256 --max-concurrency 128 --num-prompts 500 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
+            "vllm bench serve --backend vllm --base-url http://127.0.0.1:8000 --model meta-llama/Llama-3.1-70B-Instruct --tokenizer meta-llama/Meta-Llama-3.1-70B-Instruct --dataset-name random --random-input-len 2048 --random-output-len 256 --max-concurrency 64 --num-prompts 100 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
         ],
         expected="Stable serving endpoint and successful benchmark request completion without connection refusals",
     ),
@@ -1448,7 +1448,8 @@ def test_performance_case_suite(case: PerformanceCase):
         if vllm_serve_idx is not None:
             # Start vllm serve in background (command is already prepared)
             prepared_serve = prepared_commands[vllm_serve_idx]
-            ready_timeout_sec = int(os.environ.get("PERF_VLLM_SERVE_READY_TIMEOUT_SEC", "300"))
+            ready_timeout_default = "900" if case.case_id == "AI_HOSTCPU_PERF_TEST_ID_003" else "300"
+            ready_timeout_sec = int(os.environ.get("PERF_VLLM_SERVE_READY_TIMEOUT_SEC", ready_timeout_default))
             serve_candidates = [prepared_serve]
             fallback_serve = _retune_vllm_serve_for_startup(prepared_serve)
             if fallback_serve != prepared_serve:

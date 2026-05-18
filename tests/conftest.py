@@ -127,12 +127,75 @@ def _find_stale_vllm_processes() -> List[Tuple[int, str]]:
     return stale
 
 
+def _cleanup_vllm_processes_via_ps(tag: str, nodeid: str) -> None:
+    """Fallback cleanup using ps/grep pattern matching for stubborn vLLM workers."""
+    if not sys.platform.startswith("linux"):
+        return
+
+    try:
+        pid_query = (
+            "ps -eo pid,args | "
+            "grep -Ei 'VLLM::|vllm serve|EngineCore|Worker_TP' | "
+            "grep -v grep | awk '{print $1}'"
+        )
+        result = subprocess.run(
+            pid_query,
+            shell=True,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=10,
+        )
+    except Exception as exc:
+        logger.debug("[%s] ps-based vLLM cleanup query failed for %s: %s", tag, nodeid, exc)
+        return
+
+    pids: List[int] = []
+    for line in (result.stdout or "").splitlines():
+        token = line.strip()
+        if not token:
+            continue
+        try:
+            pid = int(token)
+            if pid > 0 and pid != os.getpid():
+                pids.append(pid)
+        except ValueError:
+            continue
+
+    if not pids:
+        return
+
+    logger.warning("[%s] ps-based cleanup found stale vLLM PIDs for %s: %s", tag, nodeid, pids)
+
+    for pid in pids:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except Exception:
+            continue
+
+    time.sleep(5)
+
+    for pid in pids:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            continue
+        except Exception:
+            continue
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except Exception:
+            continue
+
+
 def _terminate_stale_vllm_processes(tag: str, nodeid: str) -> None:
     if not _vllm_cleanup_enabled():
         return
 
     stale = _find_stale_vllm_processes()
     if not stale:
+        # Fallback path for process names that evade psutil/cmdline matching.
+        _cleanup_vllm_processes_via_ps(tag, nodeid)
         return
 
     logger.warning(
@@ -188,6 +251,7 @@ def _terminate_stale_vllm_processes(tag: str, nodeid: str) -> None:
             continue
 
     # Final check: GPU cleanup to release any remaining GPU memory
+    _cleanup_vllm_processes_via_ps(tag, nodeid)
     _release_gpu_memory_via_nvidia_smi()
 
 

@@ -1404,15 +1404,19 @@ def test_performance_case_suite(case: PerformanceCase):
 
             readiness_error: Optional[str] = None
             serve_start_elapsed = 0.0
+            _serve_log_dir = Path(os.environ.get("PERF_VLLM_SERVE_LOG_DIR", "/tmp"))
+            _serve_log_dir.mkdir(parents=True, exist_ok=True)
             for attempt_idx, serve_candidate in enumerate(serve_candidates, start=1):
+                _serve_log_path = _serve_log_dir / f"vllm_serve_{case.case_id}_attempt{attempt_idx}_{time.strftime('%Y%m%d_%H%M%S')}.log"
                 logger.info("Starting vLLM server in background (attempt %d/%d): %s", attempt_idx, len(serve_candidates), serve_candidate)
+                logger.info("vLLM serve log: %s", _serve_log_path)
                 start_wait = time.time()
+                _serve_log_fh = open(_serve_log_path, "w", encoding="utf-8", buffering=1)
                 serve_process = subprocess.Popen(
                     serve_candidate,
                     shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
+                    stdout=_serve_log_fh,
+                    stderr=subprocess.STDOUT,
                 )
                 readiness_error = _wait_for_vllm_serve_ready(
                     serve_candidate,
@@ -1430,13 +1434,19 @@ def test_performance_case_suite(case: PerformanceCase):
                         serve_process.wait(timeout=10)
                     except subprocess.TimeoutExpired:
                         serve_process.kill()
-                stdout, stderr = serve_process.communicate()
+                serve_process.wait()
+                _serve_log_fh.close()
+                _log_tail = ""
+                try:
+                    _log_tail = _serve_log_path.read_text(encoding="utf-8", errors="replace")[-4000:]
+                except Exception:
+                    pass
                 result = {
                     "command": serve_candidate,
                     "executed_command": serve_candidate,
                     "returncode": serve_process.returncode if serve_process.returncode is not None else -1,
-                    "stdout_tail": stdout[-4000:],
-                    "stderr_tail": stderr[-4000:],
+                    "stdout_tail": _log_tail,
+                    "stderr_tail": "",
                 }
                 command_results.append(result)
                 if attempt_idx < len(serve_candidates):
@@ -1466,13 +1476,17 @@ def test_performance_case_suite(case: PerformanceCase):
 
                 if _is_vllm_bench_serve_command(prepared_cmd):
                     if serve_process is not None and serve_process.poll() is not None:
-                        serve_stdout, serve_stderr = serve_process.communicate()
+                        _exit_log_tail = ""
+                        try:
+                            _exit_log_tail = _serve_log_path.read_text(encoding="utf-8", errors="replace")[-4000:]
+                        except Exception:
+                            pass
                         serve_exit_result = {
                             "command": prepared_serve,
                             "executed_command": prepared_serve,
                             "returncode": serve_process.returncode,
-                            "stdout_tail": serve_stdout[-4000:],
-                            "stderr_tail": serve_stderr[-4000:],
+                            "stdout_tail": _exit_log_tail,
+                            "stderr_tail": "",
                         }
                         command_results.append(serve_exit_result)
                         skip_reason = _known_skip_reason_from_result(serve_exit_result) or (

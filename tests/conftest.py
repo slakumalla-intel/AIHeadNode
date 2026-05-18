@@ -48,7 +48,7 @@ _VLLM_PROCESS_PATTERNS = (
     "vllm.entrypoints.openai.api_server",
     "vllm.entrypoints.cli.main",
     "vllm.entrypoints.llm",
-    "VLLM::Worker",  # Tensor-parallel worker processes (TP0, TP1, etc.)
+    "vllm::worker",  # Tensor-parallel worker processes (TP0, TP1, etc.)
     "vllm_worker",
     "bench latency",  # vLLM bench latency subprocess
     "vllm serve",  # vLLM serve subprocess

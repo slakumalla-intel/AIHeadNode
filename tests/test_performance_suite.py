@@ -22,6 +22,7 @@ import importlib.util
 import logging
 import os
 import re
+import signal
 import shlex
 import shutil
 import socket
@@ -790,36 +791,86 @@ def _benchmark_all_requests_failed(result: Dict) -> bool:
     return "all requests failed" in text
 
 
+def _terminate_process_group(process: Optional[subprocess.Popen], graceful_timeout_sec: float = 5.0) -> None:
+    if process is None or process.poll() is not None:
+        return
+
+    pgid: Optional[int] = None
+    try:
+        pgid = os.getpgid(process.pid)
+    except Exception:
+        pgid = None
+
+    try:
+        if pgid is not None:
+            os.killpg(pgid, signal.SIGTERM)
+        else:
+            process.terminate()
+    except Exception:
+        pass
+
+    deadline = time.time() + max(graceful_timeout_sec, 0.1)
+    while time.time() < deadline:
+        if process.poll() is not None:
+            return
+        time.sleep(0.1)
+
+    if process.poll() is None:
+        try:
+            if pgid is not None:
+                os.killpg(pgid, signal.SIGKILL)
+            else:
+                process.kill()
+        except Exception:
+            pass
+
+    try:
+        process.wait(timeout=2)
+    except Exception:
+        pass
+
+
 def _run_command(command: str, timeout_sec: int, already_prepared: bool = False) -> Dict:
     start = time.perf_counter()
     prepared_command = command if already_prepared else _prepare_command(command)
     logger.info("Executing performance command: %s", prepared_command)
+    proc: Optional[subprocess.Popen] = None
     try:
-        result = subprocess.run(
+        proc = subprocess.Popen(
             prepared_command,
             shell=True,
             text=True,
-            capture_output=True,
-            timeout=timeout_sec,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            start_new_session=True,
         )
+        stdout, stderr = proc.communicate(timeout=timeout_sec)
     except subprocess.TimeoutExpired as exc:
+        _terminate_process_group(proc, graceful_timeout_sec=2.0)
+        timed_out_stdout = ""
+        timed_out_stderr = ""
+        try:
+            if proc is not None:
+                timed_out_stdout, timed_out_stderr = proc.communicate(timeout=1)
+        except Exception:
+            pass
         elapsed = time.perf_counter() - start
         return {
             "command": command,
             "executed_command": prepared_command,
             "returncode": 124,
             "elapsed_sec": round(elapsed, 3),
-            "stdout_tail": (exc.stdout or "")[-4000:],
-            "stderr_tail": (exc.stderr or "")[-4000:],
+            "stdout_tail": (timed_out_stdout or exc.stdout or "")[-4000:],
+            "stderr_tail": (timed_out_stderr or exc.stderr or "")[-4000:],
         }
     elapsed = time.perf_counter() - start
     return {
         "command": command,
         "executed_command": prepared_command,
-        "returncode": result.returncode,
+        "returncode": proc.returncode if proc is not None else -1,
         "elapsed_sec": round(elapsed, 3),
-        "stdout_tail": (result.stdout or "")[-4000:],
-        "stderr_tail": (result.stderr or "")[-4000:],
+        "stdout_tail": (stdout or "")[-4000:],
+        "stderr_tail": (stderr or "")[-4000:],
     }
 
 
@@ -1386,6 +1437,7 @@ def test_performance_case_suite(case: PerformanceCase):
 
     # Special handling for vllm serve + benchmark pattern (serve must run in background)
     serve_process = None
+    serve_log_fh = None
     try:
         vllm_serve_idx = None
         for idx, cmd in enumerate(prepared_commands):
@@ -1417,6 +1469,7 @@ def test_performance_case_suite(case: PerformanceCase):
                     shell=True,
                     stdout=_serve_log_fh,
                     stderr=subprocess.STDOUT,
+                    start_new_session=True,
                 )
                 readiness_error = _wait_for_vllm_serve_ready(
                     serve_candidate,
@@ -1429,11 +1482,7 @@ def test_performance_case_suite(case: PerformanceCase):
                     break
 
                 if serve_process.poll() is None:
-                    serve_process.terminate()
-                    try:
-                        serve_process.wait(timeout=10)
-                    except subprocess.TimeoutExpired:
-                        serve_process.kill()
+                    _terminate_process_group(serve_process, graceful_timeout_sec=10.0)
                 serve_process.wait()
                 _serve_log_fh.close()
                 _log_tail = ""
@@ -1614,12 +1663,9 @@ def test_performance_case_suite(case: PerformanceCase):
         # Clean up vllm serve background process if it's still running
         if serve_process is not None and serve_process.poll() is None:
             logger.info("Terminating vLLM server background process")
-            serve_process.terminate()
-            try:
-                serve_process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                serve_process.kill()
-                serve_process.wait()
+            _terminate_process_group(serve_process, graceful_timeout_sec=5.0)
+        if serve_log_fh is not None and not serve_log_fh.closed:
+            serve_log_fh.close()
 
     # Extract NCCL busbw metrics where applicable.
     aggregated_metrics: Dict[str, object] = {

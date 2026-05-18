@@ -71,8 +71,8 @@ def _configure_performance_env_defaults() -> None:
     )
 
     os.environ.setdefault("PERF_EXECUTE_CASES", "1")
-    os.environ.setdefault("PERF_CMD_TIMEOUT_SEC", "1800")
-    os.environ.setdefault("PERF_VLLM_PRE_BENCH_READY_TIMEOUT_SEC", "15")
+    os.environ.setdefault("PERF_CMD_TIMEOUT_SEC", "86400")  # 24 hours; no timeout for perf tests
+    os.environ.setdefault("PERF_VLLM_PRE_BENCH_READY_TIMEOUT_SEC", "3600")  # 1 hour for CUDA graph capture
     os.environ.setdefault("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")
     os.environ.setdefault("PERF_NVBANDWIDTH_BIN", os.environ.get("NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth"))
     os.environ.setdefault("PERF_NCCL_TESTS_DIR", "/root/workloads/nccl-tests/build")
@@ -1448,7 +1448,8 @@ def test_performance_case_suite(case: PerformanceCase):
         if vllm_serve_idx is not None:
             # Start vllm serve in background (command is already prepared)
             prepared_serve = prepared_commands[vllm_serve_idx]
-            ready_timeout_default = "900" if case.case_id == "AI_HOSTCPU_PERF_TEST_ID_003" else "300"
+            # Use 1800s (30 min) for case 003 (70B with CUDA graphs), 900s for others
+            ready_timeout_default = "1800" if case.case_id == "AI_HOSTCPU_PERF_TEST_ID_003" else "900"
             ready_timeout_sec = int(os.environ.get("PERF_VLLM_SERVE_READY_TIMEOUT_SEC", ready_timeout_default))
             serve_candidates = [prepared_serve]
             fallback_serve = _retune_vllm_serve_for_startup(prepared_serve)

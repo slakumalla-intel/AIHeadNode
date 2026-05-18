@@ -42,6 +42,7 @@ DEFAULT_ENV: Dict[str, str] = {
     # HuggingFace / model defaults (prefer local datasets root)
     "DATASETS_ROOT": "/mnt/datasets",
     "HF_HOME": "/mnt/datasets/huggingface",
+    "HF_HUB_CACHE": "/mnt/datasets/huggingface/hub",
     "HUGGINGFACE_HUB_CACHE": "/mnt/datasets/huggingface/hub",
     "TRANSFORMERS_CACHE": "/mnt/datasets/huggingface/hub",
     "HF_HUB_OFFLINE": "1",

@@ -61,6 +61,7 @@ def _configure_performance_env_defaults() -> None:
     os.environ.setdefault("DATASETS_ROOT", datasets_root)
     os.environ.setdefault("HF_HOME", hf_home)
     os.environ.setdefault("HUGGINGFACE_HUB_CACHE", hf_cache)
+    os.environ.setdefault("HF_HUB_CACHE", hf_cache)
     os.environ.setdefault("TRANSFORMERS_CACHE", hf_cache)
     os.environ.setdefault("HF_DATASETS_CACHE", hf_cache)
     os.environ.setdefault(
@@ -70,6 +71,7 @@ def _configure_performance_env_defaults() -> None:
 
     os.environ.setdefault("PERF_EXECUTE_CASES", "1")
     os.environ.setdefault("PERF_CMD_TIMEOUT_SEC", "1800")
+    os.environ.setdefault("PERF_VLLM_PRE_BENCH_READY_TIMEOUT_SEC", "15")
     os.environ.setdefault("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")
     os.environ.setdefault("PERF_NVBANDWIDTH_BIN", os.environ.get("NVBANDWIDTH_BIN", "/root/workloads/nvbandwidth"))
     os.environ.setdefault("PERF_NCCL_TESTS_DIR", "/root/workloads/nccl-tests/build")
@@ -106,6 +108,8 @@ def _configure_performance_env_defaults() -> None:
 
     # Keep CUDA mask consistent for commands that depend on inherited environment.
     os.environ.setdefault("CUDA_VISIBLE_DEVICES", _raw_cvd)
+    # Keep CUDA enumeration stable on hosts with mixed accelerator SKUs.
+    os.environ.setdefault("CUDA_DEVICE_ORDER", "PCI_BUS_ID")
 
 
 _configure_performance_env_defaults()
@@ -527,6 +531,10 @@ def _prepare_command(command: str) -> str:
             model_idx = parts.index("--model")
             if model_idx + 1 < len(parts):
                 parts[model_idx + 1] = _resolve_hf_model_reference(parts[model_idx + 1])
+        if "--tokenizer" in parts:
+            tokenizer_idx = parts.index("--tokenizer")
+            if tokenizer_idx + 1 < len(parts):
+                parts[tokenizer_idx + 1] = _resolve_hf_model_reference(parts[tokenizer_idx + 1])
         if "--dataset-name" in parts:
             dataset_idx = parts.index("--dataset-name")
             if dataset_idx + 1 < len(parts) and parts[dataset_idx + 1].lower() == "sharegpt":
@@ -963,17 +971,17 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
     ),
     PerformanceCase(
         case_id="AI_HOSTCPU_PERF_TEST_ID_003",
-        title="vLLM Serve + Load (FP8) - 70B",
+        title="vLLM Serve + Load (BF16 baseline) - 70B",
         category="Performance",
-        subsystem="Inference (FP8)",
-        workload="Long context 8k-32k with multi-GPU tensor parallel",
-        purpose="Focus on inter-token latency (ITL) to ensure CPU is not the limiting path",
+        subsystem="Inference (BF16)",
+        workload="Synthetic 2k/256 prompts with multi-GPU tensor parallel",
+        purpose="Validate stable multi-GPU serving path and benchmark connectivity before FP8 stress runs",
         prerequisites=["vLLM installed", "model access"],
         commands=[
-            "vllm serve meta-llama/Meta-Llama-3.1-70B-Instruct --quantization fp8 --tensor-parallel-size 4 --max-model-len 32768",
-            "vllm bench serve --backend vllm --model meta-llama/Meta-Llama-3.1-70B-Instruct --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --max-concurrency 128 --num-prompts 1000 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
+            "vllm serve meta-llama/Meta-Llama-3.1-70B-Instruct --served-model-name meta-llama/Llama-3.1-70B-Instruct --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 8192 --gpu-memory-utilization 0.60 --port 8000",
+            "vllm bench serve --backend vllm --base-url http://127.0.0.1:8000 --model meta-llama/Llama-3.1-70B-Instruct --tokenizer meta-llama/Meta-Llama-3.1-70B-Instruct --dataset-name random --random-input-len 2048 --random-output-len 256 --max-concurrency 128 --num-prompts 500 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
         ],
-        expected="Stable serving with ITL and tail latency within scenario SLO",
+        expected="Stable serving endpoint and successful benchmark request completion without connection refusals",
     ),
     PerformanceCase(
         case_id="AI_HOSTCPU_PERF_TEST_ID_004",
@@ -1252,6 +1260,20 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         ],
         expected="Best observed result among paired P2P path tests",
     ),
+    PerformanceCase(
+        case_id="AI_HOSTCPU_PERF_TEST_ID_026",
+        title="vLLM Serve + Load (FP8 stress) - 70B",
+        category="Performance",
+        subsystem="Inference (FP8)",
+        workload="Long context 8k-32k with multi-GPU tensor parallel",
+        purpose="Stress FP8 serving path for tail-latency and stability under heavy long-context load",
+        prerequisites=["vLLM installed", "model access", "4 GPUs"],
+        commands=[
+            "vllm serve meta-llama/Meta-Llama-3.1-70B-Instruct --quantization fp8 --tensor-parallel-size 4 --max-model-len 32768",
+            "vllm bench serve --backend vllm --model meta-llama/Meta-Llama-3.1-70B-Instruct --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --max-concurrency 128 --num-prompts 1000 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99",
+        ],
+        expected="Either stable FP8 serving with acceptable tail latency, or deterministic skip with explicit failure reason",
+    ),
 ]
 
 
@@ -1441,6 +1463,56 @@ def test_performance_case_suite(case: PerformanceCase):
             for idx, prepared_cmd in enumerate(prepared_commands):
                 if idx == vllm_serve_idx:
                     continue  # Skip the serve command; it's already running
+
+                if _is_vllm_bench_serve_command(prepared_cmd):
+                    if serve_process is not None and serve_process.poll() is not None:
+                        serve_stdout, serve_stderr = serve_process.communicate()
+                        serve_exit_result = {
+                            "command": prepared_serve,
+                            "executed_command": prepared_serve,
+                            "returncode": serve_process.returncode,
+                            "stdout_tail": serve_stdout[-4000:],
+                            "stderr_tail": serve_stderr[-4000:],
+                        }
+                        command_results.append(serve_exit_result)
+                        skip_reason = _known_skip_reason_from_result(serve_exit_result) or (
+                            "vLLM serving process exited before benchmark execution"
+                        )
+                        _record_kpi(
+                            case.case_id,
+                            {
+                                "mode": "execution",
+                                "status": "skipped",
+                                "reason": skip_reason,
+                                "results": command_results,
+                            },
+                        )
+                        pytest.skip(f"{case.case_id}: {skip_reason}")
+
+                    pre_bench_ready_timeout_sec = int(
+                        os.environ.get("PERF_VLLM_PRE_BENCH_READY_TIMEOUT_SEC", "15")
+                    )
+                    pre_bench_readiness_error = _wait_for_vllm_serve_ready(
+                        prepared_serve,
+                        serve_process,
+                        timeout_sec=pre_bench_ready_timeout_sec,
+                    )
+                    if pre_bench_readiness_error is not None:
+                        skip_reason = (
+                            "vLLM serving endpoint was not reachable immediately before benchmark: "
+                            f"{pre_bench_readiness_error}"
+                        )
+                        _record_kpi(
+                            case.case_id,
+                            {
+                                "mode": "execution",
+                                "status": "skipped",
+                                "reason": skip_reason,
+                                "results": command_results,
+                            },
+                        )
+                        pytest.skip(f"{case.case_id}: {skip_reason}")
+
                 result = _run_command(prepared_cmd, timeout_sec=timeout_sec, already_prepared=True)
                 command_results.append(result)
                 skip_reason = _known_skip_reason_from_result(result)

@@ -564,7 +564,14 @@ def _prepare_command(command: str) -> str:
 
     if len(parts) >= 2 and parts[0] == "vllm" and parts[1] == "serve":
         if len(parts) >= 3 and not parts[2].startswith("-"):
+            original_model_ref = parts[2]
             parts[2] = _resolve_hf_model_reference(parts[2])
+            # If the model was rewritten to a local path and no --served-model-name
+            # was provided, inject it so the server registers under the original HF
+            # alias. Without this, vllm bench serve --model <alias> gets 404 because
+            # the server only knows the snapshot path.
+            if parts[2] != original_model_ref and "--served-model-name" not in parts:
+                parts.extend(["--served-model-name", original_model_ref])
 
         if "--tensor-parallel-size" in parts:
             tp_idx = parts.index("--tensor-parallel-size")

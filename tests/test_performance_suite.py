@@ -528,10 +528,10 @@ def _prepare_command(command: str) -> str:
                     parts.extend(["--num-prompts", str(cap)])
 
     if len(parts) >= 3 and parts[0] == "vllm" and parts[1] == "bench" and parts[2] == "serve":
-        if "--model" in parts:
-            model_idx = parts.index("--model")
-            if model_idx + 1 < len(parts):
-                parts[model_idx + 1] = _resolve_hf_model_reference(parts[model_idx + 1])
+        # Keep --model as the served model identifier to match
+        # `vllm serve --served-model-name ...` routing.
+        # Rewriting --model to a snapshot path can cause 404 Not Found
+        # when the server expects the served model alias.
         if "--tokenizer" in parts:
             tokenizer_idx = parts.index("--tokenizer")
             if tokenizer_idx + 1 < len(parts):

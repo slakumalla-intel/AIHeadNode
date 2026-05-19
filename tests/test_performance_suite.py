@@ -528,6 +528,32 @@ def _prepare_command(command: str) -> str:
                     parts.extend(["--num-prompts", str(cap)])
 
     if len(parts) >= 3 and parts[0] == "vllm" and parts[1] == "bench" and parts[2] == "serve":
+        # Backward compatibility: older plans used symbolic request-rate modes
+        # (`poisson`, `burst`) which current CLI expects as numeric values.
+        if "--request-rate" in parts:
+            request_rate_idx = parts.index("--request-rate")
+            if request_rate_idx + 1 < len(parts):
+                request_rate_value = parts[request_rate_idx + 1].strip().lower()
+                if request_rate_value == "poisson":
+                    parts[request_rate_idx + 1] = os.environ.get("PERF_VLLM_POISSON_REQUEST_RATE", "inf")
+                elif request_rate_value == "burst":
+                    burst_rps = os.environ.get("PERF_VLLM_BURST_RPS", "200")
+                    if "--burst-rps" in parts:
+                        burst_rps_idx = parts.index("--burst-rps")
+                        if burst_rps_idx + 1 < len(parts):
+                            burst_rps = parts[burst_rps_idx + 1]
+                    parts[request_rate_idx + 1] = burst_rps
+
+                    # Remove unsupported legacy burst-only args.
+                    for legacy_flag in ("--burst-length", "--burst-rps"):
+                        if legacy_flag in parts:
+                            legacy_idx = parts.index(legacy_flag)
+                            del parts[legacy_idx : legacy_idx + 2]
+
+                    # Use burstiness to emulate burst-like arrival behavior.
+                    if "--burstiness" not in parts:
+                        parts.extend(["--burstiness", os.environ.get("PERF_VLLM_BURSTINESS", "4.0")])
+
         # Keep --model as the served model identifier to match
         # `vllm serve --served-model-name ...` routing.
         # Rewriting --model to a snapshot path can cause 404 Not Found

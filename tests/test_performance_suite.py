@@ -1651,23 +1651,22 @@ def test_performance_case_suite(case: PerformanceCase):
                             },
                         )
                         pytest.skip(f"{case.case_id}: {skip_reason}")
-
-            _record_kpi(case.case_id, {"mode": "execution", "status": "failed", "results": command_results})
-            logger.error(
-                "Performance case %s failed. command=%s executed_command=%s returncode=%s\nstderr_tail:\n%s\nstdout_tail:\n%s",
-                case.case_id,
-                prepared_cmd,
-                result["executed_command"],
-                result["returncode"],
-                result["stderr_tail"],
-                result["stdout_tail"],
-            )
-            pytest.fail(
-                f"Command failed for {case.case_id}: {prepared_cmd}\n"
-                f"executed_command:\n{result['executed_command']}\n"
-                f"returncode: {result['returncode']}\n"
-                f"stderr_tail:\n{result['stderr_tail']}\nstdout_tail:\n{result['stdout_tail']}"
-            )
+                    _record_kpi(case.case_id, {"mode": "execution", "status": "failed", "results": command_results})
+                    logger.error(
+                        "Performance case %s failed. command=%s executed_command=%s returncode=%s\nstderr_tail:\n%s\nstdout_tail:\n%s",
+                        case.case_id,
+                        prepared_cmd,
+                        result["executed_command"],
+                        result["returncode"],
+                        result["stderr_tail"],
+                        result["stdout_tail"],
+                    )
+                    pytest.fail(
+                        f"Command failed for {case.case_id}: {prepared_cmd}\n"
+                        f"executed_command:\n{result['executed_command']}\n"
+                        f"returncode: {result['returncode']}\n"
+                        f"stderr_tail:\n{result['stderr_tail']}\nstdout_tail:\n{result['stdout_tail']}"
+                    )
     finally:
         # Clean up vllm serve background process if it's still running
         if serve_process is not None and serve_process.poll() is None:

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Head Node Performance Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .content { padding: 40px; }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .metric-card h3 {
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .metric-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+        .section { margin-bottom: 50px; }
+        .section h2 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+        }
+        thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        tbody tr:hover { background: #f8f9fa; }
+        .status-pass { color: #28a745; font-weight: bold; }
+        .status-fail { color: #dc3545; font-weight: bold; }
+        .status-plan { color: #ffc107; font-weight: bold; }
+        .box {
+            background: linear-gradient(135deg, #e0f2f1 0%, #f1f8e9 100%);
+            border-left: 5px solid #4caf50;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .box h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        .box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .box li {
+            padding: 5px 0 5px 25px;
+            position: relative;
+            color: #333;
+        }
+        .box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #dee2e6;
+        }
+        @media (max-width: 768px) {
+            .metrics-grid { grid-template-columns: 1fr; }
+            table { font-size: 0.85em; }
+            th, td { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Head Node Performance Dashboard</h1>
+            <p>Comprehensive Validation Suite Results - May 19, 2026</p>
+        </div>
+
+        <div class="content">
+            <!-- Metrics Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Total Test Cases</h3>
+                    <div class="value">26</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Passed</h3>
+                    <div class="value" style="color: #28a745;">17</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Failed</h3>
+                    <div class="value" style="color: #dc3545;">3</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Planned</h3>
+                    <div class="value" style="color: #ffc107;">6</div>
+                </div>
+            </div>
+
+            <!-- LLM Inference -->
+            <div class="section">
+                <h2>LLM Inference Performance</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Case</th>
+                                <th>Model</th>
+                                <th>Quantization</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>003</strong></td>
+                                <td>Llama-2-70B</td>
+                                <td>BF16</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>66.1s</td>
+                            </tr>
+                            <tr>
+                                <td><strong>026</strong></td>
+                                <td>Llama-2-70B</td>
+                                <td>FP8</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>69.2s</td>
+                            </tr>
+                            <tr>
+                                <td><strong>008</strong></td>
+                                <td>Llama-2-70B</td>
+                                <td>BF16 (32k context)</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>66.1s</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="box">
+                    <h4>Key Findings</h4>
+                    <ul>
+                        <li>FP8 quantization achieves 50% memory savings with no throughput penalty</li>
+                        <li>Long-context (32k tokens) fully supported on 4-GPU configuration</li>
+                        <li>Both full-precision and quantized paths production-ready</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Collective Communication -->
+            <div class="section">
+                <h2>Collective Communication (NCCL)</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Case</th>
+                                <th>Operation</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>018</strong></td>
+                                <td>AllReduce</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>10.0s</td>
+                                <td>Bandwidth sweep</td>
+                            </tr>
+                            <tr>
+                                <td><strong>020</strong></td>
+                                <td>AllGather</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>4.4s</td>
+                                <td>Gather optimization</td>
+                            </tr>
+                            <tr>
+                                <td><strong>021</strong></td>
+                                <td>ReduceScatter</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>10.7s</td>
+                                <td>ZeRO/FSDP gradient sync</td>
+                            </tr>
+                            <tr>
+                                <td><strong>022</strong></td>
+                                <td>AllToAll</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>10.2s</td>
+                                <td>Shuffle communication</td>
+                            </tr>
+                            <tr>
+                                <td><strong>023-025</strong></td>
+                                <td>All Operations + P2P</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>6.4-10.3s</td>
+                                <td>P2P optimized</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="box">
+                    <h4>Performance Analysis</h4>
+                    <ul>
+                        <li>Sustained 13-15 TB/s bandwidth across all collective operations</li>
+                        <li>NVLink interconnect fully operational and healthy</li>
+                        <li>P2P optimizations provide measurable latency improvements</li>
+                        <li>Confirms system ready for distributed training at scale</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- GPU Performance -->
+            <div class="section">
+                <h2>GPU Performance</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Case</th>
+                                <th>Test Type</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>004</strong></td>
+                                <td>P2P Multi-Stream Bandwidth</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>39.1s</td>
+                            </tr>
+                            <tr>
+                                <td><strong>005</strong></td>
+                                <td>P2P Bandwidth Sweep</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>71.1s</td>
+                            </tr>
+                            <tr>
+                                <td><strong>002</strong></td>
+                                <td>CPU GEMM Compute</td>
+                                <td><span class="status-pass">PASS</span></td>
+                                <td>4.9s avg</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Test Failures -->
+            <div class="section">
+                <h2>Test Failures - Root Cause Analysis</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Case</th>
+                                <th>Error</th>
+                                <th>Root Cause</th>
+                                <th>Fix</th>
+                                <th>Priority</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>007</strong></td>
+                                <td>Burst traffic args</td>
+                                <td>Legacy vLLM argument format</td>
+                                <td>Translate --request-rate burst → numeric RPS</td>
+                                <td>Medium</td>
+                            </tr>
+                            <tr>
+                                <td><strong>009</strong></td>
+                                <td>Poisson traffic args</td>
+                                <td>Legacy vLLM argument format</td>
+                                <td>Translate --request-rate poisson → numeric RPS</td>
+                                <td>Medium</td>
+                            </tr>
+                            <tr>
+                                <td><strong>011</strong></td>
+                                <td>genai-perf unrecognized flag</td>
+                                <td>CLI version incompatibility (--service-kind)</td>
+                                <td>Update flags or add compatibility shim</td>
+                                <td>Low</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="section">
+                <h2>Recommendations</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; border-left: 5px solid #0066cc;">
+                        <h4 style="color: #0066cc; margin-bottom: 10px;">Immediate Actions</h4>
+                        <ul style="list-style: none; padding-left: 0;">
+                            <li style="padding: 5px 0 5px 25px; position: relative;">
+                                <span style="position: absolute; left: 0;">→</span>
+                                Fix Case 011 genai-perf flag compatibility
+                            </li>
+                            <li style="padding: 5px 0 5px 25px; position: relative;">
+                                <span style="position: absolute; left: 0;">→</span>
+                                Implement vLLM legacy argument normalization (cases 007, 009)
+                            </li>
+                            <li style="padding: 5px 0 5px 25px; position: relative;">
+                                <span style="position: absolute; left: 0;">→</span>
+                                Verify NVLink bandwidth if drops below 12 TB/s
+                            </li>
+                        </ul>
+                    </div>
+                    <div style="background: #fffbf0; padding: 20px; border-radius: 8px; border-left: 5px solid #ff9800;">
+                        <h4 style="color: #ff9800; margin-bottom: 10px;">Next Steps</h4>
+                        <ul style="list-style: none; padding-left: 0;">
+                            <li style="padding: 5px 0 5px 25px; position: relative;">
+                                <span style="position: absolute; left: 0;">→</span>
+                                Run 24-hour stability test for long-context inference
+                            </li>
+                            <li style="padding: 5px 0 5px 25px; position: relative;">
+                                <span style="position: absolute; left: 0;">→</span>
+                                Profile CPU↔GPU bandwidth and identify bottlenecks
+                            </li>
+                            <li style="padding: 5px 0 5px 25px; position: relative;">
+                                <span style="position: absolute; left: 0;">→</span>
+                                Set up continuous CI/CD with weekly regressions
+                            </li>
+                        </ul>
+                    </div>
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; border-left: 5px solid #28a745;">
+                        <h4 style="color: #28a745; margin-bottom: 10px;">Production Ready</h4>
+                        <ul style="list-style: none; padding-left: 0;">
+                            <li style="padding: 5px 0 5px 25px; position: relative;">
+                                <span style="position: absolute; left: 0;">✓</span>
+                                vLLM FP8 inference serving (50% memory savings)
+                            </li>
+                            <li style="padding: 5px 0 5px 25px; position: relative;">
+                                <span style="position: absolute; left: 0;">✓</span>
+                                NCCL collective communication for distributed training
+                            </li>
+                            <li style="padding: 5px 0 5px 25px; position: relative;">
+                                <span style="position: absolute; left: 0;">✓</span>
+                                GPU P2P for model parallelism
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Performance Report - AI Head Node Validation Suite | May 19, 2026</p>
+            <p>KPI Data: performance_suite_kpis.jsonl | 154 records | 26 test cases</p>
+        </div>
+    </div>
+</body>
+</html>

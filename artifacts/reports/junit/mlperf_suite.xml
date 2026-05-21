@@ -1,0 +1,797 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="19" skipped="2" tests="21" time="39.268" timestamp="2026-05-20T13:54:46.421890+00:00" hostname="sc00901168s0075"><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_001]" time="1.816"><skipped type="pytest.skip" message="Filtered by ML_CASE_IDS">/root/workloads/AIHeadNode/tests/test_mlperf_suite.py:1235: Filtered by ML_CASE_IDS</skipped></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_002]" time="0.195"><skipped type="pytest.skip" message="Filtered by ML_CASE_IDS">/root/workloads/AIHeadNode/tests/test_mlperf_suite.py:1235: Filtered by ML_CASE_IDS</skipped></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003]" time="6.523"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_003: command failed (rc=1)&#10;executed_command: vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 --tensor-parallel-size 4 --max-model-len 32768 --gpu-memory-utilization 0.90 --port 8000&#10;stderr_tail:&#10;(APIServer pid=107425) Traceback (most recent call last):&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/bin/vllm&quot;, line 6, in &lt;module&gt;&#10;(APIServer pid=107425)     sys.exit(main())&#10;(APIServer pid=107425)              ^^^^^^&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py&quot;, line 92, in main&#10;(APIServer pid=107425)     args.dispatch_function(args)&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/serve.py&quot;, line 122, in cmd&#10;(APIServer pid=107425)     uvloop.run(run_server(args))&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/uvloop/__init__.py&quot;, line 96, in run&#10;(APIServer pid=107425)     return __asyncio.run(&#10;(APIServer pid=107425)            ^^^^^^^^^^^^^^&#10;(APIServer pid=107425)   File &quot;/usr/lib64/python3.12/asyncio/runners.py&quot;, line 195, in run&#10;(APIServer pid=107425)     return runner.run(main)&#10;(APIServer pid=107425)            ^^^^^^^^^^^^^^^^&#10;(APIServer pid=107425)   File &quot;/usr/lib64/python3.12/asyncio/runners.py&quot;, line 118, in run&#10;(APIServer pid=107425)     return self._loop.run_until_complete(task)&#10;(APIServer pid=107425)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107425)   File &quot;uvloop/loop.pyx&quot;, line 1518, in uvloop.loop.Loop.run_until_complete&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/uvloop/__init__.py&quot;, line 48, in wrapper&#10;(APIServer pid=107425)     return await main&#10;(APIServer pid=107425)            ^^^^^^^^^^&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py&quot;, line 693, in run_server&#10;(APIServer pid=107425)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py&quot;, line 707, in run_server_worker&#10;(APIServer pid=107425)     async with build_async_engine_client(&#10;(APIServer pid=107425)                ^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107425)   File &quot;/usr/lib64/python3.12/contextlib.py&quot;, line 210, in __aenter__&#10;(APIServer pid=107425)     return await anext(self.gen)&#10;(APIServer pid=107425)            ^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py&quot;, line 95, in build_async_engine_client&#10;(APIServer pid=107425)     engine_args = AsyncEngineArgs.from_cli_args(args)&#10;(APIServer pid=107425)                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py&quot;, line 1492, in from_cli_args&#10;(APIServer pid=107425)     engine_args = cls(&#10;(APIServer pid=107425)                   ^^^^&#10;(APIServer pid=107425)   File &quot;&lt;string&gt;&quot;, line 204, in __init__&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py&quot;, line 735, in __post_init__&#10;(APIServer pid=107425)     self.model = get_model_path(self.model, self.revision)&#10;(APIServer pid=107425)                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py&quot;, line 220, in get_model_path&#10;(APIServer pid=107425)     return snapshot_download(repo_id=model, **common_kwargs)&#10;(APIServer pid=107425)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py&quot;, line 88, in _inner_fn&#10;(APIServer pid=107425)     return fn(*args, **kwargs)&#10;(APIServer pid=107425)            ^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107425)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py&quot;, line 310, in snapshot_download&#10;(APIServer pid=107425)     raise LocalEntryNotFoundError(&#10;(APIServer pid=107425) huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.&#10;&#10;stdout_tail:&#10;(APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306] &#10;(APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306]        █     █     █▄   ▄█&#10;(APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.21.0&#10;(APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306]   █▄█▀ █     █     █     █  model   mistralai/Mixtral-8x7B-Instruct-v0.1&#10;(APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀&#10;(APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306] &#10;(APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:240] non-default args: {'model_tag': 'mistralai/Mixtral-8x7B-Instruct-v0.1', 'model': 'mistralai/Mixtral-8x7B-Instruct-v0.1', 'max_model_len': 32768, 'tensor_parallel_size': 4, 'gpu_memory_utilization': 0.9}">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_003: command failed (rc=1)
+E   executed_command: vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 --tensor-parallel-size 4 --max-model-len 32768 --gpu-memory-utilization 0.90 --port 8000
+E   stderr_tail:
+E   (APIServer pid=107425) Traceback (most recent call last):
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/bin/vllm", line 6, in &lt;module&gt;
+E   (APIServer pid=107425)     sys.exit(main())
+E   (APIServer pid=107425)              ^^^^^^
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+E   (APIServer pid=107425)     args.dispatch_function(args)
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/serve.py", line 122, in cmd
+E   (APIServer pid=107425)     uvloop.run(run_server(args))
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/uvloop/__init__.py", line 96, in run
+E   (APIServer pid=107425)     return __asyncio.run(
+E   (APIServer pid=107425)            ^^^^^^^^^^^^^^
+E   (APIServer pid=107425)   File "/usr/lib64/python3.12/asyncio/runners.py", line 195, in run
+E   (APIServer pid=107425)     return runner.run(main)
+E   (APIServer pid=107425)            ^^^^^^^^^^^^^^^^
+E   (APIServer pid=107425)   File "/usr/lib64/python3.12/asyncio/runners.py", line 118, in run
+E   (APIServer pid=107425)     return self._loop.run_until_complete(task)
+E   (APIServer pid=107425)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107425)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/uvloop/__init__.py", line 48, in wrapper
+E   (APIServer pid=107425)     return await main
+E   (APIServer pid=107425)            ^^^^^^^^^^
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 693, in run_server
+E   (APIServer pid=107425)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 707, in run_server_worker
+E   (APIServer pid=107425)     async with build_async_engine_client(
+E   (APIServer pid=107425)                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107425)   File "/usr/lib64/python3.12/contextlib.py", line 210, in __aenter__
+E   (APIServer pid=107425)     return await anext(self.gen)
+E   (APIServer pid=107425)            ^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 95, in build_async_engine_client
+E   (APIServer pid=107425)     engine_args = AsyncEngineArgs.from_cli_args(args)
+E   (APIServer pid=107425)                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+E   (APIServer pid=107425)     engine_args = cls(
+E   (APIServer pid=107425)                   ^^^^
+E   (APIServer pid=107425)   File "&lt;string&gt;", line 204, in __init__
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+E   (APIServer pid=107425)     self.model = get_model_path(self.model, self.revision)
+E   (APIServer pid=107425)                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+E   (APIServer pid=107425)     return snapshot_download(repo_id=model, **common_kwargs)
+E   (APIServer pid=107425)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+E   (APIServer pid=107425)     return fn(*args, **kwargs)
+E   (APIServer pid=107425)            ^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107425)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+E   (APIServer pid=107425)     raise LocalEntryNotFoundError(
+E   (APIServer pid=107425) huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+E   
+E   stdout_tail:
+E   (APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306] 
+E   (APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306]        █     █     █▄   ▄█
+E   (APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.21.0
+E   (APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306]   █▄█▀ █     █     █     █  model   mistralai/Mixtral-8x7B-Instruct-v0.1
+E   (APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+E   (APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:306] 
+E   (APIServer pid=107425) INFO 05-20 13:54:54 [utils.py:240] non-default args: {'model_tag': 'mistralai/Mixtral-8x7B-Instruct-v0.1', 'model': 'mistralai/Mixtral-8x7B-Instruct-v0.1', 'max_model_len': 32768, 'tensor_parallel_size': 4, 'gpu_memory_utilization': 0.9}</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_004]" time="8.150"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_004: command failed (rc=1)&#10;executed_command: vllm serve meta-llama/Meta-Llama-3.1-8B-Instruct --tensor-parallel-size 4 --max-model-len 8192 --gpu-memory-utilization 0.90 --port 8000&#10;stderr_tail:&#10;envs/torch-cu128/lib64/python3.12/site-packages/vllm/compilation/passes/fusion/allreduce_rms_fusion.py&quot;, line 52, in &lt;module&gt;&#10;(APIServer pid=107701)     import flashinfer.comm as _flashinfer_comm&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/flashinfer/__init__.py&quot;, line 99, in &lt;module&gt;&#10;(APIServer pid=107701)     from .gdn_prefill import chunk_gated_delta_rule as chunk_gated_delta_rule&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/flashinfer/gdn_prefill.py&quot;, line 32, in &lt;module&gt;&#10;(APIServer pid=107701)     from .gdn_kernels import chunk_gated_delta_rule_sm100, _has_blackwell_prefill&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/flashinfer/gdn_kernels/__init__.py&quot;, line 22, in &lt;module&gt;&#10;(APIServer pid=107701)     from .gdn_decode_bf16_state import (&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/flashinfer/gdn_kernels/gdn_decode_bf16_state.py&quot;, line 2262, in &lt;module&gt;&#10;(APIServer pid=107701)     NUM_SMS = torch.cuda.get_device_properties(0).multi_processor_count&#10;(APIServer pid=107701)               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 686, in get_device_properties&#10;(APIServer pid=107701)     _lazy_init()  # will define _get_device_properties&#10;(APIServer pid=107701)     ^^^^^^^^^^^^&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 495, in _lazy_init&#10;(APIServer pid=107701)     raise DeferredCudaCallError(msg) from e&#10;(APIServer pid=107701) torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at &quot;/pytorch/aten/src/ATen/cuda/CUDAContext.cpp&quot;:51, please report a bug to PyTorch. device=3, num_gpus=3&#10;(APIServer pid=107701) &#10;(APIServer pid=107701) CUDA call was originally invoked at:&#10;(APIServer pid=107701) &#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/bin/vllm&quot;, line 3, in &lt;module&gt;&#10;(APIServer pid=107701)     from vllm.entrypoints.cli.main import main&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1310, in _find_and_load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1310, in _find_and_load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1310, in _find_and_load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/__init__.py&quot;, line 14, in &lt;module&gt;&#10;(APIServer pid=107701)     import vllm.env_override  # noqa: F401&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/env_override.py&quot;, line 87, in &lt;module&gt;&#10;(APIServer pid=107701)     import torch&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py&quot;, line 2167, in &lt;module&gt;&#10;(APIServer pid=107701)     _C._initExtension(_manager_path())&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;(APIServer pid=107701)   File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 424, in &lt;module&gt;&#10;(APIServer pid=107701)     _lazy_call(_check_capability)&#10;(APIServer pid=107701)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 421, in _lazy_call&#10;(APIServer pid=107701)     _queued_calls.append((callable, traceback.format_stack()))&#10;(APIServer pid=107701) &#10;&#10;stdout_tail:&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306] &#10;(APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306]        █     █     █▄   ▄█&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.21.0&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306]   █▄█▀ █     █     █     █  model   meta-llama/Meta-Llama-3.1-8B-Instruct&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306] &#10;(APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:240] non-default args: {'model_tag': 'meta-llama/Meta-Llama-3.1-8B-Instruct', 'model': 'meta-llama/Meta-Llama-3.1-8B-Instruct', 'max_model_len': 8192, 'tensor_parallel_size': 4, 'gpu_memory_utilization': 0.9}&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [arg_utils.py:737] HF_HUB_OFFLINE is True, replace model_id [meta-llama/Meta-Llama-3.1-8B-Instruct] to model_path [/mnt/datasets/huggingface/hub/models--meta-llama--Meta-Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659]&#10;(APIServer pid=107701) WARNING 05-20 13:55:01 [envs.py:1866] Unknown vLLM environment variable detected: VLLM_PREFILL_KPI_FILE&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [model.py:568] Resolved architecture: LlamaForCausalLM&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [model.py:1697] Using max model len 8192&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [scheduler.py:239] Chunked prefill is enabled with max_num_batched_tokens=8192.&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [vllm.py:886] Asynchronous scheduling is enabled.&#10;(APIServer pid=107701) INFO 05-20 13:55:01 [kernel.py:212] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_004: command failed (rc=1)
+E   executed_command: vllm serve meta-llama/Meta-Llama-3.1-8B-Instruct --tensor-parallel-size 4 --max-model-len 8192 --gpu-memory-utilization 0.90 --port 8000
+E   stderr_tail:
+E   envs/torch-cu128/lib64/python3.12/site-packages/vllm/compilation/passes/fusion/allreduce_rms_fusion.py", line 52, in &lt;module&gt;
+E   (APIServer pid=107701)     import flashinfer.comm as _flashinfer_comm
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/flashinfer/__init__.py", line 99, in &lt;module&gt;
+E   (APIServer pid=107701)     from .gdn_prefill import chunk_gated_delta_rule as chunk_gated_delta_rule
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/flashinfer/gdn_prefill.py", line 32, in &lt;module&gt;
+E   (APIServer pid=107701)     from .gdn_kernels import chunk_gated_delta_rule_sm100, _has_blackwell_prefill
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/flashinfer/gdn_kernels/__init__.py", line 22, in &lt;module&gt;
+E   (APIServer pid=107701)     from .gdn_decode_bf16_state import (
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/flashinfer/gdn_kernels/gdn_decode_bf16_state.py", line 2262, in &lt;module&gt;
+E   (APIServer pid=107701)     NUM_SMS = torch.cuda.get_device_properties(0).multi_processor_count
+E   (APIServer pid=107701)               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 686, in get_device_properties
+E   (APIServer pid=107701)     _lazy_init()  # will define _get_device_properties
+E   (APIServer pid=107701)     ^^^^^^^^^^^^
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 495, in _lazy_init
+E   (APIServer pid=107701)     raise DeferredCudaCallError(msg) from e
+E   (APIServer pid=107701) torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+E   (APIServer pid=107701) 
+E   (APIServer pid=107701) CUDA call was originally invoked at:
+E   (APIServer pid=107701) 
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/bin/vllm", line 3, in &lt;module&gt;
+E   (APIServer pid=107701)     from vllm.entrypoints.cli.main import main
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1310, in _find_and_load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1310, in _find_and_load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1310, in _find_and_load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/__init__.py", line 14, in &lt;module&gt;
+E   (APIServer pid=107701)     import vllm.env_override  # noqa: F401
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/env_override.py", line 87, in &lt;module&gt;
+E   (APIServer pid=107701)     import torch
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in &lt;module&gt;
+E   (APIServer pid=107701)     _C._initExtension(_manager_path())
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E   (APIServer pid=107701)   File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in &lt;module&gt;
+E   (APIServer pid=107701)     _lazy_call(_check_capability)
+E   (APIServer pid=107701)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+E   (APIServer pid=107701)     _queued_calls.append((callable, traceback.format_stack()))
+E   (APIServer pid=107701) 
+E   
+E   stdout_tail:
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306] 
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306]        █     █     █▄   ▄█
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.21.0
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306]   █▄█▀ █     █     █     █  model   meta-llama/Meta-Llama-3.1-8B-Instruct
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:306] 
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [utils.py:240] non-default args: {'model_tag': 'meta-llama/Meta-Llama-3.1-8B-Instruct', 'model': 'meta-llama/Meta-Llama-3.1-8B-Instruct', 'max_model_len': 8192, 'tensor_parallel_size': 4, 'gpu_memory_utilization': 0.9}
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [arg_utils.py:737] HF_HUB_OFFLINE is True, replace model_id [meta-llama/Meta-Llama-3.1-8B-Instruct] to model_path [/mnt/datasets/huggingface/hub/models--meta-llama--Meta-Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659]
+E   (APIServer pid=107701) WARNING 05-20 13:55:01 [envs.py:1866] Unknown vLLM environment variable detected: VLLM_PREFILL_KPI_FILE
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [model.py:568] Resolved architecture: LlamaForCausalLM
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [model.py:1697] Using max model len 8192
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [scheduler.py:239] Chunked prefill is enabled with max_num_batched_tokens=8192.
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [vllm.py:886] Asynchronous scheduling is enabled.
+E   (APIServer pid=107701) INFO 05-20 13:55:01 [kernel.py:212] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005]" time="6.536"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)&#10;executed_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000&#10;stderr_tail:&#10;(APIServer pid=107976) Traceback (most recent call last):&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/bin/vllm&quot;, line 6, in &lt;module&gt;&#10;(APIServer pid=107976)     sys.exit(main())&#10;(APIServer pid=107976)              ^^^^^^&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py&quot;, line 92, in main&#10;(APIServer pid=107976)     args.dispatch_function(args)&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/serve.py&quot;, line 122, in cmd&#10;(APIServer pid=107976)     uvloop.run(run_server(args))&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/uvloop/__init__.py&quot;, line 96, in run&#10;(APIServer pid=107976)     return __asyncio.run(&#10;(APIServer pid=107976)            ^^^^^^^^^^^^^^&#10;(APIServer pid=107976)   File &quot;/usr/lib64/python3.12/asyncio/runners.py&quot;, line 195, in run&#10;(APIServer pid=107976)     return runner.run(main)&#10;(APIServer pid=107976)            ^^^^^^^^^^^^^^^^&#10;(APIServer pid=107976)   File &quot;/usr/lib64/python3.12/asyncio/runners.py&quot;, line 118, in run&#10;(APIServer pid=107976)     return self._loop.run_until_complete(task)&#10;(APIServer pid=107976)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107976)   File &quot;uvloop/loop.pyx&quot;, line 1518, in uvloop.loop.Loop.run_until_complete&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/uvloop/__init__.py&quot;, line 48, in wrapper&#10;(APIServer pid=107976)     return await main&#10;(APIServer pid=107976)            ^^^^^^^^^^&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py&quot;, line 693, in run_server&#10;(APIServer pid=107976)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py&quot;, line 707, in run_server_worker&#10;(APIServer pid=107976)     async with build_async_engine_client(&#10;(APIServer pid=107976)                ^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107976)   File &quot;/usr/lib64/python3.12/contextlib.py&quot;, line 210, in __aenter__&#10;(APIServer pid=107976)     return await anext(self.gen)&#10;(APIServer pid=107976)            ^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py&quot;, line 95, in build_async_engine_client&#10;(APIServer pid=107976)     engine_args = AsyncEngineArgs.from_cli_args(args)&#10;(APIServer pid=107976)                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py&quot;, line 1492, in from_cli_args&#10;(APIServer pid=107976)     engine_args = cls(&#10;(APIServer pid=107976)                   ^^^^&#10;(APIServer pid=107976)   File &quot;&lt;string&gt;&quot;, line 204, in __init__&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py&quot;, line 735, in __post_init__&#10;(APIServer pid=107976)     self.model = get_model_path(self.model, self.revision)&#10;(APIServer pid=107976)                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py&quot;, line 220, in get_model_path&#10;(APIServer pid=107976)     return snapshot_download(repo_id=model, **common_kwargs)&#10;(APIServer pid=107976)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py&quot;, line 88, in _inner_fn&#10;(APIServer pid=107976)     return fn(*args, **kwargs)&#10;(APIServer pid=107976)            ^^^^^^^^^^^^^^^^^^^&#10;(APIServer pid=107976)   File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py&quot;, line 310, in snapshot_download&#10;(APIServer pid=107976)     raise LocalEntryNotFoundError(&#10;(APIServer pid=107976) huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.&#10;&#10;stdout_tail:&#10;(APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306] &#10;(APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306]        █     █     █▄   ▄█&#10;(APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.21.0&#10;(APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306]   █▄█▀ █     █     █     █  model   meta-llama/Llama-2-70b-chat-hf&#10;(APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀&#10;(APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306] &#10;(APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:240] non-default args: {'model_tag': 'meta-llama/Llama-2-70b-chat-hf', 'model': 'meta-llama/Llama-2-70b-chat-hf', 'dtype': 'bfloat16', 'max_model_len': 4096, 'tensor_parallel_size': 4, 'gpu_memory_utilization': 0.9}">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)
+E   executed_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000
+E   stderr_tail:
+E   (APIServer pid=107976) Traceback (most recent call last):
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/bin/vllm", line 6, in &lt;module&gt;
+E   (APIServer pid=107976)     sys.exit(main())
+E   (APIServer pid=107976)              ^^^^^^
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+E   (APIServer pid=107976)     args.dispatch_function(args)
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/serve.py", line 122, in cmd
+E   (APIServer pid=107976)     uvloop.run(run_server(args))
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/uvloop/__init__.py", line 96, in run
+E   (APIServer pid=107976)     return __asyncio.run(
+E   (APIServer pid=107976)            ^^^^^^^^^^^^^^
+E   (APIServer pid=107976)   File "/usr/lib64/python3.12/asyncio/runners.py", line 195, in run
+E   (APIServer pid=107976)     return runner.run(main)
+E   (APIServer pid=107976)            ^^^^^^^^^^^^^^^^
+E   (APIServer pid=107976)   File "/usr/lib64/python3.12/asyncio/runners.py", line 118, in run
+E   (APIServer pid=107976)     return self._loop.run_until_complete(task)
+E   (APIServer pid=107976)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107976)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/uvloop/__init__.py", line 48, in wrapper
+E   (APIServer pid=107976)     return await main
+E   (APIServer pid=107976)            ^^^^^^^^^^
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 693, in run_server
+E   (APIServer pid=107976)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 707, in run_server_worker
+E   (APIServer pid=107976)     async with build_async_engine_client(
+E   (APIServer pid=107976)                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107976)   File "/usr/lib64/python3.12/contextlib.py", line 210, in __aenter__
+E   (APIServer pid=107976)     return await anext(self.gen)
+E   (APIServer pid=107976)            ^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 95, in build_async_engine_client
+E   (APIServer pid=107976)     engine_args = AsyncEngineArgs.from_cli_args(args)
+E   (APIServer pid=107976)                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+E   (APIServer pid=107976)     engine_args = cls(
+E   (APIServer pid=107976)                   ^^^^
+E   (APIServer pid=107976)   File "&lt;string&gt;", line 204, in __init__
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+E   (APIServer pid=107976)     self.model = get_model_path(self.model, self.revision)
+E   (APIServer pid=107976)                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+E   (APIServer pid=107976)     return snapshot_download(repo_id=model, **common_kwargs)
+E   (APIServer pid=107976)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+E   (APIServer pid=107976)     return fn(*args, **kwargs)
+E   (APIServer pid=107976)            ^^^^^^^^^^^^^^^^^^^
+E   (APIServer pid=107976)   File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+E   (APIServer pid=107976)     raise LocalEntryNotFoundError(
+E   (APIServer pid=107976) huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+E   
+E   stdout_tail:
+E   (APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306] 
+E   (APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306]        █     █     █▄   ▄█
+E   (APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.21.0
+E   (APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306]   █▄█▀ █     █     █     █  model   meta-llama/Llama-2-70b-chat-hf
+E   (APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+E   (APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:306] 
+E   (APIServer pid=107976) INFO 05-20 13:55:09 [utils.py:240] non-default args: {'model_tag': 'meta-llama/Llama-2-70b-chat-hf', 'model': 'meta-llama/Llama-2-70b-chat-hf', 'dtype': 'bfloat16', 'max_model_len': 4096, 'tensor_parallel_size': 4, 'gpu_memory_utilization': 0.9}</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_006]" time="0.196"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_006: command failed (rc=127)&#10;executed_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch resnet50 gpu --scenario Offline --dataset-path /mnt/datasets/imagenet --output artifacts/mlperf_results/resnet50 --count 50000&#10;stderr_tail:&#10;bash: /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh: No such file or directory&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_006: command failed (rc=127)
+E   executed_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch resnet50 gpu --scenario Offline --dataset-path /mnt/datasets/imagenet --output artifacts/mlperf_results/resnet50 --count 50000
+E   stderr_tail:
+E   bash: /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh: No such file or directory
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_007]" time="0.190"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_007: command failed (rc=127)&#10;executed_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch retinanet gpu --scenario Offline --dataset-path /mnt/datasets/openimages --output artifacts/mlperf_results/retinanet --count 24781&#10;stderr_tail:&#10;bash: /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh: No such file or directory&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_007: command failed (rc=127)
+E   executed_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch retinanet gpu --scenario Offline --dataset-path /mnt/datasets/openimages --output artifacts/mlperf_results/retinanet --count 24781
+E   stderr_tail:
+E   bash: /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh: No such file or directory
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_008]" time="0.190"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_008: command failed (rc=127)&#10;executed_command: bash /root/workloads/mlcommons/inference/medical_imaging/3d-unet-kits19/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/kits19 --output artifacts/mlperf_results/3dunet --count 42&#10;stderr_tail:&#10;bash: /root/workloads/mlcommons/inference/medical_imaging/3d-unet-kits19/run_local.sh: No such file or directory&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_008: command failed (rc=127)
+E   executed_command: bash /root/workloads/mlcommons/inference/medical_imaging/3d-unet-kits19/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/kits19 --output artifacts/mlperf_results/3dunet --count 42
+E   stderr_tail:
+E   bash: /root/workloads/mlcommons/inference/medical_imaging/3d-unet-kits19/run_local.sh: No such file or directory
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_009]" time="0.237"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_009: command failed (rc=127)&#10;executed_command: bash /root/workloads/mlcommons/inference/speech_recognition/rnnt/run_local.sh pytorch rnnt gpu --scenario Offline --dataset-path /mnt/datasets/librispeech --output artifacts/mlperf_results/rnnt --count 2513&#10;stderr_tail:&#10;bash: /root/workloads/mlcommons/inference/speech_recognition/rnnt/run_local.sh: No such file or directory&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_009: command failed (rc=127)
+E   executed_command: bash /root/workloads/mlcommons/inference/speech_recognition/rnnt/run_local.sh pytorch rnnt gpu --scenario Offline --dataset-path /mnt/datasets/librispeech --output artifacts/mlperf_results/rnnt --count 2513
+E   stderr_tail:
+E   bash: /root/workloads/mlcommons/inference/speech_recognition/rnnt/run_local.sh: No such file or directory
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_010]" time="0.184"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_010: command failed (rc=127)&#10;executed_command: bash /root/workloads/mlcommons/inference/speech_recognition/whisper/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/librispeech --output artifacts/mlperf_results/whisper --model openai/whisper-large-v2 --count 2620&#10;stderr_tail:&#10;bash: /root/workloads/mlcommons/inference/speech_recognition/whisper/run_local.sh: No such file or directory&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_010: command failed (rc=127)
+E   executed_command: bash /root/workloads/mlcommons/inference/speech_recognition/whisper/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/librispeech --output artifacts/mlperf_results/whisper --model openai/whisper-large-v2 --count 2620
+E   stderr_tail:
+E   bash: /root/workloads/mlcommons/inference/speech_recognition/whisper/run_local.sh: No such file or directory
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_011]" time="0.244"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_011: command failed (rc=2)&#10;executed_command: /opt/venvs/torch-cu128/bin/python /root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py --scenario Offline --dataset-path /mnt/datasets/criteo --model-path /mnt/datasets/dlrm/model_weights --output artifacts/mlperf_results/dlrm --num-samples 204800 --count 204800 --num-processes 4&#10;stderr_tail:&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py': [Errno 2] No such file or directory&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_011: command failed (rc=2)
+E   executed_command: /opt/venvs/torch-cu128/bin/python /root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py --scenario Offline --dataset-path /mnt/datasets/criteo --model-path /mnt/datasets/dlrm/model_weights --output artifacts/mlperf_results/dlrm --num-samples 204800 --count 204800 --num-processes 4
+E   stderr_tail:
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py': [Errno 2] No such file or directory
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_012]" time="0.191"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_012: command failed (rc=127)&#10;executed_command: bash /root/workloads/mlcommons/inference/text_to_image/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/coco-sdxl --model-path /mnt/datasets/sdxl --output artifacts/mlperf_results/sdxl --count 5000 --num-inf-steps 20&#10;stderr_tail:&#10;bash: /root/workloads/mlcommons/inference/text_to_image/run_local.sh: No such file or directory&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_012: command failed (rc=127)
+E   executed_command: bash /root/workloads/mlcommons/inference/text_to_image/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/coco-sdxl --model-path /mnt/datasets/sdxl --output artifacts/mlperf_results/sdxl --count 5000 --num-inf-steps 20
+E   stderr_tail:
+E   bash: /root/workloads/mlcommons/inference/text_to_image/run_local.sh: No such file or directory
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_013]" time="0.188"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_013: command failed (rc=127)&#10;executed_command: bash /root/workloads/mlcommons/inference/graph/R-GAT/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/igb-het --model-path /mnt/datasets/rgat --output artifacts/mlperf_results/rgat --count 9035&#10;stderr_tail:&#10;bash: /root/workloads/mlcommons/inference/graph/R-GAT/run_local.sh: No such file or directory&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_013: command failed (rc=127)
+E   executed_command: bash /root/workloads/mlcommons/inference/graph/R-GAT/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/igb-het --model-path /mnt/datasets/rgat --output artifacts/mlperf_results/rgat --count 9035
+E   stderr_tail:
+E   bash: /root/workloads/mlcommons/inference/graph/R-GAT/run_local.sh: No such file or directory
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_014]" time="1.779"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_014: command failed (rc=1)&#10;executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/gpt-j/run_training.py --model-name EleutherAI/gpt-j-6b --dataset-path /mnt/datasets/cnn_dailymail --output-dir artifacts/mlperf_results/gpt-j --target-rouge1 42.9245 --per-device-batch-size 8 --gradient-accumulation-steps 4 --fp16 --log-interval 100&#10;stderr_tail:&#10;W0520 13:55:12.590000 108339 torch/distributed/run.py:851] &#10;W0520 13:55:12.590000 108339 torch/distributed/run.py:851] *****************************************&#10;W0520 13:55:12.590000 108339 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. &#10;W0520 13:55:12.590000 108339 torch/distributed/run.py:851] *****************************************&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/gpt-j/run_training.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/gpt-j/run_training.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/gpt-j/run_training.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/gpt-j/run_training.py': [Errno 2] No such file or directory&#10;E0520 13:55:12.798000 108339 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108407) of binary: /opt/venvs/torch-cu128/bin/python&#10;Traceback (most recent call last):&#10;  File &quot;/opt/venvs/torch-cu128/bin/torchrun&quot;, line 6, in &lt;module&gt;&#10;    sys.exit(main())&#10;             ^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py&quot;, line 362, in wrapper&#10;    return f(*args, **kwargs)&#10;           ^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 990, in main&#10;    run(args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 981, in run&#10;    elastic_launch(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 170, in __call__&#10;    return launch_agent(self._config, self._entrypoint, list(args))&#10;           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 317, in launch_agent&#10;    raise ChildFailedError(&#10;torch.distributed.elastic.multiprocessing.errors.ChildFailedError: &#10;============================================================&#10;/root/workloads/mlcommons/training/language_model/gpt-j/run_training.py FAILED&#10;------------------------------------------------------------&#10;Failures:&#10;[1]:&#10;  time      : 2026-05-20_13:55:12&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 1 (local_rank: 1)&#10;  exitcode  : 2 (pid: 108408)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[2]:&#10;  time      : 2026-05-20_13:55:12&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 2 (local_rank: 2)&#10;  exitcode  : 2 (pid: 108409)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[3]:&#10;  time      : 2026-05-20_13:55:12&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 3 (local_rank: 3)&#10;  exitcode  : 2 (pid: 108410)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;------------------------------------------------------------&#10;Root Cause (first observed failure):&#10;[0]:&#10;  time      : 2026-05-20_13:55:12&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 0 (local_rank: 0)&#10;  exitcode  : 2 (pid: 108407)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;============================================================&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_014: command failed (rc=1)
+E   executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/gpt-j/run_training.py --model-name EleutherAI/gpt-j-6b --dataset-path /mnt/datasets/cnn_dailymail --output-dir artifacts/mlperf_results/gpt-j --target-rouge1 42.9245 --per-device-batch-size 8 --gradient-accumulation-steps 4 --fp16 --log-interval 100
+E   stderr_tail:
+E   W0520 13:55:12.590000 108339 torch/distributed/run.py:851] 
+E   W0520 13:55:12.590000 108339 torch/distributed/run.py:851] *****************************************
+E   W0520 13:55:12.590000 108339 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+E   W0520 13:55:12.590000 108339 torch/distributed/run.py:851] *****************************************
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/gpt-j/run_training.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/gpt-j/run_training.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/gpt-j/run_training.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/gpt-j/run_training.py': [Errno 2] No such file or directory
+E   E0520 13:55:12.798000 108339 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108407) of binary: /opt/venvs/torch-cu128/bin/python
+E   Traceback (most recent call last):
+E     File "/opt/venvs/torch-cu128/bin/torchrun", line 6, in &lt;module&gt;
+E       sys.exit(main())
+E                ^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+E       return f(*args, **kwargs)
+E              ^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+E       run(args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+E       elastic_launch(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+E       return launch_agent(self._config, self._entrypoint, list(args))
+E              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+E       raise ChildFailedError(
+E   torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+E   ============================================================
+E   /root/workloads/mlcommons/training/language_model/gpt-j/run_training.py FAILED
+E   ------------------------------------------------------------
+E   Failures:
+E   [1]:
+E     time      : 2026-05-20_13:55:12
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 1 (local_rank: 1)
+E     exitcode  : 2 (pid: 108408)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [2]:
+E     time      : 2026-05-20_13:55:12
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 2 (local_rank: 2)
+E     exitcode  : 2 (pid: 108409)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [3]:
+E     time      : 2026-05-20_13:55:12
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 3 (local_rank: 3)
+E     exitcode  : 2 (pid: 108410)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ------------------------------------------------------------
+E   Root Cause (first observed failure):
+E   [0]:
+E     time      : 2026-05-20_13:55:12
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 0 (local_rank: 0)
+E     exitcode  : 2 (pid: 108407)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ============================================================
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_015]" time="1.716"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_015: command failed (rc=1)&#10;executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py --bert_model bert-large-uncased --do_train --train_file /mnt/datasets/squad/train-v1.1.json --predict_file /mnt/datasets/squad/dev-v1.1.json --train_batch_size 48 --learning_rate 3e-5 --num_train_epochs 2.0 --max_seq_length 384 --doc_stride 128 --output_dir artifacts/mlperf_results/bert-squad --fp16&#10;stderr_tail:&#10;W0520 13:55:14.332000 108422 torch/distributed/run.py:851] &#10;W0520 13:55:14.332000 108422 torch/distributed/run.py:851] *****************************************&#10;W0520 13:55:14.332000 108422 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. &#10;W0520 13:55:14.332000 108422 torch/distributed/run.py:851] *****************************************&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py': [Errno 2] No such file or directory&#10;E0520 13:55:14.553000 108422 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108488) of binary: /opt/venvs/torch-cu128/bin/python&#10;Traceback (most recent call last):&#10;  File &quot;/opt/venvs/torch-cu128/bin/torchrun&quot;, line 6, in &lt;module&gt;&#10;    sys.exit(main())&#10;             ^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py&quot;, line 362, in wrapper&#10;    return f(*args, **kwargs)&#10;           ^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 990, in main&#10;    run(args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 981, in run&#10;    elastic_launch(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 170, in __call__&#10;    return launch_agent(self._config, self._entrypoint, list(args))&#10;           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 317, in launch_agent&#10;    raise ChildFailedError(&#10;torch.distributed.elastic.multiprocessing.errors.ChildFailedError: &#10;============================================================&#10;/root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py FAILED&#10;------------------------------------------------------------&#10;Failures:&#10;[1]:&#10;  time      : 2026-05-20_13:55:14&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 1 (local_rank: 1)&#10;  exitcode  : 2 (pid: 108489)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[2]:&#10;  time      : 2026-05-20_13:55:14&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 2 (local_rank: 2)&#10;  exitcode  : 2 (pid: 108490)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[3]:&#10;  time      : 2026-05-20_13:55:14&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 3 (local_rank: 3)&#10;  exitcode  : 2 (pid: 108491)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;------------------------------------------------------------&#10;Root Cause (first observed failure):&#10;[0]:&#10;  time      : 2026-05-20_13:55:14&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 0 (local_rank: 0)&#10;  exitcode  : 2 (pid: 108488)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;============================================================&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_015: command failed (rc=1)
+E   executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py --bert_model bert-large-uncased --do_train --train_file /mnt/datasets/squad/train-v1.1.json --predict_file /mnt/datasets/squad/dev-v1.1.json --train_batch_size 48 --learning_rate 3e-5 --num_train_epochs 2.0 --max_seq_length 384 --doc_stride 128 --output_dir artifacts/mlperf_results/bert-squad --fp16
+E   stderr_tail:
+E   W0520 13:55:14.332000 108422 torch/distributed/run.py:851] 
+E   W0520 13:55:14.332000 108422 torch/distributed/run.py:851] *****************************************
+E   W0520 13:55:14.332000 108422 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+E   W0520 13:55:14.332000 108422 torch/distributed/run.py:851] *****************************************
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py': [Errno 2] No such file or directory
+E   E0520 13:55:14.553000 108422 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108488) of binary: /opt/venvs/torch-cu128/bin/python
+E   Traceback (most recent call last):
+E     File "/opt/venvs/torch-cu128/bin/torchrun", line 6, in &lt;module&gt;
+E       sys.exit(main())
+E                ^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+E       return f(*args, **kwargs)
+E              ^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+E       run(args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+E       elastic_launch(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+E       return launch_agent(self._config, self._entrypoint, list(args))
+E              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+E       raise ChildFailedError(
+E   torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+E   ============================================================
+E   /root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py FAILED
+E   ------------------------------------------------------------
+E   Failures:
+E   [1]:
+E     time      : 2026-05-20_13:55:14
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 1 (local_rank: 1)
+E     exitcode  : 2 (pid: 108489)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [2]:
+E     time      : 2026-05-20_13:55:14
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 2 (local_rank: 2)
+E     exitcode  : 2 (pid: 108490)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [3]:
+E     time      : 2026-05-20_13:55:14
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 3 (local_rank: 3)
+E     exitcode  : 2 (pid: 108491)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ------------------------------------------------------------
+E   Root Cause (first observed failure):
+E   [0]:
+E     time      : 2026-05-20_13:55:14
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 0 (local_rank: 0)
+E     exitcode  : 2 (pid: 108488)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ============================================================
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_016]" time="1.835"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_016: command failed (rc=1)&#10;executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/image_segmentation/pytorch/train.py --data-dir /mnt/datasets/kits19 --epochs 4000 --batch-size 2 --optimizer adam --learning-rate 0.0002 --amp --log-every 50&#10;stderr_tail:&#10;W0520 13:55:16.166000 108502 torch/distributed/run.py:851] &#10;W0520 13:55:16.166000 108502 torch/distributed/run.py:851] *****************************************&#10;W0520 13:55:16.166000 108502 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. &#10;W0520 13:55:16.166000 108502 torch/distributed/run.py:851] *****************************************&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/image_segmentation/pytorch/train.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/image_segmentation/pytorch/train.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/image_segmentation/pytorch/train.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/image_segmentation/pytorch/train.py': [Errno 2] No such file or directory&#10;E0520 13:55:16.375000 108502 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108574) of binary: /opt/venvs/torch-cu128/bin/python&#10;Traceback (most recent call last):&#10;  File &quot;/opt/venvs/torch-cu128/bin/torchrun&quot;, line 6, in &lt;module&gt;&#10;    sys.exit(main())&#10;             ^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py&quot;, line 362, in wrapper&#10;    return f(*args, **kwargs)&#10;           ^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 990, in main&#10;    run(args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 981, in run&#10;    elastic_launch(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 170, in __call__&#10;    return launch_agent(self._config, self._entrypoint, list(args))&#10;           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 317, in launch_agent&#10;    raise ChildFailedError(&#10;torch.distributed.elastic.multiprocessing.errors.ChildFailedError: &#10;============================================================&#10;/root/workloads/mlcommons/training/image_segmentation/pytorch/train.py FAILED&#10;------------------------------------------------------------&#10;Failures:&#10;[1]:&#10;  time      : 2026-05-20_13:55:16&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 1 (local_rank: 1)&#10;  exitcode  : 2 (pid: 108575)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[2]:&#10;  time      : 2026-05-20_13:55:16&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 2 (local_rank: 2)&#10;  exitcode  : 2 (pid: 108576)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[3]:&#10;  time      : 2026-05-20_13:55:16&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 3 (local_rank: 3)&#10;  exitcode  : 2 (pid: 108577)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;------------------------------------------------------------&#10;Root Cause (first observed failure):&#10;[0]:&#10;  time      : 2026-05-20_13:55:16&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 0 (local_rank: 0)&#10;  exitcode  : 2 (pid: 108574)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;============================================================&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_016: command failed (rc=1)
+E   executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/image_segmentation/pytorch/train.py --data-dir /mnt/datasets/kits19 --epochs 4000 --batch-size 2 --optimizer adam --learning-rate 0.0002 --amp --log-every 50
+E   stderr_tail:
+E   W0520 13:55:16.166000 108502 torch/distributed/run.py:851] 
+E   W0520 13:55:16.166000 108502 torch/distributed/run.py:851] *****************************************
+E   W0520 13:55:16.166000 108502 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+E   W0520 13:55:16.166000 108502 torch/distributed/run.py:851] *****************************************
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/image_segmentation/pytorch/train.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/image_segmentation/pytorch/train.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/image_segmentation/pytorch/train.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/image_segmentation/pytorch/train.py': [Errno 2] No such file or directory
+E   E0520 13:55:16.375000 108502 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108574) of binary: /opt/venvs/torch-cu128/bin/python
+E   Traceback (most recent call last):
+E     File "/opt/venvs/torch-cu128/bin/torchrun", line 6, in &lt;module&gt;
+E       sys.exit(main())
+E                ^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+E       return f(*args, **kwargs)
+E              ^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+E       run(args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+E       elastic_launch(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+E       return launch_agent(self._config, self._entrypoint, list(args))
+E              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+E       raise ChildFailedError(
+E   torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+E   ============================================================
+E   /root/workloads/mlcommons/training/image_segmentation/pytorch/train.py FAILED
+E   ------------------------------------------------------------
+E   Failures:
+E   [1]:
+E     time      : 2026-05-20_13:55:16
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 1 (local_rank: 1)
+E     exitcode  : 2 (pid: 108575)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [2]:
+E     time      : 2026-05-20_13:55:16
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 2 (local_rank: 2)
+E     exitcode  : 2 (pid: 108576)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [3]:
+E     time      : 2026-05-20_13:55:16
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 3 (local_rank: 3)
+E     exitcode  : 2 (pid: 108577)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ------------------------------------------------------------
+E   Root Cause (first observed failure):
+E   [0]:
+E     time      : 2026-05-20_13:55:16
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 0 (local_rank: 0)
+E     exitcode  : 2 (pid: 108574)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ============================================================
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_017]" time="1.753"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_017: command failed (rc=1)&#10;executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/stable_diffusion/main.py --base /root/workloads/mlcommons/training/stable_diffusion/configs/train_01x04x08.yaml --actual_resume /mnt/datasets/sd/v2-1_512-ema-pruned.ckpt --data_dir /mnt/datasets/laion400m --log-every-n-steps 100&#10;stderr_tail:&#10;W0520 13:55:17.968000 108589 torch/distributed/run.py:851] &#10;W0520 13:55:17.968000 108589 torch/distributed/run.py:851] *****************************************&#10;W0520 13:55:17.968000 108589 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. &#10;W0520 13:55:17.968000 108589 torch/distributed/run.py:851] *****************************************&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/stable_diffusion/main.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/stable_diffusion/main.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/stable_diffusion/main.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/stable_diffusion/main.py': [Errno 2] No such file or directory&#10;E0520 13:55:18.171000 108589 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108657) of binary: /opt/venvs/torch-cu128/bin/python&#10;Traceback (most recent call last):&#10;  File &quot;/opt/venvs/torch-cu128/bin/torchrun&quot;, line 6, in &lt;module&gt;&#10;    sys.exit(main())&#10;             ^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py&quot;, line 362, in wrapper&#10;    return f(*args, **kwargs)&#10;           ^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 990, in main&#10;    run(args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 981, in run&#10;    elastic_launch(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 170, in __call__&#10;    return launch_agent(self._config, self._entrypoint, list(args))&#10;           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 317, in launch_agent&#10;    raise ChildFailedError(&#10;torch.distributed.elastic.multiprocessing.errors.ChildFailedError: &#10;============================================================&#10;/root/workloads/mlcommons/training/stable_diffusion/main.py FAILED&#10;------------------------------------------------------------&#10;Failures:&#10;[1]:&#10;  time      : 2026-05-20_13:55:18&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 1 (local_rank: 1)&#10;  exitcode  : 2 (pid: 108658)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[2]:&#10;  time      : 2026-05-20_13:55:18&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 2 (local_rank: 2)&#10;  exitcode  : 2 (pid: 108659)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[3]:&#10;  time      : 2026-05-20_13:55:18&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 3 (local_rank: 3)&#10;  exitcode  : 2 (pid: 108660)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;------------------------------------------------------------&#10;Root Cause (first observed failure):&#10;[0]:&#10;  time      : 2026-05-20_13:55:18&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 0 (local_rank: 0)&#10;  exitcode  : 2 (pid: 108657)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;============================================================&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_017: command failed (rc=1)
+E   executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/stable_diffusion/main.py --base /root/workloads/mlcommons/training/stable_diffusion/configs/train_01x04x08.yaml --actual_resume /mnt/datasets/sd/v2-1_512-ema-pruned.ckpt --data_dir /mnt/datasets/laion400m --log-every-n-steps 100
+E   stderr_tail:
+E   W0520 13:55:17.968000 108589 torch/distributed/run.py:851] 
+E   W0520 13:55:17.968000 108589 torch/distributed/run.py:851] *****************************************
+E   W0520 13:55:17.968000 108589 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+E   W0520 13:55:17.968000 108589 torch/distributed/run.py:851] *****************************************
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/stable_diffusion/main.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/stable_diffusion/main.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/stable_diffusion/main.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/stable_diffusion/main.py': [Errno 2] No such file or directory
+E   E0520 13:55:18.171000 108589 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108657) of binary: /opt/venvs/torch-cu128/bin/python
+E   Traceback (most recent call last):
+E     File "/opt/venvs/torch-cu128/bin/torchrun", line 6, in &lt;module&gt;
+E       sys.exit(main())
+E                ^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+E       return f(*args, **kwargs)
+E              ^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+E       run(args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+E       elastic_launch(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+E       return launch_agent(self._config, self._entrypoint, list(args))
+E              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+E       raise ChildFailedError(
+E   torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+E   ============================================================
+E   /root/workloads/mlcommons/training/stable_diffusion/main.py FAILED
+E   ------------------------------------------------------------
+E   Failures:
+E   [1]:
+E     time      : 2026-05-20_13:55:18
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 1 (local_rank: 1)
+E     exitcode  : 2 (pid: 108658)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [2]:
+E     time      : 2026-05-20_13:55:18
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 2 (local_rank: 2)
+E     exitcode  : 2 (pid: 108659)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [3]:
+E     time      : 2026-05-20_13:55:18
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 3 (local_rank: 3)
+E     exitcode  : 2 (pid: 108660)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ------------------------------------------------------------
+E   Root Cause (first observed failure):
+E   [0]:
+E     time      : 2026-05-20_13:55:18
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 0 (local_rank: 0)
+E     exitcode  : 2 (pid: 108657)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ============================================================
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_018]" time="1.831"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_018: command failed (rc=1)&#10;executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py --bert_model bert-large-uncased --do_train --train_file /mnt/datasets/bert/hdf5_lower_case_1_seq_len_128/books_wiki_en_corpus --output_dir artifacts/mlperf_results/bert-phase1 --max_seq_length 128 --train_batch_size 512 --max_steps 7038 --learning_rate 6e-3 --warmup_proportion 0.2843 --fp16&#10;stderr_tail:&#10;W0520 13:55:19.790000 108671 torch/distributed/run.py:851] &#10;W0520 13:55:19.790000 108671 torch/distributed/run.py:851] *****************************************&#10;W0520 13:55:19.790000 108671 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. &#10;W0520 13:55:19.790000 108671 torch/distributed/run.py:851] *****************************************&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py': [Errno 2] No such file or directory&#10;E0520 13:55:19.993000 108671 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108738) of binary: /opt/venvs/torch-cu128/bin/python&#10;Traceback (most recent call last):&#10;  File &quot;/opt/venvs/torch-cu128/bin/torchrun&quot;, line 6, in &lt;module&gt;&#10;    sys.exit(main())&#10;             ^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py&quot;, line 362, in wrapper&#10;    return f(*args, **kwargs)&#10;           ^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 990, in main&#10;    run(args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 981, in run&#10;    elastic_launch(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 170, in __call__&#10;    return launch_agent(self._config, self._entrypoint, list(args))&#10;           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 317, in launch_agent&#10;    raise ChildFailedError(&#10;torch.distributed.elastic.multiprocessing.errors.ChildFailedError: &#10;============================================================&#10;/root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py FAILED&#10;------------------------------------------------------------&#10;Failures:&#10;[1]:&#10;  time      : 2026-05-20_13:55:19&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 1 (local_rank: 1)&#10;  exitcode  : 2 (pid: 108739)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[2]:&#10;  time      : 2026-05-20_13:55:19&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 2 (local_rank: 2)&#10;  exitcode  : 2 (pid: 108740)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[3]:&#10;  time      : 2026-05-20_13:55:19&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 3 (local_rank: 3)&#10;  exitcode  : 2 (pid: 108741)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;------------------------------------------------------------&#10;Root Cause (first observed failure):&#10;[0]:&#10;  time      : 2026-05-20_13:55:19&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 0 (local_rank: 0)&#10;  exitcode  : 2 (pid: 108738)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;============================================================&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_018: command failed (rc=1)
+E   executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py --bert_model bert-large-uncased --do_train --train_file /mnt/datasets/bert/hdf5_lower_case_1_seq_len_128/books_wiki_en_corpus --output_dir artifacts/mlperf_results/bert-phase1 --max_seq_length 128 --train_batch_size 512 --max_steps 7038 --learning_rate 6e-3 --warmup_proportion 0.2843 --fp16
+E   stderr_tail:
+E   W0520 13:55:19.790000 108671 torch/distributed/run.py:851] 
+E   W0520 13:55:19.790000 108671 torch/distributed/run.py:851] *****************************************
+E   W0520 13:55:19.790000 108671 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+E   W0520 13:55:19.790000 108671 torch/distributed/run.py:851] *****************************************
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py': [Errno 2] No such file or directory
+E   E0520 13:55:19.993000 108671 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108738) of binary: /opt/venvs/torch-cu128/bin/python
+E   Traceback (most recent call last):
+E     File "/opt/venvs/torch-cu128/bin/torchrun", line 6, in &lt;module&gt;
+E       sys.exit(main())
+E                ^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+E       return f(*args, **kwargs)
+E              ^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+E       run(args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+E       elastic_launch(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+E       return launch_agent(self._config, self._entrypoint, list(args))
+E              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+E       raise ChildFailedError(
+E   torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+E   ============================================================
+E   /root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py FAILED
+E   ------------------------------------------------------------
+E   Failures:
+E   [1]:
+E     time      : 2026-05-20_13:55:19
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 1 (local_rank: 1)
+E     exitcode  : 2 (pid: 108739)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [2]:
+E     time      : 2026-05-20_13:55:19
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 2 (local_rank: 2)
+E     exitcode  : 2 (pid: 108740)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [3]:
+E     time      : 2026-05-20_13:55:19
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 3 (local_rank: 3)
+E     exitcode  : 2 (pid: 108741)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ------------------------------------------------------------
+E   Root Cause (first observed failure):
+E   [0]:
+E     time      : 2026-05-20_13:55:19
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 0 (local_rank: 0)
+E     exitcode  : 2 (pid: 108738)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ============================================================
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_019]" time="1.814"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_019: command failed (rc=1)&#10;executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py --tensor-model-parallel-size 4 --pipeline-model-parallel-size 1 --num-layers 96 --hidden-size 12288 --ffn-hidden-size 49152 --num-attention-heads 96 --seq-length 2048 --global-batch-size 1536 --train-iters 450 --lr-decay-iters 430 --data-path /mnt/datasets/c4/c4_text_document --vocab-file /mnt/datasets/gpt2-vocab.json --merge-file /mnt/datasets/gpt2-merges.txt --split 949,50,1 --distributed-backend nccl --lr 6.0e-5 --min-lr 6.0e-6 --lr-decay-style cosine --weight-decay 0.1 --clip-grad 1.0 --bf16 --log-interval 10&#10;stderr_tail:&#10;W0520 13:55:21.626000 108753 torch/distributed/run.py:851] &#10;W0520 13:55:21.626000 108753 torch/distributed/run.py:851] *****************************************&#10;W0520 13:55:21.626000 108753 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. &#10;W0520 13:55:21.626000 108753 torch/distributed/run.py:851] *****************************************&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py': [Errno 2] No such file or directory&#10;E0520 13:55:21.834000 108753 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108820) of binary: /opt/venvs/torch-cu128/bin/python&#10;Traceback (most recent call last):&#10;  File &quot;/opt/venvs/torch-cu128/bin/torchrun&quot;, line 6, in &lt;module&gt;&#10;    sys.exit(main())&#10;             ^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py&quot;, line 362, in wrapper&#10;    return f(*args, **kwargs)&#10;           ^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 990, in main&#10;    run(args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 981, in run&#10;    elastic_launch(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 170, in __call__&#10;    return launch_agent(self._config, self._entrypoint, list(args))&#10;           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 317, in launch_agent&#10;    raise ChildFailedError(&#10;torch.distributed.elastic.multiprocessing.errors.ChildFailedError: &#10;============================================================&#10;/root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py FAILED&#10;------------------------------------------------------------&#10;Failures:&#10;[1]:&#10;  time      : 2026-05-20_13:55:21&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 1 (local_rank: 1)&#10;  exitcode  : 2 (pid: 108821)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[2]:&#10;  time      : 2026-05-20_13:55:21&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 2 (local_rank: 2)&#10;  exitcode  : 2 (pid: 108822)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[3]:&#10;  time      : 2026-05-20_13:55:21&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 3 (local_rank: 3)&#10;  exitcode  : 2 (pid: 108823)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;------------------------------------------------------------&#10;Root Cause (first observed failure):&#10;[0]:&#10;  time      : 2026-05-20_13:55:21&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 0 (local_rank: 0)&#10;  exitcode  : 2 (pid: 108820)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;============================================================&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_019: command failed (rc=1)
+E   executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py --tensor-model-parallel-size 4 --pipeline-model-parallel-size 1 --num-layers 96 --hidden-size 12288 --ffn-hidden-size 49152 --num-attention-heads 96 --seq-length 2048 --global-batch-size 1536 --train-iters 450 --lr-decay-iters 430 --data-path /mnt/datasets/c4/c4_text_document --vocab-file /mnt/datasets/gpt2-vocab.json --merge-file /mnt/datasets/gpt2-merges.txt --split 949,50,1 --distributed-backend nccl --lr 6.0e-5 --min-lr 6.0e-6 --lr-decay-style cosine --weight-decay 0.1 --clip-grad 1.0 --bf16 --log-interval 10
+E   stderr_tail:
+E   W0520 13:55:21.626000 108753 torch/distributed/run.py:851] 
+E   W0520 13:55:21.626000 108753 torch/distributed/run.py:851] *****************************************
+E   W0520 13:55:21.626000 108753 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+E   W0520 13:55:21.626000 108753 torch/distributed/run.py:851] *****************************************
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py': [Errno 2] No such file or directory
+E   E0520 13:55:21.834000 108753 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108820) of binary: /opt/venvs/torch-cu128/bin/python
+E   Traceback (most recent call last):
+E     File "/opt/venvs/torch-cu128/bin/torchrun", line 6, in &lt;module&gt;
+E       sys.exit(main())
+E                ^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+E       return f(*args, **kwargs)
+E              ^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+E       run(args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+E       elastic_launch(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+E       return launch_agent(self._config, self._entrypoint, list(args))
+E              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+E       raise ChildFailedError(
+E   torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+E   ============================================================
+E   /root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py FAILED
+E   ------------------------------------------------------------
+E   Failures:
+E   [1]:
+E     time      : 2026-05-20_13:55:21
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 1 (local_rank: 1)
+E     exitcode  : 2 (pid: 108821)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [2]:
+E     time      : 2026-05-20_13:55:21
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 2 (local_rank: 2)
+E     exitcode  : 2 (pid: 108822)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [3]:
+E     time      : 2026-05-20_13:55:21
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 3 (local_rank: 3)
+E     exitcode  : 2 (pid: 108823)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ------------------------------------------------------------
+E   Root Cause (first observed failure):
+E   [0]:
+E     time      : 2026-05-20_13:55:21
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 0 (local_rank: 0)
+E     exitcode  : 2 (pid: 108820)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ============================================================
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_020]" time="1.770"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_020: command failed (rc=1)&#10;executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py --model_name_or_path meta-llama/Llama-2-70b-hf --dataset_name scrolls --dataset_config govreport --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 --num_train_epochs 1 --per_device_train_batch_size 2 --gradient_accumulation_steps 4 --learning_rate 4e-4 --bf16 --output_dir artifacts/mlperf_results/llama2-lora --logging_steps 50&#10;stderr_tail:&#10;W0520 13:55:23.416000 108835 torch/distributed/run.py:851] &#10;W0520 13:55:23.416000 108835 torch/distributed/run.py:851] *****************************************&#10;W0520 13:55:23.416000 108835 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. &#10;W0520 13:55:23.416000 108835 torch/distributed/run.py:851] *****************************************&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py': [Errno 2] No such file or directory&#10;E0520 13:55:23.621000 108835 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108902) of binary: /opt/venvs/torch-cu128/bin/python&#10;Traceback (most recent call last):&#10;  File &quot;/opt/venvs/torch-cu128/bin/torchrun&quot;, line 6, in &lt;module&gt;&#10;    sys.exit(main())&#10;             ^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py&quot;, line 362, in wrapper&#10;    return f(*args, **kwargs)&#10;           ^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 990, in main&#10;    run(args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 981, in run&#10;    elastic_launch(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 170, in __call__&#10;    return launch_agent(self._config, self._entrypoint, list(args))&#10;           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 317, in launch_agent&#10;    raise ChildFailedError(&#10;torch.distributed.elastic.multiprocessing.errors.ChildFailedError: &#10;============================================================&#10;/root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py FAILED&#10;------------------------------------------------------------&#10;Failures:&#10;[1]:&#10;  time      : 2026-05-20_13:55:23&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 1 (local_rank: 1)&#10;  exitcode  : 2 (pid: 108903)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[2]:&#10;  time      : 2026-05-20_13:55:23&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 2 (local_rank: 2)&#10;  exitcode  : 2 (pid: 108904)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[3]:&#10;  time      : 2026-05-20_13:55:23&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 3 (local_rank: 3)&#10;  exitcode  : 2 (pid: 108905)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;------------------------------------------------------------&#10;Root Cause (first observed failure):&#10;[0]:&#10;  time      : 2026-05-20_13:55:23&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 0 (local_rank: 0)&#10;  exitcode  : 2 (pid: 108902)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;============================================================&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_020: command failed (rc=1)
+E   executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py --model_name_or_path meta-llama/Llama-2-70b-hf --dataset_name scrolls --dataset_config govreport --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 --num_train_epochs 1 --per_device_train_batch_size 2 --gradient_accumulation_steps 4 --learning_rate 4e-4 --bf16 --output_dir artifacts/mlperf_results/llama2-lora --logging_steps 50
+E   stderr_tail:
+E   W0520 13:55:23.416000 108835 torch/distributed/run.py:851] 
+E   W0520 13:55:23.416000 108835 torch/distributed/run.py:851] *****************************************
+E   W0520 13:55:23.416000 108835 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+E   W0520 13:55:23.416000 108835 torch/distributed/run.py:851] *****************************************
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py': [Errno 2] No such file or directory
+E   E0520 13:55:23.621000 108835 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108902) of binary: /opt/venvs/torch-cu128/bin/python
+E   Traceback (most recent call last):
+E     File "/opt/venvs/torch-cu128/bin/torchrun", line 6, in &lt;module&gt;
+E       sys.exit(main())
+E                ^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+E       return f(*args, **kwargs)
+E              ^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+E       run(args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+E       elastic_launch(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+E       return launch_agent(self._config, self._entrypoint, list(args))
+E              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+E       raise ChildFailedError(
+E   torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+E   ============================================================
+E   /root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py FAILED
+E   ------------------------------------------------------------
+E   Failures:
+E   [1]:
+E     time      : 2026-05-20_13:55:23
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 1 (local_rank: 1)
+E     exitcode  : 2 (pid: 108903)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [2]:
+E     time      : 2026-05-20_13:55:23
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 2 (local_rank: 2)
+E     exitcode  : 2 (pid: 108904)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [3]:
+E     time      : 2026-05-20_13:55:23
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 3 (local_rank: 3)
+E     exitcode  : 2 (pid: 108905)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ------------------------------------------------------------
+E   Root Cause (first observed failure):
+E   [0]:
+E     time      : 2026-05-20_13:55:23
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 0 (local_rank: 0)
+E     exitcode  : 2 (pid: 108902)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ============================================================
+E   
+E   stdout_tail:</failure></testcase><testcase classname="tests.test_mlperf_suite" name="test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_021]" time="1.706"><failure message="Failed: AI_HOSTCPU_ML_TEST_ID_021: command failed (rc=1)&#10;executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py --arch-sparse-feature-size=128 --arch-mlp-bot=13-512-256-128 --arch-mlp-top=1024-1024-512-256-1 --data-generation=dataset --data-set=terabyte --raw-data-file=/mnt/datasets/criteo/day_0 --processed-data-file=/mnt/datasets/criteo/terabyte_processed.npz --loss-function=bce --round-targets=True --learning-rate=1.0 --mini-batch-size=2048 --print-freq=2048 --print-time --test-mini-batch-size=16384 --test-num-workers=16 --memory-map --mlperf-logging --mlperf-auc-threshold=0.8025 --mlperf-bin-loader --mlperf-bin-shuffle --num-batches=5000&#10;stderr_tail:&#10;W0520 13:55:25.158000 108916 torch/distributed/run.py:851] &#10;W0520 13:55:25.158000 108916 torch/distributed/run.py:851] *****************************************&#10;W0520 13:55:25.158000 108916 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. &#10;W0520 13:55:25.158000 108916 torch/distributed/run.py:851] *****************************************&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py': [Errno 2] No such file or directory&#10;/opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py': [Errno 2] No such file or directory&#10;E0520 13:55:25.366000 108916 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108983) of binary: /opt/venvs/torch-cu128/bin/python&#10;Traceback (most recent call last):&#10;  File &quot;/opt/venvs/torch-cu128/bin/torchrun&quot;, line 6, in &lt;module&gt;&#10;    sys.exit(main())&#10;             ^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py&quot;, line 362, in wrapper&#10;    return f(*args, **kwargs)&#10;           ^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 990, in main&#10;    run(args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py&quot;, line 981, in run&#10;    elastic_launch(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 170, in __call__&#10;    return launch_agent(self._config, self._entrypoint, list(args))&#10;           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py&quot;, line 317, in launch_agent&#10;    raise ChildFailedError(&#10;torch.distributed.elastic.multiprocessing.errors.ChildFailedError: &#10;============================================================&#10;/root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py FAILED&#10;------------------------------------------------------------&#10;Failures:&#10;[1]:&#10;  time      : 2026-05-20_13:55:25&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 1 (local_rank: 1)&#10;  exitcode  : 2 (pid: 108984)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[2]:&#10;  time      : 2026-05-20_13:55:25&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 2 (local_rank: 2)&#10;  exitcode  : 2 (pid: 108985)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;[3]:&#10;  time      : 2026-05-20_13:55:25&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 3 (local_rank: 3)&#10;  exitcode  : 2 (pid: 108986)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;------------------------------------------------------------&#10;Root Cause (first observed failure):&#10;[0]:&#10;  time      : 2026-05-20_13:55:25&#10;  host      : sc00901168s0075.sc.intel.com&#10;  rank      : 0 (local_rank: 0)&#10;  exitcode  : 2 (pid: 108983)&#10;  error_file: &lt;N/A&gt;&#10;  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html&#10;============================================================&#10;&#10;stdout_tail:">tests/test_mlperf_suite.py:1292: in test_mlperf_case_suite
+    pytest.fail(
+E   Failed: AI_HOSTCPU_ML_TEST_ID_021: command failed (rc=1)
+E   executed_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py --arch-sparse-feature-size=128 --arch-mlp-bot=13-512-256-128 --arch-mlp-top=1024-1024-512-256-1 --data-generation=dataset --data-set=terabyte --raw-data-file=/mnt/datasets/criteo/day_0 --processed-data-file=/mnt/datasets/criteo/terabyte_processed.npz --loss-function=bce --round-targets=True --learning-rate=1.0 --mini-batch-size=2048 --print-freq=2048 --print-time --test-mini-batch-size=16384 --test-num-workers=16 --memory-map --mlperf-logging --mlperf-auc-threshold=0.8025 --mlperf-bin-loader --mlperf-bin-shuffle --num-batches=5000
+E   stderr_tail:
+E   W0520 13:55:25.158000 108916 torch/distributed/run.py:851] 
+E   W0520 13:55:25.158000 108916 torch/distributed/run.py:851] *****************************************
+E   W0520 13:55:25.158000 108916 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+E   W0520 13:55:25.158000 108916 torch/distributed/run.py:851] *****************************************
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py': [Errno 2] No such file or directory
+E   /opt/venvs/torch-cu128/bin/python: can't open file '/root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py': [Errno 2] No such file or directory
+E   E0520 13:55:25.366000 108916 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 2) local_rank: 0 (pid: 108983) of binary: /opt/venvs/torch-cu128/bin/python
+E   Traceback (most recent call last):
+E     File "/opt/venvs/torch-cu128/bin/torchrun", line 6, in &lt;module&gt;
+E       sys.exit(main())
+E                ^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+E       return f(*args, **kwargs)
+E              ^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+E       run(args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+E       elastic_launch(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+E       return launch_agent(self._config, self._entrypoint, list(args))
+E              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+E       raise ChildFailedError(
+E   torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+E   ============================================================
+E   /root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py FAILED
+E   ------------------------------------------------------------
+E   Failures:
+E   [1]:
+E     time      : 2026-05-20_13:55:25
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 1 (local_rank: 1)
+E     exitcode  : 2 (pid: 108984)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [2]:
+E     time      : 2026-05-20_13:55:25
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 2 (local_rank: 2)
+E     exitcode  : 2 (pid: 108985)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   [3]:
+E     time      : 2026-05-20_13:55:25
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 3 (local_rank: 3)
+E     exitcode  : 2 (pid: 108986)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ------------------------------------------------------------
+E   Root Cause (first observed failure):
+E   [0]:
+E     time      : 2026-05-20_13:55:25
+E     host      : sc00901168s0075.sc.intel.com
+E     rank      : 0 (local_rank: 0)
+E     exitcode  : 2 (pid: 108983)
+E     error_file: &lt;N/A&gt;
+E     traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+E   ============================================================
+E   
+E   stdout_tail:</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,42 @@
+{"timestamp": "2026-05-20T10:06:08", "test": "TC-IC-02_h2d_bandwidth_gpu0", "metrics": {"bandwidth_gbs": 56.11, "theoretical_gbs": 63.0, "device_idx": 0}}
+{"timestamp": "2026-05-20T10:06:08", "test": "TC-IC-02_h2d_bandwidth_gpu1", "metrics": {"bandwidth_gbs": 56.16, "theoretical_gbs": 63.0, "device_idx": 1}}
+{"timestamp": "2026-05-20T10:06:09", "test": "TC-IC-02_h2d_bandwidth_gpu2", "metrics": {"bandwidth_gbs": 56.09, "theoretical_gbs": 63.0, "device_idx": 2}}
+{"timestamp": "2026-05-20T10:06:09", "test": "TC-IC-02_h2d_bandwidth_gpu3", "metrics": {"bandwidth_gbs": 56.13, "theoretical_gbs": 63.0, "device_idx": 3}}
+{"timestamp": "2026-05-20T10:06:09", "test": "TC-IC-03_d2h_bandwidth_gpu0", "metrics": {"bandwidth_gbs": 55.27, "theoretical_gbs": 63.0, "device_idx": 0}}
+{"timestamp": "2026-05-20T10:06:10", "test": "TC-IC-03_d2h_bandwidth_gpu1", "metrics": {"bandwidth_gbs": 55.3, "theoretical_gbs": 63.0, "device_idx": 1}}
+{"timestamp": "2026-05-20T10:06:11", "test": "TC-IC-03_d2h_bandwidth_gpu2", "metrics": {"bandwidth_gbs": 57.05, "theoretical_gbs": 63.0, "device_idx": 2}}
+{"timestamp": "2026-05-20T10:06:11", "test": "TC-IC-03_d2h_bandwidth_gpu3", "metrics": {"bandwidth_gbs": 55.28, "theoretical_gbs": 63.0, "device_idx": 3}}
+{"timestamp": "2026-05-20T10:06:14", "test": "TC-IC-07_p2p_bandwidth_gpu0_to_1", "metrics": {"bandwidth_gbs": 52.1, "theoretical_gbs": 63.0, "src": 0, "dst": 1}}
+{"timestamp": "2026-05-20T10:06:14", "test": "TC-IC-07_p2p_bandwidth_gpu0_to_2", "metrics": {"bandwidth_gbs": 46.22, "theoretical_gbs": 63.0, "src": 0, "dst": 2}}
+{"timestamp": "2026-05-20T10:06:14", "test": "TC-IC-07_p2p_bandwidth_gpu0_to_3", "metrics": {"bandwidth_gbs": 46.46, "theoretical_gbs": 63.0, "src": 0, "dst": 3}}
+{"timestamp": "2026-05-20T10:06:15", "test": "TC-IC-07_p2p_bandwidth_gpu1_to_2", "metrics": {"bandwidth_gbs": 44.64, "theoretical_gbs": 63.0, "src": 1, "dst": 2}}
+{"timestamp": "2026-05-20T10:06:15", "test": "TC-IC-07_p2p_bandwidth_gpu1_to_3", "metrics": {"bandwidth_gbs": 44.61, "theoretical_gbs": 63.0, "src": 1, "dst": 3}}
+{"timestamp": "2026-05-20T10:06:15", "test": "TC-IC-07_p2p_bandwidth_gpu2_to_3", "metrics": {"bandwidth_gbs": 51.73, "theoretical_gbs": 63.0, "src": 2, "dst": 3}}
+{"timestamp": "2026-05-20T22:50:37", "test": "TC-IC-02_h2d_bandwidth_gpu0", "metrics": {"bandwidth_gbs": 56.1, "theoretical_gbs": 63.0, "device_idx": 0}}
+{"timestamp": "2026-05-20T22:50:37", "test": "TC-IC-02_h2d_bandwidth_gpu1", "metrics": {"bandwidth_gbs": 55.63, "theoretical_gbs": 63.0, "device_idx": 1}}
+{"timestamp": "2026-05-20T22:50:38", "test": "TC-IC-02_h2d_bandwidth_gpu2", "metrics": {"bandwidth_gbs": 56.02, "theoretical_gbs": 63.0, "device_idx": 2}}
+{"timestamp": "2026-05-20T22:50:38", "test": "TC-IC-02_h2d_bandwidth_gpu3", "metrics": {"bandwidth_gbs": 56.08, "theoretical_gbs": 63.0, "device_idx": 3}}
+{"timestamp": "2026-05-20T22:50:39", "test": "TC-IC-03_d2h_bandwidth_gpu0", "metrics": {"bandwidth_gbs": 55.38, "theoretical_gbs": 63.0, "device_idx": 0}}
+{"timestamp": "2026-05-20T22:50:39", "test": "TC-IC-03_d2h_bandwidth_gpu1", "metrics": {"bandwidth_gbs": 55.39, "theoretical_gbs": 63.0, "device_idx": 1}}
+{"timestamp": "2026-05-20T22:50:39", "test": "TC-IC-03_d2h_bandwidth_gpu2", "metrics": {"bandwidth_gbs": 57.19, "theoretical_gbs": 63.0, "device_idx": 2}}
+{"timestamp": "2026-05-20T22:50:39", "test": "TC-IC-03_d2h_bandwidth_gpu3", "metrics": {"bandwidth_gbs": 55.39, "theoretical_gbs": 63.0, "device_idx": 3}}
+{"timestamp": "2026-05-20T22:50:42", "test": "TC-IC-07_p2p_bandwidth_gpu0_to_1", "metrics": {"bandwidth_gbs": 52.65, "theoretical_gbs": 63.0, "src": 0, "dst": 1}}
+{"timestamp": "2026-05-20T22:50:42", "test": "TC-IC-07_p2p_bandwidth_gpu0_to_2", "metrics": {"bandwidth_gbs": 46.17, "theoretical_gbs": 63.0, "src": 0, "dst": 2}}
+{"timestamp": "2026-05-20T22:50:43", "test": "TC-IC-07_p2p_bandwidth_gpu0_to_3", "metrics": {"bandwidth_gbs": 46.14, "theoretical_gbs": 63.0, "src": 0, "dst": 3}}
+{"timestamp": "2026-05-20T22:50:43", "test": "TC-IC-07_p2p_bandwidth_gpu1_to_2", "metrics": {"bandwidth_gbs": 44.63, "theoretical_gbs": 63.0, "src": 1, "dst": 2}}
+{"timestamp": "2026-05-20T22:50:43", "test": "TC-IC-07_p2p_bandwidth_gpu1_to_3", "metrics": {"bandwidth_gbs": 44.63, "theoretical_gbs": 63.0, "src": 1, "dst": 3}}
+{"timestamp": "2026-05-20T22:50:44", "test": "TC-IC-07_p2p_bandwidth_gpu2_to_3", "metrics": {"bandwidth_gbs": 51.65, "theoretical_gbs": 63.0, "src": 2, "dst": 3}}
+{"timestamp": "2026-05-20T23:30:21", "test": "TC-IC-02_h2d_bandwidth_gpu0", "metrics": {"bandwidth_gbs": 55.94, "theoretical_gbs": 63.0, "device_idx": 0}}
+{"timestamp": "2026-05-20T23:30:21", "test": "TC-IC-02_h2d_bandwidth_gpu1", "metrics": {"bandwidth_gbs": 56.19, "theoretical_gbs": 63.0, "device_idx": 1}}
+{"timestamp": "2026-05-20T23:30:22", "test": "TC-IC-02_h2d_bandwidth_gpu2", "metrics": {"bandwidth_gbs": 56.14, "theoretical_gbs": 63.0, "device_idx": 2}}
+{"timestamp": "2026-05-20T23:30:22", "test": "TC-IC-02_h2d_bandwidth_gpu3", "metrics": {"bandwidth_gbs": 56.14, "theoretical_gbs": 63.0, "device_idx": 3}}
+{"timestamp": "2026-05-20T23:30:22", "test": "TC-IC-03_d2h_bandwidth_gpu0", "metrics": {"bandwidth_gbs": 55.07, "theoretical_gbs": 63.0, "device_idx": 0}}
+{"timestamp": "2026-05-20T23:30:23", "test": "TC-IC-03_d2h_bandwidth_gpu1", "metrics": {"bandwidth_gbs": 55.12, "theoretical_gbs": 63.0, "device_idx": 1}}
+{"timestamp": "2026-05-20T23:30:23", "test": "TC-IC-03_d2h_bandwidth_gpu2", "metrics": {"bandwidth_gbs": 56.83, "theoretical_gbs": 63.0, "device_idx": 2}}
+{"timestamp": "2026-05-20T23:30:23", "test": "TC-IC-03_d2h_bandwidth_gpu3", "metrics": {"bandwidth_gbs": 55.12, "theoretical_gbs": 63.0, "device_idx": 3}}
+{"timestamp": "2026-05-20T23:30:26", "test": "TC-IC-07_p2p_bandwidth_gpu0_to_1", "metrics": {"bandwidth_gbs": 52.45, "theoretical_gbs": 63.0, "src": 0, "dst": 1}}
+{"timestamp": "2026-05-20T23:30:26", "test": "TC-IC-07_p2p_bandwidth_gpu0_to_2", "metrics": {"bandwidth_gbs": 46.24, "theoretical_gbs": 63.0, "src": 0, "dst": 2}}
+{"timestamp": "2026-05-20T23:30:26", "test": "TC-IC-07_p2p_bandwidth_gpu0_to_3", "metrics": {"bandwidth_gbs": 46.4, "theoretical_gbs": 63.0, "src": 0, "dst": 3}}
+{"timestamp": "2026-05-20T23:30:27", "test": "TC-IC-07_p2p_bandwidth_gpu1_to_2", "metrics": {"bandwidth_gbs": 44.64, "theoretical_gbs": 63.0, "src": 1, "dst": 2}}
+{"timestamp": "2026-05-20T23:30:27", "test": "TC-IC-07_p2p_bandwidth_gpu1_to_3", "metrics": {"bandwidth_gbs": 44.63, "theoretical_gbs": 63.0, "src": 1, "dst": 3}}
+{"timestamp": "2026-05-20T23:30:27", "test": "TC-IC-07_p2p_bandwidth_gpu2_to_3", "metrics": {"bandwidth_gbs": 51.92, "theoretical_gbs": 63.0, "src": 2, "dst": 3}}

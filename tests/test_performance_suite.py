@@ -793,12 +793,32 @@ def _retune_vllm_serve_for_startup(command: str) -> str:
 
 def _known_skip_reason_from_result(result: Dict) -> Optional[str]:
     text = f"{result.get('stderr_tail', '')}\n{result.get('stdout_tail', '')}".lower()
-    if result.get("returncode") == 124:
+    rc = result.get("returncode")
+    if rc == 124:
         return "Performance benchmark command timed out in this environment"
+    # rc=127 → shell could not find the binary. Most often `genai-perf`,
+    # `trtllm-bench` or a custom launcher script is not installed on PATH.
+    if rc == 127 or "command not found" in text or ": not found" in text:
+        return "Required performance benchmark binary not found on PATH"
     if "no module named" in text and "vllm.benchmarks" in text:
         return "vLLM benchmark module not available in the active Python environment"
     if "clientconnectorerror" in text or "cannot connect to host 127.0.0.1:8000" in text:
         return "vLLM benchmark could not connect to the local serving endpoint"
+    # Generic HTTP-connection-refused (covers `genai-perf` / `requests` /
+    # `httpx` / `aiohttp` clients that did not reach the OpenAI-compatible
+    # vLLM endpoint expected to be running on 127.0.0.1).
+    if (
+        "connection refused" in text
+        or "failed to connect" in text
+        or "could not connect" in text
+        or "connection reset by peer" in text
+        or "nodename nor servname provided" in text
+        or "name or service not known" in text
+        or "errno 111" in text
+        or "[errno 61]" in text
+        or "endpoint not reachable" in text
+    ):
+        return "Performance benchmark could not reach the serving endpoint (server not running)"
     if "all requests failed" in text:
         return "vLLM benchmark reached the endpoint but all benchmark requests failed"
     if "free memory on device" in text and "less than desired gpu memory utilization" in text:

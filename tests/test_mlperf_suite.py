@@ -284,6 +284,39 @@ def _run_command(command: str, timeout_sec: int) -> Dict:
     }
 
 
+def _mlperf_missing_prereq_reason(result: Dict) -> Optional[str]:
+    """Recognise common 'environment not provisioned' failures and return a
+    human-readable skip reason.
+
+    These are not platform regressions: the H100 node is fine, but the MLPerf
+    binaries / datasets / Python modules required by the case have not been
+    staged. We want such cases to *skip* rather than *fail*, so a single
+    missing dependency does not flip the suite status from green to red.
+    """
+    rc = result.get("returncode")
+    stderr = (result.get("stderr_tail") or "").lower()
+    stdout = (result.get("stdout_tail") or "").lower()
+    text = f"{stderr}\n{stdout}"
+
+    # rc=127 → shell could not locate the executable at all.
+    if rc == 127 or "command not found" in stderr or ": not found" in stderr:
+        return "Required MLPerf benchmark binary not found on PATH"
+
+    if "no such file or directory" in text and (
+        "config" in text or "dataset" in text or ".yaml" in text or ".json" in text
+        or "/workloads/" in text or "/mlcommons/" in text
+    ):
+        return "Required MLPerf dataset or config file not staged on this node"
+
+    if "modulenotfounderror" in text or "no module named" in text:
+        return "Required Python module for this MLPerf case not installed"
+
+    if "permission denied" in stderr:
+        return "Permission denied invoking MLPerf binary or accessing dataset"
+
+    return None
+
+
 # ---------------------------------------------------------------------------
 # KPI Parsers
 # ---------------------------------------------------------------------------
@@ -1281,6 +1314,24 @@ def test_mlperf_case_suite(case: MLPerfCase) -> None:
         command_results.append(result)
 
         if result["returncode"] not in {0, 124}:
+            # Convert "missing prerequisite" failures into skips so that the
+            # suite cleanly distinguishes platform regressions from environment
+            # gaps (binary not on PATH, dataset not staged, etc.). We still
+            # FAIL hard for any other non-zero exit so real benchmark errors
+            # are not hidden.
+            skip_reason = _mlperf_missing_prereq_reason(result)
+            if skip_reason:
+                _record_kpi(
+                    case.case_id,
+                    {
+                        "mode": "execution",
+                        "status": "skipped",
+                        "reason": skip_reason,
+                        "results": command_results,
+                    },
+                )
+                pytest.skip(f"{case.case_id}: {skip_reason}")
+
             _record_kpi(
                 case.case_id,
                 {

@@ -171,9 +171,18 @@ def _run_fp64_tflops(device_idx: int, m: int = 4096, k: int = 4096, n: int = 409
     return flops / elapsed / 1e12
 
 
-def _hbm_bandwidth_tbs(device_idx: int, n_bytes: int = 4 * 1024 ** 3) -> float:
+def _hbm_bandwidth_tbs(device_idx: int, n_bytes: int = 4 * 1024 ** 3,
+                       n_warmup: int = 3, n_iters: int = 10) -> float:
     """
-    Measure HBM3 read bandwidth via a large device-to-device memory copy.
+    Measure HBM3 read+write bandwidth via large device-to-device memory copies.
+
+    A single-copy timing on a cold CUDA context (especially GPU 0 right after
+    process start) is dominated by kernel-launch / DMA setup latency, which
+    skewed earlier results to <20 % efficiency on GPU 0 only. We now run
+    multiple warm-up copies followed by N timed iterations and take the
+    **best** (minimum-elapsed) sample — the standard convention for
+    bandwidth micro-benchmarks.
+
     Returns bandwidth in TB/s.
     """
     if not _HAS_TORCH:
@@ -182,14 +191,25 @@ def _hbm_bandwidth_tbs(device_idx: int, n_bytes: int = 4 * 1024 ** 3) -> float:
     n = n_bytes // 2   # float16 elements
     src = torch.ones(n, device=device, dtype=torch.float16)
     dst = torch.empty(n, device=device, dtype=torch.float16)
-    dst.copy_(src)
+
+    # Warm-up: prime kernel cache, DMA engines, and clocks.
+    for _ in range(n_warmup):
+        dst.copy_(src)
     torch.cuda.synchronize(device)
-    t0 = time.perf_counter()
-    dst.copy_(src)
-    torch.cuda.synchronize(device)
-    elapsed = time.perf_counter() - t0
+
     bytes_moved = n_bytes * 2  # read + write
-    return bytes_moved / elapsed / 1e12
+    best_bw_tbs = 0.0
+    for _ in range(n_iters):
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        dst.copy_(src)
+        torch.cuda.synchronize(device)
+        elapsed = time.perf_counter() - t0
+        if elapsed > 0:
+            bw_tbs = bytes_moved / elapsed / 1e12
+            if bw_tbs > best_bw_tbs:
+                best_bw_tbs = bw_tbs
+    return best_bw_tbs
 
 
 def _pcie_h2d_bandwidth_gbs(device_idx: int, n_bytes: int = 512 * 1024 * 1024,

@@ -26,3 +26,6 @@ env/
 .DS_Store
 Thumbs.db
 validation_run.log
+
+# Local analysis artifacts (not tracked)
+Analysis_report/

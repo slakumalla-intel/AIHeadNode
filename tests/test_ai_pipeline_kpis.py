@@ -1198,6 +1198,25 @@ class TestInferencePipelineKPIs:
         )
         model.eval()
 
+        # Guard against parametrize inputs that exceed the model's positional
+        # embedding range. Feeding more tokens than the model was trained for
+        # triggers an out-of-bounds device-side assert that poisons the CUDA
+        # context for the rest of the suite (cascading skips). The TTFT KPI is
+        # meaningless above the model's supported context window anyway.
+        max_pos = (
+            getattr(model.config, "max_position_embeddings", None)
+            or getattr(model.config, "n_positions", None)
+            or getattr(model.config, "n_ctx", None)
+            or 0
+        )
+        if max_pos and input_len > max_pos:
+            del model
+            torch.cuda.empty_cache()
+            pytest.skip(
+                f"input_len={input_len} exceeds {_MODEL_ID} max_position_embeddings={max_pos}; "
+                f"override PIPELINE_MODEL_ID to a longer-context model to exercise this case"
+            )
+
         text = "The AI inference pipeline processes sequences. " * (input_len // 8 + 1)
         inputs = tokenizer(text, truncation=True, max_length=input_len,
                            return_tensors="pt").to("cuda:0")

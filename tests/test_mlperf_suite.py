@@ -311,6 +311,29 @@ def _mlperf_missing_prereq_reason(result: Dict) -> Optional[str]:
     if "modulenotfounderror" in text or "no module named" in text:
         return "Required Python module for this MLPerf case not installed"
 
+    # HuggingFace Hub: model snapshot not in local cache and outgoing traffic
+    # is disabled (vLLM serve / hf snapshot_download with local_files_only=True).
+    if (
+        "localentrynotfounderror" in text
+        or "cannot find an appropriate cached snapshot" in text
+        or ("local_files_only" in text and "true" in text and "outgoing traffic" in text)
+    ):
+        return "Required HuggingFace model snapshot not present in local cache (HF offline mode active)"
+
+    # Generic HF Hub unreachable / network gated.
+    if (
+        "huggingface.co" in text
+        and (
+            "couldn't connect" in text
+            or "couldn't reach" in text
+            or "name or service not known" in text
+            or "max retries exceeded" in text
+            or "401" in text and "unauthorized" in text
+            or "gated" in text
+        )
+    ):
+        return "HuggingFace Hub unreachable or model gated; pre-stage with `huggingface-cli download`"
+
     if "permission denied" in stderr:
         return "Permission denied invoking MLPerf binary or accessing dataset"
 

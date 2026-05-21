@@ -838,7 +838,10 @@ class TestPCIeTopology:
                     speed = f.read().strip()
                 if speed:
                     observed_speeds.append(speed)
-                if "32 GT/s" in speed:   # PCIe Gen 5 = 32 GT/s
+                # PCIe Gen 5 = 32 GT/s. Kernel may render this as either
+                # "32 GT/s", "32.0 GT/s", or "32.0 GT/s PCIe" depending on version.
+                speed_normalized = speed.replace(" PCIe", "").strip()
+                if speed_normalized in ("32 GT/s", "32.0 GT/s"):
                     gen5_found = True
                     break
             except OSError:

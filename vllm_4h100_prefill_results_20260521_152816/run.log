@@ -1,0 +1,387 @@
+==================================================
+vLLM 4xH100 Prompt Ingestion / Prefill Validation
+==================================================
+MODEL      : meta-llama/Llama-3.1-8B
+TP         : 4
+DTYPE      : bfloat16
+GPU_UTIL   : 0.90
+INPUT_LENS : 512 2048
+BATCHES    : 1 4
+OUTPUT_LEN : 1
+OUTDIR     : vllm_4h100_prefill_results_20260521_152816
+==================================================
+[INFO] Checking GPUs...
+GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)
+GPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)
+GPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)
+GPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)
+[INFO] Checking vLLM...
+vLLM version: 0.21.0
+
+--------------------------------------------------
+[RUN] len512_bs1_out1_tp4
+[CMD] python3 -m vllm.entrypoints.cli.main bench latency --model meta-llama/Llama-3.1-8B --tensor-parallel-size 4 --dtype bfloat16 --gpu-memory-utilization 0.90 --input-len 512 --output-len 1 --batch-size 1 --num-iters-warmup 2 --num-iters 5 --output-json vllm_4h100_prefill_results_20260521_152816/len512_bs1_out1_tp4.json --disable-log-stats
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+[FAIL] len512_bs1_out1_tp4 rc=1
+[INFO] Post-case cleanup - killing vLLM workers...
+
+--------------------------------------------------
+[RUN] len512_bs4_out1_tp4
+[CMD] python3 -m vllm.entrypoints.cli.main bench latency --model meta-llama/Llama-3.1-8B --tensor-parallel-size 4 --dtype bfloat16 --gpu-memory-utilization 0.90 --input-len 512 --output-len 1 --batch-size 4 --num-iters-warmup 2 --num-iters 5 --output-json vllm_4h100_prefill_results_20260521_152816/len512_bs4_out1_tp4.json --disable-log-stats
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+[FAIL] len512_bs4_out1_tp4 rc=1
+[INFO] Post-case cleanup - killing vLLM workers...
+
+--------------------------------------------------
+[RUN] len2048_bs1_out1_tp4
+[CMD] python3 -m vllm.entrypoints.cli.main bench latency --model meta-llama/Llama-3.1-8B --tensor-parallel-size 4 --dtype bfloat16 --gpu-memory-utilization 0.90 --input-len 2048 --output-len 1 --batch-size 1 --num-iters-warmup 2 --num-iters 5 --output-json vllm_4h100_prefill_results_20260521_152816/len2048_bs1_out1_tp4.json --disable-log-stats
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+[FAIL] len2048_bs1_out1_tp4 rc=1
+[INFO] Post-case cleanup - killing vLLM workers...
+
+--------------------------------------------------
+[RUN] len2048_bs4_out1_tp4
+[CMD] python3 -m vllm.entrypoints.cli.main bench latency --model meta-llama/Llama-3.1-8B --tensor-parallel-size 4 --dtype bfloat16 --gpu-memory-utilization 0.90 --input-len 2048 --output-len 1 --batch-size 4 --num-iters-warmup 2 --num-iters 5 --output-json vllm_4h100_prefill_results_20260521_152816/len2048_bs4_out1_tp4.json --disable-log-stats
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 98, in <module>
+    main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/main.py", line 92, in main
+    args.dispatch_function(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 21, in cmd
+    main(args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/benchmarks/latency.py", line 80, in main
+    engine_args = EngineArgs.from_cli_args(args)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 1492, in from_cli_args
+    engine_args = cls(
+                  ^^^^
+  File "<string>", line 203, in __init__
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/engine/arg_utils.py", line 735, in __post_init__
+    self.model = get_model_path(self.model, self.revision)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/vllm/transformers_utils/repo_utils.py", line 220, in get_model_path
+    return snapshot_download(repo_id=model, **common_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 310, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, pass 'local_files_only=False' as input.
+[FAIL] len2048_bs4_out1_tp4 rc=1
+[INFO] Post-case cleanup - killing vLLM workers...
+
+==================================================
+Completed.
+Summary CSV: vllm_4h100_prefill_results_20260521_152816/summary.csv
+Logs       : vllm_4h100_prefill_results_20260521_152816/run.log
+==================================================
+[INFO] Cleanup: Terminating vLLM worker processes...
+[INFO] Cleanup: Releasing GPU memory...

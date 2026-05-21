@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-05-21T11:24:22.180183+00:00",
+  "generated_at_utc": "2026-05-21T16:26:32.889532+00:00",
   "host": "sc00901168s0075",
   "python": "3.12.13",
   "domains": [
@@ -8,22 +8,22 @@
       "description": "Roofline and bottleneck analysis",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T09:40:51.865019+00:00",
-      "finished_at_utc": "2026-05-21T09:41:31.491688+00:00",
+      "started_at_utc": "2026-05-21T14:43:07.605884+00:00",
+      "finished_at_utc": "2026-05-21T14:43:50.331442+00:00",
       "tests": 25,
       "failures": 2,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 37.417,
+      "duration_sec": 40.879,
       "failed_tests": [
         {
           "nodeid": "tests.test_bottleneck_analysis.TestCPUComputeBottleneck::test_cpu_fp32_efficiency_report",
-          "message": "AssertionError: CPU FP32 (1 processes \u00d7 32 threads): efficiency 3.67% is below threshold 5.00% (measured=0.999, theoretical=27.238)\nassert 0.03669401508547574 >= 0.05",
+          "message": "AssertionError: CPU FP32 (1 processes \u00d7 32 threads): efficiency 3.78% is below threshold 5.00% (measured=1.030, theoretical=27.238)\nassert 0.03779821688081017 >= 0.05",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_bottleneck_analysis.TestGPUComputeBottleneck::test_per_gpu_fp16_efficiency",
-          "message": "AssertionError: GPU 2 FP16 Tensor Core: efficiency 58.04% is below threshold 60.00% (measured=438.810, theoretical=756.000)\nassert 0.5804362653412989 >= 0.6",
+          "message": "AssertionError: GPU 2 FP16 Tensor Core: efficiency 58.01% is below threshold 60.00% (measured=438.556, theoretical=756.000)\nassert 0.5801000358561131 >= 0.6",
           "kind": "failure"
         }
       ],
@@ -36,13 +36,13 @@
       "description": "CPU validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-05-21T09:41:31.491905+00:00",
-      "finished_at_utc": "2026-05-21T09:46:10.004958+00:00",
+      "started_at_utc": "2026-05-21T14:43:50.331689+00:00",
+      "finished_at_utc": "2026-05-21T14:48:21.966744+00:00",
       "tests": 33,
       "failures": 0,
       "errors": 0,
       "skipped": 1,
-      "duration_sec": 277.108,
+      "duration_sec": 268.612,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/cpu.xml",
       "log_file": "artifacts/reports/logs/cpu.log",
@@ -53,22 +53,22 @@
       "description": "Memory subsystem validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T09:46:10.005194+00:00",
-      "finished_at_utc": "2026-05-21T09:46:35.860888+00:00",
+      "started_at_utc": "2026-05-21T14:48:21.966946+00:00",
+      "finished_at_utc": "2026-05-21T14:48:49.053913+00:00",
       "tests": 28,
       "failures": 2,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 24.542,
+      "duration_sec": 25.801,
       "failed_tests": [
         {
           "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_scale_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Scale 12.89 GB/s < 15 GB/s\nassert 12.88683558344393 >= 15.0",
+          "message": "AssertionError: STREAM Scale 12.23 GB/s < 15 GB/s\nassert 12.230952997548338 >= 15.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_triad_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Triad 12.88 GB/s < 15 GB/s\nassert 12.875201402266258 >= 15.0",
+          "message": "AssertionError: STREAM Triad 12.82 GB/s < 15 GB/s\nassert 12.81515025556338 >= 15.0",
           "kind": "failure"
         }
       ],
@@ -81,17 +81,17 @@
       "description": "GPU validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T09:46:35.861142+00:00",
-      "finished_at_utc": "2026-05-21T09:46:55.611820+00:00",
+      "started_at_utc": "2026-05-21T14:48:49.054319+00:00",
+      "finished_at_utc": "2026-05-21T14:49:10.385374+00:00",
       "tests": 53,
       "failures": 1,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 17.642,
+      "duration_sec": 19.584,
       "failed_tests": [
         {
-          "nodeid": "tests.test_gpu_validation.TestHBMBandwidth::test_hbm_bandwidth_per_gpu[0]",
-          "message": "AssertionError: HBM3 bandwidth GPU 0: efficiency 17.69% is below threshold 80.00% (measured=0.354, theoretical=2.000)\nassert 0.17689374103622998 >= 0.8",
+          "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[0]",
+          "message": "AssertionError: FP32 GFLOPS GPU 0: efficiency 35.86% is below threshold 52.00% (measured=24025.277, theoretical=67000.000)\nassert 0.3585862257467484 >= 0.52",
           "kind": "failure"
         }
       ],
@@ -104,13 +104,13 @@
       "description": "PCIe / NVLink / P2P interconnect validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-05-21T09:46:55.612040+00:00",
-      "finished_at_utc": "2026-05-21T09:48:34.058257+00:00",
+      "started_at_utc": "2026-05-21T14:49:10.385594+00:00",
+      "finished_at_utc": "2026-05-21T14:50:47.626661+00:00",
       "tests": 77,
       "failures": 0,
       "errors": 0,
       "skipped": 4,
-      "duration_sec": 93.055,
+      "duration_sec": 91.782,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/interconnect.xml",
       "log_file": "artifacts/reports/logs/interconnect.log",
@@ -121,32 +121,32 @@
       "description": "Node bring-up and workload acceptance",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T09:48:34.058450+00:00",
-      "finished_at_utc": "2026-05-21T10:15:35.022996+00:00",
+      "started_at_utc": "2026-05-21T14:50:47.626867+00:00",
+      "finished_at_utc": "2026-05-21T15:17:41.571779+00:00",
       "tests": 51,
-      "failures": 8,
+      "failures": 7,
       "errors": 0,
-      "skipped": 8,
-      "duration_sec": 1616.093,
+      "skipped": 10,
+      "duration_sec": 1609.162,
       "failed_tests": [
         {
-          "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_pytorch_fallback",
-          "message": "Failed: P2P bandwidth fallback validation failed.\nthreshold=40.0 GB/s, measured_pairs=12, inaccessible_pairs=0\nFailures:\nGPU0->GPU1: 38.1 GB/s < 40.0 GB/s\nGPU2->GPU1: 34.5 GB/s < 40.0 GB/s",
+          "nodeid": "tests.test_node_validation.TestPCIeBandwidthDirect::test_d2h_bandwidth_all_gpus",
+          "message": "Failed: D2H PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=39.08 GB/s, mean=51.37 GB/s\nPer-GPU failures:\nGPU 0: 39.08 GB/s < 40.95 GB/s",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_latency_binary",
+          "message": "AssertionError: 1 P2P bandwidth values below 40.0 GB/s: ['17.3']\nassert not [17.26]",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestCPUGPUPowerAndThrottling::test_sustained_gpu_power_stability",
-          "message": "AssertionError: Power variance 59.3 W is too high (expected < 50 W)\nassert np.float64(59.30360696145631) < 50",
+          "message": "AssertionError: Power variance 59.1 W is too high (expected < 50 W)\nassert np.float64(59.06382419038794) < 50",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestNCCLAndNVLinkValidation::test_nccl_p2p_perf",
-          "message": "AssertionError: NCCL sendrecv busbw 24.1 GB/s too low\nassert 24.08 >= 30.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[llama_70b-meta-llama/Meta-Llama-3.1-70B-Instruct-16-12000.0-True]",
-          "message": "ImportError: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`",
+          "message": "AssertionError: NCCL sendrecv busbw 24.1 GB/s too low\nassert 24.12 >= 30.0",
           "kind": "failure"
         },
         {
@@ -156,17 +156,12 @@
         },
         {
           "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vision_object_detection_yolo_fps",
-          "message": "AssertionError: YOLO aggregate FPS too low: 97.0 < target 200.0\nassert 96.99256190071503 >= 200.0",
+          "message": "AssertionError: YOLO aggregate FPS too low: 92.9 < target 200.0\nassert 92.92775966709132 >= 200.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_predictable_memory_orchestration_kv_cache_offload",
-          "message": "AssertionError: Offload throughput degradation too high: 87.5% (baseline 339.7 -> offload 42.4)\nassert 87.51046593768514 <= 60",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_llm_training_small_multigpu",
-          "message": "Failed: TC-013 worker failures: [{'rank': 3, 'status': 'error', 'error': \"Model load failed: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.\\nCheck your internet connection or see how to run the li",
+          "message": "AssertionError: Offload throughput degradation too high: 87.5% (baseline 339.4 -> offload 42.4)\nassert 87.50405345445897 <= 60",
           "kind": "failure"
         }
       ],
@@ -179,17 +174,17 @@
       "description": "Agentic AI KPI validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T10:15:35.023264+00:00",
-      "finished_at_utc": "2026-05-21T10:15:54.586500+00:00",
+      "started_at_utc": "2026-05-21T15:17:41.571954+00:00",
+      "finished_at_utc": "2026-05-21T15:18:02.821642+00:00",
       "tests": 9,
       "failures": 1,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 17.806,
+      "duration_sec": 19.476,
       "failed_tests": [
         {
           "nodeid": "tests.test_agentic_ai_validation.TestToolInvocationOverhead::test_parallel_tool_dispatch_scalability",
-          "message": "AssertionError: Tool dispatch scales poorly: 16 tools take 7.0\u00d7 time of 1 tool\nassert 7.029355897081678 < 5.0",
+          "message": "AssertionError: Tool dispatch scales poorly: 16 tools take 6.6\u00d7 time of 1 tool\nassert 6.566299469604243 < 5.0",
           "kind": "failure"
         }
       ],
@@ -202,37 +197,37 @@
       "description": "AI pipeline KPI validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T10:15:54.586672+00:00",
-      "finished_at_utc": "2026-05-21T10:16:29.484634+00:00",
+      "started_at_utc": "2026-05-21T15:18:02.821855+00:00",
+      "finished_at_utc": "2026-05-21T15:18:40.638695+00:00",
       "tests": 38,
       "failures": 6,
       "errors": 0,
       "skipped": 12,
-      "duration_sec": 31.124,
+      "duration_sec": 34.246,
       "failed_tests": [
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_tokenizer_multi_thread_scaling",
-          "message": "AssertionError: 4-thread tokenizer scaling 1.47\u00d7 < 2.0\u00d7 single-thread\nassert 1.4748150802127233 >= 2.0",
+          "message": "AssertionError: 4-thread tokenizer scaling 1.63\u00d7 < 2.0\u00d7 single-thread\nassert 1.6318026356755186 >= 2.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_async_prefetch_gpu_overlap_efficiency",
-          "message": "AssertionError: Async prefetch overlap efficiency 25.0% < 60.0%\nassert 24.999455191166728 >= 60.0",
+          "message": "AssertionError: Async prefetch overlap efficiency 25.3% < 60.0%\nassert 25.268130746022198 >= 60.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_model_load_time_to_gpu",
-          "message": "AssertionError: Model load bandwidth 0.42 GB/s < 1.0 GB/s\nassert 0.41791630508399996 >= 1.0",
+          "message": "AssertionError: Model load bandwidth 0.43 GB/s < 1.0 GB/s\nassert 0.4295125697207292 >= 1.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_tensor_parallel_allreduce_overhead_fraction",
-          "message": "AssertionError: AllReduce overhead 98.6% > 20.0% of compute\nassert 98.6229079369924 <= 20.0",
+          "message": "AssertionError: AllReduce overhead 98.6% > 20.0% of compute\nassert 98.57780799286192 <= 20.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO::test_model_weight_load_pipeline_bandwidth",
-          "message": "AssertionError: Weight load pipeline 0.87 GB/s < 1.0 GB/s\nassert 0.8731330767871053 >= 1.0",
+          "message": "AssertionError: Weight load pipeline 0.87 GB/s < 1.0 GB/s\nassert 0.8693625258957309 >= 1.0",
           "kind": "failure"
         },
         {
@@ -250,13 +245,13 @@
       "description": "System health and reliability",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T10:16:29.484833+00:00",
-      "finished_at_utc": "2026-05-21T10:17:16.816924+00:00",
+      "started_at_utc": "2026-05-21T15:18:40.638915+00:00",
+      "finished_at_utc": "2026-05-21T15:19:30.209019+00:00",
       "tests": 39,
-      "failures": 7,
+      "failures": 6,
       "errors": 0,
       "skipped": 3,
-      "duration_sec": 44.633,
+      "duration_sec": 45.196,
       "failed_tests": [
         {
           "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[0]",
@@ -280,17 +275,12 @@
         },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_sustained_compute_no_thermal_throttle",
-          "message": "AssertionError: SM clock dropped 47.9% during sustained load (initial 1755 MHz \u2192 min 915 MHz, max_temp 59 \u00b0C). Thermal or power-limit throttling detected.\nassert 0.47863247863247865 <= 0.1",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_quantised_softmax_output_matches_fp16",
-          "message": "AssertionError: Quantised softmax max error 2.56e-03 exceeds 1e-03\nassert 0.0025634765625 < 0.001",
+          "message": "AssertionError: SM clock dropped 45.3% during sustained load (initial 1755 MHz \u2192 min 960 MHz, max_temp 59 \u00b0C). Thermal or power-limit throttling detected.\nassert 0.452991452991453 <= 0.1",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_speedup_over_eager",
-          "message": "AssertionError: torch.compile speedup 0.804\u00d7 < floor 1.05\u00d7. Compiled kernels may be suboptimal for this H100 PCIe configuration.\nassert 0.8038794604279713 >= 1.05",
+          "message": "AssertionError: torch.compile speedup 0.806\u00d7 < floor 1.05\u00d7. Compiled kernels may be suboptimal for this H100 PCIe configuration.\nassert 0.8061902872568043 >= 1.05",
           "kind": "failure"
         }
       ],
@@ -303,13 +293,13 @@
       "description": "System config report validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-05-21T10:17:16.817154+00:00",
-      "finished_at_utc": "2026-05-21T10:17:21.639419+00:00",
+      "started_at_utc": "2026-05-21T15:19:30.209248+00:00",
+      "finished_at_utc": "2026-05-21T15:19:35.152382+00:00",
       "tests": 8,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 3.511,
+      "duration_sec": 3.724,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/system_config.xml",
       "log_file": "artifacts/reports/logs/system_config.log",
@@ -320,13 +310,13 @@
       "description": "vLLM prefill validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-05-21T10:17:21.639615+00:00",
-      "finished_at_utc": "2026-05-21T10:27:52.644865+00:00",
+      "started_at_utc": "2026-05-21T15:19:35.152549+00:00",
+      "finished_at_utc": "2026-05-21T15:30:05.184129+00:00",
       "tests": 3,
       "failures": 0,
       "errors": 0,
       "skipped": 1,
-      "duration_sec": 629.616,
+      "duration_sec": 628.526,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/vllm_prefill.xml",
       "log_file": "artifacts/reports/logs/vllm_prefill.log",
@@ -337,13 +327,13 @@
       "description": "Performance suite catalog / execution",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T10:27:52.645381+00:00",
-      "finished_at_utc": "2026-05-21T10:53:38.052478+00:00",
+      "started_at_utc": "2026-05-21T15:30:05.184313+00:00",
+      "finished_at_utc": "2026-05-21T15:55:45.820452+00:00",
       "tests": 26,
       "failures": 1,
       "errors": 0,
       "skipped": 7,
-      "duration_sec": 1542.034,
+      "duration_sec": 1539.001,
       "failed_tests": [
         {
           "nodeid": "tests.test_performance_suite::test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_011]",
@@ -360,17 +350,17 @@
       "description": "MLPerf suite catalog / execution",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T10:53:38.052674+00:00",
-      "finished_at_utc": "2026-05-21T11:24:22.179987+00:00",
+      "started_at_utc": "2026-05-21T15:55:45.820655+00:00",
+      "finished_at_utc": "2026-05-21T16:26:32.889364+00:00",
       "tests": 21,
-      "failures": 19,
+      "failures": 3,
       "errors": 0,
-      "skipped": 2,
-      "duration_sec": 1842.738,
+      "skipped": 18,
+      "duration_sec": 1845.74,
       "failed_tests": [
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_003: command failed (rc=1)\nexecuted_command: vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 --tensor-parallel-size 4 --max-model-len 32768 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=70758) Traceback (mo",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_003: command failed (rc=1)\nexecuted_command: vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 --tensor-parallel-size 4 --max-model-len 32768 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=135802) Traceback (m",
           "kind": "failure"
         },
         {
@@ -380,87 +370,7 @@
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=73088) Tra",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_006]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_006: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch resnet50 gpu --scenario Offline --dataset-path /mnt/datasets/imagenet --output artifa",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_007]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_007: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch retinanet gpu --scenario Offline --dataset-path /mnt/datasets/openimages --output art",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_008]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_008: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/medical_imaging/3d-unet-kits19/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/kits19 --output artifacts/mlperf_resul",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_009]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_009: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/speech_recognition/rnnt/run_local.sh pytorch rnnt gpu --scenario Offline --dataset-path /mnt/datasets/librispeech --output artifacts/mlperf_re",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_010]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_010: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/speech_recognition/whisper/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/librispeech --output artifacts/mlperf_resu",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_011]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_011: command failed (rc=2)\nexecuted_command: /opt/venvs/torch-cu128/bin/python /root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py --scenario Offline --dataset-path /mnt/datasets/criteo --model-path /mnt/data",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_012]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_012: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/text_to_image/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/coco-sdxl --model-path /mnt/datasets/sdxl --output arti",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_013]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_013: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/graph/R-GAT/run_local.sh pytorch gpu --scenario Offline --dataset-path /mnt/datasets/igb-het --model-path /mnt/datasets/rgat --output artifact",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_014]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_014: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/gpt-j/run_training.py --model-name EleutherAI/gpt-j-6b --dataset-path /mnt/datasets/cnn_dailymail --output-",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_015]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_015: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py --bert_model bert-large-uncased --do_train --train_file /mnt/datasets/squad/train",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_016]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_016: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/image_segmentation/pytorch/train.py --data-dir /mnt/datasets/kits19 --epochs 4000 --batch-size 2 --optimizer adam --learni",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_017]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_017: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/stable_diffusion/main.py --base /root/workloads/mlcommons/training/stable_diffusion/configs/train_01x04x08.yaml --actual_r",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_018]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_018: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py --bert_model bert-large-uncased --do_train --train_file /mnt/datasets/bert/",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_019]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_019: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py --tensor-model-parallel-size 4 --pipeline-model-parallel-size 1 --num-lay",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_020]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_020: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py --model_name_or_path meta-llama/Llama-2-70b-hf --dataset_name scrolls --dataset_config g",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_021]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_021: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py --arch-sparse-feature-size=128 --arch-mlp-bot=13-512-256-128 --arch-mlp-t",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=138286) Tr",
           "kind": "failure"
         }
       ],
@@ -474,9 +384,9 @@
     "passed_domains": 4,
     "failed_domains": 9,
     "tests": 411,
-    "failures": 47,
+    "failures": 29,
     "errors": 0,
-    "skipped": 38
+    "skipped": 56
   },
   "defaults_applied": {
     "ML_EXECUTE_CASES": "1",

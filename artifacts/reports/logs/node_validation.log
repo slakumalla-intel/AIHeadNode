@@ -1,64 +1,826 @@
-00:27:41 INFO     ai_headnode_tests System config captured: /root/workloads/AIHeadNode/system_config_report.json
-00:27:43 INFO     tests.test_node_validation GPU enumeration: 4 GPU(s) found
-00:27:43 INFO     tests.test_node_validation   GPU 0: NVIDIA H100 PCIe (00000000:61:00.0)
-00:27:43 INFO     tests.test_node_validation   GPU 1: NVIDIA H100 PCIe (00000000:B1:00.0)
-00:27:43 INFO     tests.test_node_validation   GPU 2: NVIDIA H100 NVL (00000001:61:00.0)
-00:27:43 INFO     tests.test_node_validation   GPU 3: NVIDIA H100 PCIe (00000001:B1:00.0)
-00:27:43 INFO     tests.test_node_validation KPI test_gpu_enumeration: {"gpu_count": 4, "gpus": [{"driver_version": "595.71.05", "index": 0, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000000:61:00.0"}, {"driver_version": "595.71.05", "index": 1, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000000:B1:00.0"}, {"driver_version": "595.71.05", "index": 2, "name": "NVIDIA H100 NVL", "pci_bus_id": "00000001:61:00.0"}, {"driver_version": "595.71.05", "index": 3, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000001:B1:00.0"}]}
-00:27:43 INFO     tests.test_node_validation 
+05:48:41 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
+05:48:42 INFO     tests.test_node_validation GPU enumeration: 4 GPU(s) found
+05:48:42 INFO     tests.test_node_validation   GPU 0: NVIDIA H100 PCIe (00000000:61:00.0)
+05:48:42 INFO     tests.test_node_validation   GPU 1: NVIDIA H100 PCIe (00000000:B1:00.0)
+05:48:42 INFO     tests.test_node_validation   GPU 2: NVIDIA H100 NVL (00000001:61:00.0)
+05:48:42 INFO     tests.test_node_validation   GPU 3: NVIDIA H100 PCIe (00000001:B1:00.0)
+05:48:42 INFO     tests.test_node_validation KPI test_gpu_enumeration: {"gpu_count": 4, "gpus": [{"driver_version": "595.71.05", "index": 0, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000000:61:00.0"}, {"driver_version": "595.71.05", "index": 1, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000000:B1:00.0"}, {"driver_version": "595.71.05", "index": 2, "name": "NVIDIA H100 NVL", "pci_bus_id": "00000001:61:00.0"}, {"driver_version": "595.71.05", "index": 3, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000001:B1:00.0"}]}
+05:48:43 INFO     tests.test_node_validation 
 
 ================================================================================
   PCIe NEGOTIATED LINK SPEED / WIDTH PER GPU
 ================================================================================
   GPU    PCI Bus ID       Gen (cur/max)    Width (cur/max)    Neg. BW      Status
   ----------------------------------------------------------------------------
-  GPU0   00000000:61:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
-  GPU1   00000000:B1:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
+  GPU0   00000000:61:00.0 Gen[N/A] / Gen[N/A]     x[N/A] / x[N/A]         ~   0 GB/s   OK
+  GPU1   00000000:B1:00.0 Gen[N/A] / Gen[N/A]     x[N/A] / x[N/A]         ~   0 GB/s   OK
   GPU2   00000001:61:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
   GPU3   00000001:B1:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
 ================================================================================
-00:27:44 INFO     tests.test_node_validation 
-
-nvidia-smi topo -m output:
-	[4mGPU0	GPU1	GPU2	GPU3	CPU Affinity	NUMA Affinity	GPU NUMA ID[0m
-GPU0	 X 	NODE	NODE	NODE	0-223	0		N/A
-GPU1	NODE	 X 	NODE	NODE	0-223	0		N/A
-GPU2	NODE	NODE	 X 	NODE	0-223	0		N/A
-GPU3	NODE	NODE	NODE	 X 	0-223	0		N/A
-
-Legend:
-
-  X    = Self
-  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)
-  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node
-  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)
-  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)
-  PIX  = Connection traversing at most a single PCIe bridge
-  NV#  = Connection traversing a bonded set of # NVLinks
-
-00:27:44 INFO     tests.test_node_validation 
-
-  GPU INTERCONNECT SUMMARY (from topo -m)
-  --------------------------------------------------
-00:27:44 INFO     tests.test_node_validation KPI test_pcie_topology_discovery: {"downgraded_gpu_count": 0, "downgraded_gpus": [], "gpu_entries": 4, "matrix_error": null, "nvlink_pair_count": 0, "pcie_pair_count": 0}
-00:27:44 INFO     tests.test_node_validation KPI test_topology_consistency: {"gpu_count": 4, "topology_count": 4, "valid": true}
-00:27:44 INFO     tests.test_node_validation Found 4 GPU(s) with valid PCIe topology:
-  GPU 0: NVIDIA H100 PCIe, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
-  GPU 1: NVIDIA H100 PCIe, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
+05:48:44 WARNING  tests.test_node_validation nvidia-smi topo -m: nvidia-smi topo -m failed: 
+05:48:44 INFO     tests.test_node_validation KPI test_pcie_topology_discovery: {"downgraded_gpu_count": 0, "downgraded_gpus": [], "gpu_entries": 4, "matrix_error": "nvidia-smi topo -m failed: ", "nvlink_pair_count": 0, "pcie_pair_count": 0}
+05:48:44 INFO     tests.test_node_validation KPI test_topology_consistency: {"gpu_count": 4, "topology_count": 4, "valid": true}
+05:48:44 INFO     tests.test_node_validation Found 4 GPU(s) with valid PCIe topology:
+  GPU 0: NVIDIA H100 PCIe, PCIe Gen[N/A]x[N/A] (negotiated) [max Gen[N/A]x[N/A]]  ~0 GB/s
+  GPU 1: NVIDIA H100 PCIe, PCIe Gen[N/A]x[N/A] (negotiated) [max Gen[N/A]x[N/A]]  ~0 GB/s
   GPU 2: NVIDIA H100 NVL, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
   GPU 3: NVIDIA H100 PCIe, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
 
-00:27:46 INFO     tests.test_node_validation GPU 0 H2D BW: 56.2 GB/s (89.3% of 63 GB/s)
-00:27:47 INFO     tests.test_node_validation GPU 1 H2D BW: 56.0 GB/s (88.9% of 63 GB/s)
-00:27:48 INFO     tests.test_node_validation GPU 2 H2D BW: 56.0 GB/s (88.9% of 63 GB/s)
-00:27:49 INFO     tests.test_node_validation GPU 3 H2D BW: 56.3 GB/s (89.3% of 63 GB/s)
-00:27:49 INFO     tests.test_node_validation KPI test_h2d_bandwidth_all_gpus: {"borderline_gpus": [], "boundary_gbs": 1.0, "failing_gpus": [], "gpu_count": 4, "mean_gbs": 56.12, "min_gbs": 55.98, "n_bytes": 1073741824, "n_iters": 8, "per_gpu_gbs": [56.24, 55.99, 55.98, 56.27], "threshold_gbs": 40.95}
-00:27:49 INFO     tests.test_node_validation GPU 0 D2H BW: 55.0 GB/s (87.2% of 63 GB/s)
-00:27:49 INFO     tests.test_node_validation GPU 1 D2H BW: 55.0 GB/s (87.3% of 63 GB/s)
-00:27:49 INFO     tests.test_node_validation GPU 2 D2H BW: 56.7 GB/s (90.0% of 63 GB/s)
-00:27:50 INFO     tests.test_node_validation GPU 3 D2H BW: 55.0 GB/s (87.3% of 63 GB/s)
-00:27:50 INFO     tests.test_node_validation KPI test_d2h_bandwidth_all_gpus: {"borderline_gpus": [], "boundary_gbs": 1.0, "failing_gpus": [], "gpu_count": 4, "mean_gbs": 55.42, "min_gbs": 54.96, "n_bytes": 1073741824, "n_iters": 8, "per_gpu_gbs": [54.96, 55.03, 56.68, 55.01], "threshold_gbs": 40.95}
-00:27:55 INFO     tests.test_node_validation 
+05:48:44 WARNING  tests.test_node_validation H2D measurement failed: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=2, num_gpus=2
+
+CUDA call was originally invoked at:
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+    config.hook.pytest_collection(session=session)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+    session.perform_collect()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+    self.items.extend(self.genitems(node))
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+    rep, duplicate = self._collect_one_node(node, handle_dupes)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+    rep = collect_one_node(node)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+    call = CallInfo.from_call(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+    return list(collector.collect())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+    self._register_setup_module_fixture()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+    self._obj = obj = self._getobj()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+    return importtestmodule(self.path, self.config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+    mod = import_path(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+    importlib.import_module(module_name)
+  File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+    exec(co, module.__dict__)
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_node_validation.py", line 42, in <module>
+    from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in <module>
+    import torch
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in <module>
+    _C._initExtension(_manager_path())
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in <module>
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+05:48:44 INFO     tests.test_node_validation GPU 0 H2D BW: 0.0 GB/s (0.0% of 63 GB/s)
+05:48:44 WARNING  tests.test_node_validation H2D measurement failed: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=2, num_gpus=2
+
+CUDA call was originally invoked at:
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+    config.hook.pytest_collection(session=session)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+    session.perform_collect()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+    self.items.extend(self.genitems(node))
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+    rep, duplicate = self._collect_one_node(node, handle_dupes)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+    rep = collect_one_node(node)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+    call = CallInfo.from_call(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+    return list(collector.collect())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+    self._register_setup_module_fixture()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+    self._obj = obj = self._getobj()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+    return importtestmodule(self.path, self.config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+    mod = import_path(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+    importlib.import_module(module_name)
+  File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+    exec(co, module.__dict__)
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_node_validation.py", line 42, in <module>
+    from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in <module>
+    import torch
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in <module>
+    _C._initExtension(_manager_path())
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in <module>
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+05:48:44 INFO     tests.test_node_validation GPU 1 H2D BW: 0.0 GB/s (0.0% of 63 GB/s)
+05:48:44 WARNING  tests.test_node_validation H2D measurement failed: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=2, num_gpus=2
+
+CUDA call was originally invoked at:
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+    config.hook.pytest_collection(session=session)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+    session.perform_collect()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+    self.items.extend(self.genitems(node))
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+    rep, duplicate = self._collect_one_node(node, handle_dupes)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+    rep = collect_one_node(node)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+    call = CallInfo.from_call(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+    return list(collector.collect())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+    self._register_setup_module_fixture()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+    self._obj = obj = self._getobj()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+    return importtestmodule(self.path, self.config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+    mod = import_path(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+    importlib.import_module(module_name)
+  File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+    exec(co, module.__dict__)
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_node_validation.py", line 42, in <module>
+    from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in <module>
+    import torch
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in <module>
+    _C._initExtension(_manager_path())
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in <module>
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+05:48:44 INFO     tests.test_node_validation GPU 2 H2D BW: 0.0 GB/s (0.0% of 63 GB/s)
+05:48:44 WARNING  tests.test_node_validation H2D measurement failed: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=2, num_gpus=2
+
+CUDA call was originally invoked at:
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+    config.hook.pytest_collection(session=session)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+    session.perform_collect()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+    self.items.extend(self.genitems(node))
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+    rep, duplicate = self._collect_one_node(node, handle_dupes)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+    rep = collect_one_node(node)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+    call = CallInfo.from_call(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+    return list(collector.collect())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+    self._register_setup_module_fixture()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+    self._obj = obj = self._getobj()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+    return importtestmodule(self.path, self.config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+    mod = import_path(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+    importlib.import_module(module_name)
+  File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+    exec(co, module.__dict__)
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_node_validation.py", line 42, in <module>
+    from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in <module>
+    import torch
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in <module>
+    _C._initExtension(_manager_path())
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in <module>
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+05:48:44 INFO     tests.test_node_validation GPU 3 H2D BW: 0.0 GB/s (0.0% of 63 GB/s)
+05:48:44 INFO     tests.test_node_validation KPI test_h2d_bandwidth_all_gpus: {"borderline_gpus": [], "boundary_gbs": 1.0, "failing_gpus": ["GPU 0: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)", "GPU 1: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)", "GPU 2: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)", "GPU 3: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)"], "gpu_count": 4, "mean_gbs": 0.0, "min_gbs": 0.0, "n_bytes": 1073741824, "n_iters": 8, "per_gpu_gbs": [0.0, 0.0, 0.0, 0.0], "threshold_gbs": 40.95}
+05:48:44 WARNING  tests.test_node_validation D2H measurement failed: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=2, num_gpus=2
+
+CUDA call was originally invoked at:
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+    config.hook.pytest_collection(session=session)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+    session.perform_collect()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+    self.items.extend(self.genitems(node))
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+    rep, duplicate = self._collect_one_node(node, handle_dupes)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+    rep = collect_one_node(node)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+    call = CallInfo.from_call(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+    return list(collector.collect())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+    self._register_setup_module_fixture()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+    self._obj = obj = self._getobj()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+    return importtestmodule(self.path, self.config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+    mod = import_path(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+    importlib.import_module(module_name)
+  File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+    exec(co, module.__dict__)
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_node_validation.py", line 42, in <module>
+    from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in <module>
+    import torch
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in <module>
+    _C._initExtension(_manager_path())
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in <module>
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+05:48:44 INFO     tests.test_node_validation GPU 0 D2H BW: 0.0 GB/s (0.0% of 63 GB/s)
+05:48:44 WARNING  tests.test_node_validation D2H measurement failed: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=2, num_gpus=2
+
+CUDA call was originally invoked at:
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+    config.hook.pytest_collection(session=session)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+    session.perform_collect()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+    self.items.extend(self.genitems(node))
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+    rep, duplicate = self._collect_one_node(node, handle_dupes)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+    rep = collect_one_node(node)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+    call = CallInfo.from_call(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+    return list(collector.collect())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+    self._register_setup_module_fixture()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+    self._obj = obj = self._getobj()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+    return importtestmodule(self.path, self.config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+    mod = import_path(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+    importlib.import_module(module_name)
+  File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+    exec(co, module.__dict__)
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_node_validation.py", line 42, in <module>
+    from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in <module>
+    import torch
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in <module>
+    _C._initExtension(_manager_path())
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in <module>
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+05:48:44 INFO     tests.test_node_validation GPU 1 D2H BW: 0.0 GB/s (0.0% of 63 GB/s)
+05:48:44 WARNING  tests.test_node_validation D2H measurement failed: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=2, num_gpus=2
+
+CUDA call was originally invoked at:
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+    config.hook.pytest_collection(session=session)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+    session.perform_collect()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+    self.items.extend(self.genitems(node))
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+    rep, duplicate = self._collect_one_node(node, handle_dupes)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+    rep = collect_one_node(node)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+    call = CallInfo.from_call(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+    return list(collector.collect())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+    self._register_setup_module_fixture()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+    self._obj = obj = self._getobj()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+    return importtestmodule(self.path, self.config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+    mod = import_path(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+    importlib.import_module(module_name)
+  File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+    exec(co, module.__dict__)
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_node_validation.py", line 42, in <module>
+    from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in <module>
+    import torch
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in <module>
+    _C._initExtension(_manager_path())
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in <module>
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+05:48:44 INFO     tests.test_node_validation GPU 2 D2H BW: 0.0 GB/s (0.0% of 63 GB/s)
+05:48:44 WARNING  tests.test_node_validation D2H measurement failed: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=2, num_gpus=2
+
+CUDA call was originally invoked at:
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+    config.hook.pytest_collection(session=session)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+    session.perform_collect()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+    self.items.extend(self.genitems(node))
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+    rep, duplicate = self._collect_one_node(node, handle_dupes)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+    rep = collect_one_node(node)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+    call = CallInfo.from_call(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+    return list(collector.collect())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+    self._register_setup_module_fixture()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+    self._obj = obj = self._getobj()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+    return importtestmodule(self.path, self.config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+    mod = import_path(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+    importlib.import_module(module_name)
+  File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+    exec(co, module.__dict__)
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_node_validation.py", line 42, in <module>
+    from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in <module>
+    import torch
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in <module>
+    _C._initExtension(_manager_path())
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in <module>
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+05:48:44 INFO     tests.test_node_validation GPU 3 D2H BW: 0.0 GB/s (0.0% of 63 GB/s)
+05:48:44 INFO     tests.test_node_validation KPI test_d2h_bandwidth_all_gpus: {"borderline_gpus": [], "boundary_gbs": 1.0, "failing_gpus": ["GPU 0: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)", "GPU 1: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)", "GPU 2: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)", "GPU 3: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)"], "gpu_count": 4, "mean_gbs": 0.0, "min_gbs": 0.0, "n_bytes": 1073741824, "n_iters": 8, "per_gpu_gbs": [0.0, 0.0, 0.0, 0.0], "threshold_gbs": 40.95}
+05:48:47 INFO     tests.test_node_validation 
 === nvbandwidth: host_to_device_memcpy_ce ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -68,23 +830,21 @@ CUDA Driver Version: 13020
 Driver Version: 595.71.05
 
 sc00901168s0075
-Device 0: NVIDIA H100 PCIe (00000000:61:00)
-Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
+Device 0: NVIDIA H100 NVL (00000001:61:00)
+Device 1: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running host_to_device_memcpy_ce.
 memcpy CE CPU(row) -> GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     56.07     55.83     55.91     55.85
+           0         1
+ 0     56.12     56.20
 
-SUM host_to_device_memcpy_ce 223.65
+SUM host_to_device_memcpy_ce 112.32
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-00:27:55 INFO     tests.test_node_validation host_to_device_memcpy_ce  min=55.8 GB/s  mean=55.9 GB/s  threshold=40.0 GB/s
-00:27:55 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_memcpy_ce: {"mean_bw_gbs": 55.91, "min_bw_gbs": 55.83, "num_values": 4, "testcase": "host_to_device_memcpy_ce", "threshold_gbs": 40.0}
-00:28:00 INFO     tests.test_node_validation 
+05:48:47 INFO     tests.test_node_validation host_to_device_memcpy_ce  min=56.1 GB/s  mean=56.2 GB/s  threshold=40.0 GB/s
+05:48:47 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_memcpy_ce: {"mean_bw_gbs": 56.16, "min_bw_gbs": 56.12, "num_values": 2, "testcase": "host_to_device_memcpy_ce", "threshold_gbs": 40.0}
+05:48:50 INFO     tests.test_node_validation 
 === nvbandwidth: device_to_host_memcpy_ce ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -94,23 +854,21 @@ CUDA Driver Version: 13020
 Driver Version: 595.71.05
 
 sc00901168s0075
-Device 0: NVIDIA H100 PCIe (00000000:61:00)
-Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
+Device 0: NVIDIA H100 NVL (00000001:61:00)
+Device 1: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running device_to_host_memcpy_ce.
 memcpy CE CPU(row) <- GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     55.39     55.41     57.20     55.36
+           0         1
+ 0     56.39     54.80
 
-SUM device_to_host_memcpy_ce 223.35
+SUM device_to_host_memcpy_ce 111.19
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-00:28:00 INFO     tests.test_node_validation device_to_host_memcpy_ce  min=55.4 GB/s  mean=55.8 GB/s  threshold=40.0 GB/s
-00:28:00 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_memcpy_ce: {"mean_bw_gbs": 55.84, "min_bw_gbs": 55.36, "num_values": 4, "testcase": "device_to_host_memcpy_ce", "threshold_gbs": 40.0}
-00:28:10 INFO     tests.test_node_validation 
+05:48:50 INFO     tests.test_node_validation device_to_host_memcpy_ce  min=54.8 GB/s  mean=55.6 GB/s  threshold=40.0 GB/s
+05:48:50 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_memcpy_ce: {"mean_bw_gbs": 55.59, "min_bw_gbs": 54.8, "num_values": 2, "testcase": "device_to_host_memcpy_ce", "threshold_gbs": 40.0}
+05:48:59 INFO     tests.test_node_validation 
 === nvbandwidth: host_to_device_bidirectional_memcpy_ce ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -120,23 +878,21 @@ CUDA Driver Version: 13020
 Driver Version: 595.71.05
 
 sc00901168s0075
-Device 0: NVIDIA H100 PCIe (00000000:61:00)
-Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
+Device 0: NVIDIA H100 NVL (00000001:61:00)
+Device 1: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running host_to_device_bidirectional_memcpy_ce.
 memcpy CE CPU(row) <-> GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     51.49     51.48     51.10     51.43
+           0         1
+ 0     51.31     51.78
 
-SUM host_to_device_bidirectional_memcpy_ce 205.51
+SUM host_to_device_bidirectional_memcpy_ce 103.09
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-00:28:10 INFO     tests.test_node_validation host_to_device_bidirectional_memcpy_ce  min=51.1 GB/s  mean=51.4 GB/s  threshold=40.0 GB/s
-00:28:10 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_bidirectional_memcpy_ce: {"mean_bw_gbs": 51.38, "min_bw_gbs": 51.1, "num_values": 4, "testcase": "host_to_device_bidirectional_memcpy_ce", "threshold_gbs": 40.0}
-00:28:20 INFO     tests.test_node_validation 
+05:48:59 INFO     tests.test_node_validation host_to_device_bidirectional_memcpy_ce  min=51.3 GB/s  mean=51.5 GB/s  threshold=40.0 GB/s
+05:48:59 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_bidirectional_memcpy_ce: {"mean_bw_gbs": 51.55, "min_bw_gbs": 51.31, "num_values": 2, "testcase": "host_to_device_bidirectional_memcpy_ce", "threshold_gbs": 40.0}
+05:49:04 INFO     tests.test_node_validation 
 === nvbandwidth: device_to_host_bidirectional_memcpy_ce ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -146,23 +902,21 @@ CUDA Driver Version: 13020
 Driver Version: 595.71.05
 
 sc00901168s0075
-Device 0: NVIDIA H100 PCIe (00000000:61:00)
-Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
+Device 0: NVIDIA H100 NVL (00000001:61:00)
+Device 1: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running device_to_host_bidirectional_memcpy_ce.
 memcpy CE CPU(row) <-> GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     49.91     49.89     49.92     49.86
+           0         1
+ 0     49.68     49.62
 
-SUM device_to_host_bidirectional_memcpy_ce 199.58
+SUM device_to_host_bidirectional_memcpy_ce 99.30
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-00:28:20 INFO     tests.test_node_validation device_to_host_bidirectional_memcpy_ce  min=49.9 GB/s  mean=49.9 GB/s  threshold=40.0 GB/s
-00:28:20 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_bidirectional_memcpy_ce: {"mean_bw_gbs": 49.89, "min_bw_gbs": 49.86, "num_values": 4, "testcase": "device_to_host_bidirectional_memcpy_ce", "threshold_gbs": 40.0}
-00:28:31 INFO     tests.test_node_validation 
+05:49:04 INFO     tests.test_node_validation device_to_host_bidirectional_memcpy_ce  min=49.6 GB/s  mean=49.6 GB/s  threshold=40.0 GB/s
+05:49:04 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_bidirectional_memcpy_ce: {"mean_bw_gbs": 49.65, "min_bw_gbs": 49.62, "num_values": 2, "testcase": "device_to_host_bidirectional_memcpy_ce", "threshold_gbs": 40.0}
+05:49:06 INFO     tests.test_node_validation 
 === nvbandwidth: device_to_device_memcpy_read_ce ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -172,26 +926,22 @@ CUDA Driver Version: 13020
 Driver Version: 595.71.05
 
 sc00901168s0075
-Device 0: NVIDIA H100 PCIe (00000000:61:00)
-Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
+Device 0: NVIDIA H100 NVL (00000001:61:00)
+Device 1: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running device_to_device_memcpy_read_ce.
 memcpy CE GPU(row) -> GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0       N/A     52.19     45.69     44.63
- 1     52.05       N/A     45.72     44.62
- 2     46.25     44.63       N/A     52.12
- 3     46.25     44.62     51.32       N/A
+           0         1
+ 0       N/A     52.11
+ 1     51.44       N/A
 
-SUM device_to_device_memcpy_read_ce 570.10
+SUM device_to_device_memcpy_read_ce 103.55
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-00:28:31 INFO     tests.test_node_validation device_to_device_memcpy_read_ce  min=44.6 GB/s  mean=47.5 GB/s  threshold=30.0 GB/s
-00:28:31 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_device_memcpy_read_ce: {"mean_bw_gbs": 47.51, "min_bw_gbs": 44.62, "num_values": 12, "testcase": "device_to_device_memcpy_read_ce", "threshold_gbs": 30.0}
-00:28:36 INFO     tests.test_node_validation 
+05:49:06 INFO     tests.test_node_validation device_to_device_memcpy_read_ce  min=51.4 GB/s  mean=51.8 GB/s  threshold=30.0 GB/s
+05:49:06 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_device_memcpy_read_ce: {"mean_bw_gbs": 51.77, "min_bw_gbs": 51.44, "num_values": 2, "testcase": "device_to_device_memcpy_read_ce", "threshold_gbs": 30.0}
+05:49:12 INFO     tests.test_node_validation 
 === nvbandwidth: host_to_device_memcpy_sm ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -201,23 +951,21 @@ CUDA Driver Version: 13020
 Driver Version: 595.71.05
 
 sc00901168s0075
-Device 0: NVIDIA H100 PCIe (00000000:61:00)
-Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
+Device 0: NVIDIA H100 NVL (00000001:61:00)
+Device 1: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running host_to_device_memcpy_sm.
 memcpy SM CPU(row) -> GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     53.38     53.39     53.39     53.39
+           0         1
+ 0     53.39     53.39
 
-SUM host_to_device_memcpy_sm 213.55
+SUM host_to_device_memcpy_sm 106.77
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-00:28:36 INFO     tests.test_node_validation host_to_device_memcpy_sm  min=53.4 GB/s  mean=53.4 GB/s  threshold=30.0 GB/s
-00:28:36 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_memcpy_sm: {"mean_bw_gbs": 53.39, "min_bw_gbs": 53.38, "num_values": 4, "testcase": "host_to_device_memcpy_sm", "threshold_gbs": 30.0}
-00:28:42 INFO     tests.test_node_validation 
+05:49:12 INFO     tests.test_node_validation host_to_device_memcpy_sm  min=53.4 GB/s  mean=53.4 GB/s  threshold=30.0 GB/s
+05:49:12 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_memcpy_sm: {"mean_bw_gbs": 53.39, "min_bw_gbs": 53.39, "num_values": 2, "testcase": "host_to_device_memcpy_sm", "threshold_gbs": 30.0}
+05:49:15 INFO     tests.test_node_validation 
 === nvbandwidth: device_to_host_memcpy_sm ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -227,696 +975,355 @@ CUDA Driver Version: 13020
 Driver Version: 595.71.05
 
 sc00901168s0075
-Device 0: NVIDIA H100 PCIe (00000000:61:00)
-Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
+Device 0: NVIDIA H100 NVL (00000001:61:00)
+Device 1: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running device_to_host_memcpy_sm.
 memcpy SM CPU(row) <- GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     52.80     52.80     52.80     52.80
+           0         1
+ 0     52.80     38.01
 
-SUM device_to_host_memcpy_sm 211.21
+SUM device_to_host_memcpy_sm 90.81
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-00:28:42 INFO     tests.test_node_validation device_to_host_memcpy_sm  min=52.8 GB/s  mean=52.8 GB/s  threshold=30.0 GB/s
-00:28:42 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_memcpy_sm: {"mean_bw_gbs": 52.8, "min_bw_gbs": 52.8, "num_values": 4, "testcase": "device_to_host_memcpy_sm", "threshold_gbs": 30.0}
-00:28:42 INFO     tests.test_node_validation 2 MB hugepages: before=16384  active=True
-00:28:47 INFO     tests.test_node_validation nvbandwidth host_to_device_memcpy_ce                    min=55.78 GB/s  (hugepages=True)
-00:28:52 INFO     tests.test_node_validation nvbandwidth device_to_host_memcpy_ce                    min=55.40 GB/s  (hugepages=True)
-00:29:02 INFO     tests.test_node_validation nvbandwidth host_to_device_bidirectional_memcpy_ce      min=51.21 GB/s  (hugepages=True)
-00:29:02 INFO     tests.test_node_validation PyTorch BW (hugepages=True, 512 MB): H2D=55.88 GB/s  D2H=55.18 GB/s
-00:29:02 INFO     tests.test_node_validation KPI test_pcie_bw_p2p_latency_hugepages_2mb: {"bw_results": {"device_to_host_memcpy_ce": 55.4, "host_to_device_bidirectional_memcpy_ce": 51.21, "host_to_device_memcpy_ce": 55.78, "hugepages_active": true, "torch_D2H_gbs": 55.18, "torch_H2D_gbs": 55.88}, "hugepages_active": true, "hugepages_before": 16384}
-00:29:05 INFO     tests.test_node_validation 
+05:49:15 INFO     tests.test_node_validation device_to_host_memcpy_sm  min=38.0 GB/s  mean=45.4 GB/s  threshold=30.0 GB/s
+05:49:15 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_memcpy_sm: {"mean_bw_gbs": 45.41, "min_bw_gbs": 38.01, "num_values": 2, "testcase": "device_to_host_memcpy_sm", "threshold_gbs": 30.0}
+05:49:15 INFO     tests.test_node_validation 2 MB hugepages: before=16384  active=True
+05:49:18 INFO     tests.test_node_validation nvbandwidth host_to_device_memcpy_ce                    min=56.08 GB/s  (hugepages=True)
+05:49:21 INFO     tests.test_node_validation nvbandwidth device_to_host_memcpy_ce                    min=54.92 GB/s  (hugepages=True)
+05:49:26 INFO     tests.test_node_validation nvbandwidth host_to_device_bidirectional_memcpy_ce      min=37.55 GB/s  (hugepages=True)
+05:49:28 INFO     tests.test_node_validation 
 === p2pBandwidthLatencyTest output ===
 [P2P (Peer-to-Peer) GPU Bandwidth Latency Test]
-Device: 0, NVIDIA H100 PCIe, pciBusID: 61, pciDeviceID: 0, pciDomainID:0
-Device: 1, NVIDIA H100 PCIe, pciBusID: b1, pciDeviceID: 0, pciDomainID:0
-Device: 2, NVIDIA H100 NVL, pciBusID: 61, pciDeviceID: 0, pciDomainID:1
-Device: 3, NVIDIA H100 PCIe, pciBusID: b1, pciDeviceID: 0, pciDomainID:1
+Device: 0, NVIDIA H100 NVL, pciBusID: 61, pciDeviceID: 0, pciDomainID:1
+Device: 1, NVIDIA H100 PCIe, pciBusID: b1, pciDeviceID: 0, pciDomainID:1
 Device=0 CAN Access Peer Device=1
-Device=0 CAN Access Peer Device=2
-Device=0 CAN Access Peer Device=3
 Device=1 CAN Access Peer Device=0
-Device=1 CAN Access Peer Device=2
-Device=1 CAN Access Peer Device=3
-Device=2 CAN Access Peer Device=0
-Device=2 CAN Access Peer Device=1
-Device=2 CAN Access Peer Device=3
-Device=3 CAN Access Peer Device=0
-Device=3 CAN Access Peer Device=1
-Device=3 CAN Access Peer Device=2
 
 ***NOTE: In case a device doesn't have P2P access to other one, it falls back to normal memcopy procedure.
 So you can see lesser Bandwidth (GB/s) and unstable Latency (us) in those cases.
 
 P2P Connectivity Matrix
-     D\D     0     1     2     3
-     0	     1     1     1     1
-     1	     1     1     1     1
-     2	     1     1     1     1
-     3	     1     1     1     1
+     D\D     0     1
+     0	     1     1
+     1	     1     1
 Unidirectional P2P=Disabled Bandwidth Matrix (GB/s)
-   D\D     0      1      2      3 
-     0 1764.54  37.72  38.57  38.50 
-     1  38.34 1786.10  38.29  38.46 
-     2  38.81  38.74 3381.58  38.60 
-     3  38.30  38.53  37.99 1777.27 
+   D\D     0      1 
+     0 3338.45  38.57 
+     1  37.63 1782.59 
 Unidirectional P2P=Enabled Bandwidth (P2P Writes) Matrix (GB/s)
-   D\D     0      1      2      3 
-     0 1764.73  52.37  46.51  46.36 
-     1  52.84 1783.80  44.68  44.47 
-     2  45.74  46.03 3368.14  51.72 
-     3  44.67  44.43  52.68 1776.07 
+   D\D     0      1 
+     0 3354.13  51.34 
+     1  52.59 1777.27 
 Bidirectional P2P=Disabled Bandwidth Matrix (GB/s)
-   D\D     0      1      2      3 
-     0 1811.73  53.63  54.48  54.56 
-     1  54.28 1817.22  22.40  54.52 
-     2  54.77  53.70 3466.32  54.80 
-     3  54.02  54.22  54.35 1814.19 
+   D\D     0      1 
+     0 3449.47  54.09 
+     1  53.85 1814.29 
 Bidirectional P2P=Enabled Bandwidth Matrix (GB/s)
-   D\D     0      1      2      3 
-     0 1808.74 100.72  91.94  89.31 
-     1  99.88 1811.07  89.33  89.12 
-     2  91.79  88.87 3450.18  99.40 
-     3  89.34  89.11  99.41 1807.80 
+   D\D     0      1 
+     0 3452.80  99.32 
+     1 100.42 1807.17 
 P2P=Disabled Latency Matrix (us)
-   GPU     0      1      2      3 
-     0   2.39  16.58  15.91  14.90 
-     1  12.33   2.17  17.22  16.61 
-     2  17.23  16.23   1.89  16.32 
-     3  16.38  16.84  16.02   2.18 
+   GPU     0      1 
+     0   1.92  15.61 
+     1  16.14   2.40 
 
-   CPU     0      1      2      3 
-     0   2.87   9.45   9.48   9.59 
-     1   9.09   2.52   9.75   8.17 
-     2   8.23   9.21   2.60   9.30 
-     3   9.09   9.23   9.46   2.55 
+   CPU     0      1 
+     0   4.32   9.81 
+     1   9.45   2.55 
 P2P=Enabled Latency (P2P Writes) Matrix (us)
-   GPU     0      1      2      3 
-     0   2.41   1.62   1.66   1.62 
-     1   1.62   2.16   1.66   1.65 
-     2   1.73   1.69   1.91   1.68 
-     3   1.60   1.62   1.58   2.18 
+   GPU     0      1 
+     0   1.89   1.71 
+     1   1.60   2.36 
 
-   CPU     0      1      2      3 
-     0   2.69   2.11   2.04   2.05 
-     1   2.15   2.62   2.09   2.10 
-     2   2.22   2.22   2.60   2.17 
-     3   2.24   2.21   2.18   2.54 
+   CPU     0      1 
+     0   2.78   2.12 
+     1   2.09   2.53 
 
 NOTE: The CUDA Samples are not meant for performance measurements. Results may vary when GPU Boost is enabled.
-00:29:05 INFO     tests.test_node_validation Bidirectional P2P BW — min=22.4 GB/s  mean=610.2 GB/s  max=3466.3 GB/s
-00:29:05 INFO     tests.test_node_validation Unidirectional P2P BW — min=37.7 GB/s  mean=576.1 GB/s  max=3381.6 GB/s
-00:29:05 INFO     tests.test_node_validation P2P Latency           — min=1.00 µs  mean=5.03 µs  max=17.23 µs
-00:29:05 INFO     tests.test_node_validation KPI test_p2p_bandwidth_latency_binary: {"bidir_mean_gbs": 610.16, "bidir_min_gbs": 22.4, "latency_mean_us": 5.03, "latency_min_us": 1.0, "min_threshold_gbs": 40.0, "num_offdiag_samples": 32, "timeout_sec": 240, "unidir_mean_gbs": 576.11, "unidir_min_gbs": 37.72}
-00:29:08 INFO     tests.test_node_validation 
+05:49:28 INFO     tests.test_node_validation Bidirectional P2P BW — min=53.9 GB/s  mean=1353.9 GB/s  max=3452.8 GB/s
+05:49:28 INFO     tests.test_node_validation Unidirectional P2P BW — min=37.6 GB/s  mean=1304.1 GB/s  max=3354.1 GB/s
+05:49:28 INFO     tests.test_node_validation P2P Latency           — min=1.00 µs  mean=4.16 µs  max=16.14 µs
+05:49:28 INFO     tests.test_node_validation KPI test_p2p_bandwidth_latency_binary: {"bidir_mean_gbs": 1353.93, "bidir_min_gbs": 53.85, "latency_mean_us": 4.16, "latency_min_us": 1.0, "min_threshold_gbs": 40.0, "num_offdiag_samples": 8, "timeout_sec": 240, "unidir_mean_gbs": 1304.07, "unidir_min_gbs": 37.63}
+05:49:28 WARNING  tests.test_node_validation Kernel launch latency measurement failed: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=2, num_gpus=2
 
-============================================================
-  PyTorch P2P Bandwidth Matrix (GB/s)
-============================================================
-          GPU0    GPU1    GPU2    GPU3  
-  GPU0     ---     52.1   46.2   46.2
-  GPU1      51.8  ---     44.6   44.6
-  GPU2      34.6   45.8  ---     51.7
-  GPU3      44.6   44.6   38.2  ---  
-============================================================
-00:29:08 INFO     tests.test_node_validation KPI test_p2p_bandwidth_pytorch_fallback: {"attempted_pairs": 12, "failing_pairs": 2, "gpu_count": 4, "inaccessible_pairs": 0, "mean_gbs": 45.43, "measured_pairs": 12, "min_gbs": 34.6, "min_threshold_gbs": 40.0, "n_bytes": 1073741824, "n_iters": 8}
-00:29:08 INFO     tests.test_node_validation P2P multi-stream: GPU 0 -> GPU 1
-00:29:08 INFO     tests.test_node_validation   4MiB, 1 stream(s): 40.41 GB/s
-00:29:08 INFO     tests.test_node_validation   4MiB, 2 stream(s): 44.74 GB/s
-00:29:08 INFO     tests.test_node_validation   4MiB, 4 stream(s): 46.90 GB/s
-00:29:08 INFO     tests.test_node_validation   4MiB, 8 stream(s): 48.10 GB/s
-00:29:08 INFO     tests.test_node_validation   16MiB, 1 stream(s): 49.65 GB/s
-00:29:08 INFO     tests.test_node_validation   16MiB, 2 stream(s): 50.82 GB/s
-00:29:08 INFO     tests.test_node_validation   16MiB, 4 stream(s): 51.70 GB/s
-00:29:08 INFO     tests.test_node_validation   16MiB, 8 stream(s): 51.90 GB/s
-00:29:08 INFO     tests.test_node_validation   25MiB, 1 stream(s): 50.66 GB/s
-00:29:08 INFO     tests.test_node_validation   25MiB, 2 stream(s): 51.44 GB/s
-00:29:08 INFO     tests.test_node_validation   25MiB, 4 stream(s): 52.27 GB/s
-00:29:08 INFO     tests.test_node_validation   25MiB, 8 stream(s): 52.43 GB/s
-00:29:08 INFO     tests.test_node_validation   64MiB, 1 stream(s): 51.86 GB/s
-00:29:08 INFO     tests.test_node_validation   64MiB, 2 stream(s): 51.76 GB/s
-00:29:08 INFO     tests.test_node_validation   64MiB, 4 stream(s): 52.53 GB/s
-00:29:08 INFO     tests.test_node_validation   64MiB, 8 stream(s): 52.46 GB/s
-00:29:08 INFO     tests.test_node_validation   256MiB, 1 stream(s): 51.79 GB/s
-00:29:08 INFO     tests.test_node_validation   256MiB, 2 stream(s): 52.22 GB/s
-00:29:09 INFO     tests.test_node_validation   256MiB, 4 stream(s): 52.44 GB/s
-00:29:09 INFO     tests.test_node_validation   256MiB, 8 stream(s): 40.23 GB/s
-00:29:09 INFO     tests.test_node_validation   1GiB, 1 stream(s): 51.93 GB/s
-00:29:09 INFO     tests.test_node_validation   1GiB, 2 stream(s): 52.10 GB/s
-00:29:10 INFO     tests.test_node_validation   1GiB, 4 stream(s): 52.06 GB/s
-00:29:11 INFO     tests.test_node_validation   1GiB, 8 stream(s): 48.40 GB/s
-00:29:11 INFO     tests.test_node_validation P2P multi-stream BW (GPU 0->1): {'4MiB': {'1': 40.41, '2': 44.74, '4': 46.9, '8': 48.1}, '16MiB': {'1': 49.65, '2': 50.82, '4': 51.7, '8': 51.9}, '25MiB': {'1': 50.66, '2': 51.44, '4': 52.27, '8': 52.43}, '64MiB': {'1': 51.86, '2': 51.76, '4': 52.53, '8': 52.46}, '256MiB': {'1': 51.79, '2': 52.22, '4': 52.44, '8': 40.23}, '1GiB': {'1': 51.93, '2': 52.1, '4': 52.06, '8': 48.4}}
-00:29:11 INFO     tests.test_node_validation P2P multi-stream: GPU 0 -> GPU 2
-00:29:11 INFO     tests.test_node_validation   4MiB, 1 stream(s): 37.27 GB/s
-00:29:11 INFO     tests.test_node_validation   4MiB, 2 stream(s): 39.49 GB/s
-00:29:11 INFO     tests.test_node_validation   4MiB, 4 stream(s): 40.30 GB/s
-00:29:11 INFO     tests.test_node_validation   4MiB, 8 stream(s): 43.52 GB/s
-00:29:11 INFO     tests.test_node_validation   16MiB, 1 stream(s): 43.67 GB/s
-00:29:11 INFO     tests.test_node_validation   16MiB, 2 stream(s): 44.60 GB/s
-00:29:11 INFO     tests.test_node_validation   16MiB, 4 stream(s): 45.40 GB/s
-00:29:11 INFO     tests.test_node_validation   16MiB, 8 stream(s): 45.78 GB/s
-00:29:11 INFO     tests.test_node_validation   25MiB, 1 stream(s): 44.64 GB/s
-00:29:11 INFO     tests.test_node_validation   25MiB, 2 stream(s): 45.37 GB/s
-00:29:11 INFO     tests.test_node_validation   25MiB, 4 stream(s): 45.92 GB/s
-00:29:11 INFO     tests.test_node_validation   25MiB, 8 stream(s): 46.09 GB/s
-00:29:11 INFO     tests.test_node_validation   64MiB, 1 stream(s): 45.34 GB/s
-00:29:11 INFO     tests.test_node_validation   64MiB, 2 stream(s): 46.01 GB/s
-00:29:11 INFO     tests.test_node_validation   64MiB, 4 stream(s): 46.23 GB/s
-00:29:11 INFO     tests.test_node_validation   64MiB, 8 stream(s): 46.21 GB/s
-00:29:11 INFO     tests.test_node_validation   256MiB, 1 stream(s): 46.11 GB/s
-00:29:11 INFO     tests.test_node_validation   256MiB, 2 stream(s): 46.20 GB/s
-00:29:11 INFO     tests.test_node_validation   256MiB, 4 stream(s): 46.24 GB/s
-00:29:12 INFO     tests.test_node_validation   256MiB, 8 stream(s): 46.31 GB/s
-00:29:12 INFO     tests.test_node_validation   1GiB, 1 stream(s): 46.21 GB/s
-00:29:12 INFO     tests.test_node_validation   1GiB, 2 stream(s): 36.70 GB/s
-00:29:13 INFO     tests.test_node_validation   1GiB, 4 stream(s): 46.23 GB/s
-00:29:14 INFO     tests.test_node_validation   1GiB, 8 stream(s): 46.27 GB/s
-00:29:14 INFO     tests.test_node_validation P2P multi-stream BW (GPU 0->2): {'4MiB': {'1': 37.27, '2': 39.49, '4': 40.3, '8': 43.52}, '16MiB': {'1': 43.67, '2': 44.6, '4': 45.4, '8': 45.78}, '25MiB': {'1': 44.64, '2': 45.37, '4': 45.92, '8': 46.09}, '64MiB': {'1': 45.34, '2': 46.01, '4': 46.23, '8': 46.21}, '256MiB': {'1': 46.11, '2': 46.2, '4': 46.24, '8': 46.31}, '1GiB': {'1': 46.21, '2': 36.7, '4': 46.23, '8': 46.27}}
-00:29:14 INFO     tests.test_node_validation P2P multi-stream: GPU 0 -> GPU 3
-00:29:14 INFO     tests.test_node_validation   4MiB, 1 stream(s): 36.94 GB/s
-00:29:14 INFO     tests.test_node_validation   4MiB, 2 stream(s): 39.34 GB/s
-00:29:14 INFO     tests.test_node_validation   4MiB, 4 stream(s): 41.72 GB/s
-00:29:14 INFO     tests.test_node_validation   4MiB, 8 stream(s): 43.61 GB/s
-00:29:14 INFO     tests.test_node_validation   16MiB, 1 stream(s): 44.16 GB/s
-00:29:14 INFO     tests.test_node_validation   16MiB, 2 stream(s): 44.62 GB/s
-00:29:14 INFO     tests.test_node_validation   16MiB, 4 stream(s): 45.39 GB/s
-00:29:14 INFO     tests.test_node_validation   16MiB, 8 stream(s): 45.50 GB/s
-00:29:14 INFO     tests.test_node_validation   25MiB, 1 stream(s): 44.59 GB/s
-00:29:14 INFO     tests.test_node_validation   25MiB, 2 stream(s): 45.10 GB/s
-00:29:14 INFO     tests.test_node_validation   25MiB, 4 stream(s): 45.89 GB/s
-00:29:14 INFO     tests.test_node_validation   25MiB, 8 stream(s): 46.17 GB/s
-00:29:14 INFO     tests.test_node_validation   64MiB, 1 stream(s): 45.72 GB/s
-00:29:14 INFO     tests.test_node_validation   64MiB, 2 stream(s): 45.97 GB/s
-00:29:14 INFO     tests.test_node_validation   64MiB, 4 stream(s): 15.00 GB/s
-00:29:14 INFO     tests.test_node_validation   64MiB, 8 stream(s): 46.18 GB/s
-00:29:14 INFO     tests.test_node_validation   256MiB, 1 stream(s): 46.20 GB/s
-00:29:14 INFO     tests.test_node_validation   256MiB, 2 stream(s): 46.20 GB/s
-00:29:14 INFO     tests.test_node_validation   256MiB, 4 stream(s): 46.27 GB/s
-00:29:15 INFO     tests.test_node_validation   256MiB, 8 stream(s): 46.31 GB/s
-00:29:15 INFO     tests.test_node_validation   1GiB, 1 stream(s): 46.16 GB/s
-00:29:15 INFO     tests.test_node_validation   1GiB, 2 stream(s): 36.66 GB/s
-00:29:16 INFO     tests.test_node_validation   1GiB, 4 stream(s): 46.26 GB/s
-00:29:17 INFO     tests.test_node_validation   1GiB, 8 stream(s): 43.40 GB/s
-00:29:17 INFO     tests.test_node_validation P2P multi-stream BW (GPU 0->3): {'4MiB': {'1': 36.94, '2': 39.34, '4': 41.72, '8': 43.61}, '16MiB': {'1': 44.16, '2': 44.62, '4': 45.39, '8': 45.5}, '25MiB': {'1': 44.59, '2': 45.1, '4': 45.89, '8': 46.17}, '64MiB': {'1': 45.72, '2': 45.97, '4': 15.0, '8': 46.18}, '256MiB': {'1': 46.2, '2': 46.2, '4': 46.27, '8': 46.31}, '1GiB': {'1': 46.16, '2': 36.66, '4': 46.26, '8': 43.4}}
-00:29:17 INFO     tests.test_node_validation P2P multi-stream: GPU 1 -> GPU 0
-00:29:17 INFO     tests.test_node_validation   4MiB, 1 stream(s): 41.57 GB/s
-00:29:17 INFO     tests.test_node_validation   4MiB, 2 stream(s): 45.05 GB/s
-00:29:17 INFO     tests.test_node_validation   4MiB, 4 stream(s): 46.84 GB/s
-00:29:17 INFO     tests.test_node_validation   4MiB, 8 stream(s): 47.60 GB/s
-00:29:17 INFO     tests.test_node_validation   16MiB, 1 stream(s): 49.88 GB/s
-00:29:17 INFO     tests.test_node_validation   16MiB, 2 stream(s): 50.65 GB/s
-00:29:17 INFO     tests.test_node_validation   16MiB, 4 stream(s): 51.66 GB/s
-00:29:17 INFO     tests.test_node_validation   16MiB, 8 stream(s): 52.07 GB/s
-00:29:17 INFO     tests.test_node_validation   25MiB, 1 stream(s): 50.67 GB/s
-00:29:17 INFO     tests.test_node_validation   25MiB, 2 stream(s): 51.64 GB/s
-00:29:17 INFO     tests.test_node_validation   25MiB, 4 stream(s): 52.43 GB/s
-00:29:17 INFO     tests.test_node_validation   25MiB, 8 stream(s): 13.05 GB/s
-00:29:17 INFO     tests.test_node_validation   64MiB, 1 stream(s): 51.21 GB/s
-00:29:17 INFO     tests.test_node_validation   64MiB, 2 stream(s): 52.68 GB/s
-00:29:17 INFO     tests.test_node_validation   64MiB, 4 stream(s): 52.66 GB/s
-00:29:17 INFO     tests.test_node_validation   64MiB, 8 stream(s): 52.71 GB/s
-00:29:17 INFO     tests.test_node_validation   256MiB, 1 stream(s): 51.46 GB/s
-00:29:17 INFO     tests.test_node_validation   256MiB, 2 stream(s): 52.06 GB/s
-00:29:17 INFO     tests.test_node_validation   256MiB, 4 stream(s): 52.17 GB/s
-00:29:18 INFO     tests.test_node_validation   256MiB, 8 stream(s): 52.22 GB/s
-00:29:18 INFO     tests.test_node_validation   1GiB, 1 stream(s): 51.93 GB/s
-00:29:18 INFO     tests.test_node_validation   1GiB, 2 stream(s): 52.15 GB/s
-00:29:18 INFO     tests.test_node_validation   1GiB, 4 stream(s): 51.85 GB/s
-00:29:19 INFO     tests.test_node_validation   1GiB, 8 stream(s): 48.47 GB/s
-00:29:19 INFO     tests.test_node_validation P2P multi-stream BW (GPU 1->0): {'4MiB': {'1': 41.57, '2': 45.05, '4': 46.84, '8': 47.6}, '16MiB': {'1': 49.88, '2': 50.65, '4': 51.66, '8': 52.07}, '25MiB': {'1': 50.67, '2': 51.64, '4': 52.43, '8': 13.05}, '64MiB': {'1': 51.21, '2': 52.68, '4': 52.66, '8': 52.71}, '256MiB': {'1': 51.46, '2': 52.06, '4': 52.17, '8': 52.22}, '1GiB': {'1': 51.93, '2': 52.15, '4': 51.85, '8': 48.47}}
-00:29:19 INFO     tests.test_node_validation P2P multi-stream: GPU 1 -> GPU 2
-00:29:19 INFO     tests.test_node_validation   4MiB, 1 stream(s): 34.64 GB/s
-00:29:19 INFO     tests.test_node_validation   4MiB, 2 stream(s): 38.10 GB/s
-00:29:19 INFO     tests.test_node_validation   4MiB, 4 stream(s): 39.95 GB/s
-00:29:19 INFO     tests.test_node_validation   4MiB, 8 stream(s): 41.41 GB/s
-00:29:19 INFO     tests.test_node_validation   16MiB, 1 stream(s): 42.25 GB/s
-00:29:19 INFO     tests.test_node_validation   16MiB, 2 stream(s): 42.70 GB/s
-00:29:19 INFO     tests.test_node_validation   16MiB, 4 stream(s): 43.39 GB/s
-00:29:19 INFO     tests.test_node_validation   16MiB, 8 stream(s): 43.80 GB/s
-00:29:19 INFO     tests.test_node_validation   25MiB, 1 stream(s): 43.12 GB/s
-00:29:19 INFO     tests.test_node_validation   25MiB, 2 stream(s): 43.36 GB/s
-00:29:20 INFO     tests.test_node_validation   25MiB, 4 stream(s): 43.83 GB/s
-00:29:20 INFO     tests.test_node_validation   25MiB, 8 stream(s): 44.10 GB/s
-00:29:20 INFO     tests.test_node_validation   64MiB, 1 stream(s): 43.89 GB/s
-00:29:20 INFO     tests.test_node_validation   64MiB, 2 stream(s): 44.19 GB/s
-00:29:20 INFO     tests.test_node_validation   64MiB, 4 stream(s): 44.24 GB/s
-00:29:20 INFO     tests.test_node_validation   64MiB, 8 stream(s): 44.44 GB/s
-00:29:20 INFO     tests.test_node_validation   256MiB, 1 stream(s): 44.37 GB/s
-00:29:20 INFO     tests.test_node_validation   256MiB, 2 stream(s): 44.56 GB/s
-00:29:20 INFO     tests.test_node_validation   256MiB, 4 stream(s): 44.48 GB/s
-00:29:20 INFO     tests.test_node_validation   256MiB, 8 stream(s): 35.53 GB/s
-00:29:20 INFO     tests.test_node_validation   1GiB, 1 stream(s): 44.60 GB/s
-00:29:21 INFO     tests.test_node_validation   1GiB, 2 stream(s): 44.61 GB/s
-00:29:21 INFO     tests.test_node_validation   1GiB, 4 stream(s): 39.57 GB/s
-00:29:23 INFO     tests.test_node_validation   1GiB, 8 stream(s): 41.97 GB/s
-00:29:23 INFO     tests.test_node_validation P2P multi-stream BW (GPU 1->2): {'4MiB': {'1': 34.64, '2': 38.1, '4': 39.95, '8': 41.41}, '16MiB': {'1': 42.25, '2': 42.7, '4': 43.39, '8': 43.8}, '25MiB': {'1': 43.12, '2': 43.36, '4': 43.83, '8': 44.1}, '64MiB': {'1': 43.89, '2': 44.19, '4': 44.24, '8': 44.44}, '256MiB': {'1': 44.37, '2': 44.56, '4': 44.48, '8': 35.53}, '1GiB': {'1': 44.6, '2': 44.61, '4': 39.57, '8': 41.97}}
-00:29:23 INFO     tests.test_node_validation P2P multi-stream: GPU 1 -> GPU 3
-00:29:23 INFO     tests.test_node_validation   4MiB, 1 stream(s): 34.88 GB/s
-00:29:23 INFO     tests.test_node_validation   4MiB, 2 stream(s): 38.19 GB/s
-00:29:23 INFO     tests.test_node_validation   4MiB, 4 stream(s): 40.20 GB/s
-00:29:23 INFO     tests.test_node_validation   4MiB, 8 stream(s): 41.58 GB/s
-00:29:23 INFO     tests.test_node_validation   16MiB, 1 stream(s): 42.34 GB/s
-00:29:23 INFO     tests.test_node_validation   16MiB, 2 stream(s): 42.79 GB/s
-00:29:23 INFO     tests.test_node_validation   16MiB, 4 stream(s): 43.41 GB/s
-00:29:23 INFO     tests.test_node_validation   16MiB, 8 stream(s): 43.74 GB/s
-00:29:23 INFO     tests.test_node_validation   25MiB, 1 stream(s): 43.14 GB/s
-00:29:23 INFO     tests.test_node_validation   25MiB, 2 stream(s): 43.37 GB/s
-00:29:23 INFO     tests.test_node_validation   25MiB, 4 stream(s): 43.86 GB/s
-00:29:23 INFO     tests.test_node_validation   25MiB, 8 stream(s): 44.11 GB/s
-00:29:23 INFO     tests.test_node_validation   64MiB, 1 stream(s): 43.90 GB/s
-00:29:23 INFO     tests.test_node_validation   64MiB, 2 stream(s): 44.19 GB/s
-00:29:23 INFO     tests.test_node_validation   64MiB, 4 stream(s): 44.35 GB/s
-00:29:23 INFO     tests.test_node_validation   64MiB, 8 stream(s): 44.38 GB/s
-00:29:23 INFO     tests.test_node_validation   256MiB, 1 stream(s): 44.51 GB/s
-00:29:23 INFO     tests.test_node_validation   256MiB, 2 stream(s): 44.49 GB/s
-00:29:23 INFO     tests.test_node_validation   256MiB, 4 stream(s): 44.55 GB/s
-00:29:23 INFO     tests.test_node_validation   256MiB, 8 stream(s): 44.55 GB/s
-00:29:24 INFO     tests.test_node_validation   1GiB, 1 stream(s): 44.61 GB/s
-00:29:24 INFO     tests.test_node_validation   1GiB, 2 stream(s): 44.62 GB/s
-00:29:24 INFO     tests.test_node_validation   1GiB, 4 stream(s): 39.59 GB/s
-00:29:26 INFO     tests.test_node_validation   1GiB, 8 stream(s): 42.00 GB/s
-00:29:26 INFO     tests.test_node_validation P2P multi-stream BW (GPU 1->3): {'4MiB': {'1': 34.88, '2': 38.19, '4': 40.2, '8': 41.58}, '16MiB': {'1': 42.34, '2': 42.79, '4': 43.41, '8': 43.74}, '25MiB': {'1': 43.14, '2': 43.37, '4': 43.86, '8': 44.11}, '64MiB': {'1': 43.9, '2': 44.19, '4': 44.35, '8': 44.38}, '256MiB': {'1': 44.51, '2': 44.49, '4': 44.55, '8': 44.55}, '1GiB': {'1': 44.61, '2': 44.62, '4': 39.59, '8': 42.0}}
-00:29:26 INFO     tests.test_node_validation P2P multi-stream: GPU 2 -> GPU 0
-00:29:26 INFO     tests.test_node_validation   4MiB, 1 stream(s): 37.03 GB/s
-00:29:26 INFO     tests.test_node_validation   4MiB, 2 stream(s): 39.28 GB/s
-00:29:26 INFO     tests.test_node_validation   4MiB, 4 stream(s): 41.98 GB/s
-00:29:26 INFO     tests.test_node_validation   4MiB, 8 stream(s): 43.27 GB/s
-00:29:26 INFO     tests.test_node_validation   16MiB, 1 stream(s): 43.54 GB/s
-00:29:26 INFO     tests.test_node_validation   16MiB, 2 stream(s): 44.24 GB/s
-00:29:26 INFO     tests.test_node_validation   16MiB, 4 stream(s): 44.57 GB/s
-00:29:26 INFO     tests.test_node_validation   16MiB, 8 stream(s): 45.43 GB/s
-00:29:26 INFO     tests.test_node_validation   25MiB, 1 stream(s): 44.33 GB/s
-00:29:26 INFO     tests.test_node_validation   25MiB, 2 stream(s): 44.97 GB/s
-00:29:26 INFO     tests.test_node_validation   25MiB, 4 stream(s): 45.38 GB/s
-00:29:26 INFO     tests.test_node_validation   25MiB, 8 stream(s): 45.57 GB/s
-00:29:26 INFO     tests.test_node_validation   64MiB, 1 stream(s): 45.45 GB/s
-00:29:26 INFO     tests.test_node_validation   64MiB, 2 stream(s): 45.12 GB/s
-00:29:26 INFO     tests.test_node_validation   64MiB, 4 stream(s): 45.68 GB/s
-00:29:26 INFO     tests.test_node_validation   64MiB, 8 stream(s): 45.75 GB/s
-00:29:26 INFO     tests.test_node_validation   256MiB, 1 stream(s): 45.70 GB/s
-00:29:26 INFO     tests.test_node_validation   256MiB, 2 stream(s): 45.63 GB/s
-00:29:26 INFO     tests.test_node_validation   256MiB, 4 stream(s): 45.73 GB/s
-00:29:27 INFO     tests.test_node_validation   256MiB, 8 stream(s): 36.27 GB/s
-00:29:27 INFO     tests.test_node_validation   1GiB, 1 stream(s): 45.75 GB/s
-00:29:27 INFO     tests.test_node_validation   1GiB, 2 stream(s): 45.75 GB/s
-00:29:28 INFO     tests.test_node_validation   1GiB, 4 stream(s): 40.45 GB/s
-00:29:29 INFO     tests.test_node_validation   1GiB, 8 stream(s): 42.97 GB/s
-00:29:29 INFO     tests.test_node_validation P2P multi-stream BW (GPU 2->0): {'4MiB': {'1': 37.03, '2': 39.28, '4': 41.98, '8': 43.27}, '16MiB': {'1': 43.54, '2': 44.24, '4': 44.57, '8': 45.43}, '25MiB': {'1': 44.33, '2': 44.97, '4': 45.38, '8': 45.57}, '64MiB': {'1': 45.45, '2': 45.12, '4': 45.68, '8': 45.75}, '256MiB': {'1': 45.7, '2': 45.63, '4': 45.73, '8': 36.27}, '1GiB': {'1': 45.75, '2': 45.75, '4': 40.45, '8': 42.97}}
-00:29:29 INFO     tests.test_node_validation P2P multi-stream: GPU 2 -> GPU 1
-00:29:29 INFO     tests.test_node_validation   4MiB, 1 stream(s): 36.81 GB/s
-00:29:29 INFO     tests.test_node_validation   4MiB, 2 stream(s): 39.30 GB/s
-00:29:29 INFO     tests.test_node_validation   4MiB, 4 stream(s): 41.59 GB/s
-00:29:29 INFO     tests.test_node_validation   4MiB, 8 stream(s): 43.08 GB/s
-00:29:29 INFO     tests.test_node_validation   16MiB, 1 stream(s): 43.10 GB/s
-00:29:29 INFO     tests.test_node_validation   16MiB, 2 stream(s): 44.25 GB/s
-00:29:29 INFO     tests.test_node_validation   16MiB, 4 stream(s): 44.96 GB/s
-00:29:29 INFO     tests.test_node_validation   16MiB, 8 stream(s): 45.38 GB/s
-00:29:29 INFO     tests.test_node_validation   25MiB, 1 stream(s): 44.24 GB/s
-00:29:29 INFO     tests.test_node_validation   25MiB, 2 stream(s): 44.62 GB/s
-00:29:29 INFO     tests.test_node_validation   25MiB, 4 stream(s): 45.41 GB/s
-00:29:29 INFO     tests.test_node_validation   25MiB, 8 stream(s): 45.53 GB/s
-00:29:29 INFO     tests.test_node_validation   64MiB, 1 stream(s): 45.39 GB/s
-00:29:29 INFO     tests.test_node_validation   64MiB, 2 stream(s): 45.51 GB/s
-00:29:29 INFO     tests.test_node_validation   64MiB, 4 stream(s): 45.55 GB/s
-00:29:29 INFO     tests.test_node_validation   64MiB, 8 stream(s): 45.73 GB/s
-00:29:29 INFO     tests.test_node_validation   256MiB, 1 stream(s): 45.72 GB/s
-00:29:29 INFO     tests.test_node_validation   256MiB, 2 stream(s): 45.74 GB/s
-00:29:29 INFO     tests.test_node_validation   256MiB, 4 stream(s): 45.74 GB/s
-00:29:30 INFO     tests.test_node_validation   256MiB, 8 stream(s): 45.78 GB/s
-00:29:30 INFO     tests.test_node_validation   1GiB, 1 stream(s): 45.73 GB/s
-00:29:30 INFO     tests.test_node_validation   1GiB, 2 stream(s): 45.83 GB/s
-00:29:31 INFO     tests.test_node_validation   1GiB, 4 stream(s): 40.52 GB/s
-00:29:32 INFO     tests.test_node_validation   1GiB, 8 stream(s): 42.96 GB/s
-00:29:32 INFO     tests.test_node_validation P2P multi-stream BW (GPU 2->1): {'4MiB': {'1': 36.81, '2': 39.3, '4': 41.59, '8': 43.08}, '16MiB': {'1': 43.1, '2': 44.25, '4': 44.96, '8': 45.38}, '25MiB': {'1': 44.24, '2': 44.62, '4': 45.41, '8': 45.53}, '64MiB': {'1': 45.39, '2': 45.51, '4': 45.55, '8': 45.73}, '256MiB': {'1': 45.72, '2': 45.74, '4': 45.74, '8': 45.78}, '1GiB': {'1': 45.73, '2': 45.83, '4': 40.52, '8': 42.96}}
-00:29:32 INFO     tests.test_node_validation P2P multi-stream: GPU 2 -> GPU 3
-00:29:32 INFO     tests.test_node_validation   4MiB, 1 stream(s): 38.16 GB/s
-00:29:32 INFO     tests.test_node_validation   4MiB, 2 stream(s): 43.84 GB/s
-00:29:32 INFO     tests.test_node_validation   4MiB, 4 stream(s): 45.15 GB/s
-00:29:32 INFO     tests.test_node_validation   4MiB, 8 stream(s): 46.66 GB/s
-00:29:32 INFO     tests.test_node_validation   16MiB, 1 stream(s): 48.57 GB/s
-00:29:32 INFO     tests.test_node_validation   16MiB, 2 stream(s): 50.04 GB/s
-00:29:32 INFO     tests.test_node_validation   16MiB, 4 stream(s): 51.58 GB/s
-00:29:32 INFO     tests.test_node_validation   16MiB, 8 stream(s): 51.75 GB/s
-00:29:32 INFO     tests.test_node_validation   25MiB, 1 stream(s): 50.05 GB/s
-00:29:32 INFO     tests.test_node_validation   25MiB, 2 stream(s): 50.64 GB/s
-00:29:32 INFO     tests.test_node_validation   25MiB, 4 stream(s): 51.94 GB/s
-00:29:32 INFO     tests.test_node_validation   25MiB, 8 stream(s): 51.77 GB/s
-00:29:32 INFO     tests.test_node_validation   64MiB, 1 stream(s): 52.04 GB/s
-00:29:32 INFO     tests.test_node_validation   64MiB, 2 stream(s): 51.44 GB/s
-00:29:32 INFO     tests.test_node_validation   64MiB, 4 stream(s): 51.75 GB/s
-00:29:32 INFO     tests.test_node_validation   64MiB, 8 stream(s): 51.98 GB/s
-00:29:32 INFO     tests.test_node_validation   256MiB, 1 stream(s): 51.12 GB/s
-00:29:32 INFO     tests.test_node_validation   256MiB, 2 stream(s): 51.06 GB/s
-00:29:32 INFO     tests.test_node_validation   256MiB, 4 stream(s): 51.58 GB/s
-00:29:32 INFO     tests.test_node_validation   256MiB, 8 stream(s): 51.41 GB/s
-00:29:33 INFO     tests.test_node_validation   1GiB, 1 stream(s): 51.24 GB/s
-00:29:33 INFO     tests.test_node_validation   1GiB, 2 stream(s): 51.38 GB/s
-00:29:33 INFO     tests.test_node_validation   1GiB, 4 stream(s): 51.32 GB/s
-00:29:34 INFO     tests.test_node_validation   1GiB, 8 stream(s): 51.42 GB/s
-00:29:34 INFO     tests.test_node_validation P2P multi-stream BW (GPU 2->3): {'4MiB': {'1': 38.16, '2': 43.84, '4': 45.15, '8': 46.66}, '16MiB': {'1': 48.57, '2': 50.04, '4': 51.58, '8': 51.75}, '25MiB': {'1': 50.05, '2': 50.64, '4': 51.94, '8': 51.77}, '64MiB': {'1': 52.04, '2': 51.44, '4': 51.75, '8': 51.98}, '256MiB': {'1': 51.12, '2': 51.06, '4': 51.58, '8': 51.41}, '1GiB': {'1': 51.24, '2': 51.38, '4': 51.32, '8': 51.42}}
-00:29:34 INFO     tests.test_node_validation P2P multi-stream: GPU 3 -> GPU 0
-00:29:34 INFO     tests.test_node_validation   4MiB, 1 stream(s): 35.03 GB/s
-00:29:34 INFO     tests.test_node_validation   4MiB, 2 stream(s): 37.90 GB/s
-00:29:34 INFO     tests.test_node_validation   4MiB, 4 stream(s): 40.21 GB/s
-00:29:34 INFO     tests.test_node_validation   4MiB, 8 stream(s): 41.61 GB/s
-00:29:34 INFO     tests.test_node_validation   16MiB, 1 stream(s): 42.38 GB/s
-00:29:34 INFO     tests.test_node_validation   16MiB, 2 stream(s): 42.83 GB/s
-00:29:34 INFO     tests.test_node_validation   16MiB, 4 stream(s): 43.39 GB/s
-00:29:34 INFO     tests.test_node_validation   16MiB, 8 stream(s): 43.82 GB/s
-00:29:34 INFO     tests.test_node_validation   25MiB, 1 stream(s): 43.03 GB/s
-00:29:34 INFO     tests.test_node_validation   25MiB, 2 stream(s): 43.38 GB/s
-00:29:35 INFO     tests.test_node_validation   25MiB, 4 stream(s): 43.87 GB/s
-00:29:35 INFO     tests.test_node_validation   25MiB, 8 stream(s): 43.96 GB/s
-00:29:35 INFO     tests.test_node_validation   64MiB, 1 stream(s): 43.93 GB/s
-00:29:35 INFO     tests.test_node_validation   64MiB, 2 stream(s): 9.03 GB/s
-00:29:35 INFO     tests.test_node_validation   64MiB, 4 stream(s): 44.34 GB/s
-00:29:35 INFO     tests.test_node_validation   64MiB, 8 stream(s): 44.38 GB/s
-00:29:35 INFO     tests.test_node_validation   256MiB, 1 stream(s): 44.51 GB/s
-00:29:35 INFO     tests.test_node_validation   256MiB, 2 stream(s): 44.50 GB/s
-00:29:35 INFO     tests.test_node_validation   256MiB, 4 stream(s): 44.57 GB/s
-00:29:35 INFO     tests.test_node_validation   256MiB, 8 stream(s): 44.58 GB/s
-00:29:35 INFO     tests.test_node_validation   1GiB, 1 stream(s): 44.58 GB/s
-00:29:36 INFO     tests.test_node_validation   1GiB, 2 stream(s): 44.60 GB/s
-00:29:36 INFO     tests.test_node_validation   1GiB, 4 stream(s): 44.62 GB/s
-00:29:38 INFO     tests.test_node_validation   1GiB, 8 stream(s): 39.65 GB/s
-00:29:38 INFO     tests.test_node_validation P2P multi-stream BW (GPU 3->0): {'4MiB': {'1': 35.03, '2': 37.9, '4': 40.21, '8': 41.61}, '16MiB': {'1': 42.38, '2': 42.83, '4': 43.39, '8': 43.82}, '25MiB': {'1': 43.03, '2': 43.38, '4': 43.87, '8': 43.96}, '64MiB': {'1': 43.93, '2': 9.03, '4': 44.34, '8': 44.38}, '256MiB': {'1': 44.51, '2': 44.5, '4': 44.57, '8': 44.58}, '1GiB': {'1': 44.58, '2': 44.6, '4': 44.62, '8': 39.65}}
-00:29:38 INFO     tests.test_node_validation P2P multi-stream: GPU 3 -> GPU 1
-00:29:38 INFO     tests.test_node_validation   4MiB, 1 stream(s): 34.85 GB/s
-00:29:38 INFO     tests.test_node_validation   4MiB, 2 stream(s): 38.23 GB/s
-00:29:38 INFO     tests.test_node_validation   4MiB, 4 stream(s): 40.19 GB/s
-00:29:38 INFO     tests.test_node_validation   4MiB, 8 stream(s): 41.49 GB/s
-00:29:38 INFO     tests.test_node_validation   16MiB, 1 stream(s): 42.33 GB/s
-00:29:38 INFO     tests.test_node_validation   16MiB, 2 stream(s): 42.81 GB/s
-00:29:38 INFO     tests.test_node_validation   16MiB, 4 stream(s): 43.34 GB/s
-00:29:38 INFO     tests.test_node_validation   16MiB, 8 stream(s): 43.74 GB/s
-00:29:38 INFO     tests.test_node_validation   25MiB, 1 stream(s): 43.15 GB/s
-00:29:38 INFO     tests.test_node_validation   25MiB, 2 stream(s): 43.41 GB/s
-00:29:38 INFO     tests.test_node_validation   25MiB, 4 stream(s): 43.90 GB/s
-00:29:38 INFO     tests.test_node_validation   25MiB, 8 stream(s): 43.97 GB/s
-00:29:38 INFO     tests.test_node_validation   64MiB, 1 stream(s): 43.91 GB/s
-00:29:38 INFO     tests.test_node_validation   64MiB, 2 stream(s): 44.20 GB/s
-00:29:38 INFO     tests.test_node_validation   64MiB, 4 stream(s): 44.34 GB/s
-00:29:38 INFO     tests.test_node_validation   64MiB, 8 stream(s): 44.38 GB/s
-00:29:38 INFO     tests.test_node_validation   256MiB, 1 stream(s): 44.52 GB/s
-00:29:38 INFO     tests.test_node_validation   256MiB, 2 stream(s): 44.50 GB/s
-00:29:38 INFO     tests.test_node_validation   256MiB, 4 stream(s): 44.57 GB/s
-00:29:38 INFO     tests.test_node_validation   256MiB, 8 stream(s): 44.59 GB/s
-00:29:39 INFO     tests.test_node_validation   1GiB, 1 stream(s): 44.61 GB/s
-00:29:39 INFO     tests.test_node_validation   1GiB, 2 stream(s): 35.63 GB/s
-00:29:39 INFO     tests.test_node_validation   1GiB, 4 stream(s): 44.62 GB/s
-00:29:41 INFO     tests.test_node_validation   1GiB, 8 stream(s): 44.63 GB/s
-00:29:41 INFO     tests.test_node_validation P2P multi-stream BW (GPU 3->1): {'4MiB': {'1': 34.85, '2': 38.23, '4': 40.19, '8': 41.49}, '16MiB': {'1': 42.33, '2': 42.81, '4': 43.34, '8': 43.74}, '25MiB': {'1': 43.15, '2': 43.41, '4': 43.9, '8': 43.97}, '64MiB': {'1': 43.91, '2': 44.2, '4': 44.34, '8': 44.38}, '256MiB': {'1': 44.52, '2': 44.5, '4': 44.57, '8': 44.59}, '1GiB': {'1': 44.61, '2': 35.63, '4': 44.62, '8': 44.63}}
-00:29:41 INFO     tests.test_node_validation P2P multi-stream: GPU 3 -> GPU 2
-00:29:41 INFO     tests.test_node_validation   4MiB, 1 stream(s): 41.51 GB/s
-00:29:41 INFO     tests.test_node_validation   4MiB, 2 stream(s): 45.24 GB/s
-00:29:41 INFO     tests.test_node_validation   4MiB, 4 stream(s): 46.77 GB/s
-00:29:41 INFO     tests.test_node_validation   4MiB, 8 stream(s): 47.25 GB/s
-00:29:41 INFO     tests.test_node_validation   16MiB, 1 stream(s): 49.94 GB/s
-00:29:41 INFO     tests.test_node_validation   16MiB, 2 stream(s): 50.47 GB/s
-00:29:41 INFO     tests.test_node_validation   16MiB, 4 stream(s): 51.95 GB/s
-00:29:41 INFO     tests.test_node_validation   16MiB, 8 stream(s): 51.83 GB/s
-00:29:41 INFO     tests.test_node_validation   25MiB, 1 stream(s): 51.54 GB/s
-00:29:41 INFO     tests.test_node_validation   25MiB, 2 stream(s): 51.53 GB/s
-00:29:41 INFO     tests.test_node_validation   25MiB, 4 stream(s): 52.09 GB/s
-00:29:41 INFO     tests.test_node_validation   25MiB, 8 stream(s): 20.78 GB/s
-00:29:41 INFO     tests.test_node_validation   64MiB, 1 stream(s): 52.07 GB/s
-00:29:41 INFO     tests.test_node_validation   64MiB, 2 stream(s): 51.89 GB/s
-00:29:41 INFO     tests.test_node_validation   64MiB, 4 stream(s): 52.41 GB/s
-00:29:41 INFO     tests.test_node_validation   64MiB, 8 stream(s): 52.65 GB/s
-00:29:41 INFO     tests.test_node_validation   256MiB, 1 stream(s): 52.12 GB/s
-00:29:41 INFO     tests.test_node_validation   256MiB, 2 stream(s): 51.87 GB/s
-00:29:41 INFO     tests.test_node_validation   256MiB, 4 stream(s): 52.13 GB/s
-00:29:41 INFO     tests.test_node_validation   256MiB, 8 stream(s): 52.17 GB/s
-00:29:42 INFO     tests.test_node_validation   1GiB, 1 stream(s): 52.00 GB/s
-00:29:42 INFO     tests.test_node_validation   1GiB, 2 stream(s): 41.05 GB/s
-00:29:42 INFO     tests.test_node_validation   1GiB, 4 stream(s): 52.09 GB/s
-00:29:43 INFO     tests.test_node_validation   1GiB, 8 stream(s): 48.57 GB/s
-00:29:43 INFO     tests.test_node_validation P2P multi-stream BW (GPU 3->2): {'4MiB': {'1': 41.51, '2': 45.24, '4': 46.77, '8': 47.25}, '16MiB': {'1': 49.94, '2': 50.47, '4': 51.95, '8': 51.83}, '25MiB': {'1': 51.54, '2': 51.53, '4': 52.09, '8': 20.78}, '64MiB': {'1': 52.07, '2': 51.89, '4': 52.41, '8': 52.65}, '256MiB': {'1': 52.12, '2': 51.87, '4': 52.13, '8': 52.17}, '1GiB': {'1': 52.0, '2': 41.05, '4': 52.09, '8': 48.57}}
-00:29:43 INFO     tests.test_node_validation KPI test_p2p_multi_stream_bandwidth: {"assertion_size_bytes": 1073741824, "assertion_size_label": "1GiB", "directional_symmetry_stream_count": 4, "failing_pair_count": 0, "n_iters": 5, "observed_avg_scaling_ratio": 0.963, "observed_min_directional_symmetry": 0.875, "observed_min_scaling_ratio": 0.884, "required_min_directional_symmetry": 0.75, "required_min_stability_ratio": 0.85, "stream_counts": [1, 2, 4, 8], "tested_pair_count": 12, "transfer_sizes_bytes": [4194304, 16777216, 26214400, 67108864, 268435456, 1073741824], "transfer_sizes_labels": ["4MiB", "16MiB", "25MiB", "64MiB", "256MiB", "1GiB"], "worst_directional_pairs": [{"directional_symmetry_ratio": 0.875, "forward_pair": "0->2", "reverse_pair": "2->0"}, {"directional_symmetry_ratio": 0.887, "forward_pair": "1->3", "reverse_pair": "3->1"}, {"directional_symmetry_ratio": 0.965, "forward_pair": "0->3", "reverse_pair": "3->0"}], "worst_pairs": [{"bw_1_stream_gbs": 45.75, "bw_4_stream_gbs": 40.45, "pair": "2->0", "ratio_4_over_1": 0.884}, {"bw_1_stream_gbs": 45.73, "bw_4_stream_gbs": 40.52, "pair": "2->1", "ratio_4_over_1": 0.886}, {"bw_1_stream_gbs": 44.6, "bw_4_stream_gbs": 39.57, "pair": "1->2", "ratio_4_over_1": 0.887}]}
-00:29:45 INFO     tests.test_node_validation Kernel launch latency (microseconds):
-00:29:45 INFO     tests.test_node_validation   min  :    18.95 µs
-00:29:45 INFO     tests.test_node_validation   p50  :    20.19 µs
-00:29:45 INFO     tests.test_node_validation   mean :    21.00 µs
-00:29:45 INFO     tests.test_node_validation   p95  :    23.64 µs
-00:29:45 INFO     tests.test_node_validation   p99  :    36.18 µs
-00:29:45 INFO     tests.test_node_validation   max  :    82.35 µs
-00:29:45 INFO     tests.test_node_validation KPI test_kernel_launch_latency_stats: {"max_us": 82.348, "mean_us": 20.998, "min_us": 18.952, "p50_us": 20.193, "p95_us": 23.645, "p99_us": 36.177, "samples": 200}
-00:29:45 INFO     tests.test_node_validation 
-================================================================================
-00:29:45 INFO     tests.test_node_validation Additional Data Movement and Compute Metrics
-00:29:45 INFO     tests.test_node_validation ================================================================================
-00:29:45 INFO     tests.test_node_validation 
-Host-to-Device (RAM→GPU) Transfer Times:
-00:30:00 INFO     tests.test_node_validation   h2d_100kb_bw_gbs: 5.30 GB/s
-00:30:00 INFO     tests.test_node_validation   h2d_100kb_us: 19.82 µs
-00:30:00 INFO     tests.test_node_validation   h2d_100mb_bw_gbs: 53.04 GB/s
-00:30:00 INFO     tests.test_node_validation   h2d_100mb_us: 2153.55 µs
-00:30:00 INFO     tests.test_node_validation   h2d_10gb_bw_gbs: 55.56 GB/s
-00:30:00 INFO     tests.test_node_validation   h2d_10gb_us: 193356.07 µs
-00:30:00 INFO     tests.test_node_validation   h2d_10kb_bw_gbs: 0.60 GB/s
-00:30:00 INFO     tests.test_node_validation   h2d_10kb_us: 17.97 µs
-00:30:00 INFO     tests.test_node_validation   h2d_10mb_bw_gbs: 41.11 GB/s
-00:30:00 INFO     tests.test_node_validation   h2d_10mb_us: 267.44 µs
-00:30:00 INFO     tests.test_node_validation   h2d_1gb_bw_gbs: 56.33 GB/s
-00:30:00 INFO     tests.test_node_validation   h2d_1gb_us: 19093.51 µs
-00:30:00 INFO     tests.test_node_validation   h2d_1mb_bw_gbs: 24.21 GB/s
-00:30:00 INFO     tests.test_node_validation   h2d_1mb_us: 44.21 µs
-00:30:00 INFO     tests.test_node_validation 
-Device-to-Host (GPU→RAM) Transfer Times:
-00:30:01 INFO     tests.test_node_validation   d2h_100kb_bw_gbs: 6.89 GB/s
-00:30:01 INFO     tests.test_node_validation   d2h_100kb_us: 15.13 µs
-00:30:01 INFO     tests.test_node_validation   d2h_100mb_bw_gbs: 54.94 GB/s
-00:30:01 INFO     tests.test_node_validation   d2h_100mb_us: 1908.83 µs
-00:30:01 INFO     tests.test_node_validation   d2h_10gb_bw_gbs: 55.03 GB/s
-00:30:01 INFO     tests.test_node_validation   d2h_10gb_us: 195346.47 µs
-00:30:01 INFO     tests.test_node_validation   d2h_10kb_bw_gbs: 0.76 GB/s
-00:30:01 INFO     tests.test_node_validation   d2h_10kb_us: 13.61 µs
-00:30:01 INFO     tests.test_node_validation   d2h_10mb_bw_gbs: 50.68 GB/s
-00:30:01 INFO     tests.test_node_validation   d2h_10mb_us: 207.53 µs
-00:30:01 INFO     tests.test_node_validation   d2h_1gb_bw_gbs: 54.94 GB/s
-00:30:01 INFO     tests.test_node_validation   d2h_1gb_us: 19547.84 µs
-00:30:01 INFO     tests.test_node_validation   d2h_1mb_bw_gbs: 31.05 GB/s
-00:30:01 INFO     tests.test_node_validation   d2h_1mb_us: 34.08 µs
-00:30:01 INFO     tests.test_node_validation 
-CPU Compute Time (512×512 matrix multiply):
-00:30:01 INFO     tests.test_node_validation   avg per iteration: 999.33 µs
-00:30:01 INFO     tests.test_node_validation 
-GPU Compute Time (512×512 matrix multiply):
-00:30:02 INFO     tests.test_node_validation   avg per iteration: 18.90 µs
-00:30:02 INFO     tests.test_node_validation 
-CPU↔GPU Round-Trip Latency (1 MB, H2D→D2H):
-00:30:02 INFO     tests.test_node_validation   cpu_gpu_roundtrip_max_us: 94.97 µs
-00:30:02 INFO     tests.test_node_validation   cpu_gpu_roundtrip_min_us: 71.56 µs
-00:30:02 INFO     tests.test_node_validation   cpu_gpu_roundtrip_p50_us: 72.49 µs
-00:30:02 INFO     tests.test_node_validation   cpu_gpu_roundtrip_p95_us: 76.32 µs
-00:30:02 INFO     tests.test_node_validation KPI test_kernel_launch_latency_stats_extended: {"cpu_compute_us": 999.3346300143457, "cpu_gpu_roundtrip_max_us": 94.97400060354266, "cpu_gpu_roundtrip_min_us": 71.55700041039381, "cpu_gpu_roundtrip_p50_us": 72.48600013554096, "cpu_gpu_roundtrip_p95_us": 76.31725002283927, "d2h_100kb_bw_gbs": 6.886810810211884, "d2h_100kb_us": 15.126001017051749, "d2h_100mb_bw_gbs": 54.936946251633394, "d2h_100mb_us": 1908.834999994724, "d2h_10gb_bw_gbs": 55.02766330268879, "d2h_10gb_us": 195346.47399996174, "d2h_10kb_bw_gbs": 0.764749745553851, "d2h_10kb_us": 13.607999790110625, "d2h_10mb_bw_gbs": 50.6773894051923, "d2h_10mb_us": 207.53100034198724, "d2h_1gb_bw_gbs": 54.94004001614143, "d2h_1gb_us": 19547.836998754065, "d2h_1mb_bw_gbs": 31.051436168978906, "d2h_1mb_us": 34.081000194419175, "gpu_compute_us": 18.89677998406114, "h2d_100kb_bw_gbs": 5.304600198495545, "h2d_100kb_us": 19.824999981210567, "h2d_100mb_bw_gbs": 53.04014064926874, "h2d_100mb_us": 2153.5539999604225, "h2d_10gb_bw_gbs": 55.55669711619998, "h2d_10gb_us": 193356.06700042263, "h2d_10kb_bw_gbs": 0.595591210600003, "h2d_10kb_us": 17.966998711926863, "h2d_10mb_bw_gbs": 41.10579714654459, "h2d_10mb_us": 267.4449988262495, "h2d_1gb_bw_gbs": 56.330563427588196, "h2d_1gb_us": 19093.5080008785, "h2d_1mb_bw_gbs": 24.205914367434914, "h2d_1mb_us": 44.21499943418894}
-00:30:02 INFO     tests.test_node_validation cudaDeviceSynchronize() overhead (microseconds):
-00:30:02 INFO     tests.test_node_validation   min  :     3.12 µs
-00:30:02 INFO     tests.test_node_validation   p50  :     3.40 µs
-00:30:02 INFO     tests.test_node_validation   mean :     3.45 µs
-00:30:02 INFO     tests.test_node_validation   p95  :     3.62 µs
-00:30:02 INFO     tests.test_node_validation   p99  :     3.95 µs
-00:30:02 INFO     tests.test_node_validation   max  :    14.76 µs
-00:30:02 INFO     tests.test_node_validation KPI test_synchronize_overhead_stats: {"max_us": 14.763, "mean_us": 3.45, "min_us": 3.123, "p50_us": 3.397, "p95_us": 3.615, "p99_us": 3.95, "samples": 200}
-00:30:34 INFO     tests.test_node_validation GPU Power profile (sustained workload, 120 samples):
-00:30:34 INFO     tests.test_node_validation   Min:   87.8 W
-00:30:34 INFO     tests.test_node_validation   Mean:  345.4 W
-00:30:34 INFO     tests.test_node_validation   Max:   412.4 W
-00:30:34 INFO     tests.test_node_validation   Std:   60.2 W
-00:30:34 INFO     tests.test_node_validation KPI test_sustained_gpu_power_stability: {"duration_sec": 30, "max_w": 412.41, "mean_w": 345.35, "min_w": 87.83, "samples": 120, "std_w": 60.18}
-00:30:34 INFO     tests.test_node_validation Write BW  4KB      :      0.7 GB/s
-00:30:34 INFO     tests.test_node_validation Write BW  64KB     :     11.4 GB/s
-00:30:34 INFO     tests.test_node_validation Write BW  1MB      :    211.3 GB/s
-00:30:34 INFO     tests.test_node_validation Write BW  16MB     :   2185.2 GB/s
-00:30:34 INFO     tests.test_node_validation Write BW  256MB    :   1984.7 GB/s
-00:30:34 INFO     tests.test_node_validation Write BW  512MB    :   2011.2 GB/s
-00:30:34 INFO     tests.test_node_validation GPU write BW summary: peak=2185.2 GB/s  small(4KB)=0.7  large(256MB)=1984.7  ratio=2918.6x
-00:30:34 INFO     tests.test_node_validation KPI test_gpu_write_performance_limiters: {"bw_by_size_gbs": {"16MB": 2185.24, "1MB": 211.3, "256MB": 1984.65, "4KB": 0.68, "512MB": 2011.18, "64KB": 11.42}, "device": "NVIDIA H100 PCIe", "n_iters": 10, "peak_write_bw_gbs": 2185.24}
-00:30:34 INFO     tests.test_node_validation 
+CUDA call was originally invoked at:
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+    config.hook.pytest_collection(session=session)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+    session.perform_collect()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+    self.items.extend(self.genitems(node))
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+    rep, duplicate = self._collect_one_node(node, handle_dupes)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+    rep = collect_one_node(node)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+    call = CallInfo.from_call(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+    return list(collector.collect())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+    self._register_setup_module_fixture()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+    self._obj = obj = self._getobj()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+    return importtestmodule(self.path, self.config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+    mod = import_path(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+    importlib.import_module(module_name)
+  File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+    exec(co, module.__dict__)
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_node_validation.py", line 42, in <module>
+    from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in <module>
+    import torch
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in <module>
+    _C._initExtension(_manager_path())
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in <module>
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+05:49:29 WARNING  tests.test_node_validation Synchronize overhead measurement failed: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=2, num_gpus=2
+
+CUDA call was originally invoked at:
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+    code = main()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+    config.hook.pytest_collection(session=session)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+    session.perform_collect()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+    self.items.extend(self.genitems(node))
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+    rep, duplicate = self._collect_one_node(node, handle_dupes)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+    rep = collect_one_node(node)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+    call = CallInfo.from_call(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+    return list(collector.collect())
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+    self._register_setup_module_fixture()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+    self._obj = obj = self._getobj()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+    return importtestmodule(self.path, self.config)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+    mod = import_path(
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+    importlib.import_module(module_name)
+  File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+    exec(co, module.__dict__)
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_node_validation.py", line 42, in <module>
+    from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in <module>
+    import torch
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in <module>
+    _C._initExtension(_manager_path())
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in <module>
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+05:50:01 INFO     tests.test_node_validation 
 NVLink status:
 GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)
-Device does not have or support Nvlink
+Unable to get MIG Mode
 GPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)
-Device does not have or support Nvlink
+Unable to get MIG Mode
 GPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)
 Device does not have or support Nvlink
 GPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)
 Device does not have or support Nvlink
-00:30:34 INFO     tests.test_node_validation 
+05:50:01 INFO     tests.test_node_validation 
 NVLink capabilities:
 GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)
-Device does not have or support Nvlink
+Unable to get MIG Mode
 GPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)
-Device does not have or support Nvlink
+Unable to get MIG Mode
 GPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)
 Device does not have or support Nvlink
 GPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)
 Device does not have or support Nvlink
-00:30:34 INFO     tests.test_node_validation KPI test_nvlink_status: {"available": false, "status_excerpt": "GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)\nDevice does not have or support Nvlink\nGPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)\nDevice does not have or support Nvlink\nGPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)\nDevice does not have or support Nvlink\nGPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)\nDevice does not have or support Nvlink"}
-00:30:34 WARNING  tests.test_node_validation NVLink not detected — system may be PCIe-only interconnect
-00:30:35 INFO     tests.test_node_validation NCCL availability: NCCL available via torch.cuda.nccl (version tuple: (2, 28, 9))
-00:30:35 INFO     tests.test_node_validation KPI test_nccl_availability: {"available": true, "message": "NCCL available via torch.cuda.nccl (version tuple: (2, 28, 9))"}
-00:30:43 INFO     tests.test_node_validation 
+05:50:01 INFO     tests.test_node_validation KPI test_nvlink_status: {"available": false, "status_excerpt": "GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)\nUnable to get MIG Mode\nGPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)\nUnable to get MIG Mode\nGPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)\nDevice does not have or support Nvlink\nGPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)\nDevice does not have or support Nvlink"}
+05:50:01 WARNING  tests.test_node_validation NVLink not detected — system may be PCIe-only interconnect
+05:50:01 INFO     tests.test_node_validation NCCL availability: NCCL available via torch.cuda.nccl (version tuple: (2, 28, 9))
+05:50:01 INFO     tests.test_node_validation KPI test_nccl_availability: {"available": true, "message": "NCCL available via torch.cuda.nccl (version tuple: (2, 28, 9))"}
+05:50:02 INFO     tests.test_node_validation 
 === NCCL all_reduce_perf ===
 # nccl-tests version 2.18.2 nccl-headers=23004 nccl-library=23004
 # Collective test starting: all_reduce_perf
 # nThread 1 nGpus 4 minBytes 1048576 maxBytes 1073741824 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
 #
 # Using devices
-#  Rank  0 Group  0 Pid  48568 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
-#  Rank  1 Group  0 Pid  48568 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
-#  Rank  2 Group  0 Pid  48568 on sc00901168s0075 device  2 [0001:61:00] NVIDIA H100 NVL
-#  Rank  3 Group  0 Pid  48568 on sc00901168s0075 device  3 [0001:b1:00] NVIDIA H100 PCIe
-#
-#                                                              out-of-place                       in-place          
-#       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong 
-#        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)         
-     1048576        262144     float     sum      -1    94.64   11.08   16.62       0    94.25   11.13   16.69       0
-     4194304       1048576     float     sum      -1   218.68   19.18   28.77       0   219.01   19.15   28.73       0
-    16777216       4194304     float     sum      -1   733.68   22.87   34.30       0   730.43   22.97   34.45       0
-    67108864      16777216     float     sum      -1  2839.62   23.63   35.45       0  4941.61   13.58   20.37       0
-   268435456      67108864     float     sum      -1  11260.6   23.84   35.76       0  11232.4   23.90   35.85       0
-  1073741824     268435456     float     sum      -1  46964.8   22.86   34.29       0  49123.5   21.86   32.79       0
-# Out of bounds values : 0 OK
-# Avg bus bandwidth    : 29.5054 
-#
-# Collective test concluded: all_reduce_perf
-#
-00:30:43 INFO     tests.test_node_validation AllReduce busbw — peak=35.8 GB/s  mean=30.9 GB/s  threshold=30.0 GB/s
-00:30:43 INFO     tests.test_node_validation KPI test_nccl_all_reduce_perf: {"gpu_count": 4, "iters": 30, "mean_busbw_gbs": 30.86, "peak_busbw_gbs": 35.76, "samples": 6, "threshold_gbs": 30.0}
-00:30:47 INFO     tests.test_node_validation 
+ .. sc00901168s0075 pid 166213: Test failure common.cu:1216
+Invalid number of GPUs: 4 requested but only 2 were found.
+Please check the number of processes and GPUs per process.
+05:50:02 INFO     tests.test_node_validation 
 === NCCL all_gather_perf ===
 # nccl-tests version 2.18.2 nccl-headers=23004 nccl-library=23004
 # Collective test starting: all_gather_perf
 # nThread 1 nGpus 4 minBytes 1048576 maxBytes 268435456 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
 #
 # Using devices
-#  Rank  0 Group  0 Pid  48607 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
-#  Rank  1 Group  0 Pid  48607 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
-#  Rank  2 Group  0 Pid  48607 on sc00901168s0075 device  2 [0001:61:00] NVIDIA H100 NVL
-#  Rank  3 Group  0 Pid  48607 on sc00901168s0075 device  3 [0001:b1:00] NVIDIA H100 PCIe
-#
-#                                                              out-of-place                       in-place          
-#       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong 
-#        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)         
-     1048576         65536     float    none      -1    58.25   18.00   13.50       0    57.19   18.33   13.75       0
-     4194304        262144     float    none      -1   126.24   33.22   24.92       0   124.77   33.62   25.21       0
-    16777216       1048576     float    none      -1   403.45   41.58   31.19       0   401.96   41.74   31.30       0
-    67108864       4194304     float    none      -1  1506.89   44.53   33.40       0  1504.00   44.62   33.47       0
-   268435456      16777216     float    none      -1  8083.65   33.21   24.91       0  5963.72   45.01   33.76       0
-# Out of bounds values : 0 OK
-# Avg bus bandwidth    : 26.5404 
-#
-# Collective test concluded: all_gather_perf
-#
-00:30:47 INFO     tests.test_node_validation AllGather peak busbw: 33.4 GB/s
-00:30:47 INFO     tests.test_node_validation KPI test_nccl_all_gather_perf: {"gpu_count": 4, "iters": 30, "mean_busbw_gbs": 25.58, "peak_busbw_gbs": 33.4, "samples": 5}
-00:30:51 INFO     tests.test_node_validation 
+ .. sc00901168s0075 pid 166225: Test failure common.cu:1216
+Invalid number of GPUs: 4 requested but only 2 were found.
+Please check the number of processes and GPUs per process.
+05:50:02 INFO     tests.test_node_validation 
 === NCCL reduce_scatter_perf ===
 # nccl-tests version 2.18.2 nccl-headers=23004 nccl-library=23004
 # Collective test starting: reduce_scatter_perf
 # nThread 1 nGpus 4 minBytes 1048576 maxBytes 268435456 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
 #
 # Using devices
-#  Rank  0 Group  0 Pid  48646 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
-#  Rank  1 Group  0 Pid  48646 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
-#  Rank  2 Group  0 Pid  48646 on sc00901168s0075 device  2 [0001:61:00] NVIDIA H100 NVL
-#  Rank  3 Group  0 Pid  48646 on sc00901168s0075 device  3 [0001:b1:00] NVIDIA H100 PCIe
-#
-#                                                              out-of-place                       in-place          
-#       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong 
-#        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)         
-     1048576         65536     float     sum      -1    54.92   19.09   14.32       0    54.87   19.11   14.33       0
-     4194304        262144     float     sum      -1  2233.38    1.88    1.41       0   126.17   33.24   24.93       0
-    16777216       1048576     float     sum      -1   400.97   41.84   31.38       0   401.16   41.82   31.37       0
-    67108864       4194304     float     sum      -1  1531.81   43.81   32.86       0  1532.25   43.80   32.85       0
-   268435456      16777216     float     sum      -1  6063.28   44.27   33.20       0  6064.52   44.26   33.20       0
-# Out of bounds values : 0 OK
-# Avg bus bandwidth    : 24.9848 
-#
-# Collective test concluded: reduce_scatter_perf
-#
-00:30:51 INFO     tests.test_node_validation ReduceScatter peak busbw: 33.2 GB/s
-00:30:51 INFO     tests.test_node_validation KPI test_nccl_reduce_scatter_perf: {"gpu_count": 4, "iters": 30, "mean_busbw_gbs": 22.63, "peak_busbw_gbs": 33.2, "samples": 5}
-00:30:55 INFO     tests.test_node_validation 
+ .. sc00901168s0075 pid 166237: Test failure common.cu:1216
+Invalid number of GPUs: 4 requested but only 2 were found.
+Please check the number of processes and GPUs per process.
+05:50:02 INFO     tests.test_node_validation 
 === NCCL sendrecv_perf ===
 # nccl-tests version 2.18.2 nccl-headers=23004 nccl-library=23004
 # Collective test starting: sendrecv_perf
 # nThread 1 nGpus 4 minBytes 1048576 maxBytes 268435456 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
 #
 # Using devices
-#  Rank  0 Group  0 Pid  48687 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
-#  Rank  1 Group  0 Pid  48687 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
-#  Rank  2 Group  0 Pid  48687 on sc00901168s0075 device  2 [0001:61:00] NVIDIA H100 NVL
-#  Rank  3 Group  0 Pid  48687 on sc00901168s0075 device  3 [0001:b1:00] NVIDIA H100 PCIe
-#
-#                                                              out-of-place                       in-place          
-#       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong 
-#        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)         
-     1048576        262144     float     sum      -1    91.58   11.45   11.45       0    91.57   11.45   11.45    N/A
-     4194304       1048576     float     sum      -1   327.41   12.81   12.81       0   327.19   12.82   12.82    N/A
-    16777216       4194304     float     sum      -1   717.91   23.37   23.37       0   711.54   23.58   23.58    N/A
-    67108864      16777216     float     sum      -1  2796.65   24.00   24.00       0  2799.30   23.97   23.97    N/A
-   268435456      67108864     float     sum      -1  11096.6   24.19   24.19       0  11054.5   24.28   24.28    N/A
-# Out of bounds values : 0 OK
-# Avg bus bandwidth    : 19.1922 
-#
-# Collective test concluded: sendrecv_perf
-#
-00:30:55 INFO     tests.test_node_validation SendRecv peak busbw: 24.2 GB/s
-00:30:55 INFO     tests.test_node_validation KPI test_nccl_p2p_perf: {"gpu_count": 4, "iters": 30, "mean_busbw_gbs": 19.16, "peak_busbw_gbs": 24.19, "samples": 5}
-00:30:57 INFO     tests.test_node_validation NCCL 8-byte AllReduce (50 iters): algbw mean=0.000 GB/s
-00:30:57 INFO     tests.test_node_validation KPI test_nccl_deterministic_init_variance: {"gpu_count": 4, "iterations": 50, "mean_algbw_gbs": 0.0, "samples": 1}
-00:30:57 INFO     tests.test_node_validation Full output:
-# nccl-tests version 2.18.2 nccl-headers=23004 nccl-library=23004
-# Collective test starting: all_reduce_perf
-# nThread 1 nGpus 4 minBytes 8 maxBytes 8 step: 2(factor) warmup iters: 5 iters: 50 agg iters: 1 validation: 1 graph: 0 unalign: 0
-#
-# Using devices
-#  Rank  0 Group  0 Pid  48726 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
-#  Rank  1 Group  0 Pid  48726 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
-#  Rank  2 Group  0 Pid  48726 on sc00901168s0075 device  2 [0001:61:00] NVIDIA H100 NVL
-#  Rank  3 Group  0 Pid  48726 on sc00901168s0075 device  3 [0001:b1:00] NVIDIA H100 PCIe
-#
-#                                                              out-of-place                       in-place          
-#       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong 
-#        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)         
-           8             2     float     sum      -1    22.26    0.00    0.00       0    21.11    0.00    0.00       0
-# Out of bounds values : 0 OK
-# Avg bus bandwidth    : 0.000553723 
-#
-# Collective test concluded: all_reduce_perf
-#
-00:30:58 INFO     tests.test_node_validation Workload preflight: strict=False, large_models=True
-00:30:58 INFO     tests.test_node_validation Workload preflight blockers: none
-00:30:59 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-8B-Instruct for causal-LM inference …
-00:36:36 INFO     tests.test_node_validation HF Causal-LM (meta-llama/Meta-Llama-3.1-8B-Instruct) inference: mean=512.9 ms  p95=566.4 ms  tokens/sec=62 (batch=1, new_tokens=32, runtime=300.1s, completion=338.0s, samples=585)
-00:36:36 INFO     tests.test_node_validation HF latency acceptance thresholds: mean<1200.0 ms, p95<1500.0 ms
-00:36:36 INFO     tests.test_node_validation KPI test_hf_causal_lm_inference_latency: {"completion_time_sec": 337.99, "max_new_tokens": 32, "mean_latency_ms": 512.92, "model": "meta-llama/Meta-Llama-3.1-8B-Instruct", "p95_latency_ms": 566.38, "runtime_sec": 300.06, "samples": 585, "throughput_tokens_per_sec": 62.39}
-00:36:36 INFO     tests.test_node_validation Running workload=deepseek_r1_quantized model=deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
-00:36:36 INFO     tests.test_node_validation Loading deepseek-ai/DeepSeek-R1-Distill-Qwen-7B for causal-LM latency workload …
-00:36:36 INFO     tests.test_node_validation Tokenizer load completed in 0.3s
-00:36:36 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1,2,3; memory before load: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2GiB; gpu2: free=92.4GiB used=0.7GiB total=93.1GiB; gpu3: free=78.5GiB used=0.6GiB total=79.2GiB
-00:36:37 INFO     tests.test_node_validation Running workload=llama_7b model=meta-llama/Meta-Llama-3.1-8B-Instruct
-00:36:37 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-8B-Instruct for causal-LM latency workload …
-00:36:37 INFO     tests.test_node_validation Tokenizer load completed in 0.7s
-00:37:00 INFO     tests.test_node_validation Model load completed in 22.6s
-00:42:04 INFO     tests.test_node_validation HF Causal-LM (meta-llama/Meta-Llama-3.1-8B-Instruct) inference: mean=520.8 ms  p95=588.9 ms  tokens/sec=61 (batch=1, new_tokens=32, runtime=300.5s, completion=327.3s, samples=577)
-00:42:04 INFO     tests.test_node_validation KPI test_hf_causal_lm_inference_latency_enterprise_workloads_llama_7b: {"completion_time_sec": 327.25, "max_new_tokens": 32, "mean_latency_ms": 520.76, "model": "meta-llama/Meta-Llama-3.1-8B-Instruct", "p95_latency_ms": 588.93, "runtime_sec": 300.48, "samples": 577, "throughput_tokens_per_sec": 61.45, "used_4bit_quant": false}
-00:42:04 INFO     tests.test_node_validation Workload llama_7b completed in 327.3s
-00:42:04 INFO     tests.test_node_validation Running workload=llama_70b model=meta-llama/Meta-Llama-3.1-70B-Instruct
-00:42:04 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-70B-Instruct for causal-LM latency workload …
-00:42:04 INFO     tests.test_node_validation Large model local-cache mode enabled for meta-llama/Meta-Llama-3.1-70B-Instruct. Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to allow remote download.
-00:42:05 INFO     tests.test_node_validation Tokenizer load completed in 0.6s
-00:42:05 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1,2,3; memory before load: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2GiB; gpu2: free=92.4GiB used=0.7GiB total=93.1GiB; gpu3: free=78.5GiB used=0.6GiB total=79.2GiB
-00:42:05 WARNING  tests.test_node_validation Large model meta-llama/Meta-Llama-3.1-70B-Instruct weights not available locally (Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`). Falling back to remote download.
-00:42:05 INFO     tests.test_node_validation Running workload=qwen_70b model=Qwen/Qwen2.5-72B-Instruct
-00:42:05 INFO     tests.test_node_validation Loading Qwen/Qwen2.5-72B-Instruct for causal-LM latency workload …
-00:42:06 INFO     tests.test_node_validation Tokenizer load completed in 0.2s
-00:42:06 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1,2,3; memory before load: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2GiB; gpu2: free=92.4GiB used=0.7GiB total=93.1GiB; gpu3: free=78.5GiB used=0.6GiB total=79.2GiB
-00:42:57 INFO     tests.test_node_validation HF Causal-LM (meta-llama/Meta-Llama-3.1-8B-Instruct) batch throughput: 508 tokens/sec (batch=8, max_new_tokens=64, iters=5, completion=50.9s)
-00:42:57 INFO     tests.test_node_validation KPI test_hf_causal_lm_batch_throughput: {"batch_size": 8, "completion_time_sec": 50.9, "elapsed_sec": 5.04, "iterations": 5, "max_new_tokens": 64, "model": "meta-llama/Meta-Llama-3.1-8B-Instruct", "throughput_tokens_per_sec": 507.79}
+ .. sc00901168s0075 pid 166249: Test failure common.cu:1216
+Invalid number of GPUs: 4 requested but only 2 were found.
+Please check the number of processes and GPUs per process.
+05:50:03 INFO     tests.test_node_validation Workload preflight: strict=False, large_models=True
+05:50:03 INFO     tests.test_node_validation Workload preflight blockers: none
+05:50:05 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-8B-Instruct for causal-LM inference …
+05:50:32 INFO     tests.test_node_validation Running workload=deepseek_r1_quantized model=deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+05:50:32 INFO     tests.test_node_validation Loading deepseek-ai/DeepSeek-R1-Distill-Qwen-7B for causal-LM latency workload …
+05:50:33 INFO     tests.test_node_validation Tokenizer load completed in 0.4s
+05:50:33 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1,2,3; memory before load: gpu0: unavailable; gpu1: unavailable; gpu2: unavailable; gpu3: unavailable
+05:50:33 INFO     tests.test_node_validation Running workload=llama_7b model=meta-llama/Meta-Llama-3.1-8B-Instruct
+05:50:33 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-8B-Instruct for causal-LM latency workload …
+05:50:34 INFO     tests.test_node_validation Tokenizer load completed in 0.7s
+05:50:57 INFO     tests.test_node_validation Model load completed in 23.8s
+05:50:58 INFO     tests.test_node_validation Running workload=llama_70b model=meta-llama/Meta-Llama-3.1-70B-Instruct
+05:50:58 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-70B-Instruct for causal-LM latency workload …
+05:50:58 INFO     tests.test_node_validation Large model local-cache mode enabled for meta-llama/Meta-Llama-3.1-70B-Instruct. Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to allow remote download.
+05:50:59 INFO     tests.test_node_validation Tokenizer load completed in 0.6s
+05:50:59 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1,2,3; memory before load: gpu0: unavailable; gpu1: unavailable; gpu2: unavailable; gpu3: unavailable
+05:50:59 INFO     tests.test_node_validation Running workload=qwen_70b model=Qwen/Qwen2.5-72B-Instruct
+05:50:59 INFO     tests.test_node_validation Loading Qwen/Qwen2.5-72B-Instruct for causal-LM latency workload …
+05:50:59 INFO     tests.test_node_validation Large model local-cache mode enabled for Qwen/Qwen2.5-72B-Instruct. Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to allow remote download.
+05:50:59 INFO     tests.test_node_validation Tokenizer load completed in 0.2s
+05:50:59 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1,2,3; memory before load: gpu0: unavailable; gpu1: unavailable; gpu2: unavailable; gpu3: unavailable

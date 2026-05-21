@@ -1,5 +1,5 @@
-23:29:32 INFO     ai_headnode_tests System config captured: /root/workloads/AIHeadNode/system_config_report.json
-23:29:41 INFO     ai_headnode_tests Aggregate STREAM Triad BW                           measured=   512.549  theoretical=   307.200  efficiency=166.85%  threshold=    75%
-23:29:41 INFO     memory_validation MEM KPI [TC-MEM-04_aggregate_stream_triad]: {"bandwidth_gbs": 512.55, "theoretical_gbs": 307.2}
-23:29:55 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
-23:29:55 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/NODE_VALIDATION_REPORT.md
+05:46:27 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
+05:46:41 INFO     ai_headnode_tests Aggregate STREAM Triad BW                           measured=   728.090  theoretical=   307.200  efficiency=237.01%  threshold=    75%
+05:46:41 INFO     memory_validation MEM KPI [TC-MEM-04_aggregate_stream_triad]: {"bandwidth_gbs": 728.09, "theoretical_gbs": 307.2}
+05:46:55 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+05:46:55 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md

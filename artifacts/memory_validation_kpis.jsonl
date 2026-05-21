@@ -5,3 +5,4 @@
 {"timestamp": "2026-05-20T13:31:43", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 615.29, "theoretical_gbs": 307.2}}
 {"timestamp": "2026-05-20T22:48:35", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 614.37, "theoretical_gbs": 307.2}}
 {"timestamp": "2026-05-20T23:29:41", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 512.55, "theoretical_gbs": 307.2}}
+{"timestamp": "2026-05-21T05:46:41", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 728.09, "theoretical_gbs": 307.2}}

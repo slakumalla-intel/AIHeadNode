@@ -1,0 +1,20 @@
+# started on Thu May 21 06:02:35 2026
+
+
+ Performance counter stats for 'python3 -m vllm.entrypoints.cli.main bench latency --model meta-llama/Llama-3.1-8B --tensor-parallel-size 4 --dtype bfloat16 --gpu-memory-utilization 0.90 --input-len 512 --output-len 1 --batch-size 1 --num-iters-warmup 2 --num-iters 5 --output-json vllm_4h100_prefill_results_20260521_060233/len512_bs1_out1_tp4.json --disable-log-stats' (3 runs):
+
+       65362116437      task-clock                       #    8.297 CPUs utilized               ( +-  1.59% )
+              1416      context-switches                 #   21.664 /sec                        ( +-  1.70% )
+               239      cpu-migrations                   #    3.657 /sec                        ( +-  2.06% )
+            189216      page-faults                      #    2.895 K/sec                       ( +-  0.06% )
+      296088783097      instructions                     #    1.55  insn per cycle              ( +-  0.19% )
+      191455889351      cycles                           #    2.929 GHz                         ( +-  1.73% )
+       64492190053      branches                         #  986.691 M/sec                       ( +-  0.21% )
+         227375000      branch-misses                    #    0.35% of all branches             ( +-  0.19% )
+       82400990965      L1-dcache-loads                  #    1.261 G/sec                       ( +-  0.20% )
+         192488459      L1-dcache-load-misses            #    0.23% of all L1-dcache accesses   ( +-  0.05% )
+          61115109      LLC-loads                        #  935.023 K/sec                       ( +-  0.30% )
+           7812818      LLC-load-misses                  #   12.78% of all LL-cache accesses    ( +-  3.96% )
+
+            7.8774 +- 0.0803 seconds time elapsed  ( +-  1.02% )
+

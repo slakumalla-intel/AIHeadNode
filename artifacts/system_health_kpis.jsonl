@@ -90,3 +90,15 @@
 {"test": "test_multi_stream_no_race_on_shared_tensor", "timestamp": "2026-05-21T01:38:55Z", "metrics": {"initial_val": 1.0, "final_val": 4.0, "expected": 4.0}}
 {"test": "test_cuda_event_elapsed_time_positive", "timestamp": "2026-05-21T01:38:55Z", "metrics": {"gemm_elapsed_ms": 0.3289}}
 {"test": "test_concurrent_stream_throughput_vs_sequential", "timestamp": "2026-05-21T01:38:55Z", "metrics": {"sequential_time_s": 0.0014, "concurrent_time_s": 0.0014, "concurrent_vs_sequential_ratio": 1.0474, "max_allowed_ratio": 1.5}}
+{"test": "test_gpu_temperature_within_safe_limits[0]", "timestamp": "2026-05-21T05:53:19Z", "metrics": {"device_idx": 0, "temperature_c": 37, "threshold_c": 83}}
+{"test": "test_gpu_temperature_within_safe_limits[1]", "timestamp": "2026-05-21T05:53:19Z", "metrics": {"device_idx": 1, "temperature_c": 39, "threshold_c": 83}}
+{"test": "test_gpu_temperature_within_safe_limits[2]", "timestamp": "2026-05-21T05:53:19Z", "metrics": {"device_idx": 2, "temperature_c": 38, "threshold_c": 83}}
+{"test": "test_gpu_temperature_within_safe_limits[3]", "timestamp": "2026-05-21T05:53:20Z", "metrics": {"device_idx": 3, "temperature_c": 32, "threshold_c": 83}}
+{"test": "test_gpu_clock_boost_ratio[2]", "timestamp": "2026-05-21T05:53:20Z", "metrics": {"device_idx": 2, "current_clock_mhz": 345, "max_clock_mhz": 1785, "clock_ratio": 0.1933}}
+{"test": "test_gpu_clock_boost_ratio[3]", "timestamp": "2026-05-21T05:53:20Z", "metrics": {"device_idx": 3, "current_clock_mhz": 345, "max_clock_mhz": 1755, "clock_ratio": 0.1966}}
+{"test": "test_gpu_power_limit_headroom", "timestamp": "2026-05-21T05:53:21Z", "metrics": {"gpu2_power_w": 63.527, "gpu3_power_w": 49.101, "gpu2_limit_w": 400.0, "gpu3_limit_w": 350.0, "gpu2_ratio": 0.1588, "gpu3_ratio": 0.1403}}
+{"test": "test_hbm_ecc_uncorrected_errors_zero[2]", "timestamp": "2026-05-21T05:53:22Z", "metrics": {"device_idx": 2, "uncorrected_ecc_errors": 0}}
+{"test": "test_hbm_ecc_uncorrected_errors_zero[3]", "timestamp": "2026-05-21T05:53:22Z", "metrics": {"device_idx": 3, "uncorrected_ecc_errors": 0}}
+{"test": "test_hbm_ecc_corrected_errors_below_threshold[2]", "timestamp": "2026-05-21T05:53:24Z", "metrics": {"device_idx": 2, "corrected_ecc_errors": 0, "threshold": 100}}
+{"test": "test_hbm_ecc_corrected_errors_below_threshold[3]", "timestamp": "2026-05-21T05:53:24Z", "metrics": {"device_idx": 3, "corrected_ecc_errors": 0, "threshold": 100}}
+{"test": "test_gpu_nvml_health_flags_clean", "timestamp": "2026-05-21T05:53:24Z", "metrics": {"gpu0_retired_pages_dbe": 0, "gpu1_retired_pages_dbe": 0, "gpu2_retired_pages_dbe": 0, "gpu3_retired_pages_dbe": 0}}

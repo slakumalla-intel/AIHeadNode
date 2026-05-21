@@ -1,0 +1,5 @@
+model,input_len,output_len,batch_size,tp,dtype,status,latency_json,perf_log
+meta-llama/Llama-3.1-8B,512,1,1,4,bfloat16,FAIL,vllm_4h100_prefill_results_20260521_060233/len512_bs1_out1_tp4.json,vllm_4h100_prefill_results_20260521_060233/len512_bs1_out1_tp4.perf.txt
+meta-llama/Llama-3.1-8B,512,1,4,4,bfloat16,FAIL,vllm_4h100_prefill_results_20260521_060233/len512_bs4_out1_tp4.json,vllm_4h100_prefill_results_20260521_060233/len512_bs4_out1_tp4.perf.txt
+meta-llama/Llama-3.1-8B,2048,1,1,4,bfloat16,FAIL,vllm_4h100_prefill_results_20260521_060233/len2048_bs1_out1_tp4.json,vllm_4h100_prefill_results_20260521_060233/len2048_bs1_out1_tp4.perf.txt
+meta-llama/Llama-3.1-8B,2048,1,4,4,bfloat16,FAIL,vllm_4h100_prefill_results_20260521_060233/len2048_bs4_out1_tp4.json,vllm_4h100_prefill_results_20260521_060233/len2048_bs4_out1_tp4.perf.txt

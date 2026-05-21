@@ -75,18 +75,31 @@ def _detect_gpu_count() -> int:
 
 
 def _detect_nvlink_available() -> bool:
-    """Check if NVLink is available on at least one GPU via NVML."""
+    """Check if NVLink is active (state == 1) on at least one link of any GPU.
+
+    Previously this function returned True whenever the NVML call succeeded,
+    even on GPUs whose NVLinks were physically present but disabled by the
+    platform (e.g. H100 PCIe SKUs that report 0 active links). That produced
+    misleading bandwidth expectations downstream. We now check the actual link
+    state and only return True when at least one link reports active.
+    """
     try:
         import pynvml
         pynvml.nvmlInit()
         count = pynvml.nvmlDeviceGetCount()
+        # Most modern NVIDIA GPUs expose up to 18 NVLinks; probe a reasonable
+        # upper bound and stop at the first inactive index when an error is
+        # raised (the link index is beyond the supported range for that GPU).
+        max_links_to_probe = 18
         for i in range(count):
             handle = pynvml.nvmlDeviceGetHandleByIndex(i)
-            try:
-                state = pynvml.nvmlDeviceGetNvLinkState(handle, 0)
-                return True
-            except pynvml.NVMLError:
-                continue
+            for link in range(max_links_to_probe):
+                try:
+                    state = pynvml.nvmlDeviceGetNvLinkState(handle, link)
+                except pynvml.NVMLError:
+                    break
+                if int(state) == 1:
+                    return True
         return False
     except Exception:
         return False
@@ -346,14 +359,10 @@ class GPUSpecs:
     memory_capacity_gb: float = 80.0        # per-GPU memory capacity
     memory_bandwidth_tbs: float = 2.0      # per-GPU peak memory BW (TB/s), conservative PCIe fallback
 
-    # Compute peaks (per GPU, theoretical dense)
-    fp64_tflops: float = 34.0
-    fp32_tflops: float = 67.0
-    tf32_tflops: float = 989.0
-    fp16_tflops: float = 989.0
-    bf16_tflops: float = 989.0
-    int8_tops: float = 3958.0
-    fp8_tflops: float = 3958.0
+    # NOTE: previously the fp64/fp32/tf32/fp16/bf16/int8/fp8 fields were
+    # declared twice in this dataclass (once above and once here). Python
+    # silently kept the second declaration, masking the duplication; the
+    # canonical declarations now live above and the duplicates are removed.
 
     # Power and thermal
     tdp_watts: float = 700.0

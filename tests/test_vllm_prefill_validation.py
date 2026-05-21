@@ -73,14 +73,16 @@ def _extract_vllm_metrics(json_file: Path) -> dict:
         
         metrics = {}
         
-        # Extract latency percentiles if available
+        # Extract latency percentiles if available.
+        # vLLM's benchmark_latency.py emits latencies in SECONDS, so converting
+        # to milliseconds requires multiplication by 1000, not division.
         if "latency_percentiles" in data:
             percs = data["latency_percentiles"]
-            metrics["mean_latency_ms"] = percs.get("mean", 0) / 1000  # Convert to ms
-            metrics["p50_latency_ms"] = percs.get("50", 0) / 1000
-            metrics["p90_latency_ms"] = percs.get("90", 0) / 1000
-            metrics["p95_latency_ms"] = percs.get("95", 0) / 1000
-            metrics["p99_latency_ms"] = percs.get("99", 0) / 1000
+            metrics["mean_latency_ms"] = percs.get("mean", 0) * 1000  # s → ms
+            metrics["p50_latency_ms"] = percs.get("50", 0) * 1000
+            metrics["p90_latency_ms"] = percs.get("90", 0) * 1000
+            metrics["p95_latency_ms"] = percs.get("95", 0) * 1000
+            metrics["p99_latency_ms"] = percs.get("99", 0) * 1000
         
         # Extract throughput if available
         if "throughput" in data:

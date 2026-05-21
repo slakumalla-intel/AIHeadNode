@@ -85,10 +85,14 @@ def _record_mem_kpi(test_name: str, metrics: dict) -> None:
 # Helper: STREAM-like bandwidth measurement
 # ---------------------------------------------------------------------------
 
-def _stream_triad_gbs(array_bytes: int = 512 * 1024 * 1024, n_runs: int = 3) -> float:
-    """
-    STREAM Triad-like benchmark: c = a + scalar * b.
-    Returns the best GB/s over n_runs.
+def _stream_triad_gbs(array_bytes: int = 512 * 1024 * 1024, n_runs: int = 5,
+                      n_warmup: int = 2) -> float:
+    """STREAM Triad: c = a + scalar * b. Returns the best GB/s over n_runs.
+
+    A single numpy expression on a large array is one allocation + one fused
+    kernel call; the first few invocations include allocator/pagefault costs
+    that dwarf the actual streaming work, so we discard ``n_warmup`` runs and
+    keep the best of ``n_runs`` timed iterations.
     """
     if not _HAS_NUMPY:
         return 0.0
@@ -96,11 +100,11 @@ def _stream_triad_gbs(array_bytes: int = 512 * 1024 * 1024, n_runs: int = 3) -> 
     a = np.ones(n, dtype=np.float32)
     b = np.ones(n, dtype=np.float32)
     scalar = np.float32(2.0)
-    # Warm-up
-    c = a + scalar * b
+    for _ in range(max(1, n_warmup)):
+        c = a + scalar * b
 
     best_bw = 0.0
-    for _ in range(n_runs):
+    for _ in range(max(1, n_runs)):
         t0 = time.perf_counter()
         c = a + scalar * b
         elapsed = time.perf_counter() - t0
@@ -110,7 +114,8 @@ def _stream_triad_gbs(array_bytes: int = 512 * 1024 * 1024, n_runs: int = 3) -> 
     return best_bw
 
 
-def _copy_bw_gbs(array_bytes: int = 512 * 1024 * 1024) -> float:
+def _copy_bw_gbs(array_bytes: int = 512 * 1024 * 1024,
+                 n_runs: int = 5, n_warmup: int = 2) -> float:
     """STREAM Copy: b = a.  Uses repeated loops for small arrays to amortize Python overhead."""
     if not _HAS_NUMPY:
         return 0.0
@@ -120,39 +125,60 @@ def _copy_bw_gbs(array_bytes: int = 512 * 1024 * 1024) -> float:
     # Choose repeat count so total data volume ≥ 64 MB (avoids Python overhead bias)
     min_total_bytes = 64 * 1024 * 1024
     repeats = max(1, math.ceil(min_total_bytes / (2 * n * 4)))
-    np.copyto(b, a)  # warm-up
-    t0 = time.perf_counter()
-    for _ in range(repeats):
+    for _ in range(max(1, n_warmup)):
         np.copyto(b, a)
-    elapsed = time.perf_counter() - t0
-    return (2 * n * 4) * repeats / elapsed / 1e9
+
+    best_bw = 0.0
+    for _ in range(max(1, n_runs)):
+        t0 = time.perf_counter()
+        for _ in range(repeats):
+            np.copyto(b, a)
+        elapsed = time.perf_counter() - t0
+        bw = (2 * n * 4) * repeats / elapsed / 1e9
+        best_bw = max(best_bw, bw)
+    return best_bw
 
 
-def _scale_bw_gbs(array_bytes: int = 512 * 1024 * 1024) -> float:
-    """STREAM Scale: b = scalar * a."""
+def _scale_bw_gbs(array_bytes: int = 512 * 1024 * 1024,
+                  n_runs: int = 5, n_warmup: int = 2) -> float:
+    """STREAM Scale: b = scalar * a. Returns best GB/s over n_runs."""
     if not _HAS_NUMPY:
         return 0.0
     n = array_bytes // 4
     a = np.ones(n, dtype=np.float32)
-    _ = np.float32(3.0) * a  # warm-up
-    t0 = time.perf_counter()
-    b = np.float32(3.0) * a
-    elapsed = time.perf_counter() - t0
-    return (2 * n * 4) / elapsed / 1e9
+    scalar = np.float32(3.0)
+    for _ in range(max(1, n_warmup)):
+        b = scalar * a
+
+    best_bw = 0.0
+    for _ in range(max(1, n_runs)):
+        t0 = time.perf_counter()
+        b = scalar * a
+        elapsed = time.perf_counter() - t0
+        bw = (2 * n * 4) / elapsed / 1e9
+        best_bw = max(best_bw, bw)
+    return best_bw
 
 
-def _add_bw_gbs(array_bytes: int = 512 * 1024 * 1024) -> float:
-    """STREAM Add: c = a + b."""
+def _add_bw_gbs(array_bytes: int = 512 * 1024 * 1024,
+                n_runs: int = 5, n_warmup: int = 2) -> float:
+    """STREAM Add: c = a + b. Returns best GB/s over n_runs."""
     if not _HAS_NUMPY:
         return 0.0
     n = array_bytes // 4
     a = np.ones(n, dtype=np.float32)
     b = np.ones(n, dtype=np.float32)
-    _ = a + b  # warm-up
-    t0 = time.perf_counter()
-    c = a + b
-    elapsed = time.perf_counter() - t0
-    return (3 * n * 4) / elapsed / 1e9
+    for _ in range(max(1, n_warmup)):
+        c = a + b
+
+    best_bw = 0.0
+    for _ in range(max(1, n_runs)):
+        t0 = time.perf_counter()
+        c = a + b
+        elapsed = time.perf_counter() - t0
+        bw = (3 * n * 4) / elapsed / 1e9
+        best_bw = max(best_bw, bw)
+    return best_bw
 
 
 def _read_latency_ns(array_bytes: int, n_steps: int = 10_000_000) -> float:

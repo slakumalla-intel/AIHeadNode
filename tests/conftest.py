@@ -209,17 +209,7 @@ def _terminate_stale_vllm_processes(tag: str, nodeid: str) -> None:
     for pid, cmd in stale:
         try:
             logger.warning("[%s] Terminating stale vLLM PID=%s cmd=%s", tag, pid, cmd[:220])
-            if _psutil is not None:
-                proc = _psutil.Process(pid)
-                # Try to kill the entire process group if available
-                try:
-                    pgid = os.getpgid(pid)
-                    os.killpg(pgid, signal.SIGTERM)
-                except (OSError, ProcessLookupError):
-                    # Fallback to individual process
-                    proc.terminate()
-            else:
-                os.kill(pid, signal.SIGTERM)
+            _safe_kill_vllm_pid(pid, signal.SIGTERM)
         except Exception:
             continue
 
@@ -236,23 +226,39 @@ def _terminate_stale_vllm_processes(tag: str, nodeid: str) -> None:
     for pid, cmd in remaining:
         try:
             logger.warning("[%s] Hard-killing stale vLLM PID=%s (graceful shutdown failed)", tag, pid)
-            if _psutil is not None:
-                proc = _psutil.Process(pid)
-                # Try to kill the entire process group with SIGKILL
-                try:
-                    pgid = os.getpgid(pid)
-                    os.killpg(pgid, signal.SIGKILL)
-                except (OSError, ProcessLookupError):
-                    # Fallback to individual process
-                    proc.kill()
-            else:
-                os.kill(pid, signal.SIGKILL)
+            _safe_kill_vllm_pid(pid, signal.SIGKILL)
         except Exception:
             continue
 
     # Final check: GPU cleanup to release any remaining GPU memory
     _cleanup_vllm_processes_via_ps(tag, nodeid)
     _release_gpu_memory_via_nvidia_smi()
+
+
+def _safe_kill_vllm_pid(pid: int, sig: int) -> None:
+    """Signal a stale vLLM process without killing the pytest process group."""
+    if pid <= 0 or pid == os.getpid():
+        return
+
+    if _psutil is not None:
+        proc = _psutil.Process(pid)
+        # Never signal our own process group; that can terminate pytest itself.
+        try:
+            pgid = os.getpgid(pid)
+            own_pgid = os.getpgrp()
+            if pgid > 0 and pgid != own_pgid:
+                os.killpg(pgid, sig)
+                return
+        except (OSError, ProcessLookupError):
+            pass
+
+        if sig == signal.SIGKILL:
+            proc.kill()
+        else:
+            proc.terminate()
+        return
+
+    os.kill(pid, sig)
 
 
 def _release_gpu_memory_via_nvidia_smi() -> None:
@@ -322,11 +328,7 @@ def _release_gpu_memory_via_nvidia_smi() -> None:
                     cmd = " ".join(proc.cmdline()).lower()
                     if any(pattern in cmd for pattern in _VLLM_PROCESS_PATTERNS):
                         logger.warning("[GPU cleanup] Force-killing GPU process PID=%d", pid)
-                        try:
-                            pgid = os.getpgid(pid)
-                            os.killpg(pgid, signal.SIGKILL)
-                        except (OSError, ProcessLookupError):
-                            os.kill(pid, signal.SIGKILL)
+                        _safe_kill_vllm_pid(pid, signal.SIGKILL)
             except Exception:
                 continue
 

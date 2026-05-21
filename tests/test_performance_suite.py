@@ -829,13 +829,18 @@ def _terminate_process_group(process: Optional[subprocess.Popen], graceful_timeo
         return
 
     pgid: Optional[int] = None
+    own_pgid: Optional[int] = None
     try:
         pgid = os.getpgid(process.pid)
     except Exception:
         pgid = None
+    try:
+        own_pgid = os.getpgrp()
+    except Exception:
+        own_pgid = None
 
     try:
-        if pgid is not None:
+        if pgid is not None and (own_pgid is None or pgid != own_pgid):
             os.killpg(pgid, signal.SIGTERM)
         else:
             process.terminate()
@@ -850,7 +855,7 @@ def _terminate_process_group(process: Optional[subprocess.Popen], graceful_timeo
 
     if process.poll() is None:
         try:
-            if pgid is not None:
+            if pgid is not None and (own_pgid is None or pgid != own_pgid):
                 os.killpg(pgid, signal.SIGKILL)
             else:
                 process.kill()

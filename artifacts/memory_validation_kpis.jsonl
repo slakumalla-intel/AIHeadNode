@@ -6,3 +6,13 @@
 {"timestamp": "2026-05-20T22:48:35", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 614.37, "theoretical_gbs": 307.2}}
 {"timestamp": "2026-05-20T23:29:41", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 512.55, "theoretical_gbs": 307.2}}
 {"timestamp": "2026-05-21T05:46:41", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 728.09, "theoretical_gbs": 307.2}}
+{"timestamp": "2026-05-21T09:36:35", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 565.59, "theoretical_gbs": 307.2}}
+{"timestamp": "2026-05-21T09:36:36", "test": "TC-MEM-06_latency_ws32kb", "metrics": {"latency_ns": 82.94, "max_latency_ns": 120.0, "ws_kb": 32}}
+{"timestamp": "2026-05-21T09:36:36", "test": "TC-MEM-06_latency_ws512kb", "metrics": {"latency_ns": 80.61, "max_latency_ns": 120.0, "ws_kb": 512}}
+{"timestamp": "2026-05-21T09:36:36", "test": "TC-MEM-06_latency_ws16384kb", "metrics": {"latency_ns": 121.84, "max_latency_ns": 200.0, "ws_kb": 16384}}
+{"timestamp": "2026-05-21T09:36:38", "test": "TC-MEM-06_latency_ws524288kb", "metrics": {"latency_ns": 219.94, "max_latency_ns": 300.0, "ws_kb": 524288}}
+{"timestamp": "2026-05-21T09:46:21", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 754.76, "theoretical_gbs": 307.2}}
+{"timestamp": "2026-05-21T09:46:22", "test": "TC-MEM-06_latency_ws32kb", "metrics": {"latency_ns": 87.06, "max_latency_ns": 120.0, "ws_kb": 32}}
+{"timestamp": "2026-05-21T09:46:22", "test": "TC-MEM-06_latency_ws512kb", "metrics": {"latency_ns": 80.24, "max_latency_ns": 120.0, "ws_kb": 512}}
+{"timestamp": "2026-05-21T09:46:22", "test": "TC-MEM-06_latency_ws16384kb", "metrics": {"latency_ns": 126.48, "max_latency_ns": 200.0, "ws_kb": 16384}}
+{"timestamp": "2026-05-21T09:46:24", "test": "TC-MEM-06_latency_ws524288kb", "metrics": {"latency_ns": 221.51, "max_latency_ns": 300.0, "ws_kb": 524288}}

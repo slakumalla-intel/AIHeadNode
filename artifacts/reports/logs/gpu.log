@@ -1,59 +1,59 @@
-05:46:57 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
-05:47:01 INFO     ai_headnode_tests HBM3 bandwidth GPU 0                                measured=     1.853  theoretical=     2.000  efficiency= 92.64%  threshold=    80%
-05:47:01 INFO     gpu_validation GPU KPI [TC-GPU-04_hbm_bandwidth_gpu0]: {"bandwidth_tbs": 1.8527, "device_idx": 0, "theoretical_tbs": 2.0}
-05:47:01 INFO     ai_headnode_tests HBM3 bandwidth GPU 1                                measured=     1.855  theoretical=     2.000  efficiency= 92.76%  threshold=    80%
-05:47:01 INFO     gpu_validation GPU KPI [TC-GPU-04_hbm_bandwidth_gpu1]: {"bandwidth_tbs": 1.8553, "device_idx": 1, "theoretical_tbs": 2.0}
-05:47:01 INFO     ai_headnode_tests HBM3 bandwidth GPU 2                                measured=     3.577  theoretical=     3.900  efficiency= 91.71%  threshold=    80%
-05:47:01 INFO     gpu_validation GPU KPI [TC-GPU-04_hbm_bandwidth_gpu2]: {"bandwidth_tbs": 3.5766, "device_idx": 2, "theoretical_tbs": 3.9}
-05:47:02 INFO     ai_headnode_tests HBM3 bandwidth GPU 3                                measured=     1.855  theoretical=     2.000  efficiency= 92.75%  threshold=    80%
-05:47:02 INFO     gpu_validation GPU KPI [TC-GPU-04_hbm_bandwidth_gpu3]: {"bandwidth_tbs": 1.8551, "device_idx": 3, "theoretical_tbs": 2.0}
-05:47:02 INFO     ai_headnode_tests FP32 GFLOPS GPU 0                                   measured= 21976.288  theoretical= 67000.000  efficiency= 32.80%  threshold=    52%
-05:47:02 INFO     ai_headnode_tests FP32 GFLOPS GPU 1                                   measured= 36940.738  theoretical= 67000.000  efficiency= 55.14%  threshold=    52%
-05:47:02 INFO     gpu_validation GPU KPI [TC-GPU-05_fp32_gflops_gpu1]: {"device_idx": 1, "gflops_measured": 36940.74, "tflops_theoretical": 67.0}
-05:47:03 INFO     ai_headnode_tests FP32 GFLOPS GPU 2                                   measured= 45989.451  theoretical= 67000.000  efficiency= 68.64%  threshold=    65%
-05:47:03 INFO     gpu_validation GPU KPI [TC-GPU-05_fp32_gflops_gpu2]: {"device_idx": 2, "gflops_measured": 45989.45, "tflops_theoretical": 67.0}
-05:47:03 INFO     ai_headnode_tests FP32 GFLOPS GPU 3                                   measured= 37429.526  theoretical= 67000.000  efficiency= 55.86%  threshold=    52%
-05:47:03 INFO     gpu_validation GPU KPI [TC-GPU-05_fp32_gflops_gpu3]: {"device_idx": 3, "gflops_measured": 37429.53, "tflops_theoretical": 67.0}
-05:47:03 INFO     ai_headnode_tests FP16 TFLOPS GPU 0                                   measured=   494.588  theoretical=   756.000  efficiency= 65.42%  threshold=    40%
-05:47:03 INFO     gpu_validation GPU KPI [TC-GPU-06_fp16_tflops_gpu0]: {"device_idx": 0, "efficiency_threshold": 0.4, "tflops_measured": 494.5879, "tflops_theoretical": 756.0, "tflops_trials": [476.8661, 488.8929, 494.5879]}
-05:47:04 INFO     ai_headnode_tests FP16 TFLOPS GPU 1                                   measured=   473.430  theoretical=   756.000  efficiency= 62.62%  threshold=    40%
-05:47:04 INFO     gpu_validation GPU KPI [TC-GPU-06_fp16_tflops_gpu1]: {"device_idx": 1, "efficiency_threshold": 0.4, "tflops_measured": 473.4303, "tflops_theoretical": 756.0, "tflops_trials": [473.4303, 472.2388, 451.6497]}
-05:47:04 INFO     ai_headnode_tests FP16 TFLOPS GPU 2                                   measured=   455.361  theoretical=   989.000  efficiency= 46.04%  threshold=    44%
-05:47:04 INFO     gpu_validation GPU KPI [TC-GPU-06_fp16_tflops_gpu2]: {"device_idx": 2, "efficiency_threshold": 0.44, "tflops_measured": 455.3609, "tflops_theoretical": 989.0, "tflops_trials": [439.8106, 455.3609, 435.1517]}
-05:47:04 INFO     ai_headnode_tests FP16 TFLOPS GPU 3                                   measured=   491.836  theoretical=   756.000  efficiency= 65.06%  threshold=    40%
-05:47:04 INFO     gpu_validation GPU KPI [TC-GPU-06_fp16_tflops_gpu3]: {"device_idx": 3, "efficiency_threshold": 0.4, "tflops_measured": 491.8359, "tflops_theoretical": 756.0, "tflops_trials": [481.2876, 491.8359, 431.0493]}
-05:47:05 INFO     ai_headnode_tests BF16 TFLOPS GPU 0                                   measured=   523.918  theoretical=   756.000  efficiency= 69.30%  threshold=    40%
-05:47:05 INFO     gpu_validation GPU KPI [TC-GPU-07_bf16_tflops_gpu0]: {"device_idx": 0, "efficiency_threshold": 0.4, "tflops_measured": 523.9181, "tflops_theoretical": 756.0, "tflops_trials": [271.1216, 238.7352, 523.9181]}
-05:47:05 INFO     ai_headnode_tests BF16 TFLOPS GPU 1                                   measured=   510.140  theoretical=   756.000  efficiency= 67.48%  threshold=    40%
-05:47:05 INFO     gpu_validation GPU KPI [TC-GPU-07_bf16_tflops_gpu1]: {"device_idx": 1, "efficiency_threshold": 0.4, "tflops_measured": 510.1399, "tflops_theoretical": 756.0, "tflops_trials": [510.1399, 495.4805, 472.9398]}
-05:47:05 INFO     ai_headnode_tests BF16 TFLOPS GPU 2                                   measured=   498.140  theoretical=   989.000  efficiency= 50.37%  threshold=    44%
-05:47:05 INFO     gpu_validation GPU KPI [TC-GPU-07_bf16_tflops_gpu2]: {"device_idx": 2, "efficiency_threshold": 0.44, "tflops_measured": 498.1402, "tflops_theoretical": 989.0, "tflops_trials": [482.2301, 484.526, 498.1402]}
-05:47:06 INFO     ai_headnode_tests BF16 TFLOPS GPU 3                                   measured=   532.264  theoretical=   756.000  efficiency= 70.41%  threshold=    40%
-05:47:06 INFO     gpu_validation GPU KPI [TC-GPU-07_bf16_tflops_gpu3]: {"device_idx": 3, "efficiency_threshold": 0.4, "tflops_measured": 532.2636, "tflops_theoretical": 756.0, "tflops_trials": [515.8994, 532.2636, 498.9286]}
-05:47:06 INFO     ai_headnode_tests INT8-proxy TOPS GPU 0                               measured=   547.442  theoretical=   756.000  efficiency= 72.41%  threshold=    40%
-05:47:06 INFO     gpu_validation GPU KPI [TC-GPU-08_int8_proxy_tops_gpu0]: {"device_idx": 0, "efficiency_threshold": 0.4, "fp16_tflops_theoretical": 756.0, "tops_measured": 547.4419, "tops_trials": [547.4419, 545.8742, 544.9795]}
-05:47:06 INFO     ai_headnode_tests INT8-proxy TOPS GPU 1                               measured=   563.538  theoretical=   756.000  efficiency= 74.54%  threshold=    40%
-05:47:06 INFO     gpu_validation GPU KPI [TC-GPU-08_int8_proxy_tops_gpu1]: {"device_idx": 1, "efficiency_threshold": 0.4, "fp16_tflops_theoretical": 756.0, "tops_measured": 563.5383, "tops_trials": [548.9816, 547.7194, 563.5383]}
-05:47:06 INFO     ai_headnode_tests INT8-proxy TOPS GPU 2                               measured=   542.887  theoretical=   989.000  efficiency= 54.89%  threshold=    44%
-05:47:06 INFO     gpu_validation GPU KPI [TC-GPU-08_int8_proxy_tops_gpu2]: {"device_idx": 2, "efficiency_threshold": 0.44, "fp16_tflops_theoretical": 989.0, "tops_measured": 542.8874, "tops_trials": [538.0351, 538.0873, 542.8874]}
-05:47:07 INFO     ai_headnode_tests INT8-proxy TOPS GPU 3                               measured=   564.623  theoretical=   756.000  efficiency= 74.69%  threshold=    40%
-05:47:07 INFO     gpu_validation GPU KPI [TC-GPU-08_int8_proxy_tops_gpu3]: {"device_idx": 3, "efficiency_threshold": 0.4, "fp16_tflops_theoretical": 756.0, "tops_measured": 564.6232, "tops_trials": [554.5547, 553.686, 564.6232]}
-05:47:07 INFO     ai_headnode_tests FP64 TFLOPS GPU 0                                   measured=    36.591  theoretical=    34.000  efficiency=107.62%  threshold=    50%
-05:47:07 INFO     gpu_validation GPU KPI [TC-GPU-09_fp64_tflops_gpu0]: {"device_idx": 0, "efficiency_threshold": 0.5, "tflops_measured": 36.5908, "tflops_theoretical": 34.0, "tflops_trials": [35.8865, 36.5908, 36.3014]}
-05:47:07 INFO     ai_headnode_tests FP64 TFLOPS GPU 1                                   measured=    37.003  theoretical=    34.000  efficiency=108.83%  threshold=    50%
-05:47:07 INFO     gpu_validation GPU KPI [TC-GPU-09_fp64_tflops_gpu1]: {"device_idx": 1, "efficiency_threshold": 0.5, "tflops_measured": 37.0027, "tflops_theoretical": 34.0, "tflops_trials": [35.6818, 37.0027, 35.882]}
-05:47:08 INFO     ai_headnode_tests FP64 TFLOPS GPU 2                                   measured=    41.063  theoretical=    34.000  efficiency=120.77%  threshold=    50%
-05:47:08 INFO     gpu_validation GPU KPI [TC-GPU-09_fp64_tflops_gpu2]: {"device_idx": 2, "efficiency_threshold": 0.5, "tflops_measured": 41.0633, "tflops_theoretical": 34.0, "tflops_trials": [41.0633, 40.8268, 41.0438]}
-05:47:08 INFO     ai_headnode_tests FP64 TFLOPS GPU 3                                   measured=    36.438  theoretical=    34.000  efficiency=107.17%  threshold=    50%
-05:47:08 INFO     gpu_validation GPU KPI [TC-GPU-09_fp64_tflops_gpu3]: {"device_idx": 3, "efficiency_threshold": 0.5, "tflops_measured": 36.4376, "tflops_theoretical": 34.0, "tflops_trials": [36.3013, 35.9412, 36.4376]}
-05:47:08 INFO     ai_headnode_tests Multi-GPU FP16 aggregate (4 GPUs)                   measured=  1869.849  theoretical=  1895.582  efficiency= 98.64%  threshold=    80%
-05:47:12 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 0                            measured=    56.041  theoretical=    63.000  efficiency= 88.95%  threshold=    65%
-05:47:13 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 1                            measured=    55.624  theoretical=    63.000  efficiency= 88.29%  threshold=    65%
-05:47:13 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 2                            measured=    55.509  theoretical=    63.000  efficiency= 88.11%  threshold=    65%
-05:47:13 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 3                            measured=    55.249  theoretical=    63.000  efficiency= 87.70%  threshold=    65%
-05:47:14 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 0                            measured=    54.794  theoretical=    63.000  efficiency= 86.97%  threshold=    65%
-05:47:14 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 1                            measured=    54.875  theoretical=    63.000  efficiency= 87.10%  threshold=    65%
-05:47:14 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 2                            measured=    56.502  theoretical=    63.000  efficiency= 89.69%  threshold=    65%
-05:47:14 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 3                            measured=    23.938  theoretical=    63.000  efficiency= 38.00%  threshold=    65%
-05:47:15 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
-05:47:15 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md
+09:46:36 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
+09:46:40 INFO     ai_headnode_tests HBM3 bandwidth GPU 0                                measured=     0.354  theoretical=     2.000  efficiency= 17.69%  threshold=    80%
+09:46:40 INFO     ai_headnode_tests HBM3 bandwidth GPU 1                                measured=     1.853  theoretical=     2.000  efficiency= 92.64%  threshold=    80%
+09:46:40 INFO     gpu_validation GPU KPI [TC-GPU-04_hbm_bandwidth_gpu1]: {"bandwidth_tbs": 1.8529, "device_idx": 1, "theoretical_tbs": 2.0}
+09:46:41 INFO     ai_headnode_tests HBM3 bandwidth GPU 2                                measured=     3.567  theoretical=     3.900  efficiency= 91.46%  threshold=    80%
+09:46:41 INFO     gpu_validation GPU KPI [TC-GPU-04_hbm_bandwidth_gpu2]: {"bandwidth_tbs": 3.5669, "device_idx": 2, "theoretical_tbs": 3.9}
+09:46:41 INFO     ai_headnode_tests HBM3 bandwidth GPU 3                                measured=     1.855  theoretical=     2.000  efficiency= 92.74%  threshold=    80%
+09:46:41 INFO     gpu_validation GPU KPI [TC-GPU-04_hbm_bandwidth_gpu3]: {"bandwidth_tbs": 1.8549, "device_idx": 3, "theoretical_tbs": 2.0}
+09:46:41 INFO     ai_headnode_tests FP32 GFLOPS GPU 0                                   measured= 36917.955  theoretical= 67000.000  efficiency= 55.10%  threshold=    52%
+09:46:41 INFO     gpu_validation GPU KPI [TC-GPU-05_fp32_gflops_gpu0]: {"device_idx": 0, "gflops_measured": 36917.95, "tflops_theoretical": 67.0}
+09:46:42 INFO     ai_headnode_tests FP32 GFLOPS GPU 1                                   measured= 36749.970  theoretical= 67000.000  efficiency= 54.85%  threshold=    52%
+09:46:42 INFO     gpu_validation GPU KPI [TC-GPU-05_fp32_gflops_gpu1]: {"device_idx": 1, "gflops_measured": 36749.97, "tflops_theoretical": 67.0}
+09:46:42 INFO     ai_headnode_tests FP32 GFLOPS GPU 2                                   measured= 45713.599  theoretical= 67000.000  efficiency= 68.23%  threshold=    65%
+09:46:42 INFO     gpu_validation GPU KPI [TC-GPU-05_fp32_gflops_gpu2]: {"device_idx": 2, "gflops_measured": 45713.6, "tflops_theoretical": 67.0}
+09:46:42 INFO     ai_headnode_tests FP32 GFLOPS GPU 3                                   measured= 36907.163  theoretical= 67000.000  efficiency= 55.09%  threshold=    52%
+09:46:42 INFO     gpu_validation GPU KPI [TC-GPU-05_fp32_gflops_gpu3]: {"device_idx": 3, "gflops_measured": 36907.16, "tflops_theoretical": 67.0}
+09:46:43 INFO     ai_headnode_tests FP16 TFLOPS GPU 0                                   measured=   480.030  theoretical=   756.000  efficiency= 63.50%  threshold=    40%
+09:46:43 INFO     gpu_validation GPU KPI [TC-GPU-06_fp16_tflops_gpu0]: {"device_idx": 0, "efficiency_threshold": 0.4, "tflops_measured": 480.0299, "tflops_theoretical": 756.0, "tflops_trials": [480.0299, 475.0626, 460.5944]}
+09:46:43 INFO     ai_headnode_tests FP16 TFLOPS GPU 1                                   measured=   476.753  theoretical=   756.000  efficiency= 63.06%  threshold=    40%
+09:46:43 INFO     gpu_validation GPU KPI [TC-GPU-06_fp16_tflops_gpu1]: {"device_idx": 1, "efficiency_threshold": 0.4, "tflops_measured": 476.7531, "tflops_theoretical": 756.0, "tflops_trials": [476.7531, 474.4716, 473.966]}
+09:46:43 INFO     ai_headnode_tests FP16 TFLOPS GPU 2                                   measured=   465.942  theoretical=   989.000  efficiency= 47.11%  threshold=    44%
+09:46:43 INFO     gpu_validation GPU KPI [TC-GPU-06_fp16_tflops_gpu2]: {"device_idx": 2, "efficiency_threshold": 0.44, "tflops_measured": 465.9417, "tflops_theoretical": 989.0, "tflops_trials": [439.1331, 465.9417, 415.2582]}
+09:46:43 INFO     ai_headnode_tests FP16 TFLOPS GPU 3                                   measured=   496.392  theoretical=   756.000  efficiency= 65.66%  threshold=    40%
+09:46:43 INFO     gpu_validation GPU KPI [TC-GPU-06_fp16_tflops_gpu3]: {"device_idx": 3, "efficiency_threshold": 0.4, "tflops_measured": 496.3921, "tflops_theoretical": 756.0, "tflops_trials": [480.179, 496.3921, 355.1624]}
+09:46:44 INFO     ai_headnode_tests BF16 TFLOPS GPU 0                                   measured=   521.660  theoretical=   756.000  efficiency= 69.00%  threshold=    40%
+09:46:44 INFO     gpu_validation GPU KPI [TC-GPU-07_bf16_tflops_gpu0]: {"device_idx": 0, "efficiency_threshold": 0.4, "tflops_measured": 521.6604, "tflops_theoretical": 756.0, "tflops_trials": [515.12, 521.6604, 496.1889]}
+09:46:44 INFO     ai_headnode_tests BF16 TFLOPS GPU 1                                   measured=   526.291  theoretical=   756.000  efficiency= 69.62%  threshold=    40%
+09:46:44 INFO     gpu_validation GPU KPI [TC-GPU-07_bf16_tflops_gpu1]: {"device_idx": 1, "efficiency_threshold": 0.4, "tflops_measured": 526.2909, "tflops_theoretical": 756.0, "tflops_trials": [511.8606, 526.2909, 524.6676]}
+09:46:44 INFO     ai_headnode_tests BF16 TFLOPS GPU 2                                   measured=   488.766  theoretical=   989.000  efficiency= 49.42%  threshold=    44%
+09:46:44 INFO     gpu_validation GPU KPI [TC-GPU-07_bf16_tflops_gpu2]: {"device_idx": 2, "efficiency_threshold": 0.44, "tflops_measured": 488.7658, "tflops_theoretical": 989.0, "tflops_trials": [481.892, 480.8593, 488.7658]}
+09:46:45 INFO     ai_headnode_tests BF16 TFLOPS GPU 3                                   measured=   541.084  theoretical=   756.000  efficiency= 71.57%  threshold=    40%
+09:46:45 INFO     gpu_validation GPU KPI [TC-GPU-07_bf16_tflops_gpu3]: {"device_idx": 3, "efficiency_threshold": 0.4, "tflops_measured": 541.0835, "tflops_theoretical": 756.0, "tflops_trials": [273.0442, 522.7467, 541.0835]}
+09:46:45 INFO     ai_headnode_tests INT8-proxy TOPS GPU 0                               measured=   547.424  theoretical=   756.000  efficiency= 72.41%  threshold=    40%
+09:46:45 INFO     gpu_validation GPU KPI [TC-GPU-08_int8_proxy_tops_gpu0]: {"device_idx": 0, "efficiency_threshold": 0.4, "fp16_tflops_theoretical": 756.0, "tops_measured": 547.4241, "tops_trials": [547.0604, 547.4241, 539.161]}
+09:46:45 INFO     ai_headnode_tests INT8-proxy TOPS GPU 1                               measured=   549.291  theoretical=   756.000  efficiency= 72.66%  threshold=    40%
+09:46:45 INFO     gpu_validation GPU KPI [TC-GPU-08_int8_proxy_tops_gpu1]: {"device_idx": 1, "efficiency_threshold": 0.4, "fp16_tflops_theoretical": 756.0, "tops_measured": 549.2913, "tops_trials": [549.2913, 549.1437, 538.6939]}
+09:46:46 INFO     ai_headnode_tests INT8-proxy TOPS GPU 2                               measured=   538.782  theoretical=   989.000  efficiency= 54.48%  threshold=    44%
+09:46:46 INFO     gpu_validation GPU KPI [TC-GPU-08_int8_proxy_tops_gpu2]: {"device_idx": 2, "efficiency_threshold": 0.44, "fp16_tflops_theoretical": 989.0, "tops_measured": 538.7823, "tops_trials": [538.7823, 536.9432, 537.714]}
+09:46:46 INFO     ai_headnode_tests INT8-proxy TOPS GPU 3                               measured=   552.335  theoretical=   756.000  efficiency= 73.06%  threshold=    40%
+09:46:46 INFO     gpu_validation GPU KPI [TC-GPU-08_int8_proxy_tops_gpu3]: {"device_idx": 3, "efficiency_threshold": 0.4, "fp16_tflops_theoretical": 756.0, "tops_measured": 552.3352, "tops_trials": [552.3352, 550.786, 549.4687]}
+09:46:46 INFO     ai_headnode_tests FP64 TFLOPS GPU 0                                   measured=    36.299  theoretical=    34.000  efficiency=106.76%  threshold=    50%
+09:46:46 INFO     gpu_validation GPU KPI [TC-GPU-09_fp64_tflops_gpu0]: {"device_idx": 0, "efficiency_threshold": 0.5, "tflops_measured": 36.299, "tflops_theoretical": 34.0, "tflops_trials": [36.0787, 36.299, 33.3984]}
+09:46:46 INFO     ai_headnode_tests FP64 TFLOPS GPU 1                                   measured=    36.804  theoretical=    34.000  efficiency=108.25%  threshold=    50%
+09:46:46 INFO     gpu_validation GPU KPI [TC-GPU-09_fp64_tflops_gpu1]: {"device_idx": 1, "efficiency_threshold": 0.5, "tflops_measured": 36.804, "tflops_theoretical": 34.0, "tflops_trials": [35.7348, 36.804, 23.6819]}
+09:46:47 INFO     ai_headnode_tests FP64 TFLOPS GPU 2                                   measured=    41.196  theoretical=    34.000  efficiency=121.16%  threshold=    50%
+09:46:47 INFO     gpu_validation GPU KPI [TC-GPU-09_fp64_tflops_gpu2]: {"device_idx": 2, "efficiency_threshold": 0.5, "tflops_measured": 41.196, "tflops_theoretical": 34.0, "tflops_trials": [41.196, 40.9447, 40.9294]}
+09:46:47 INFO     ai_headnode_tests FP64 TFLOPS GPU 3                                   measured=    37.048  theoretical=    34.000  efficiency=108.96%  threshold=    50%
+09:46:47 INFO     gpu_validation GPU KPI [TC-GPU-09_fp64_tflops_gpu3]: {"device_idx": 3, "efficiency_threshold": 0.5, "tflops_measured": 37.0477, "tflops_theoretical": 34.0, "tflops_trials": [36.2549, 36.7875, 37.0477]}
+09:46:47 INFO     ai_headnode_tests Multi-GPU FP16 aggregate (4 GPUs)                   measured=  1874.267  theoretical=  1926.447  efficiency= 97.29%  threshold=    80%
+09:46:52 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 0                            measured=    56.127  theoretical=    63.000  efficiency= 89.09%  threshold=    65%
+09:46:52 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 1                            measured=    55.211  theoretical=    63.000  efficiency= 87.64%  threshold=    65%
+09:46:52 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 2                            measured=    55.129  theoretical=    63.000  efficiency= 87.51%  threshold=    65%
+09:46:52 INFO     ai_headnode_tests PCIe H2D bandwidth GPU 3                            measured=    54.775  theoretical=    63.000  efficiency= 86.95%  threshold=    65%
+09:46:53 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 0                            measured=    55.128  theoretical=    63.000  efficiency= 87.50%  threshold=    65%
+09:46:53 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 1                            measured=    55.114  theoretical=    63.000  efficiency= 87.48%  threshold=    65%
+09:46:53 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 2                            measured=    56.930  theoretical=    63.000  efficiency= 90.37%  threshold=    65%
+09:46:54 INFO     ai_headnode_tests PCIe D2H bandwidth GPU 3                            measured=    55.181  theoretical=    63.000  efficiency= 87.59%  threshold=    65%
+09:46:54 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+09:46:54 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md

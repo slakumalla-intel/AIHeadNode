@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-05-21T06:11:07.586230+00:00",
+  "generated_at_utc": "2026-05-21T11:24:22.180183+00:00",
   "host": "sc00901168s0075",
   "python": "3.12.13",
   "domains": [
@@ -8,27 +8,22 @@
       "description": "Roofline and bottleneck analysis",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T05:40:58.383524+00:00",
-      "finished_at_utc": "2026-05-21T05:41:41.694802+00:00",
+      "started_at_utc": "2026-05-21T09:40:51.865019+00:00",
+      "finished_at_utc": "2026-05-21T09:41:31.491688+00:00",
       "tests": 25,
-      "failures": 3,
+      "failures": 2,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 40.969,
+      "duration_sec": 37.417,
       "failed_tests": [
         {
           "nodeid": "tests.test_bottleneck_analysis.TestCPUComputeBottleneck::test_cpu_fp32_efficiency_report",
-          "message": "AssertionError: CPU FP32 (1 processes \u00d7 32 threads): efficiency 3.78% is below threshold 5.00% (measured=1.030, theoretical=27.238)\nassert 0.03782912600018136 >= 0.05",
+          "message": "AssertionError: CPU FP32 (1 processes \u00d7 32 threads): efficiency 3.67% is below threshold 5.00% (measured=0.999, theoretical=27.238)\nassert 0.03669401508547574 >= 0.05",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_bottleneck_analysis.TestGPUComputeBottleneck::test_per_gpu_fp16_efficiency",
-          "message": "AssertionError: GPU 2 FP16 Tensor Core: efficiency 58.35% is below threshold 60.00% (measured=441.124, theoretical=756.000)\nassert 0.5834979163867962 >= 0.6",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_bottleneck_analysis.TestMultiGPUScalingBottleneck::test_scaling_efficiency_2_vs_1_gpu",
-          "message": "AssertionError: 2-GPU FP16 scaling efficiency: efficiency 37.54% is below threshold 80.00% (measured=359.835, theoretical=958.654)\nassert 0.37535391723720046 >= 0.8",
+          "message": "AssertionError: GPU 2 FP16 Tensor Core: efficiency 58.04% is below threshold 60.00% (measured=438.810, theoretical=756.000)\nassert 0.5804362653412989 >= 0.6",
           "kind": "failure"
         }
       ],
@@ -41,13 +36,13 @@
       "description": "CPU validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-05-21T05:41:41.695063+00:00",
-      "finished_at_utc": "2026-05-21T05:46:26.712566+00:00",
+      "started_at_utc": "2026-05-21T09:41:31.491905+00:00",
+      "finished_at_utc": "2026-05-21T09:46:10.004958+00:00",
       "tests": 33,
       "failures": 0,
       "errors": 0,
       "skipped": 1,
-      "duration_sec": 280.374,
+      "duration_sec": 277.108,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/cpu.xml",
       "log_file": "artifacts/reports/logs/cpu.log",
@@ -58,52 +53,22 @@
       "description": "Memory subsystem validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T05:46:26.712797+00:00",
-      "finished_at_utc": "2026-05-21T05:46:56.405504+00:00",
+      "started_at_utc": "2026-05-21T09:46:10.005194+00:00",
+      "finished_at_utc": "2026-05-21T09:46:35.860888+00:00",
       "tests": 28,
-      "failures": 8,
+      "failures": 2,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 28.26,
+      "duration_sec": 24.542,
       "failed_tests": [
         {
-          "nodeid": "tests.test_memory_validation.TestRAMCapacity::test_total_ram_at_least_1tb",
-          "message": "AssertionError: Total RAM 1007 GB < 1 TB\nassert 1006.9953422546387 >= 1024.0",
-          "kind": "failure"
-        },
-        {
           "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_scale_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Scale 12.31 GB/s < 15 GB/s\nassert 12.312918601543629 >= 15.0",
+          "message": "AssertionError: STREAM Scale 12.89 GB/s < 15 GB/s\nassert 12.88683558344393 >= 15.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_triad_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Triad 13.27 GB/s < 15 GB/s\nassert 13.274808501090751 >= 15.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[32-4.0]",
-          "message": "AssertionError: Working-set 32 KB: latency 79.98 ns > 4.0 ns\nassert 79.97558615358002 <= 4.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[512-8.0]",
-          "message": "AssertionError: Working-set 512 KB: latency 79.49 ns > 8.0 ns\nassert 79.48526004053491 <= 8.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[16384-30.0]",
-          "message": "AssertionError: Working-set 16384 KB: latency 129.05 ns > 30.0 ns\nassert 129.05498999316478 <= 30.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[524288-120.0]",
-          "message": "AssertionError: Working-set 524288 KB: latency 216.30 ns > 120.0 ns\nassert 216.3036699857912 <= 120.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_memory_validation.TestCacheHierarchyBandwidth::test_bandwidth_at_working_set[L3-cache-8.0-20.0]",
-          "message": "AssertionError: L3-cache: measured 19.4 GB/s < expected 20.0 GB/s\nassert 19.39079454327372 >= 20.0",
+          "message": "AssertionError: STREAM Triad 12.88 GB/s < 15 GB/s\nassert 12.875201402266258 >= 15.0",
           "kind": "failure"
         }
       ],
@@ -116,22 +81,17 @@
       "description": "GPU validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T05:46:56.405720+00:00",
-      "finished_at_utc": "2026-05-21T05:47:16.204700+00:00",
+      "started_at_utc": "2026-05-21T09:46:35.861142+00:00",
+      "finished_at_utc": "2026-05-21T09:46:55.611820+00:00",
       "tests": 53,
-      "failures": 2,
+      "failures": 1,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 18.006,
+      "duration_sec": 17.642,
       "failed_tests": [
         {
-          "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[0]",
-          "message": "AssertionError: FP32 GFLOPS GPU 0: efficiency 32.80% is below threshold 52.00% (measured=21976.288, theoretical=67000.000)\nassert 0.32800430353811677 >= 0.52",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[3]",
-          "message": "AssertionError: PCIe D2H bandwidth GPU 3: efficiency 38.00% is below threshold 65.00% (measured=23.938, theoretical=63.000)\nassert 0.3799609248945428 >= 0.65",
+          "nodeid": "tests.test_gpu_validation.TestHBMBandwidth::test_hbm_bandwidth_per_gpu[0]",
+          "message": "AssertionError: HBM3 bandwidth GPU 0: efficiency 17.69% is below threshold 80.00% (measured=0.354, theoretical=2.000)\nassert 0.17689374103622998 >= 0.8",
           "kind": "failure"
         }
       ],
@@ -142,22 +102,16 @@
     {
       "domain": "interconnect",
       "description": "PCIe / NVLink / P2P interconnect validation",
-      "status": "FAIL",
-      "return_code": -6,
-      "started_at_utc": "2026-05-21T05:47:16.204927+00:00",
-      "finished_at_utc": "2026-05-21T05:48:40.496958+00:00",
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-05-21T09:46:55.612040+00:00",
+      "finished_at_utc": "2026-05-21T09:48:34.058257+00:00",
       "tests": 77,
-      "failures": 1,
+      "failures": 0,
       "errors": 0,
       "skipped": 4,
-      "duration_sec": 100.604,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_interconnect_validation.TestPCIeTopology::test_pcie_gen5_sysfs",
-          "message": "AssertionError: No NVIDIA GPU PCIe Gen 5 (32 GT/s) links found. Observed: ['32.0 GT/s PCIe']\nassert False",
-          "kind": "failure"
-        }
-      ],
+      "duration_sec": 93.055,
+      "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/interconnect.xml",
       "log_file": "artifacts/reports/logs/interconnect.log",
       "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/junit/interconnect.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/logs/interconnect.log --log-file-level INFO tests/test_interconnect_validation.py"
@@ -167,112 +121,52 @@
       "description": "Node bring-up and workload acceptance",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T05:48:40.497165+00:00",
-      "finished_at_utc": "2026-05-21T05:52:22.242500+00:00",
+      "started_at_utc": "2026-05-21T09:48:34.058450+00:00",
+      "finished_at_utc": "2026-05-21T10:15:35.022996+00:00",
       "tests": 51,
-      "failures": 20,
+      "failures": 8,
       "errors": 0,
-      "skipped": 15,
-      "duration_sec": 218.838,
+      "skipped": 8,
+      "duration_sec": 1616.093,
       "failed_tests": [
         {
-          "nodeid": "tests.test_node_validation.TestPCIeBandwidthDirect::test_h2d_bandwidth_all_gpus",
-          "message": "Failed: H2D PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=0.00 GB/s, mean=0.00 GB/s\nPer-GPU failures:\nGPU 0: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)\nGPU 1: 0.0 GB/s (measurement failed; check CUDA/P2P path ",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestPCIeBandwidthDirect::test_d2h_bandwidth_all_gpus",
-          "message": "Failed: D2H PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=0.00 GB/s, mean=0.00 GB/s\nPer-GPU failures:\nGPU 0: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)\nGPU 1: 0.0 GB/s (measurement failed; check CUDA/P2P path ",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestNVBandwidthMemcpy::test_pcie_bw_p2p_latency_hugepages_2mb",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
           "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_pytorch_fallback",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "message": "Failed: P2P bandwidth fallback validation failed.\nthreshold=40.0 GB/s, measured_pairs=12, inaccessible_pairs=0\nFailures:\nGPU0->GPU1: 38.1 GB/s < 40.0 GB/s\nGPU2->GPU1: 34.5 GB/s < 40.0 GB/s",
           "kind": "failure"
         },
         {
-          "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_multi_stream_bandwidth",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "nodeid": "tests.test_node_validation.TestCPUGPUPowerAndThrottling::test_sustained_gpu_power_stability",
+          "message": "AssertionError: Power variance 59.3 W is too high (expected < 50 W)\nassert np.float64(59.30360696145631) < 50",
           "kind": "failure"
         },
         {
-          "nodeid": "tests.test_node_validation.TestCPUGPULaunchAndSyncOverhead::test_kernel_launch_latency_stats",
-          "message": "AssertionError: Kernel launch measurement failed\nassert {}",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestCPUGPULaunchAndSyncOverhead::test_synchronize_overhead_stats",
-          "message": "AssertionError: Synchronize measurement failed\nassert {}",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestCPUGPUPowerAndThrottling::test_gpu_write_performance_limiters",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[deepseek_r1_quantized-deepseek-ai/DeepSeek-R1-Distill-Qwen-7B-32-3000.0-True]",
-          "message": "Failed: Insufficient free GPU memory for quantized enterprise workload deepseek-ai/DeepSeek-R1-Distill-Qwen-7B. Require 4 GPU(s) with at least 6.0GiB headroom. Offending devices: gpu0 free=-1.0GiB reserve=6.0GiB, gpu1 free=-1.0GiB reserve=6.0GiB, gpu2 free=-1.",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[llama_7b-meta-llama/Meta-Llama-3.1-8B-Instruct-32-3000.0-False]",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "nodeid": "tests.test_node_validation.TestNCCLAndNVLinkValidation::test_nccl_p2p_perf",
+          "message": "AssertionError: NCCL sendrecv busbw 24.1 GB/s too low\nassert 24.08 >= 30.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[llama_70b-meta-llama/Meta-Llama-3.1-70B-Instruct-16-12000.0-True]",
-          "message": "Failed: Insufficient free GPU memory for quantized enterprise workload meta-llama/Meta-Llama-3.1-70B-Instruct. Require 4 GPU(s) with at least 6.0GiB headroom. Offending devices: gpu0 free=-1.0GiB reserve=6.0GiB, gpu1 free=-1.0GiB reserve=6.0GiB, gpu2 free=-1.0",
+          "message": "ImportError: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`",
           "kind": "failure"
         },
         {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[qwen_70b-Qwen/Qwen2.5-72B-Instruct-16-12000.0-True]",
-          "message": "Failed: Insufficient free GPU memory for quantized enterprise workload Qwen/Qwen2.5-72B-Instruct. Require 4 GPU(s) with at least 6.0GiB headroom. Offending devices: gpu0 free=-1.0GiB reserve=6.0GiB, gpu1 free=-1.0GiB reserve=6.0GiB, gpu2 free=-1.0GiB reserve=6",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_batch_throughput",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vllm_data_pipeline_saturation_inference_prefill",
+          "message": "AssertionError: GPU utilization not sustained (>=90% ratio=0.00, mean=0.0%, target_ratio=0.50, shared_gpu=True)\nassert 0.0 >= 0.5",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vision_object_detection_yolo_fps",
-          "message": "Failed: YOLO worker failure: [{'gpu': 0, 'status': 'error', 'error': 'CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTo",
+          "message": "AssertionError: YOLO aggregate FPS too low: 97.0 < target 200.0\nassert 96.99256190071503 >= 200.0",
           "kind": "failure"
         },
         {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vision_image_generation_diffusers_throughput",
-          "message": "Failed: Diffusers worker failure: [{'status': 'error', 'rank': 1, 'error': 'CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug t",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_encoder_training_throughput",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_one_dma_read_4kb_validation",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_looped_rdma_mmio_dma_stress_soak",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_predictable_memory_orchestration_kv_cache_offload",
+          "message": "AssertionError: Offload throughput degradation too high: 87.5% (baseline 339.7 -> offload 42.4)\nassert 87.51046593768514 <= 60",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_llm_training_small_multigpu",
-          "message": "Failed: TC-013 worker failures: [{'rank': 1, 'status': 'error', 'error': 'CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to ",
+          "message": "Failed: TC-013 worker failures: [{'rank': 3, 'status': 'error', 'error': \"Model load failed: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.\\nCheck your internet connection or see how to run the li",
           "kind": "failure"
         }
       ],
@@ -285,17 +179,17 @@
       "description": "Agentic AI KPI validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T05:52:22.242726+00:00",
-      "finished_at_utc": "2026-05-21T05:52:42.656910+00:00",
+      "started_at_utc": "2026-05-21T10:15:35.023264+00:00",
+      "finished_at_utc": "2026-05-21T10:15:54.586500+00:00",
       "tests": 9,
       "failures": 1,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 17.332,
+      "duration_sec": 17.806,
       "failed_tests": [
         {
           "nodeid": "tests.test_agentic_ai_validation.TestToolInvocationOverhead::test_parallel_tool_dispatch_scalability",
-          "message": "AssertionError: Tool dispatch scales poorly: 16 tools take 6.1\u00d7 time of 1 tool\nassert 6.108586243709013 < 5.0",
+          "message": "AssertionError: Tool dispatch scales poorly: 16 tools take 7.0\u00d7 time of 1 tool\nassert 7.029355897081678 < 5.0",
           "kind": "failure"
         }
       ],
@@ -308,72 +202,42 @@
       "description": "AI pipeline KPI validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T05:52:42.657121+00:00",
-      "finished_at_utc": "2026-05-21T05:53:16.661724+00:00",
+      "started_at_utc": "2026-05-21T10:15:54.586672+00:00",
+      "finished_at_utc": "2026-05-21T10:16:29.484634+00:00",
       "tests": 38,
-      "failures": 12,
+      "failures": 6,
       "errors": 0,
-      "skipped": 16,
-      "duration_sec": 30.846,
+      "skipped": 12,
+      "duration_sec": 31.124,
       "failed_tests": [
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_tokenizer_multi_thread_scaling",
-          "message": "AssertionError: 4-thread tokenizer scaling 1.66\u00d7 < 2.0\u00d7 single-thread\nassert 1.6562835316740567 >= 2.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_dataloader_cpu_to_pinned_throughput[2]",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_dataloader_cpu_to_pinned_throughput[4]",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "message": "AssertionError: 4-thread tokenizer scaling 1.47\u00d7 < 2.0\u00d7 single-thread\nassert 1.4748150802127233 >= 2.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_async_prefetch_gpu_overlap_efficiency",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "message": "AssertionError: Async prefetch overlap efficiency 25.0% < 60.0%\nassert 24.999455191166728 >= 60.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_model_load_time_to_gpu",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_checkpoint_save_restore_throughput",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_kv_cache_memory_allocation_efficiency",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "message": "AssertionError: Model load bandwidth 0.42 GB/s < 1.0 GB/s\nassert 0.41791630508399996 >= 1.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_tensor_parallel_allreduce_overhead_fraction",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_batch_assembly_gpu_latency[1]",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_batch_assembly_gpu_latency[4]",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_batch_assembly_gpu_latency[16]",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "message": "AssertionError: AllReduce overhead 98.6% > 20.0% of compute\nassert 98.6229079369924 <= 20.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO::test_model_weight_load_pipeline_bandwidth",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "message": "AssertionError: Weight load pipeline 0.87 GB/s < 1.0 GB/s\nassert 0.8731330767871053 >= 1.0",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs::test_time_to_first_token[2048]",
+          "message": "torch.AcceleratorError: CUDA error: device-side assert triggered\nSearch for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API",
           "kind": "failure"
         }
       ],
@@ -386,14 +250,24 @@
       "description": "System health and reliability",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T05:53:16.661953+00:00",
-      "finished_at_utc": "2026-05-21T05:53:30.385716+00:00",
+      "started_at_utc": "2026-05-21T10:16:29.484833+00:00",
+      "finished_at_utc": "2026-05-21T10:17:16.816924+00:00",
       "tests": 39,
-      "failures": 20,
+      "failures": 7,
       "errors": 0,
-      "skipped": 9,
-      "duration_sec": 12.075,
+      "skipped": 3,
+      "duration_sec": 44.633,
       "failed_tests": [
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[0]",
+          "message": "AssertionError: GPU 0 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)\nassert 0.19658119658119658 >= 0.8",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[1]",
+          "message": "AssertionError: GPU 1 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)\nassert 0.19658119658119658 >= 0.8",
+          "kind": "failure"
+        },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[2]",
           "message": "AssertionError: GPU 2 clock ratio 19.33% below 80%; throttling suspected (current 345 MHz, max 1785 MHz)\nassert 0.19327731092436976 >= 0.8",
@@ -406,92 +280,17 @@
         },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_sustained_compute_no_thermal_throttle",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_fp16_gflops_per_watt[0]",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_fp16_gflops_per_watt[1]",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_fp16_gflops_per_watt[2]",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_fp16_gflops_per_watt[3]",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_aggregate_4gpu_fp16_tflops_per_watt",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_int8_matmul_error_vs_fp16",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_fp8_e4m3_matmul_error_vs_fp16",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_bf16_vs_fp16_matmul_equivalence",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "message": "AssertionError: SM clock dropped 47.9% during sustained load (initial 1755 MHz \u2192 min 915 MHz, max_temp 59 \u00b0C). Thermal or power-limit throttling detected.\nassert 0.47863247863247865 <= 0.1",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_quantised_softmax_output_matches_fp16",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestDDPGradientSynchronizationCorrectness::test_ddp_gradient_sync_matches_single_gpu",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestDDPGradientSynchronizationCorrectness::test_multi_gpu_parameter_consistency_after_allreduce",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_output_matches_eager",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "message": "AssertionError: Quantised softmax max error 2.56e-03 exceeds 1e-03\nassert 0.0025634765625 < 0.001",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_speedup_over_eager",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness::test_event_wait_enforces_ordering",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness::test_multi_stream_no_race_on_shared_tensor",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness::test_cuda_event_elapsed_time_positive",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness::test_concurrent_stream_throughput_vs_sequential",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
+          "message": "AssertionError: torch.compile speedup 0.804\u00d7 < floor 1.05\u00d7. Compiled kernels may be suboptimal for this H100 PCIe configuration.\nassert 0.8038794604279713 >= 1.05",
           "kind": "failure"
         }
       ],
@@ -502,47 +301,16 @@
     {
       "domain": "system_config",
       "description": "System config report validation",
-      "status": "FAIL",
-      "return_code": 1,
-      "started_at_utc": "2026-05-21T05:53:30.385913+00:00",
-      "finished_at_utc": "2026-05-21T05:53:35.161315+00:00",
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-05-21T10:17:16.817154+00:00",
+      "finished_at_utc": "2026-05-21T10:17:21.639419+00:00",
       "tests": 8,
-      "failures": 6,
+      "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 3.467,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_system_config_report.TestGPUConfigReport::test_collect_and_print_gpu_config",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_config_report.TestGPUConfigReport::test_gpu_model_names_in_report",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_config_report.TestGPUConfigReport::test_total_gpu_memory_in_report",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_config_report.TestPCIeTopologyReport::test_pcie_topology_present_in_report",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_config_report.TestPCIeTopologyReport::test_pcie_links_healthy_in_report",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_config_report.TestCombinedConfigReport::test_generate_and_save_combined_report",
-          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=2, num_gpus=2\n\nCUDA call",
-          "kind": "failure"
-        }
-      ],
+      "duration_sec": 3.511,
+      "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/system_config.xml",
       "log_file": "artifacts/reports/logs/system_config.log",
       "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/junit/system_config.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/logs/system_config.log --log-file-level INFO tests/test_system_config_report.py"
@@ -552,13 +320,13 @@
       "description": "vLLM prefill validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-05-21T05:53:35.161524+00:00",
-      "finished_at_utc": "2026-05-21T06:04:19.304005+00:00",
+      "started_at_utc": "2026-05-21T10:17:21.639615+00:00",
+      "finished_at_utc": "2026-05-21T10:27:52.644865+00:00",
       "tests": 3,
       "failures": 0,
       "errors": 0,
       "skipped": 1,
-      "duration_sec": 642.82,
+      "duration_sec": 629.616,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/vllm_prefill.xml",
       "log_file": "artifacts/reports/logs/vllm_prefill.log",
@@ -569,13 +337,13 @@
       "description": "Performance suite catalog / execution",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T06:04:19.304240+00:00",
-      "finished_at_utc": "2026-05-21T06:10:23.425119+00:00",
+      "started_at_utc": "2026-05-21T10:27:52.645381+00:00",
+      "finished_at_utc": "2026-05-21T10:53:38.052478+00:00",
       "tests": 26,
       "failures": 1,
       "errors": 0,
-      "skipped": 15,
-      "duration_sec": 358.118,
+      "skipped": 7,
+      "duration_sec": 1542.034,
       "failed_tests": [
         {
           "nodeid": "tests.test_performance_suite::test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_011]",
@@ -592,27 +360,27 @@
       "description": "MLPerf suite catalog / execution",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T06:10:23.425329+00:00",
-      "finished_at_utc": "2026-05-21T06:11:07.586029+00:00",
+      "started_at_utc": "2026-05-21T10:53:38.052674+00:00",
+      "finished_at_utc": "2026-05-21T11:24:22.179987+00:00",
       "tests": 21,
       "failures": 19,
       "errors": 0,
       "skipped": 2,
-      "duration_sec": 42.472,
+      "duration_sec": 1842.738,
       "failed_tests": [
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_003: command failed (rc=1)\nexecuted_command: vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 --tensor-parallel-size 4 --max-model-len 32768 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=198491) Traceback (m",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_003: command failed (rc=1)\nexecuted_command: vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 --tensor-parallel-size 4 --max-model-len 32768 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=70758) Traceback (mo",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_004]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_004: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Meta-Llama-3.1-8B-Instruct --tensor-parallel-size 4 --max-model-len 8192 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\nenvs/torch-cu128/lib64/python3.12/s",
+          "message": "Failed: Timeout (>1800.0s) from pytest-timeout.",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=199048) Tr",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=73088) Tra",
           "kind": "failure"
         },
         {
@@ -703,12 +471,12 @@
   ],
   "summary": {
     "domains_run": 13,
-    "passed_domains": 2,
-    "failed_domains": 11,
+    "passed_domains": 4,
+    "failed_domains": 9,
     "tests": 411,
-    "failures": 93,
+    "failures": 47,
     "errors": 0,
-    "skipped": 63
+    "skipped": 38
   },
   "defaults_applied": {
     "ML_EXECUTE_CASES": "1",

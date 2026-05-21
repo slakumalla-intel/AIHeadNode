@@ -1,457 +1,654 @@
-05:47:16 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
-05:47:20 INFO     interconnect_validation 
+09:46:56 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
+09:47:00 INFO     interconnect_validation 
 TC-IC-02 H2D bandwidth (GPU 0)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 0 H2D                                       56.26 GB/s         63.00 GB/s    89.3%
+GPU 0 H2D                                       56.24 GB/s         63.00 GB/s    89.3%
 ----------------------------------------------------------------------------------------
-05:47:20 INFO     ai_headnode_tests H2D PCIe BW GPU 0                                   measured=    56.259  theoretical=    63.000  efficiency= 89.30%  threshold=    65%
-05:47:20 INFO     interconnect_validation IC KPI [TC-IC-02_h2d_bandwidth_gpu0]: {"bandwidth_gbs": 56.26, "device_idx": 0, "theoretical_gbs": 63.0}
-05:47:20 INFO     interconnect_validation 
+09:47:00 INFO     ai_headnode_tests H2D PCIe BW GPU 0                                   measured=    56.238  theoretical=    63.000  efficiency= 89.27%  threshold=    65%
+09:47:00 INFO     interconnect_validation IC KPI [TC-IC-02_h2d_bandwidth_gpu0]: {"bandwidth_gbs": 56.24, "device_idx": 0, "theoretical_gbs": 63.0}
+09:47:01 INFO     interconnect_validation 
 TC-IC-02 H2D bandwidth (GPU 1)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 1 H2D                                       56.26 GB/s         63.00 GB/s    89.3%
+GPU 1 H2D                                       56.06 GB/s         63.00 GB/s    89.0%
 ----------------------------------------------------------------------------------------
-05:47:20 INFO     ai_headnode_tests H2D PCIe BW GPU 1                                   measured=    56.263  theoretical=    63.000  efficiency= 89.31%  threshold=    65%
-05:47:20 INFO     interconnect_validation IC KPI [TC-IC-02_h2d_bandwidth_gpu1]: {"bandwidth_gbs": 56.26, "device_idx": 1, "theoretical_gbs": 63.0}
-05:47:21 INFO     interconnect_validation 
+09:47:01 INFO     ai_headnode_tests H2D PCIe BW GPU 1                                   measured=    56.059  theoretical=    63.000  efficiency= 88.98%  threshold=    65%
+09:47:01 INFO     interconnect_validation IC KPI [TC-IC-02_h2d_bandwidth_gpu1]: {"bandwidth_gbs": 56.06, "device_idx": 1, "theoretical_gbs": 63.0}
+09:47:01 INFO     interconnect_validation 
 TC-IC-02 H2D bandwidth (GPU 2)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 2 H2D                                       56.21 GB/s         63.00 GB/s    89.2%
+GPU 2 H2D                                       56.07 GB/s         63.00 GB/s    89.0%
 ----------------------------------------------------------------------------------------
-05:47:21 INFO     ai_headnode_tests H2D PCIe BW GPU 2                                   measured=    56.210  theoretical=    63.000  efficiency= 89.22%  threshold=    65%
-05:47:21 INFO     interconnect_validation IC KPI [TC-IC-02_h2d_bandwidth_gpu2]: {"bandwidth_gbs": 56.21, "device_idx": 2, "theoretical_gbs": 63.0}
-05:47:21 INFO     interconnect_validation 
+09:47:01 INFO     ai_headnode_tests H2D PCIe BW GPU 2                                   measured=    56.074  theoretical=    63.000  efficiency= 89.01%  threshold=    65%
+09:47:01 INFO     interconnect_validation IC KPI [TC-IC-02_h2d_bandwidth_gpu2]: {"bandwidth_gbs": 56.07, "device_idx": 2, "theoretical_gbs": 63.0}
+09:47:02 INFO     interconnect_validation 
 TC-IC-02 H2D bandwidth (GPU 3)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 3 H2D                                       56.21 GB/s         63.00 GB/s    89.2%
+GPU 3 H2D                                       55.69 GB/s         63.00 GB/s    88.4%
 ----------------------------------------------------------------------------------------
-05:47:21 INFO     ai_headnode_tests H2D PCIe BW GPU 3                                   measured=    56.212  theoretical=    63.000  efficiency= 89.23%  threshold=    65%
-05:47:21 INFO     interconnect_validation IC KPI [TC-IC-02_h2d_bandwidth_gpu3]: {"bandwidth_gbs": 56.21, "device_idx": 3, "theoretical_gbs": 63.0}
-05:47:22 INFO     interconnect_validation 
+09:47:02 INFO     ai_headnode_tests H2D PCIe BW GPU 3                                   measured=    55.689  theoretical=    63.000  efficiency= 88.40%  threshold=    65%
+09:47:02 INFO     interconnect_validation IC KPI [TC-IC-02_h2d_bandwidth_gpu3]: {"bandwidth_gbs": 55.69, "device_idx": 3, "theoretical_gbs": 63.0}
+09:47:03 INFO     interconnect_validation 
 TC-IC-03 D2H bandwidth (GPU 0)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 0 D2H                                       54.84 GB/s         63.00 GB/s    87.1%
+GPU 0 D2H                                       55.21 GB/s         63.00 GB/s    87.6%
 ----------------------------------------------------------------------------------------
-05:47:22 INFO     ai_headnode_tests D2H PCIe BW GPU 0                                   measured=    54.843  theoretical=    63.000  efficiency= 87.05%  threshold=    65%
-05:47:22 INFO     interconnect_validation IC KPI [TC-IC-03_d2h_bandwidth_gpu0]: {"bandwidth_gbs": 54.84, "device_idx": 0, "theoretical_gbs": 63.0}
-05:47:22 INFO     interconnect_validation 
+09:47:03 INFO     ai_headnode_tests D2H PCIe BW GPU 0                                   measured=    55.211  theoretical=    63.000  efficiency= 87.64%  threshold=    65%
+09:47:03 INFO     interconnect_validation IC KPI [TC-IC-03_d2h_bandwidth_gpu0]: {"bandwidth_gbs": 55.21, "device_idx": 0, "theoretical_gbs": 63.0}
+09:47:03 INFO     interconnect_validation 
 TC-IC-03 D2H bandwidth (GPU 1)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 1 D2H                                       54.92 GB/s         63.00 GB/s    87.2%
+GPU 1 D2H                                       55.24 GB/s         63.00 GB/s    87.7%
 ----------------------------------------------------------------------------------------
-05:47:22 INFO     ai_headnode_tests D2H PCIe BW GPU 1                                   measured=    54.917  theoretical=    63.000  efficiency= 87.17%  threshold=    65%
-05:47:22 INFO     interconnect_validation IC KPI [TC-IC-03_d2h_bandwidth_gpu1]: {"bandwidth_gbs": 54.92, "device_idx": 1, "theoretical_gbs": 63.0}
-05:47:23 INFO     interconnect_validation 
+09:47:03 INFO     ai_headnode_tests D2H PCIe BW GPU 1                                   measured=    55.243  theoretical=    63.000  efficiency= 87.69%  threshold=    65%
+09:47:03 INFO     interconnect_validation IC KPI [TC-IC-03_d2h_bandwidth_gpu1]: {"bandwidth_gbs": 55.24, "device_idx": 1, "theoretical_gbs": 63.0}
+09:47:03 INFO     interconnect_validation 
 TC-IC-03 D2H bandwidth (GPU 2)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 2 D2H                                       56.55 GB/s         63.00 GB/s    89.8%
+GPU 2 D2H                                       56.98 GB/s         63.00 GB/s    90.4%
 ----------------------------------------------------------------------------------------
-05:47:23 INFO     ai_headnode_tests D2H PCIe BW GPU 2                                   measured=    56.550  theoretical=    63.000  efficiency= 89.76%  threshold=    65%
-05:47:23 INFO     interconnect_validation IC KPI [TC-IC-03_d2h_bandwidth_gpu2]: {"bandwidth_gbs": 56.55, "device_idx": 2, "theoretical_gbs": 63.0}
-05:47:23 INFO     interconnect_validation 
+09:47:03 INFO     ai_headnode_tests D2H PCIe BW GPU 2                                   measured=    56.982  theoretical=    63.000  efficiency= 90.45%  threshold=    65%
+09:47:03 INFO     interconnect_validation IC KPI [TC-IC-03_d2h_bandwidth_gpu2]: {"bandwidth_gbs": 56.98, "device_idx": 2, "theoretical_gbs": 63.0}
+09:47:04 INFO     interconnect_validation 
 TC-IC-03 D2H bandwidth (GPU 3)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 3 D2H                                       54.91 GB/s         63.00 GB/s    87.2%
+GPU 3 D2H                                       55.23 GB/s         63.00 GB/s    87.7%
 ----------------------------------------------------------------------------------------
-05:47:23 INFO     ai_headnode_tests D2H PCIe BW GPU 3                                   measured=    54.905  theoretical=    63.000  efficiency= 87.15%  threshold=    65%
-05:47:23 INFO     interconnect_validation IC KPI [TC-IC-03_d2h_bandwidth_gpu3]: {"bandwidth_gbs": 54.91, "device_idx": 3, "theoretical_gbs": 63.0}
-05:47:25 INFO     interconnect_validation 
+09:47:04 INFO     ai_headnode_tests D2H PCIe BW GPU 3                                   measured=    55.232  theoretical=    63.000  efficiency= 87.67%  threshold=    65%
+09:47:04 INFO     interconnect_validation IC KPI [TC-IC-03_d2h_bandwidth_gpu3]: {"bandwidth_gbs": 55.23, "device_idx": 3, "theoretical_gbs": 63.0}
+09:47:05 INFO     interconnect_validation 
 TC-IC-04 Simultaneous-stream bidirectional PCIe bandwidth (GPU 0)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 0 H2D (simul stream)                        49.99 GB/s         63.00 GB/s    79.4%
-GPU 0 D2H (simul stream)                        49.99 GB/s         63.00 GB/s    79.4%
-GPU 0 H2D+D2H (simul)                           99.98 GB/s        126.00 GB/s    79.4%
+GPU 0 H2D (simul stream)                        50.01 GB/s         63.00 GB/s    79.4%
+GPU 0 D2H (simul stream)                        50.01 GB/s         63.00 GB/s    79.4%
+GPU 0 H2D+D2H (simul)                          100.01 GB/s        126.00 GB/s    79.4%
 ----------------------------------------------------------------------------------------
-05:47:25 INFO     interconnect_validation 
+09:47:05 INFO     interconnect_validation 
 TC-IC-04 Simultaneous-stream bidirectional PCIe bandwidth (GPU 1)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 1 H2D (simul stream)                        49.81 GB/s         63.00 GB/s    79.1%
-GPU 1 D2H (simul stream)                        49.81 GB/s         63.00 GB/s    79.1%
-GPU 1 H2D+D2H (simul)                           99.63 GB/s        126.00 GB/s    79.1%
+GPU 1 H2D (simul stream)                        49.89 GB/s         63.00 GB/s    79.2%
+GPU 1 D2H (simul stream)                        49.89 GB/s         63.00 GB/s    79.2%
+GPU 1 H2D+D2H (simul)                           99.78 GB/s        126.00 GB/s    79.2%
 ----------------------------------------------------------------------------------------
-05:47:25 INFO     interconnect_validation 
+09:47:06 INFO     interconnect_validation 
 TC-IC-04 Simultaneous-stream bidirectional PCIe bandwidth (GPU 2)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 2 H2D (simul stream)                        49.95 GB/s         63.00 GB/s    79.3%
-GPU 2 D2H (simul stream)                        49.95 GB/s         63.00 GB/s    79.3%
-GPU 2 H2D+D2H (simul)                           99.90 GB/s        126.00 GB/s    79.3%
+GPU 2 H2D (simul stream)                        49.96 GB/s         63.00 GB/s    79.3%
+GPU 2 D2H (simul stream)                        49.96 GB/s         63.00 GB/s    79.3%
+GPU 2 H2D+D2H (simul)                           99.92 GB/s        126.00 GB/s    79.3%
 ----------------------------------------------------------------------------------------
-05:47:26 INFO     interconnect_validation 
+09:47:06 INFO     interconnect_validation 
 TC-IC-04 Simultaneous-stream bidirectional PCIe bandwidth (GPU 3)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 3 H2D (simul stream)                        49.82 GB/s         63.00 GB/s    79.1%
-GPU 3 D2H (simul stream)                        49.82 GB/s         63.00 GB/s    79.1%
-GPU 3 H2D+D2H (simul)                           99.64 GB/s        126.00 GB/s    79.1%
+GPU 3 H2D (simul stream)                        49.85 GB/s         63.00 GB/s    79.1%
+GPU 3 D2H (simul stream)                        49.85 GB/s         63.00 GB/s    79.1%
+GPU 3 H2D+D2H (simul)                           99.71 GB/s        126.00 GB/s    79.1%
 ----------------------------------------------------------------------------------------
-05:47:26 INFO     ai_headnode_tests Concurrent H2D BW all 4 GPUs                        measured=   205.078  theoretical=   252.000  efficiency= 81.38%  threshold=    65%
-05:47:27 INFO     interconnect_validation 
+09:47:06 INFO     ai_headnode_tests Concurrent H2D BW all 4 GPUs                        measured=   211.594  theoretical=   252.000  efficiency= 83.97%  threshold=    65%
+09:47:07 INFO     interconnect_validation 
 TC-IC-07 PCIe P2P P2P bandwidth (GPU 0->1)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 0->1 P2P                                    51.87 GB/s         63.00 GB/s    82.3%
+GPU 0->1 P2P                                    51.89 GB/s         63.00 GB/s    82.4%
 ----------------------------------------------------------------------------------------
-05:47:27 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 0->1                            measured=    51.873  theoretical=    63.000  efficiency= 82.34%  threshold=    50%
-05:47:27 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu0_to_1]: {"bandwidth_gbs": 51.87, "dst": 1, "src": 0, "theoretical_gbs": 63.0}
-05:47:27 INFO     interconnect_validation 
+09:47:07 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 0->1                            measured=    51.889  theoretical=    63.000  efficiency= 82.36%  threshold=    50%
+09:47:07 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu0_to_1]: {"bandwidth_gbs": 51.89, "dst": 1, "src": 0, "theoretical_gbs": 63.0}
+09:47:07 INFO     interconnect_validation 
 TC-IC-07 PCIe P2P P2P bandwidth (GPU 0->2)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 0->2 P2P                                    46.26 GB/s         63.00 GB/s    73.4%
+GPU 0->2 P2P                                    46.14 GB/s         63.00 GB/s    73.2%
 ----------------------------------------------------------------------------------------
-05:47:27 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 0->2                            measured=    46.264  theoretical=    63.000  efficiency= 73.43%  threshold=    50%
-05:47:27 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu0_to_2]: {"bandwidth_gbs": 46.26, "dst": 2, "src": 0, "theoretical_gbs": 63.0}
-05:47:27 INFO     interconnect_validation 
+09:47:07 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 0->2                            measured=    46.139  theoretical=    63.000  efficiency= 73.24%  threshold=    50%
+09:47:07 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu0_to_2]: {"bandwidth_gbs": 46.14, "dst": 2, "src": 0, "theoretical_gbs": 63.0}
+09:47:08 INFO     interconnect_validation 
 TC-IC-07 PCIe P2P P2P bandwidth (GPU 0->3)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 0->3 P2P                                    46.35 GB/s         63.00 GB/s    73.6%
+GPU 0->3 P2P                                    46.23 GB/s         63.00 GB/s    73.4%
 ----------------------------------------------------------------------------------------
-05:47:27 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 0->3                            measured=    46.350  theoretical=    63.000  efficiency= 73.57%  threshold=    50%
-05:47:27 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu0_to_3]: {"bandwidth_gbs": 46.35, "dst": 3, "src": 0, "theoretical_gbs": 63.0}
-05:47:28 INFO     interconnect_validation 
+09:47:08 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 0->3                            measured=    46.232  theoretical=    63.000  efficiency= 73.38%  threshold=    50%
+09:47:08 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu0_to_3]: {"bandwidth_gbs": 46.23, "dst": 3, "src": 0, "theoretical_gbs": 63.0}
+09:47:08 INFO     interconnect_validation 
 TC-IC-07 PCIe P2P P2P bandwidth (GPU 1->2)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 1->2 P2P                                    44.62 GB/s         63.00 GB/s    70.8%
+GPU 1->2 P2P                                    44.61 GB/s         63.00 GB/s    70.8%
 ----------------------------------------------------------------------------------------
-05:47:28 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 1->2                            measured=    44.615  theoretical=    63.000  efficiency= 70.82%  threshold=    50%
-05:47:28 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu1_to_2]: {"bandwidth_gbs": 44.62, "dst": 2, "src": 1, "theoretical_gbs": 63.0}
-05:47:28 INFO     interconnect_validation 
+09:47:08 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 1->2                            measured=    44.611  theoretical=    63.000  efficiency= 70.81%  threshold=    50%
+09:47:08 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu1_to_2]: {"bandwidth_gbs": 44.61, "dst": 2, "src": 1, "theoretical_gbs": 63.0}
+09:47:08 INFO     interconnect_validation 
 TC-IC-07 PCIe P2P P2P bandwidth (GPU 1->3)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 1->3 P2P                                    44.63 GB/s         63.00 GB/s    70.8%
+GPU 1->3 P2P                                    44.62 GB/s         63.00 GB/s    70.8%
 ----------------------------------------------------------------------------------------
-05:47:28 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 1->3                            measured=    44.632  theoretical=    63.000  efficiency= 70.84%  threshold=    50%
-05:47:28 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu1_to_3]: {"bandwidth_gbs": 44.63, "dst": 3, "src": 1, "theoretical_gbs": 63.0}
-05:47:28 INFO     interconnect_validation 
+09:47:08 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 1->3                            measured=    44.620  theoretical=    63.000  efficiency= 70.83%  threshold=    50%
+09:47:08 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu1_to_3]: {"bandwidth_gbs": 44.62, "dst": 3, "src": 1, "theoretical_gbs": 63.0}
+09:47:08 INFO     interconnect_validation 
 TC-IC-07 PCIe P2P P2P bandwidth (GPU 2->3)
 ----------------------------------------------------------------------------------------
 METRIC                                         MEASURED    THEORETICAL     EFF%
 ----------------------------------------------------------------------------------------
-GPU 2->3 P2P                                    51.43 GB/s         63.00 GB/s    81.6%
+GPU 2->3 P2P                                    51.76 GB/s         63.00 GB/s    82.2%
 ----------------------------------------------------------------------------------------
-05:47:28 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 2->3                            measured=    51.428  theoretical=    63.000  efficiency= 81.63%  threshold=    50%
-05:47:28 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu2_to_3]: {"bandwidth_gbs": 51.43, "dst": 3, "src": 2, "theoretical_gbs": 63.0}
-05:47:41 INFO     interconnect_validation Adaptive sweep (mode=bidir, gpu=0): free=75.42 GB, total=79.18 GB, max_transfer=11585 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
-05:48:00 INFO     interconnect_validation 
+09:47:08 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 2->3                            measured=    51.755  theoretical=    63.000  efficiency= 82.15%  threshold=    50%
+09:47:08 INFO     interconnect_validation IC KPI [TC-IC-07_p2p_bandwidth_gpu2_to_3]: {"bandwidth_gbs": 51.76, "dst": 3, "src": 2, "theoretical_gbs": 63.0}
+09:47:21 INFO     interconnect_validation Adaptive sweep (mode=bidir, gpu=0): free=75.42 GB, total=79.18 GB, max_transfer=11585 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:47:40 INFO     interconnect_validation 
 TC-IC-13 Multistream parallel bidirectional sweep (GPU 0, 4 streams/dir, adaptive sizes)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          60.08            58.75         59.97    46.6%
-         8          76.35            75.90         76.31    60.2%
-        16          87.28            87.04         87.26    69.1%
-        32          86.72            82.92         86.61    65.8%
-        64          96.83            96.24         96.70    76.4%
-       128          98.51            98.41         98.50    78.1%
-       256          99.42            99.36         99.41    78.9%
-       512          99.81            99.77         99.80    79.2%
-      1024          99.97            99.95         99.97    79.3%
-      2048         100.16           100.13        100.15    79.5%
-      4096         100.21           100.20        100.21    79.5%
-      8192         100.15           100.14        100.14    79.5%
+         4          59.58            59.00         59.51    46.8%
+         8          77.42            76.42         77.30    60.6%
+        16          87.63            86.93         87.52    69.0%
+        32          87.62            82.94         87.06    65.8%
+        64          96.97            96.47         96.97    76.6%
+       128          98.60            98.51         98.59    78.2%
+       256          99.35            99.33         99.35    78.8%
+       512          99.80            99.77         99.79    79.2%
+      1024         100.00            99.98        100.00    79.4%
+      2048         100.09           100.08        100.09    79.4%
+      4096         100.16           100.15        100.16    79.5%
+      8192         100.14           100.13        100.14    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median total bidirectional BW vs theoretical.
-05:48:00 INFO     interconnect_validation 
+09:47:40 INFO     interconnect_validation 
 TC-IC-13 Per-direction H2D stats (GPU 0)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          30.04            29.38         29.98    46.6%
-         8          38.18            37.95         38.16    60.2%
-        16          43.64            43.52         43.63    69.1%
-        32          43.36            41.46         43.31    65.8%
-        64          48.42            48.12         48.35    76.4%
-       128          49.26            49.21         49.25    78.1%
-       256          49.71            49.68         49.70    78.9%
+         4          29.79            29.50         29.75    46.8%
+         8          38.71            38.21         38.65    60.6%
+        16          43.82            43.47         43.76    69.0%
+        32          43.81            41.47         43.53    65.8%
+        64          48.49            48.23         48.48    76.6%
+       128          49.30            49.25         49.29    78.2%
+       256          49.67            49.67         49.67    78.8%
        512          49.90            49.89         49.90    79.2%
-      1024          49.99            49.98         49.98    79.3%
-      2048          50.08            50.07         50.07    79.5%
-      4096          50.10            50.10         50.10    79.5%
+      1024          50.00            49.99         50.00    79.4%
+      2048          50.05            50.04         50.04    79.4%
+      4096          50.08            50.08         50.08    79.5%
       8192          50.07            50.07         50.07    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median H2D BW vs theoretical.
-05:48:00 INFO     interconnect_validation 
+09:47:40 INFO     interconnect_validation 
 TC-IC-13 Per-direction D2H stats (GPU 0)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          30.04            29.38         29.98    46.6%
-         8          38.18            37.95         38.16    60.2%
-        16          43.64            43.52         43.63    69.1%
-        32          43.36            41.46         43.31    65.8%
-        64          48.42            48.12         48.35    76.4%
-       128          49.26            49.21         49.25    78.1%
-       256          49.71            49.68         49.70    78.9%
+         4          29.79            29.50         29.75    46.8%
+         8          38.71            38.21         38.65    60.6%
+        16          43.82            43.47         43.76    69.0%
+        32          43.81            41.47         43.53    65.8%
+        64          48.49            48.23         48.48    76.6%
+       128          49.30            49.25         49.29    78.2%
+       256          49.67            49.67         49.67    78.8%
        512          49.90            49.89         49.90    79.2%
-      1024          49.99            49.98         49.98    79.3%
-      2048          50.08            50.07         50.07    79.5%
-      4096          50.10            50.10         50.10    79.5%
+      1024          50.00            49.99         50.00    79.4%
+      2048          50.05            50.04         50.04    79.4%
+      4096          50.08            50.08         50.08    79.5%
       8192          50.07            50.07         50.07    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median D2H BW vs theoretical.
-05:48:00 INFO     interconnect_validation Adaptive sweep (mode=bidir, gpu=1): free=75.37 GB, total=79.18 GB, max_transfer=11576 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
-05:48:05 INFO     interconnect_validation 
+09:47:40 INFO     interconnect_validation Adaptive sweep (mode=bidir, gpu=1): free=75.37 GB, total=79.18 GB, max_transfer=11576 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:47:45 INFO     interconnect_validation 
 TC-IC-13 Multistream parallel bidirectional sweep (GPU 1, 4 streams/dir, adaptive sizes)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          43.69            43.41         43.69    34.4%
-         8          73.57            73.40         73.54    58.3%
-        16          85.35            85.12         85.32    67.6%
-        32          85.72            82.51         85.54    65.5%
-        64          95.86            90.58         94.66    71.9%
-       128          98.22            97.89         98.22    77.7%
-       256          99.28            99.19         99.27    78.7%
-       512          99.73            99.70         99.73    79.1%
-      1024          99.97            99.94         99.96    79.3%
-      2048         100.12           100.09        100.12    79.4%
-      4096         100.19           100.19        100.19    79.5%
-      8192         100.13           100.10        100.13    79.4%
+         4          43.62            43.43         43.59    34.5%
+         8          73.92            73.71         73.88    58.5%
+        16          84.53            84.25         84.53    66.9%
+        32          84.26            82.86         84.08    65.8%
+        64          96.03            92.98         95.95    73.8%
+       128          98.40            98.19         98.38    77.9%
+       256          99.25            99.22         99.24    78.7%
+       512          99.71            99.68         99.70    79.1%
+      1024          99.96            99.94         99.96    79.3%
+      2048         100.06           100.04        100.05    79.4%
+      4096         100.14           100.13        100.14    79.5%
+      8192         100.14           100.13        100.14    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median total bidirectional BW vs theoretical.
-05:48:05 INFO     interconnect_validation 
+09:47:45 INFO     interconnect_validation 
 TC-IC-13 Per-direction H2D stats (GPU 1)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          21.85            21.70         21.84    34.4%
-         8          36.79            36.70         36.77    58.3%
-        16          42.67            42.56         42.66    67.6%
-        32          42.86            41.25         42.77    65.5%
-        64          47.93            45.29         47.33    71.9%
-       128          49.11            48.94         49.11    77.7%
-       256          49.64            49.60         49.63    78.7%
-       512          49.86            49.85         49.86    79.1%
+         4          21.81            21.71         21.80    34.5%
+         8          36.96            36.86         36.94    58.5%
+        16          42.27            42.12         42.26    66.9%
+        32          42.13            41.43         42.04    65.8%
+        64          48.02            46.49         47.97    73.8%
+       128          49.20            49.09         49.19    77.9%
+       256          49.62            49.61         49.62    78.7%
+       512          49.85            49.84         49.85    79.1%
       1024          49.98            49.97         49.98    79.3%
-      2048          50.06            50.05         50.06    79.4%
-      4096          50.09            50.09         50.09    79.5%
-      8192          50.06            50.05         50.06    79.4%
+      2048          50.03            50.02         50.03    79.4%
+      4096          50.07            50.07         50.07    79.5%
+      8192          50.07            50.06         50.07    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median H2D BW vs theoretical.
-05:48:05 INFO     interconnect_validation 
+09:47:45 INFO     interconnect_validation 
 TC-IC-13 Per-direction D2H stats (GPU 1)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          21.85            21.70         21.84    34.4%
-         8          36.79            36.70         36.77    58.3%
-        16          42.67            42.56         42.66    67.6%
-        32          42.86            41.25         42.77    65.5%
-        64          47.93            45.29         47.33    71.9%
-       128          49.11            48.94         49.11    77.7%
-       256          49.64            49.60         49.63    78.7%
-       512          49.86            49.85         49.86    79.1%
+         4          21.81            21.71         21.80    34.5%
+         8          36.96            36.86         36.94    58.5%
+        16          42.27            42.12         42.26    66.9%
+        32          42.13            41.43         42.04    65.8%
+        64          48.02            46.49         47.97    73.8%
+       128          49.20            49.09         49.19    77.9%
+       256          49.62            49.61         49.62    78.7%
+       512          49.85            49.84         49.85    79.1%
       1024          49.98            49.97         49.98    79.3%
-      2048          50.06            50.05         50.06    79.4%
-      4096          50.09            50.09         50.09    79.5%
-      8192          50.06            50.05         50.06    79.4%
+      2048          50.03            50.02         50.03    79.4%
+      4096          50.07            50.07         50.07    79.5%
+      8192          50.07            50.06         50.07    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median D2H BW vs theoretical.
-05:48:05 INFO     interconnect_validation Adaptive sweep (mode=bidir, gpu=2): free=89.19 GB, total=93.09 GB, max_transfer=13700 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
-05:48:10 INFO     interconnect_validation 
+09:47:45 INFO     interconnect_validation Adaptive sweep (mode=bidir, gpu=2): free=89.19 GB, total=93.09 GB, max_transfer=13700 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:47:49 INFO     interconnect_validation 
 TC-IC-13 Multistream parallel bidirectional sweep (GPU 2, 4 streams/dir, adaptive sizes)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          44.57            43.97         44.56    34.9%
-         8          74.26            73.80         74.18    58.6%
-        16          85.40            85.20         85.39    67.6%
-        32          84.15            83.25         84.12    66.1%
-        64          96.69            94.31         96.69    74.9%
-       128          98.40            97.91         98.36    77.7%
-       256          99.36            99.26         99.34    78.8%
-       512          99.78            99.75         99.78    79.2%
-      1024         100.02           100.00        100.02    79.4%
-      2048         100.15           100.12        100.15    79.5%
-      4096         100.23           100.23        100.23    79.5%
-      8192         100.22           100.22        100.22    79.5%
+         4          44.10            43.63         44.09    34.6%
+         8          74.01            73.52         73.94    58.3%
+        16          85.38            85.05         85.32    67.5%
+        32          84.82            83.62         84.64    66.4%
+        64          95.81            86.07         95.24    68.3%
+       128          98.41            98.09         98.41    77.8%
+       256          99.31            99.30         99.31    78.8%
+       512          99.80            99.76         99.79    79.2%
+      1024         100.02            99.99        100.02    79.4%
+      2048         100.13           100.12        100.13    79.5%
+      4096         100.21           100.20        100.21    79.5%
+      8192         100.22           100.21        100.22    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median total bidirectional BW vs theoretical.
-05:48:10 INFO     interconnect_validation 
+09:47:49 INFO     interconnect_validation 
 TC-IC-13 Per-direction H2D stats (GPU 2)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          22.28            21.99         22.28    34.9%
-         8          37.13            36.90         37.09    58.6%
-        16          42.70            42.60         42.69    67.6%
-        32          42.08            41.63         42.06    66.1%
-        64          48.35            47.16         48.34    74.9%
-       128          49.20            48.95         49.18    77.7%
-       256          49.68            49.63         49.67    78.8%
-       512          49.89            49.87         49.89    79.2%
+         4          22.05            21.82         22.05    34.6%
+         8          37.00            36.76         36.97    58.3%
+        16          42.69            42.52         42.66    67.5%
+        32          42.41            41.81         42.32    66.4%
+        64          47.91            43.04         47.62    68.3%
+       128          49.21            49.04         49.20    77.8%
+       256          49.66            49.65         49.66    78.8%
+       512          49.90            49.88         49.90    79.2%
       1024          50.01            50.00         50.01    79.4%
-      2048          50.08            50.06         50.07    79.5%
-      4096          50.12            50.11         50.12    79.5%
+      2048          50.07            50.06         50.06    79.5%
+      4096          50.11            50.10         50.11    79.5%
       8192          50.11            50.11         50.11    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median H2D BW vs theoretical.
-05:48:10 INFO     interconnect_validation 
+09:47:49 INFO     interconnect_validation 
 TC-IC-13 Per-direction D2H stats (GPU 2)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          22.28            21.99         22.28    34.9%
-         8          37.13            36.90         37.09    58.6%
-        16          42.70            42.60         42.69    67.6%
-        32          42.08            41.63         42.06    66.1%
-        64          48.35            47.16         48.34    74.9%
-       128          49.20            48.95         49.18    77.7%
-       256          49.68            49.63         49.67    78.8%
-       512          49.89            49.87         49.89    79.2%
+         4          22.05            21.82         22.05    34.6%
+         8          37.00            36.76         36.97    58.3%
+        16          42.69            42.52         42.66    67.5%
+        32          42.41            41.81         42.32    66.4%
+        64          47.91            43.04         47.62    68.3%
+       128          49.21            49.04         49.20    77.8%
+       256          49.66            49.65         49.66    78.8%
+       512          49.90            49.88         49.90    79.2%
       1024          50.01            50.00         50.01    79.4%
-      2048          50.08            50.06         50.07    79.5%
-      4096          50.12            50.11         50.12    79.5%
+      2048          50.07            50.06         50.06    79.5%
+      4096          50.11            50.10         50.11    79.5%
       8192          50.11            50.11         50.11    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median D2H BW vs theoretical.
-05:48:10 INFO     interconnect_validation Adaptive sweep (mode=bidir, gpu=3): free=75.37 GB, total=79.18 GB, max_transfer=11576 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
-05:48:14 INFO     interconnect_validation 
+09:47:49 INFO     interconnect_validation Adaptive sweep (mode=bidir, gpu=3): free=75.37 GB, total=79.18 GB, max_transfer=11576 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:47:53 INFO     interconnect_validation 
 TC-IC-13 Multistream parallel bidirectional sweep (GPU 3, 4 streams/dir, adaptive sizes)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          43.96            43.38         43.92    34.4%
-         8          73.98            73.50         73.88    58.3%
-        16          85.11            84.75         85.07    67.3%
-        32          86.14            82.67         85.80    65.6%
-        64          95.62            92.64         95.31    73.5%
-       128          98.21            97.86         98.18    77.7%
-       256          99.26            99.17         99.26    78.7%
-       512          99.71            99.71         99.71    79.1%
-      1024          99.97            99.96         99.97    79.3%
-      2048         100.11           100.10        100.11    79.4%
-      4096         100.19           100.18        100.19    79.5%
-      8192         100.14           100.13        100.14    79.5%
+         4          43.67            43.45         43.66    34.5%
+         8          73.34            72.84         73.32    57.8%
+        16          85.47            84.97         85.37    67.4%
+        32          84.60            83.22         84.25    66.0%
+        64          96.66            95.89         96.62    76.1%
+       128          98.32            97.88         98.31    77.7%
+       256          99.22            99.15         99.21    78.7%
+       512          99.73            99.71         99.72    79.1%
+      1024          99.95            99.93         99.95    79.3%
+      2048         100.06           100.05        100.06    79.4%
+      4096         100.14           100.13        100.14    79.5%
+      8192         100.13           100.12        100.13    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median total bidirectional BW vs theoretical.
-05:48:14 INFO     interconnect_validation 
+09:47:53 INFO     interconnect_validation 
 TC-IC-13 Per-direction H2D stats (GPU 3)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          21.98            21.69         21.96    34.4%
-         8          36.99            36.75         36.94    58.3%
-        16          42.56            42.38         42.54    67.3%
-        32          43.07            41.33         42.90    65.6%
-        64          47.81            46.32         47.65    73.5%
-       128          49.10            48.93         49.09    77.7%
-       256          49.63            49.59         49.63    78.7%
+         4          21.84            21.73         21.83    34.5%
+         8          36.67            36.42         36.66    57.8%
+        16          42.73            42.48         42.68    67.4%
+        32          42.30            41.61         42.12    66.0%
+        64          48.33            47.95         48.31    76.1%
+       128          49.16            48.94         49.15    77.7%
+       256          49.61            49.57         49.61    78.7%
        512          49.86            49.85         49.86    79.1%
-      1024          49.99            49.98         49.99    79.3%
-      2048          50.05            50.05         50.05    79.4%
-      4096          50.10            50.09         50.09    79.5%
-      8192          50.07            50.07         50.07    79.5%
+      1024          49.97            49.96         49.97    79.3%
+      2048          50.03            50.03         50.03    79.4%
+      4096          50.07            50.07         50.07    79.5%
+      8192          50.06            50.06         50.06    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median H2D BW vs theoretical.
-05:48:14 INFO     interconnect_validation 
+09:47:53 INFO     interconnect_validation 
 TC-IC-13 Per-direction D2H stats (GPU 3)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          21.98            21.69         21.96    34.4%
-         8          36.99            36.75         36.94    58.3%
-        16          42.56            42.38         42.54    67.3%
-        32          43.07            41.33         42.90    65.6%
-        64          47.81            46.32         47.65    73.5%
-       128          49.10            48.93         49.09    77.7%
-       256          49.63            49.59         49.63    78.7%
+         4          21.84            21.73         21.83    34.5%
+         8          36.67            36.42         36.66    57.8%
+        16          42.73            42.48         42.68    67.4%
+        32          42.30            41.61         42.12    66.0%
+        64          48.33            47.95         48.31    76.1%
+       128          49.16            48.94         49.15    77.7%
+       256          49.61            49.57         49.61    78.7%
        512          49.86            49.85         49.86    79.1%
-      1024          49.99            49.98         49.99    79.3%
-      2048          50.05            50.05         50.05    79.4%
-      4096          50.10            50.09         50.09    79.5%
-      8192          50.07            50.07         50.07    79.5%
+      1024          49.97            49.96         49.97    79.3%
+      2048          50.03            50.03         50.03    79.4%
+      4096          50.07            50.07         50.07    79.5%
+      8192          50.06            50.06         50.06    79.5%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median D2H BW vs theoretical.
-05:48:15 INFO     interconnect_validation Adaptive sweep (mode=h2d, gpu=0): free=49.61 GB, total=79.18 GB, max_transfer=15239 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
-05:48:19 INFO     interconnect_validation 
+09:47:53 INFO     interconnect_validation Adaptive sweep (mode=h2d, gpu=0): free=49.61 GB, total=79.18 GB, max_transfer=15239 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:47:58 INFO     interconnect_validation 
 TC-IC-14 Multistream H2D sweep (GPU 0, 4 streams, adaptive sizes)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          34.43            34.03         34.39    54.0%
-         8          38.59            38.10         38.46    60.5%
-        16          41.16            40.93         41.13    65.0%
-        32          43.02            42.55         42.97    67.5%
-        64          54.87            54.05         54.86    85.8%
-       128          55.56            55.26         55.50    87.7%
-       256          53.94            53.69         53.90    85.2%
-       512          56.01            55.61         56.00    88.3%
-      1024          56.01            55.86         56.00    88.7%
-      2048          56.15            55.95         56.14    88.8%
-      4096          56.10            55.85         56.09    88.7%
-      8192          56.08            55.82         56.04    88.6%
+         4          32.90            32.64         32.90    51.8%
+         8          37.74            37.39         37.64    59.3%
+        16          40.91            40.63         40.90    64.5%
+        32          42.95            41.80         42.93    66.4%
+        64          49.11            47.31         48.71    75.1%
+       128          54.85            54.50         54.84    86.5%
+       256          55.75            55.07         55.63    87.4%
+       512          55.90            55.84         55.89    88.6%
+      1024          56.00            55.72         56.00    88.4%
+      2048          56.05            55.71         56.00    88.4%
+      4096          56.10            55.89         56.07    88.7%
+      8192          55.98            55.87         55.97    88.7%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median H2D BW vs theoretical.
-05:48:19 INFO     interconnect_validation Adaptive sweep (mode=h2d, gpu=1): free=49.61 GB, total=79.18 GB, max_transfer=15239 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
-05:48:23 INFO     interconnect_validation 
+09:47:58 INFO     interconnect_validation Adaptive sweep (mode=h2d, gpu=1): free=49.61 GB, total=79.18 GB, max_transfer=15239 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:48:02 INFO     interconnect_validation 
 TC-IC-14 Multistream H2D sweep (GPU 1, 4 streams, adaptive sizes)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          31.98            31.40         31.86    49.8%
-         8          36.32            35.87         36.30    56.9%
-        16          39.72            39.05         39.60    62.0%
-        32          42.15            40.90         41.81    64.9%
-        64          54.49            48.39         54.11    76.8%
-       128          54.75            54.55         54.73    86.6%
-       256          55.70            55.15         55.69    87.5%
-       512          55.92            55.49         55.87    88.1%
-      1024          55.99            55.28         55.89    87.7%
-      2048          56.12            55.97         56.10    88.8%
-      4096          56.01            55.83         56.00    88.6%
-      8192          55.97            55.88         55.96    88.7%
+         4          34.25            33.65         34.22    53.4%
+         8          37.12            37.00         37.11    58.7%
+        16          41.33            40.88         41.28    64.9%
+        32          42.21            41.86         42.15    66.5%
+        64          54.49            52.61         54.42    83.5%
+       128          54.52            54.37         54.50    86.3%
+       256          55.70            55.62         55.69    88.3%
+       512          55.90            55.26         55.88    87.7%
+      1024          55.99            55.33         55.89    87.8%
+      2048          56.05            55.71         56.02    88.4%
+      4096          56.06            55.77         56.00    88.5%
+      8192          56.07            55.80         56.03    88.6%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median H2D BW vs theoretical.
-05:48:24 INFO     interconnect_validation Adaptive sweep (mode=h2d, gpu=2): free=63.44 GB, total=93.09 GB, max_transfer=19487 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
-05:48:29 INFO     interconnect_validation 
+09:48:02 INFO     interconnect_validation Adaptive sweep (mode=h2d, gpu=2): free=63.44 GB, total=93.09 GB, max_transfer=19487 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:48:06 INFO     interconnect_validation 
 TC-IC-14 Multistream H2D sweep (GPU 2, 4 streams, adaptive sizes)
 ----------------------------------------------------------------------------------------------------
  SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
 ----------------------------------------------------------------------------------------------------
-         4          32.36            32.23         32.35    51.2%
-         8          36.58            36.05         36.49    57.2%
-        16          39.98            39.63         39.91    62.9%
-        32          41.74            41.46         41.73    65.8%
-        64          49.42            48.58         49.39    77.1%
-       128          54.58            53.95         54.58    85.6%
-       256          55.76            55.64         55.74    88.3%
-       512          55.88            55.24         55.88    87.7%
-      1024          55.94            55.91         55.94    88.7%
-      2048          56.01            55.73         56.01    88.5%
-      4096          56.04            55.86         56.04    88.7%
-      8192          56.00            55.74         55.98    88.5%
+         4          31.67            31.46         31.63    49.9%
+         8          36.29            35.87         36.23    56.9%
+        16          40.37            40.17         40.34    63.8%
+        32          41.97            41.72         41.94    66.2%
+        64          54.02            46.81         53.32    74.3%
+       128          54.13            53.98         54.10    85.7%
+       256          55.25            54.81         55.16    87.0%
+       512          55.87            55.12         55.74    87.5%
+      1024          55.95            55.36         55.84    87.9%
+      2048          56.00            55.64         56.00    88.3%
+      4096          56.03            56.02         56.03    88.9%
+      8192          56.03            55.83         56.03    88.6%
 ----------------------------------------------------------------------------------------------------
 Note: efficiency uses median H2D BW vs theoretical.
-05:48:30 INFO     interconnect_validation Adaptive sweep (mode=h2d, gpu=3): free=49.61 GB, total=79.18 GB, max_transfer=15239 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:48:07 INFO     interconnect_validation Adaptive sweep (mode=h2d, gpu=3): free=49.61 GB, total=79.18 GB, max_transfer=15239 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:48:11 INFO     interconnect_validation 
+TC-IC-14 Multistream H2D sweep (GPU 3, 4 streams, adaptive sizes)
+----------------------------------------------------------------------------------------------------
+ SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
+----------------------------------------------------------------------------------------------------
+         4          29.91            29.85         29.91    47.4%
+         8          36.22            35.97         36.19    57.1%
+        16          40.79            40.22         40.66    63.8%
+        32          42.01            41.74         41.96    66.3%
+        64          53.80            49.71         53.58    78.9%
+       128          54.65            54.00         54.64    85.7%
+       256          55.70            54.99         55.54    87.3%
+       512          55.91            55.47         55.91    88.1%
+      1024          55.98            55.44         55.97    88.0%
+      2048          55.99            55.67         55.94    88.4%
+      4096          55.93            55.74         55.92    88.5%
+      8192          56.09            55.83         56.08    88.6%
+----------------------------------------------------------------------------------------------------
+Note: efficiency uses median H2D BW vs theoretical.
+09:48:11 INFO     interconnect_validation Adaptive sweep (mode=d2h, gpu=0): free=49.61 GB, total=79.18 GB, max_transfer=15239 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:48:14 INFO     interconnect_validation 
+TC-IC-15 Multistream D2H sweep (GPU 0, 4 streams, adaptive sizes)
+----------------------------------------------------------------------------------------------------
+ SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
+----------------------------------------------------------------------------------------------------
+         4          39.44            39.09         39.39    62.0%
+         8          46.45            46.38         46.44    73.6%
+        16          50.86            50.80         50.85    80.6%
+        32          52.97            52.89         52.96    83.9%
+        64          54.41            54.31         54.41    86.2%
+       128          54.91            54.89         54.91    87.1%
+       256          55.21            55.20         55.21    87.6%
+       512          55.36            55.35         55.36    87.9%
+      1024          55.43            55.42         55.43    88.0%
+      2048          55.46            55.46         55.46    88.0%
+      4096          55.42            55.42         55.42    88.0%
+      8192          55.50            55.50         55.50    88.1%
+----------------------------------------------------------------------------------------------------
+Note: efficiency uses median D2H BW vs theoretical.
+09:48:15 INFO     interconnect_validation Adaptive sweep (mode=d2h, gpu=1): free=49.61 GB, total=79.18 GB, max_transfer=15239 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:48:20 INFO     interconnect_validation 
+TC-IC-15 Multistream D2H sweep (GPU 1, 4 streams, adaptive sizes)
+----------------------------------------------------------------------------------------------------
+ SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
+----------------------------------------------------------------------------------------------------
+         4          38.29            38.09         38.26    60.5%
+         8          45.31            45.12         45.29    71.6%
+        16          50.18            50.04         50.17    79.4%
+        32          52.59            52.38         52.57    83.1%
+        64          54.15            54.06         54.15    85.8%
+       128          54.84            54.81         54.84    87.0%
+       256          55.15            55.15         55.15    87.5%
+       512          55.34            55.33         55.34    87.8%
+      1024          55.42            55.41         55.42    88.0%
+      2048          55.46            55.46         55.46    88.0%
+      4096          55.43            55.43         55.43    88.0%
+      8192          55.50            55.49         55.50    88.1%
+----------------------------------------------------------------------------------------------------
+Note: efficiency uses median D2H BW vs theoretical.
+09:48:21 INFO     interconnect_validation Adaptive sweep (mode=d2h, gpu=2): free=63.44 GB, total=93.09 GB, max_transfer=19487 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:48:24 INFO     interconnect_validation 
+TC-IC-15 Multistream D2H sweep (GPU 2, 4 streams, adaptive sizes)
+----------------------------------------------------------------------------------------------------
+ SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
+----------------------------------------------------------------------------------------------------
+         4          38.50            37.90         38.49    60.2%
+         8          46.44            46.21         46.41    73.4%
+        16          51.54            51.45         51.54    81.7%
+        32          54.12            53.91         54.12    85.6%
+        64          55.91            55.64         55.90    88.3%
+       128          56.59            56.56         56.58    89.8%
+       256          56.96            56.95         56.96    90.4%
+       512          57.13            57.13         57.13    90.7%
+      1024          57.23            57.23         57.23    90.8%
+      2048          57.28            57.27         57.28    90.9%
+      4096          57.24            57.23         57.24    90.8%
+      8192          57.33            57.33         57.33    91.0%
+----------------------------------------------------------------------------------------------------
+Note: efficiency uses median D2H BW vs theoretical.
+09:48:24 INFO     interconnect_validation Adaptive sweep (mode=d2h, gpu=3): free=49.61 GB, total=79.18 GB, max_transfer=15239 MB, sizes=[4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
+09:48:27 INFO     interconnect_validation 
+TC-IC-15 Multistream D2H sweep (GPU 3, 4 streams, adaptive sizes)
+----------------------------------------------------------------------------------------------------
+ SIZE (MB)    BEST (GB/s)    MEDIAN (GB/s)    P95 (GB/s)     EFF%
+----------------------------------------------------------------------------------------------------
+         4          37.59            37.20         37.50    59.0%
+         8          45.07            44.92         45.07    71.3%
+        16          49.96            49.78         49.95    79.0%
+        32          52.57            52.44         52.56    83.2%
+        64          54.21            54.07         54.20    85.8%
+       128          54.82            54.80         54.82    87.0%
+       256          55.16            55.15         55.16    87.5%
+       512          55.32            55.32         55.32    87.8%
+      1024          55.41            55.41         55.41    88.0%
+      2048          55.46            55.46         55.46    88.0%
+      4096          55.43            55.43         55.43    88.0%
+      8192          55.50            55.50         55.50    88.1%
+----------------------------------------------------------------------------------------------------
+Note: efficiency uses median D2H BW vs theoretical.
+09:48:27 INFO     interconnect_validation 
+TC-IC-16a H2D latency sweep (GPU 0)
+--------------------------------------------------------------------------------------
+ SIZE (KB)    BEST (us)    MEDIAN (us)   P95 (us)   MEAN (us)
+--------------------------------------------------------------------------------------
+         4        11.61          10.82      11.19       11.21
+        16        16.04          12.78      13.61       14.14
+        64        14.34          11.58      12.07       12.67
+       256        44.24          17.57      18.22       26.68
+      1024        49.87          36.28      37.04       41.06
+      4096       341.11         111.28     339.98      264.12
+--------------------------------------------------------------------------------------
+09:48:27 INFO     interconnect_validation 
+TC-IC-16a H2D latency sweep (GPU 1)
+--------------------------------------------------------------------------------------
+ SIZE (KB)    BEST (us)    MEDIAN (us)   P95 (us)   MEAN (us)
+--------------------------------------------------------------------------------------
+         4        11.03          10.33      10.80       10.72
+        16        16.74          12.37      13.14       14.08
+        64        11.52          11.08      11.39       11.33
+       256        32.85          18.04      18.52       23.13
+      1024        63.77          37.02      38.81       46.53
+      4096       341.85         112.00     338.64      264.16
+--------------------------------------------------------------------------------------
+09:48:28 INFO     interconnect_validation 
+TC-IC-16a H2D latency sweep (GPU 2)
+--------------------------------------------------------------------------------------
+ SIZE (KB)    BEST (us)    MEDIAN (us)   P95 (us)   MEAN (us)
+--------------------------------------------------------------------------------------
+         4        17.29          11.88      12.46       13.88
+        16        20.36          13.82      14.81       16.33
+        64        12.65          12.01      12.29       12.32
+       256        18.98          18.20      18.65       18.61
+      1024        61.95          37.60      38.77       46.11
+      4096       341.00         112.86     340.47      264.78
+--------------------------------------------------------------------------------------
+09:48:28 INFO     interconnect_validation 
+TC-IC-16a H2D latency sweep (GPU 3)
+--------------------------------------------------------------------------------------
+ SIZE (KB)    BEST (us)    MEDIAN (us)   P95 (us)   MEAN (us)
+--------------------------------------------------------------------------------------
+         4        30.82          11.87      12.41       18.37
+        16        14.90          13.92      14.80       14.54
+        64        15.67          11.88      12.37       13.31
+       256        33.62          18.04      18.47       23.38
+      1024        56.52          37.11      38.05       43.89
+      4096       342.31         111.71     340.68      264.90
+--------------------------------------------------------------------------------------
+09:48:28 INFO     interconnect_validation 
+TC-IC-16b D2H latency sweep (GPU 0)
+--------------------------------------------------------------------------------------
+ SIZE (KB)    BEST (us)    MEDIAN (us)   P95 (us)   MEAN (us)
+--------------------------------------------------------------------------------------
+         4         9.97           9.38       9.81        9.72
+        16        12.15           9.46       9.85       10.48
+        64        10.92          10.30      10.68       10.63
+       256        28.10          14.24      17.33       19.89
+      1024        48.44          29.67      30.10       36.07
+      4096       109.09          85.27      88.54       94.30
+--------------------------------------------------------------------------------------
+09:48:28 INFO     interconnect_validation 
+TC-IC-16b D2H latency sweep (GPU 1)
+--------------------------------------------------------------------------------------
+ SIZE (KB)    BEST (us)    MEDIAN (us)   P95 (us)   MEAN (us)
+--------------------------------------------------------------------------------------
+         4        15.00          10.61      11.15       12.25
+        16        10.59          10.15      10.44       10.39
+        64        11.48          10.73      11.05       11.09
+       256        52.01          14.78      15.04       27.27
+      1024        47.95          29.29      29.63       35.62
+      4096        97.95          86.36      88.70       91.00
+--------------------------------------------------------------------------------------
+09:48:29 INFO     interconnect_validation 
+TC-IC-16b D2H latency sweep (GPU 2)
+--------------------------------------------------------------------------------------
+ SIZE (KB)    BEST (us)    MEDIAN (us)   P95 (us)   MEAN (us)
+--------------------------------------------------------------------------------------
+         4        46.33           9.37       9.71       21.80
+        16        12.52           9.37       9.70       10.53
+        64        10.54          10.19      10.48       10.40
+       256        49.16          14.74      15.16       26.35
+      1024        59.64          28.83      29.32       39.26
+      4096        97.36          84.10      87.82       89.76
+--------------------------------------------------------------------------------------
+09:48:29 INFO     interconnect_validation 
+TC-IC-16b D2H latency sweep (GPU 3)
+--------------------------------------------------------------------------------------
+ SIZE (KB)    BEST (us)    MEDIAN (us)   P95 (us)   MEAN (us)
+--------------------------------------------------------------------------------------
+         4        13.74           9.48       9.87       11.03
+        16         9.86           9.42       9.77        9.68
+        64        90.23          10.32      10.64       37.06
+       256        23.64          14.79      15.50       17.98
+      1024        33.32          30.13      30.40       31.28
+      4096        95.65          85.92      88.64       90.07
+--------------------------------------------------------------------------------------
+09:48:29 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+09:48:29 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md

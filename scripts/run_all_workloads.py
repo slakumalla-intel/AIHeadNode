@@ -486,24 +486,33 @@ def _parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="List known domain keys and exit.",
     )
+    parser.add_argument(
+        "--repeat",
+        type=int,
+        default=1,
+        help="Run the selected domains this many times sequentially. Per-iteration "
+             "reports are written to artifacts/loop/run_<i>/ and an aggregated "
+             "cross-run summary to artifacts/loop/aggregate.{json,md}.",
+    )
     return parser.parse_args(argv)
 
 
-def main(argv: Optional[Iterable[str]] = None) -> int:
-    args = _parse_args(argv)
+def _run_once(
+    *,
+    root: Path,
+    args: argparse.Namespace,
+    domains: List,
+    env: Dict[str, str],
+    extra_pytest_args: List[str],
+    junit_dir: Path,
+    logs_dir: Path,
+    report_json: Path,
+    report_md: Path,
+) -> Dict[str, object]:
+    """Execute one full pass over the selected domains and write per-run reports.
 
-    if args.list_domains:
-        for key, spec in DOMAINS.items():
-            print(f"{key:18s} {spec.description}")
-        return 0
-
-    root = Path(__file__).resolve().parents[1]
-    dirs = _ensure_artifact_dirs(root)
-
-    domains = _select_domains(args.only)
-    env = _build_env()
-    extra_pytest_args = shlex.split(args.pytest_args) if args.pytest_args else []
-
+    Returns the consolidated report dict for cross-run aggregation.
+    """
     domain_results: List[Dict[str, object]] = []
     for domain in domains:
         print(f"[run] {domain.key}: {domain.description}")
@@ -511,8 +520,8 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
             root=root,
             domain=domain,
             env=env,
-            junit_dir=dirs["junit"],
-            logs_dir=dirs["logs"],
+            junit_dir=junit_dir,
+            logs_dir=logs_dir,
             extra_pytest_args=extra_pytest_args,
         )
         domain_results.append(row)
@@ -542,8 +551,6 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         "defaults_applied": dict(DEFAULT_ENV),
     }
 
-    report_json = root / args.report_json
-    report_md = root / args.report_md
     report_json.parent.mkdir(parents=True, exist_ok=True)
     report_md.parent.mkdir(parents=True, exist_ok=True)
     report_json.write_text(json.dumps(report, indent=2), encoding="utf-8")
@@ -551,8 +558,147 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
 
     print(f"[report] JSON: {report_json.relative_to(root)}")
     print(f"[report] Markdown: {report_md.relative_to(root)}")
+    return report
 
-    return 1 if summary["failed_domains"] > 0 else 0
+
+def main(argv: Optional[Iterable[str]] = None) -> int:
+    args = _parse_args(argv)
+
+    if args.list_domains:
+        for key, spec in DOMAINS.items():
+            print(f"{key:18s} {spec.description}")
+        return 0
+
+    if args.repeat < 1:
+        print(f"[error] --repeat must be >= 1, got {args.repeat}", file=sys.stderr)
+        return 2
+
+    root = Path(__file__).resolve().parents[1]
+    dirs = _ensure_artifact_dirs(root)
+
+    domains = _select_domains(args.only)
+    env = _build_env()
+    extra_pytest_args = shlex.split(args.pytest_args) if args.pytest_args else []
+
+    # Single-run mode: preserve the original artifact layout exactly.
+    if args.repeat == 1:
+        report = _run_once(
+            root=root,
+            args=args,
+            domains=domains,
+            env=env,
+            extra_pytest_args=extra_pytest_args,
+            junit_dir=dirs["junit"],
+            logs_dir=dirs["logs"],
+            report_json=root / args.report_json,
+            report_md=root / args.report_md,
+        )
+        return 1 if report["summary"]["failed_domains"] > 0 else 0
+
+    # Repeat mode: per-iteration artifacts under artifacts/loop/run_<i>/
+    loop_root = root / "artifacts" / "loop"
+    loop_root.mkdir(parents=True, exist_ok=True)
+    iteration_reports: List[Dict[str, object]] = []
+    print(f"[loop] running {args.repeat} iterations across {len(domains)} domain(s)")
+    started_at = _timestamp()
+    for i in range(1, args.repeat + 1):
+        iter_dir = loop_root / f"run_{i:04d}"
+        iter_junit = iter_dir / "junit"
+        iter_logs = iter_dir / "logs"
+        iter_junit.mkdir(parents=True, exist_ok=True)
+        iter_logs.mkdir(parents=True, exist_ok=True)
+        print(f"\n===== loop iteration {i} / {args.repeat} =====")
+        report = _run_once(
+            root=root,
+            args=args,
+            domains=domains,
+            env=env,
+            extra_pytest_args=extra_pytest_args,
+            junit_dir=iter_junit,
+            logs_dir=iter_logs,
+            report_json=iter_dir / "status.json",
+            report_md=iter_dir / "status.md",
+        )
+        iteration_reports.append({
+            "iteration": i,
+            "generated_at_utc": report["generated_at_utc"],
+            "summary": report["summary"],
+            "per_domain": [
+                {
+                    "key": d["key"],
+                    "status": d["status"],
+                    "tests": d["tests"],
+                    "failures": d["failures"],
+                    "errors": d["errors"],
+                    "skipped": d["skipped"],
+                }
+                for d in report["domains"]
+            ],
+        })
+
+    # Aggregate across all iterations
+    domain_stats: Dict[str, Dict[str, int]] = {}
+    for ir in iteration_reports:
+        for d in ir["per_domain"]:
+            key = d["key"]
+            slot = domain_stats.setdefault(key, {
+                "runs": 0, "pass": 0, "fail": 0,
+                "tests_total": 0, "failures_total": 0,
+                "errors_total": 0, "skipped_total": 0,
+            })
+            slot["runs"] += 1
+            if d["status"] == "PASS":
+                slot["pass"] += 1
+            else:
+                slot["fail"] += 1
+            slot["tests_total"] += int(d["tests"])
+            slot["failures_total"] += int(d["failures"])
+            slot["errors_total"] += int(d["errors"])
+            slot["skipped_total"] += int(d["skipped"])
+
+    full_pass_runs = sum(1 for ir in iteration_reports if ir["summary"]["failed_domains"] == 0)
+    aggregate = {
+        "started_at_utc": started_at,
+        "finished_at_utc": _timestamp(),
+        "host": socket.gethostname(),
+        "iterations": args.repeat,
+        "only": args.only or "<all>",
+        "full_pass_runs": full_pass_runs,
+        "any_failure_runs": args.repeat - full_pass_runs,
+        "per_domain": domain_stats,
+        "iteration_reports": iteration_reports,
+    }
+    agg_json = loop_root / "aggregate.json"
+    agg_md = loop_root / "aggregate.md"
+    agg_json.write_text(json.dumps(aggregate, indent=2), encoding="utf-8")
+
+    md_lines = [
+        f"# Aggregated loop report ({args.repeat} iterations)",
+        "",
+        f"- host: `{aggregate['host']}`",
+        f"- started: `{aggregate['started_at_utc']}`",
+        f"- finished: `{aggregate['finished_at_utc']}`",
+        f"- only: `{aggregate['only']}`",
+        f"- full-pass runs: **{full_pass_runs} / {args.repeat}**",
+        f"- runs with any failure: **{aggregate['any_failure_runs']} / {args.repeat}**",
+        "",
+        "## Per-domain reliability",
+        "",
+        "| domain | pass/runs | tests (sum) | failures (sum) | errors (sum) | skipped (sum) |",
+        "|---|---:|---:|---:|---:|---:|",
+    ]
+    for key in sorted(domain_stats):
+        s = domain_stats[key]
+        md_lines.append(
+            f"| {key} | {s['pass']}/{s['runs']} | {s['tests_total']} | "
+            f"{s['failures_total']} | {s['errors_total']} | {s['skipped_total']} |"
+        )
+    agg_md.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
+
+    print(f"\n[loop] aggregate JSON: {agg_json.relative_to(root)}")
+    print(f"[loop] aggregate MD:   {agg_md.relative_to(root)}")
+    print(f"[loop] full-pass runs: {full_pass_runs} / {args.repeat}")
+    return 0 if full_pass_runs == args.repeat else 1
 
 
 if __name__ == "__main__":

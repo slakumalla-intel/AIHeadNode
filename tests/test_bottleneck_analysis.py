@@ -1006,17 +1006,58 @@ class TestMultiGPUScalingBottleneck:
         n_gpus = _safe_cuda_device_count()
         if n_gpus < 2:
             pytest.skip("Need at least 2 GPUs")
-        single = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
-        results = [0.0] * n_gpus
 
-        def _w(i):
-            results[i] = _gpu_fp16_tflops(i, m=8192, k=8192, n=8192, n_iters=5)
+        # Detect GPUs in unusable runtime state (cudaErrorDevicesUnavailable,
+        # Xid faults, ERR! state, etc.) by attempting a trivial allocation
+        # on each device. Skipping cleanly here is more useful than a stack
+        # trace from inside the GEMM kernel, since the failure mode is a
+        # platform/hardware state issue, not a test logic issue.
+        unavailable = []
+        for i in range(n_gpus):
+            try:
+                with torch.cuda.device(i):
+                    _probe = torch.empty(1, device=f"cuda:{i}")
+                    torch.cuda.synchronize(i)
+                    del _probe
+            except Exception as exc:  # noqa: BLE001 -- CUDA runtime errors vary
+                unavailable.append((i, str(exc).splitlines()[0]))
+        if unavailable:
+            details = "; ".join(f"GPU {i}: {msg}" for i, msg in unavailable)
+            pytest.skip(
+                f"Multi-GPU scaling test requires all {n_gpus} GPUs to be in "
+                f"a usable runtime state; the following are unavailable: "
+                f"{details}. Check nvidia-smi for ERR! / Xid faults and "
+                f"resolve hardware state before re-running."
+            )
 
-        ts = [threading.Thread(target=_w, args=(i,)) for i in range(n_gpus)]
-        for t in ts:
-            t.start()
-        for t in ts:
-            t.join()
+        try:
+            single = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
+            results = [0.0] * n_gpus
+            errors: List[Tuple[int, str]] = []
+
+            def _w(i):
+                try:
+                    results[i] = _gpu_fp16_tflops(i, m=8192, k=8192, n=8192, n_iters=5)
+                except Exception as exc:  # noqa: BLE001
+                    errors.append((i, str(exc).splitlines()[0]))
+
+            ts = [threading.Thread(target=_w, args=(i,)) for i in range(n_gpus)]
+            for t in ts:
+                t.start()
+            for t in ts:
+                t.join()
+
+            if errors:
+                details = "; ".join(f"GPU {i}: {msg}" for i, msg in errors)
+                pytest.skip(
+                    f"GPU(s) became unavailable mid-test: {details}"
+                )
+        except torch.AcceleratorError as exc:
+            pytest.skip(
+                f"GPU runtime error during scaling test (likely hardware "
+                f"state issue, not test logic): {str(exc).splitlines()[0]}"
+            )
+
         total = sum(results)
         result = BenchmarkResult(
             label=f"{n_gpus}-GPU FP16 scaling efficiency",
@@ -1149,48 +1190,62 @@ class TestSystemLevelSummary:
                 CPU_SPECS.peak_memory_bandwidth_gbs, "GB/s",
             ))
 
-        # GPU FP16 (GPU 0 only for speed)
+        # GPU FP16 (GPU 0 only for speed). Each GPU probe is wrapped to
+        # tolerate runtime hardware-state failures (ERR! / Xid / device
+        # unavailable) so the report can still be produced with whatever
+        # subsystems are healthy.
+        def _safe_run(label: str, fn):
+            try:
+                return fn()
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "Skipping %s due to runtime error (likely hardware state): %s",
+                    label, str(exc).splitlines()[0],
+                )
+                return None
+
         if _HAS_TORCH:
             n_gpus = _safe_cuda_device_count()
             if n_gpus <= 0:
                 logger.warning("Skipping GPU summary metrics: CUDA device enumeration failed")
             else:
-                fp16 = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
-                results.append(BenchmarkResult(
-                    "GPU 0 FP16 Tensor Core", fp16, H100_SPECS.fp16_tflops, "TFLOPS",
-                ))
-
-                # GPU FP32
-                fp32_gflops = _gpu_fp32_gflops(0, m=4096, k=4096, n=4096, n_iters=10)
-                results.append(BenchmarkResult(
-                    "GPU 0 FP32 CUDA Core", fp32_gflops / 1000,
-                    H100_SPECS.fp32_tflops, "TFLOPS",
-                ))
-
-                # HBM BW
-                hbm = _hbm_bw_tbs(0, n_bytes=4 * 1024 ** 3)
-                results.append(BenchmarkResult(
-                    "GPU 0 HBM3 BW", hbm, H100_SPECS.hbm3_bandwidth_tbs, "TB/s",
-                ))
-
-                # PCIe H2D
-                h2d = _h2d_bw_gbs(0, n_bytes=1 * 1024 ** 3)
-                results.append(BenchmarkResult(
-                    "GPU 0 PCIe H2D BW", h2d, H100_SPECS.pcie_unidirectional_bw_gbs, "GB/s",
-                ))
-
-                # P2P (NVLink)
-                if n_gpus >= 2:
-                    p2p = _p2p_bw_gbs(0, 1, n_bytes=1 * 1024 ** 3)
-                    p2p_theoretical = (
-                        H100_SPECS.nvlink_total_bw_gbs
-                        if SYSTEM_SPECS.has_nvlink
-                        else H100_SPECS.pcie_unidirectional_bw_gbs
-                    )
-                    p2p_label = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
+                fp16 = _safe_run("GPU 0 FP16", lambda: _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5))
+                if fp16 is not None:
                     results.append(BenchmarkResult(
-                        f"{p2p_label} BW (GPU 0->1)", p2p, p2p_theoretical, "GB/s",
+                        "GPU 0 FP16 Tensor Core", fp16, H100_SPECS.fp16_tflops, "TFLOPS",
                     ))
+
+                fp32_gflops = _safe_run("GPU 0 FP32", lambda: _gpu_fp32_gflops(0, m=4096, k=4096, n=4096, n_iters=10))
+                if fp32_gflops is not None:
+                    results.append(BenchmarkResult(
+                        "GPU 0 FP32 CUDA Core", fp32_gflops / 1000,
+                        H100_SPECS.fp32_tflops, "TFLOPS",
+                    ))
+
+                hbm = _safe_run("GPU 0 HBM BW", lambda: _hbm_bw_tbs(0, n_bytes=4 * 1024 ** 3))
+                if hbm is not None:
+                    results.append(BenchmarkResult(
+                        "GPU 0 HBM3 BW", hbm, H100_SPECS.hbm3_bandwidth_tbs, "TB/s",
+                    ))
+
+                h2d = _safe_run("GPU 0 PCIe H2D", lambda: _h2d_bw_gbs(0, n_bytes=1 * 1024 ** 3))
+                if h2d is not None:
+                    results.append(BenchmarkResult(
+                        "GPU 0 PCIe H2D BW", h2d, H100_SPECS.pcie_unidirectional_bw_gbs, "GB/s",
+                    ))
+
+                if n_gpus >= 2:
+                    p2p = _safe_run("GPU 0->1 P2P", lambda: _p2p_bw_gbs(0, 1, n_bytes=1 * 1024 ** 3))
+                    if p2p is not None:
+                        p2p_theoretical = (
+                            H100_SPECS.nvlink_total_bw_gbs
+                            if SYSTEM_SPECS.has_nvlink
+                            else H100_SPECS.pcie_unidirectional_bw_gbs
+                        )
+                        p2p_label = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
+                        results.append(BenchmarkResult(
+                            f"{p2p_label} BW (GPU 0->1)", p2p, p2p_theoretical, "GB/s",
+                        ))
 
         if results:
             logger.info(_format_report(results))

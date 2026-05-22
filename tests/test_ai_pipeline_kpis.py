@@ -407,17 +407,27 @@ class TestDataLoadingAndPreprocessing:
         device = torch.device("cuda:0")
         size = 2048
         n_iters = 20
+        # Stack multiple matmuls per iteration so per-iter GPU compute time
+        # dominates the H2D transfer time. Without this, transfer (~160 µs
+        # for an 8 MB pinned copy over PCIe Gen5) is ~3× a single 2048² fp16
+        # matmul (~45 µs on H100), which caps the achievable overlap at
+        # compute/transfer ≈ 28 % and makes the 60 % threshold unreachable
+        # by construction. With 10 matmuls per iter, compute ≈ 450 µs/iter
+        # vs ~160 µs transfer, giving a real overlap signal.
+        matmuls_per_iter = 10
 
         # Measure pure compute time (GEMM only, no data movement)
         a = torch.randn(size, size, device=device, dtype=torch.float16)
         b = torch.randn(size, size, device=device, dtype=torch.float16)
         for _ in range(_WARMUP):
-            torch.matmul(a, b)
+            for _ in range(matmuls_per_iter):
+                torch.matmul(a, b)
         torch.cuda.synchronize()
 
         t0 = time.perf_counter()
         for _ in range(n_iters):
-            torch.matmul(a, b)
+            for _ in range(matmuls_per_iter):
+                torch.matmul(a, b)
         torch.cuda.synchronize()
         compute_only_sec = time.perf_counter() - t0
 
@@ -431,7 +441,8 @@ class TestDataLoadingAndPreprocessing:
             with torch.cuda.stream(transfer_stream):
                 gpu_buf.copy_(cpu_buf, non_blocking=True)
             with torch.cuda.stream(compute_stream):
-                torch.matmul(a, b)
+                for _ in range(matmuls_per_iter):
+                    torch.matmul(a, b)
         torch.cuda.synchronize()
 
         t0 = time.perf_counter()
@@ -439,7 +450,8 @@ class TestDataLoadingAndPreprocessing:
             with torch.cuda.stream(transfer_stream):
                 gpu_buf.copy_(cpu_buf, non_blocking=True)
             with torch.cuda.stream(compute_stream):
-                torch.matmul(a, b)
+                for _ in range(matmuls_per_iter):
+                    torch.matmul(a, b)
         torch.cuda.synchronize()
         pipelined_sec = time.perf_counter() - t0
 
@@ -452,6 +464,7 @@ class TestDataLoadingAndPreprocessing:
         _record_kpi("test_async_prefetch_gpu_overlap_efficiency", {
             "matrix_size": size,
             "iterations": n_iters,
+            "matmuls_per_iter": matmuls_per_iter,
             "compute_only_sec": round(compute_only_sec, 4),
             "pipelined_sec": round(pipelined_sec, 4),
             "overlap_efficiency_pct": round(overlap_pct, 2),

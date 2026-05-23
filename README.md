@@ -210,7 +210,7 @@ python scripts/run_all_workloads.py --only gpu,interconnect,node_validation
 python scripts/run_all_workloads.py --list-domains
 ```
 
-Output shows all 13 domains: `bottleneck`, `cpu`, `memory`, `gpu`, `interconnect`, `node_validation`, `agentic_ai`, `ai_pipeline`, `system_health`, `system_config`, `vllm_prefill`, `performance_suite`, `mlperf_suite`.
+Output shows all 14 domains: `bottleneck`, `cpu`, `memory`, `gpu`, `interconnect`, `node_validation`, `cpu_headnode`, `agentic_ai`, `ai_pipeline`, `system_health`, `system_config`, `vllm_prefill`, `performance_suite`, `mlperf_suite`.
 
 ### 4. Useful Runner Options
 
@@ -223,6 +223,11 @@ python scripts/run_all_workloads.py --pytest-args "-s --maxfail=1"
 
 # Combine options
 python scripts/run_all_workloads.py --only bottleneck,cpu --pytest-args "-v"
+
+# Stress / reliability loop: run the same selection N times.
+# Each iteration writes artifacts/loop/run_<NNNN>/{status.json,status.md,junit/,logs/}
+# plus a roll-up at artifacts/loop/aggregate.{json,md}.
+python scripts/run_all_workloads.py --only cpu_headnode,node_validation --repeat 50
 ```
 
 ### 5. Direct Pytest (Power Users)
@@ -254,6 +259,7 @@ pytest -vv --log-file=validation.log --log-file-level=INFO 2>&1 | tee validation
 | File | TC range | Focus area | KPI artifact |
 |---|---|---|---|
 | `tests/test_cpu_validation.py` | TC-CPU-01 – TC-CPU-25 | CPU topology, SIMD compute, NUMA, industrial KPIs | `cpu_validation_kpis.jsonl` |
+| `tests/test_cpu_headnode.py` | TC-CPUH-01 – TC-CPUH-10 | CPU↔GPU integration: NUMA pinning, pinned memory, tokenizer/dataloader scaling, IRQ affinity, governor, sync latency, NVMe model-cache I/O, asyncio scaling | `cpu_headnode_kpis.jsonl` |
 | `tests/test_gpu_validation.py` | TC-GPU-01 – TC-GPU-15 | GPU compute (FP16/BF16/INT8/FP32/FP64), memory, power, ECC | `gpu_validation_kpis.jsonl` |
 | `tests/test_memory_validation.py` | TC-MEM-* | System DRAM bandwidth, latency, ECC | `memory_validation_kpis.jsonl` |
 | `tests/test_interconnect_validation.py` | TC-IC-* | PCIe H2D/D2H, NVLink / xGMI, RDMA | `interconnect_kpis.jsonl` |
@@ -632,6 +638,76 @@ python scripts/run_all_workloads.py --only agentic_ai
 
 See [AGENTIC_AI_VALIDATION.md](AGENTIC_AI_VALIDATION.md) for detailed documentation.
 
+### CPU Head-Node Integration (cpu_headnode)
+
+Validates the CPU side of CPU↔GPU integration in real head-node serving
+scenarios (RAG front-ends, vLLM serving, dataloader-fed training). Catches
+the "GPUs at 30% util in production while CPU looks fine" class of bugs.
+
+```bash
+# Run the whole CPU head-node suite
+python scripts/run_all_workloads.py --only cpu_headnode
+
+# Or run a single test directly
+pytest -vv tests/test_cpu_headnode.py::test_numa_local_vs_remote_h2d_bandwidth
+
+# Quick smoke (skip slow ones)
+pytest -m "cpu_headnode and not slow" -vv tests/test_cpu_headnode.py
+```
+
+Tests included (all env-tunable, skip cleanly when prereqs are absent):
+
+| ID | Test | What it asserts |
+|---|---|---|
+| TC-CPUH-01 | `test_numa_local_vs_remote_h2d_bandwidth` | Per-GPU remote/local H2D ratio ≥ 0.60 (catches CPU worker mispinning) |
+| TC-CPUH-02 | `test_pinned_host_memory_allocation_scaling` | Pinned `cudaHostAlloc` succeeds + ≥ 10 GB/s H2D at 256/1024/4096 MB (catches `RLIMIT_MEMLOCK` / hugepage misconfig) |
+| TC-CPUH-03 | `test_cpu_memory_bandwidth_under_gpu_load` | Combined CPU triad + multi-GPU H2D ≥ 70% of sum-of-idle (catches DRAM/PCIe contention) |
+| TC-CPUH-04 | `test_tokenizer_throughput_scaling` | HF tokenizer ≥ 30k tok/s single-thread + ≥ 50% linear scaling (catches the #1 serving bottleneck) |
+| TC-CPUH-05 | `test_dataloader_throughput_scaling` | PyTorch `DataLoader(num_workers>0)` ≥ 1.5x of `num_workers=0` (catches fork/pin_memory regressions) |
+| TC-CPUH-06 | `test_cpu_governor_and_cstate_policy` | Every CPU uses `performance` governor (catches default `powersave` killing TTFT) |
+| TC-CPUH-07 | `test_irq_affinity_distribution` | mlx5 / nvme / nvidia IRQs span ≥ 2 CPUs (catches IRQs pinned to CPU 0) |
+| TC-CPUH-08 | `test_cuda_sync_primitive_latency` | Kernel-launch + sync median ≤ 25 µs per GPU + outliers ≤ 3x (catches degraded PCIe link) |
+| TC-CPUH-09 | `test_nvme_model_cache_read_throughput` | Sequential read from HF cache ≥ 1.5 GB/s (catches cache on slow disk / NFS) |
+| TC-CPUH-10 | `test_python_async_concurrency_scaling` | asyncio p99 at high concurrency ≤ 8x single-task p99 (catches GIL / event-loop ceiling) |
+
+Key environment overrides (all optional — defaults are sized for an H100
+head-node, increase or relax per SKU):
+
+```bash
+# Topology / memory
+export CPU_HEADNODE_NUMA_H2D_MIN_RATIO=0.60       # remote/local H2D floor
+export CPU_HEADNODE_PINNED_SIZES_MB=256,1024,4096 # pinned alloc tiers
+export CPU_HEADNODE_PINNED_MIN_H2D_GBS=10.0
+export CPU_HEADNODE_TRIAD_MIN_COMBINED_RATIO=0.70 # contention floor
+
+# Tokenizer / dataloader
+export CPU_HEADNODE_TOK_MODEL=openai-community/gpt2
+export CPU_HEADNODE_TOK_THREADS=1,4,8
+export CPU_HEADNODE_TOK_MIN_SINGLE_TPS=30000
+export CPU_HEADNODE_TOK_MIN_SCALING_RATIO=0.50
+export CPU_HEADNODE_DL_WORKERS=0,4,8
+export CPU_HEADNODE_DL_MIN_SPEEDUP=1.50
+
+# Sysfs / IRQ policy (set WARN_ONLY=1 to downgrade to log warnings)
+export CPU_HEADNODE_ALLOWED_GOVERNORS=performance
+export CPU_HEADNODE_GOVERNOR_WARN_ONLY=0
+export CPU_HEADNODE_IRQ_DRIVERS=mlx5,nvme,nvidia
+export CPU_HEADNODE_IRQ_MIN_UNIQUE_CPUS=2
+export CPU_HEADNODE_IRQ_WARN_ONLY=0
+
+# Sync / I/O / async
+export CPU_HEADNODE_SYNC_MAX_MEDIAN_US=25.0
+export CPU_HEADNODE_NVME_CACHE_DIR=$HF_HOME          # falls back to HF_HOME / cwd
+export CPU_HEADNODE_NVME_MIN_READ_GBS=1.5
+export CPU_HEADNODE_ASYNC_CONCURRENCY=1,16,64
+export CPU_HEADNODE_ASYNC_MAX_P99_RATIO=8.0
+
+# KPI output path
+export CPU_HEADNODE_KPI_FILE=artifacts/cpu_headnode_kpis.jsonl
+```
+
+KPIs written to `artifacts/cpu_headnode_kpis.jsonl`.
+
 ---
 
 ## Artifacts & Reports
@@ -698,6 +774,7 @@ suitable for import into any analytics pipeline for competitive comparison.
 |---|---|
 | `TESTCASE_EXECUTION_FINAL_REPORT.md` | Unified pytest pass/fail report |
 | `artifacts/cpu_validation_kpis.jsonl` | All CPU KPI measurements |
+| `artifacts/cpu_headnode_kpis.jsonl` | CPU↔GPU integration KPIs (NUMA H2D, pinned memory, tokenizer/dataloader scaling, sync latency, NVMe, asyncio) |
 | `artifacts/gpu_validation_kpis.jsonl` | All GPU KPI measurements |
 | `artifacts/memory_validation_kpis.jsonl` | DRAM bandwidth and latency |
 | `artifacts/interconnect_kpis.jsonl` | PCIe, NVLink / xGMI, RDMA bandwidth |
@@ -756,6 +833,22 @@ export NODE_VALIDATION_KPI_FILE=artifacts/node_validation_kpis.jsonl
 | `AGENTIC_MODEL_ID` | `facebook/opt-125m` | HuggingFace model for agentic tests |
 | `WORKLOADS_ROOT` | `/root/workloads` | Root directory for pre-built binary workloads (nvbandwidth, nccl-tests) |
 | `CPU_KPI_FILE` | `artifacts/cpu_validation_kpis.jsonl` | CPU KPI output path |
+| `CPU_HEADNODE_KPI_FILE` | `artifacts/cpu_headnode_kpis.jsonl` | CPU head-node integration KPI output path |
+| `CPU_HEADNODE_NUMA_H2D_MIN_RATIO` | `0.60` | Per-GPU remote-NUMA / local-NUMA H2D bandwidth floor |
+| `CPU_HEADNODE_PINNED_SIZES_MB` | `256,1024,4096` | Pinned host-memory allocation sizes (MB) to validate |
+| `CPU_HEADNODE_PINNED_MIN_H2D_GBS` | `10.0` | Minimum H2D BW required from pinned buffers (GB/s) |
+| `CPU_HEADNODE_TRIAD_MIN_COMBINED_RATIO` | `0.70` | Min (loaded CPU triad + loaded H2D) / (idle sum) under contention |
+| `CPU_HEADNODE_TOK_MODEL` | `openai-community/gpt2` | HuggingFace tokenizer used for scaling test |
+| `CPU_HEADNODE_TOK_MIN_SINGLE_TPS` | `30000` | Minimum single-thread tokenizer throughput (tokens/sec) |
+| `CPU_HEADNODE_TOK_MIN_SCALING_RATIO` | `0.50` | Minimum tokenizer thread-scaling efficiency vs linear |
+| `CPU_HEADNODE_DL_MIN_SPEEDUP` | `1.50` | Minimum `DataLoader(num_workers>0)` speedup over `num_workers=0` |
+| `CPU_HEADNODE_ALLOWED_GOVERNORS` | `performance` | Comma-separated allowed cpufreq governors |
+| `CPU_HEADNODE_GOVERNOR_WARN_ONLY` | `0` | Set `1` to downgrade governor mismatch to a log warning |
+| `CPU_HEADNODE_IRQ_DRIVERS` | `mlx5,nvme,nvidia` | Drivers whose IRQ affinity is validated |
+| `CPU_HEADNODE_IRQ_MIN_UNIQUE_CPUS` | `2` | Minimum distinct CPUs in IRQ effective affinity per driver |
+| `CPU_HEADNODE_SYNC_MAX_MEDIAN_US` | `25.0` | Max acceptable per-GPU CUDA kernel-launch + sync median latency (µs) |
+| `CPU_HEADNODE_NVME_MIN_READ_GBS` | `1.5` | Minimum sequential read throughput from model-cache directory (GB/s) |
+| `CPU_HEADNODE_ASYNC_MAX_P99_RATIO` | `8.0` | Max ratio of high-concurrency p99 vs single-task p99 (asyncio ceiling) |
 | `GPU_KPI_FILE` | `artifacts/gpu_validation_kpis.jsonl` | GPU KPI output path |
 | `MEMORY_KPI_FILE` | `artifacts/memory_validation_kpis.jsonl` | Memory KPI output path |
 | `INTERCONNECT_KPI_FILE` | `artifacts/interconnect_kpis.jsonl` | Interconnect KPI output path |

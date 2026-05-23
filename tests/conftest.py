@@ -1414,6 +1414,7 @@ def _get_torch():
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "cpu: tests that exercise CPU compute")
+    config.addinivalue_line("markers", "cpu_headnode: CPU<->GPU integration tests for head-node serving scenarios")
     config.addinivalue_line("markers", "memory: tests that exercise the memory subsystem")
     config.addinivalue_line("markers", "gpu: tests that require NVIDIA GPU(s)")
     config.addinivalue_line("markers", "nvlink: tests that require NVLink fabric")

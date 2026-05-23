@@ -162,6 +162,14 @@ DOMAINS: "OrderedDict[str, DomainSpec]" = OrderedDict(
             ),
         ),
         (
+            "cpu_headnode",
+            DomainSpec(
+                key="cpu_headnode",
+                description="CPU<->GPU integration tests for head-node serving scenarios",
+                pytest_args=["tests/test_cpu_headnode.py"],
+            ),
+        ),
+        (
             "agentic_ai",
             DomainSpec(
                 key="agentic_ai",

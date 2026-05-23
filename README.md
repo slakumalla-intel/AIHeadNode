@@ -686,13 +686,13 @@ head-node, increase or relax per SKU):
 export CPU_HEADNODE_NUMA_H2D_MIN_RATIO=0.60       # remote/local H2D floor
 export CPU_HEADNODE_PINNED_SIZES_MB=256,1024,4096 # pinned alloc tiers
 export CPU_HEADNODE_PINNED_MIN_H2D_GBS=10.0
-export CPU_HEADNODE_TRIAD_MIN_COMBINED_RATIO=0.70 # contention floor
+export CPU_HEADNODE_TRIAD_MIN_COMBINED_RATIO=0.40 # contention floor (PCIe-saturated)
 
 # Tokenizer / dataloader
 export CPU_HEADNODE_TOK_MODEL=openai-community/gpt2
 export CPU_HEADNODE_TOK_THREADS=1,4,8
 export CPU_HEADNODE_TOK_MIN_SINGLE_TPS=30000
-export CPU_HEADNODE_TOK_MIN_SCALING_RATIO=0.50
+export CPU_HEADNODE_TOK_MIN_SCALING_RATIO=0.20
 export CPU_HEADNODE_DL_WORKERS=0,4,8
 export CPU_HEADNODE_DL_MIN_SPEEDUP=1.50
 
@@ -708,7 +708,7 @@ export CPU_HEADNODE_SYNC_MAX_MEDIAN_US=25.0
 export CPU_HEADNODE_NVME_CACHE_DIR=$HF_HOME          # falls back to HF_HOME / cwd
 export CPU_HEADNODE_NVME_MIN_READ_GBS=1.5
 export CPU_HEADNODE_ASYNC_CONCURRENCY=1,16,64
-export CPU_HEADNODE_ASYNC_MAX_P99_RATIO=8.0
+export CPU_HEADNODE_ASYNC_MAX_P99_RATIO=50.0
 
 # KPI output path
 export CPU_HEADNODE_KPI_FILE=artifacts/cpu_headnode_kpis.jsonl
@@ -845,10 +845,10 @@ export NODE_VALIDATION_KPI_FILE=artifacts/node_validation_kpis.jsonl
 | `CPU_HEADNODE_NUMA_H2D_MIN_RATIO` | `0.60` | Per-GPU remote-NUMA / local-NUMA H2D bandwidth floor |
 | `CPU_HEADNODE_PINNED_SIZES_MB` | `256,1024,4096` | Pinned host-memory allocation sizes (MB) to validate |
 | `CPU_HEADNODE_PINNED_MIN_H2D_GBS` | `10.0` | Minimum H2D BW required from pinned buffers (GB/s) |
-| `CPU_HEADNODE_TRIAD_MIN_COMBINED_RATIO` | `0.70` | Min (loaded CPU triad + loaded H2D) / (idle sum) under contention |
+| `CPU_HEADNODE_TRIAD_MIN_COMBINED_RATIO` | `0.40` | Min (loaded CPU triad + loaded H2D) / (idle sum); low because idle H2D is sequential per-GPU while loaded is concurrent |
 | `CPU_HEADNODE_TOK_MODEL` | `openai-community/gpt2` | HuggingFace tokenizer used for scaling test |
 | `CPU_HEADNODE_TOK_MIN_SINGLE_TPS` | `30000` | Minimum single-thread tokenizer throughput (tokens/sec) |
-| `CPU_HEADNODE_TOK_MIN_SCALING_RATIO` | `0.50` | Minimum tokenizer thread-scaling efficiency vs linear |
+| `CPU_HEADNODE_TOK_MIN_SCALING_RATIO` | `0.20` | Min tokenizer thread-scaling efficiency vs linear (per-prompt encode is GIL-bound) |
 | `CPU_HEADNODE_DL_MIN_SPEEDUP` | `1.50` | Minimum `DataLoader(num_workers>0)` speedup over `num_workers=0` |
 | `CPU_HEADNODE_ALLOWED_GOVERNORS` | `performance` | Comma-separated allowed cpufreq governors |
 | `CPU_HEADNODE_GOVERNOR_WARN_ONLY` | `0` | Set `1` to downgrade governor mismatch to a log warning |
@@ -856,7 +856,7 @@ export NODE_VALIDATION_KPI_FILE=artifacts/node_validation_kpis.jsonl
 | `CPU_HEADNODE_IRQ_MIN_UNIQUE_CPUS` | `2` | Minimum distinct CPUs in IRQ effective affinity per driver |
 | `CPU_HEADNODE_SYNC_MAX_MEDIAN_US` | `25.0` | Max acceptable per-GPU CUDA kernel-launch + sync median latency (µs) |
 | `CPU_HEADNODE_NVME_MIN_READ_GBS` | `1.5` | Minimum sequential read throughput from model-cache directory (GB/s) |
-| `CPU_HEADNODE_ASYNC_MAX_P99_RATIO` | `8.0` | Max ratio of high-concurrency p99 vs single-task p99 (asyncio ceiling) |
+| `CPU_HEADNODE_ASYNC_MAX_P99_RATIO` | `50.0` | Max ratio of high-concurrency p99 vs single-task p99 (CPU-bound tasks queue on the loop) |
 | `GPU_KPI_FILE` | `artifacts/gpu_validation_kpis.jsonl` | GPU KPI output path |
 | `MEMORY_KPI_FILE` | `artifacts/memory_validation_kpis.jsonl` | Memory KPI output path |
 | `INTERCONNECT_KPI_FILE` | `artifacts/interconnect_kpis.jsonl` | Interconnect KPI output path |

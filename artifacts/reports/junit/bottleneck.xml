@@ -1,11 +1,235 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="25" time="40.879" timestamp="2026-05-21T14:43:08.251316+00:00" hostname="sc00901168s0075"><testcase classname="tests.test_bottleneck_analysis.TestCPUComputeBottleneck" name="test_cpu_fp32_efficiency_report" time="16.536"><failure message="AssertionError: CPU FP32 (1 processes × 32 threads): efficiency 3.78% is below threshold 5.00% (measured=1.030, theoretical=27.238)&#10;assert 0.03779821688081017 &gt;= 0.05">tests/test_bottleneck_analysis.py:486: in test_cpu_fp32_efficiency_report
-    assert_efficiency(
-tests/conftest.py:1720: in assert_efficiency
-    assert efficiency &gt;= threshold, (
-E   AssertionError: CPU FP32 (1 processes × 32 threads): efficiency 3.78% is below threshold 5.00% (measured=1.030, theoretical=27.238)
-E   assert 0.03779821688081017 &gt;= 0.05</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestCPUMemoryBandwidthBottleneck" name="test_cpu_dram_bandwidth_vs_hbm" time="0.203" /><testcase classname="tests.test_bottleneck_analysis.TestCPUMemoryBandwidthBottleneck" name="test_cpu_dram_bandwidth_measured" time="3.439" /><testcase classname="tests.test_bottleneck_analysis.TestGPUComputeBottleneck" name="test_per_gpu_fp16_efficiency" time="1.084"><failure message="AssertionError: GPU 2 FP16 Tensor Core: efficiency 58.01% is below threshold 60.00% (measured=438.556, theoretical=756.000)&#10;assert 0.5801000358561131 &gt;= 0.6">tests/test_bottleneck_analysis.py:588: in test_per_gpu_fp16_efficiency
-    assert_efficiency(
-tests/conftest.py:1720: in assert_efficiency
-    assert efficiency &gt;= threshold, (
-E   AssertionError: GPU 2 FP16 Tensor Core: efficiency 58.01% is below threshold 60.00% (measured=438.556, theoretical=756.000)
-E   assert 0.5801000358561131 &gt;= 0.6</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestGPUComputeBottleneck" name="test_aggregate_4gpu_fp16_tflops" time="10.667" /><testcase classname="tests.test_bottleneck_analysis.TestHBMBandwidthBottleneck" name="test_hbm_bandwidth_per_gpu_vs_theoretical" time="0.259" /><testcase classname="tests.test_bottleneck_analysis.TestHBMBandwidthBottleneck" name="test_hbm_is_limiting_for_memory_bound_kernels" time="0.249" /><testcase classname="tests.test_bottleneck_analysis.TestPCIeBottleneck" name="test_pcie_h2d_bandwidth_vs_theoretical" time="1.743" /><testcase classname="tests.test_bottleneck_analysis.TestPCIeBottleneck" name="test_pcie_bottleneck_ratio_vs_hbm" time="0.215" /><testcase classname="tests.test_bottleneck_analysis.TestNVLinkBottleneck" name="test_nvlink_bw_vs_theoretical" time="0.253" /><testcase classname="tests.test_bottleneck_analysis.TestNVLinkBottleneck" name="test_nvlink_faster_than_pcie_bottleneck" time="0.192" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_fp16" time="0.299" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_memory_bound_regime" time="0.207" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_compute_bound_regime" time="0.207" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_per_precision[FP16-756.0-FP16 Tensor Core]" time="0.200" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_per_precision[BF16-989.0-BF16 Tensor Core]" time="0.250" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_per_precision[FP32-67.0-FP32 CUDA Core]" time="0.200" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_per_precision[FP64-34.0-FP64 Tensor Core]" time="0.209" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_per_precision[INT8-3958.0-INT8 Tensor Core]" time="0.198" /><testcase classname="tests.test_bottleneck_analysis.TestCPUGPUPipelineBottleneck" name="test_data_preprocessing_not_bottleneck" time="0.761" /><testcase classname="tests.test_bottleneck_analysis.TestMultiGPUScalingBottleneck" name="test_scaling_efficiency_2_vs_1_gpu" time="0.230" /><testcase classname="tests.test_bottleneck_analysis.TestMultiGPUScalingBottleneck" name="test_scaling_efficiency_4_vs_1_gpu" time="0.230" /><testcase classname="tests.test_bottleneck_analysis.TestSystemLevelSummary" name="test_theoretical_platform_summary" time="0.251" /><testcase classname="tests.test_bottleneck_analysis.TestSystemLevelSummary" name="test_known_bottlenecks_summary" time="0.199" /><testcase classname="tests.test_bottleneck_analysis.TestSystemLevelSummary" name="test_end_to_end_bottleneck_report" time="0.596" /></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="10" skipped="0" tests="25" time="36.518" timestamp="2026-05-22T16:58:55.634720+00:00" hostname="sc00901168s0075"><testcase classname="tests.test_bottleneck_analysis.TestCPUComputeBottleneck" name="test_cpu_fp32_efficiency_report" time="22.963" /><testcase classname="tests.test_bottleneck_analysis.TestCPUMemoryBandwidthBottleneck" name="test_cpu_dram_bandwidth_vs_hbm" time="0.281" /><testcase classname="tests.test_bottleneck_analysis.TestCPUMemoryBandwidthBottleneck" name="test_cpu_dram_bandwidth_measured" time="3.724" /><testcase classname="tests.test_bottleneck_analysis.TestGPUComputeBottleneck" name="test_per_gpu_fp16_efficiency" time="0.440"><failure message="torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable&#10;Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_bottleneck_analysis.py:586: in test_per_gpu_fp16_efficiency
+    tflops = _gpu_fp16_tflops(i, m=8192, k=8192, n=8192, n_iters=10)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_bottleneck_analysis.py:221: in _gpu_fp16_tflops
+    a = torch.randn(m, k, device=device, dtype=torch.float16)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+E   Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestGPUComputeBottleneck" name="test_aggregate_4gpu_fp16_tflops" time="1.883"><failure message="torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at &quot;/pytorch/aten/src/ATen/cuda/CUDAContext.cpp&quot;:51, please report a bug to PyTorch. device=1, num_gpus=1&#10;&#10;CUDA call was originally invoked at:&#10;&#10;  File &quot;&lt;string&gt;&quot;, line 1, in &lt;module&gt;&#10;  File &quot;/usr/lib64/python3.12/multiprocessing/spawn.py&quot;, line 122, in spawn_main&#10;    exitcode = _main(fd, parent_sentinel)&#10;  File &quot;/usr/lib64/python3.12/multiprocessing/spawn.py&quot;, line 135, in _main&#10;    return self._bootstrap(parent_sentinel)&#10;  File &quot;/usr/lib64/python3.12/multiprocessing/process.py&quot;, line 314, in _bootstrap&#10;    self.run()&#10;  File &quot;/usr/lib64/python3.12/multiprocessing/process.py&quot;, line 108, in run&#10;    self._target(*self._args, **self._kwargs)&#10;  File &quot;/usr/lib64/python3.12/concurrent/futures/process.py&quot;, line 252, in _process_worker&#10;    call_item = call_queue.get(block=True)&#10;  File &quot;/usr/lib64/python3.12/multiprocessing/queues.py&quot;, line 122, in get&#10;    return _ForkingPickler.loads(res)&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/test_bottleneck_analysis.py&quot;, line 36, in &lt;module&gt;&#10;    from tests.theoretical_specs import (&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py&quot;, line 24, in &lt;module&gt;&#10;    import torch&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py&quot;, line 2167, in &lt;module&gt;&#10;    _C._initExtension(_manager_path())&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 424, in &lt;module&gt;&#10;    _lazy_call(_check_capability)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 421, in _lazy_call&#10;    _queued_calls.append((callable, traceback.format_stack()))">concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 489, in _lazy_init
+    queued_call()
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 366, in _check_capability
+    major, minor = get_device_capability(d)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 669, in get_device_capability
+    prop = get_device_properties(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 690, in get_device_properties
+    return _get_device_properties(device)  # type: ignore[name-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=1, num_gpus=1
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/lib64/python3.12/concurrent/futures/process.py", line 264, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.12/concurrent/futures/process.py", line 213, in _process_chunk
+    return [fn(*args) for args in chunk]
+            ^^^^^^^^^
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_bottleneck_analysis.py", line 388, in _gpu_fp16_tflops_worker
+    return _gpu_fp16_tflops(device_idx, m=m, k=k, n=n, n_iters=n_iters)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_bottleneck_analysis.py", line 221, in _gpu_fp16_tflops
+    a = torch.randn(m, k, device=device, dtype=torch.float16)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 495, in _lazy_init
+    raise DeferredCudaCallError(msg) from e
+torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=1, num_gpus=1
+
+CUDA call was originally invoked at:
+
+  File "&lt;string&gt;", line 1, in &lt;module&gt;
+  File "/usr/lib64/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+  File "/usr/lib64/python3.12/multiprocessing/spawn.py", line 135, in _main
+    return self._bootstrap(parent_sentinel)
+  File "/usr/lib64/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib64/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/usr/lib64/python3.12/concurrent/futures/process.py", line 252, in _process_worker
+    call_item = call_queue.get(block=True)
+  File "/usr/lib64/python3.12/multiprocessing/queues.py", line 122, in get
+    return _ForkingPickler.loads(res)
+  File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+  File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+  File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+  File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+  File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/test_bottleneck_analysis.py", line 36, in &lt;module&gt;
+    from tests.theoretical_specs import (
+  File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+  File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+  File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+  File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+  File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+  File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in &lt;module&gt;
+    import torch
+  File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+  File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+  File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+  File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+  File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in &lt;module&gt;
+    _C._initExtension(_manager_path())
+  File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+  File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+  File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+  File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+  File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in &lt;module&gt;
+    _lazy_call(_check_capability)
+  File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+    _queued_calls.append((callable, traceback.format_stack()))
+
+"""
+
+The above exception was the direct cause of the following exception:
+tests/test_bottleneck_analysis.py:630: in test_aggregate_4gpu_fp16_tflops
+    trial_results = list(executor.map(_gpu_fp16_tflops_worker, worker_args))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.12/concurrent/futures/process.py:636: in _chain_from_iterable_of_lists
+    for element in iterable:
+                   ^^^^^^^^
+/usr/lib64/python3.12/concurrent/futures/_base.py:619: in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.12/concurrent/futures/_base.py:317: in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+E   torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=1, num_gpus=1
+E   
+E   CUDA call was originally invoked at:
+E   
+E     File "&lt;string&gt;", line 1, in &lt;module&gt;
+E     File "/usr/lib64/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+E       exitcode = _main(fd, parent_sentinel)
+E     File "/usr/lib64/python3.12/multiprocessing/spawn.py", line 135, in _main
+E       return self._bootstrap(parent_sentinel)
+E     File "/usr/lib64/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+E       self.run()
+E     File "/usr/lib64/python3.12/multiprocessing/process.py", line 108, in run
+E       self._target(*self._args, **self._kwargs)
+E     File "/usr/lib64/python3.12/concurrent/futures/process.py", line 252, in _process_worker
+E       call_item = call_queue.get(block=True)
+E     File "/usr/lib64/python3.12/multiprocessing/queues.py", line 122, in get
+E       return _ForkingPickler.loads(res)
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/test_bottleneck_analysis.py", line 36, in &lt;module&gt;
+E       from tests.theoretical_specs import (
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in &lt;module&gt;
+E       import torch
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in &lt;module&gt;
+E       _C._initExtension(_manager_path())
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in &lt;module&gt;
+E       _lazy_call(_check_capability)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+E       _queued_calls.append((callable, traceback.format_stack()))</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestHBMBandwidthBottleneck" name="test_hbm_bandwidth_per_gpu_vs_theoretical" time="0.210"><failure message="torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable&#10;Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_bottleneck_analysis.py:678: in test_hbm_bandwidth_per_gpu_vs_theoretical
+    bw = _hbm_bw_tbs(i, n_bytes=4 * 1024 ** 3)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_bottleneck_analysis.py:251: in _hbm_bw_tbs
+    src = torch.ones(n, device=device, dtype=torch.float16)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+E   Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestHBMBandwidthBottleneck" name="test_hbm_is_limiting_for_memory_bound_kernels" time="0.212"><failure message="torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable&#10;Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_bottleneck_analysis.py:700: in test_hbm_is_limiting_for_memory_bound_kernels
+    small_tflops = _gpu_fp16_tflops(0, m=64, k=64, n=64, n_iters=1000)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_bottleneck_analysis.py:221: in _gpu_fp16_tflops
+    a = torch.randn(m, k, device=device, dtype=torch.float16)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+E   Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestPCIeBottleneck" name="test_pcie_h2d_bandwidth_vs_theoretical" time="0.624"><failure message="torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable&#10;Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_bottleneck_analysis.py:726: in test_pcie_h2d_bandwidth_vs_theoretical
+    bw = _h2d_bw_gbs(i, n_bytes=1 * 1024 ** 3)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_bottleneck_analysis.py:264: in _h2d_bw_gbs
+    host.to(device); torch.cuda.synchronize(device)
+    ^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+E   Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestPCIeBottleneck" name="test_pcie_bottleneck_ratio_vs_hbm" time="0.206" /><testcase classname="tests.test_bottleneck_analysis.TestNVLinkBottleneck" name="test_nvlink_bw_vs_theoretical" time="0.205"><failure message="torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable&#10;Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_bottleneck_analysis.py:792: in test_nvlink_bw_vs_theoretical
+    bw = _p2p_bw_gbs(0, 1, n_bytes=1 * 1024 ** 3)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_bottleneck_analysis.py:360: in _p2p_bw_gbs
+    t = torch.ones(n_bytes // 4, device=s, dtype=torch.float32)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+E   Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestNVLinkBottleneck" name="test_nvlink_faster_than_pcie_bottleneck" time="0.208" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_fp16" time="0.314" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_memory_bound_regime" time="0.204" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_compute_bound_regime" time="0.201" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_per_precision[FP16-756.0-FP16 Tensor Core]" time="0.208" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_per_precision[BF16-989.0-BF16 Tensor Core]" time="0.205" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_per_precision[FP32-67.0-FP32 CUDA Core]" time="0.264" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_per_precision[FP64-34.0-FP64 Tensor Core]" time="0.207" /><testcase classname="tests.test_bottleneck_analysis.TestRooflineAnalysis" name="test_roofline_knee_per_precision[INT8-3958.0-INT8 Tensor Core]" time="0.202" /><testcase classname="tests.test_bottleneck_analysis.TestCPUGPUPipelineBottleneck" name="test_data_preprocessing_not_bottleneck" time="0.307"><failure message="torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable&#10;Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_bottleneck_analysis.py:898: in test_data_preprocessing_not_bottleneck
+    a = torch.randn(gpu_gemm_side, gpu_gemm_side, device=device, dtype=torch.float16)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+E   Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestMultiGPUScalingBottleneck" name="test_scaling_efficiency_2_vs_1_gpu" time="0.268"><failure message="torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable&#10;Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_bottleneck_analysis.py:977: in test_scaling_efficiency_2_vs_1_gpu
+    single = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_bottleneck_analysis.py:221: in _gpu_fp16_tflops
+    a = torch.randn(m, k, device=device, dtype=torch.float16)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+E   Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestMultiGPUScalingBottleneck" name="test_scaling_efficiency_4_vs_1_gpu" time="0.204"><failure message="torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable&#10;Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_bottleneck_analysis.py:1009: in test_scaling_efficiency_4_vs_1_gpu
+    single = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_bottleneck_analysis.py:221: in _gpu_fp16_tflops
+    a = torch.randn(m, k, device=device, dtype=torch.float16)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+E   Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase><testcase classname="tests.test_bottleneck_analysis.TestSystemLevelSummary" name="test_theoretical_platform_summary" time="0.200" /><testcase classname="tests.test_bottleneck_analysis.TestSystemLevelSummary" name="test_known_bottlenecks_summary" time="0.200" /><testcase classname="tests.test_bottleneck_analysis.TestSystemLevelSummary" name="test_end_to_end_bottleneck_report" time="0.438"><failure message="torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable&#10;Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.&#10;CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.&#10;For debugging consider passing CUDA_LAUNCH_BLOCKING=1&#10;Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.">tests/test_bottleneck_analysis.py:1158: in test_end_to_end_bottleneck_report
+    fp16 = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=5)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_bottleneck_analysis.py:221: in _gpu_fp16_tflops
+    a = torch.randn(m, k, device=device, dtype=torch.float16)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+E   Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+E   CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+E   For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+E   Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.</failure></testcase></testsuite></testsuites>

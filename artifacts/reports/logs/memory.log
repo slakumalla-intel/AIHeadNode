@@ -1,9 +1,9 @@
-14:48:22 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
-14:48:34 INFO     ai_headnode_tests Aggregate STREAM Triad BW                           measured=   546.378  theoretical=   307.200  efficiency=177.86%  threshold=    75%
-14:48:34 INFO     memory_validation MEM KPI [TC-MEM-04_aggregate_stream_triad]: {"bandwidth_gbs": 546.38, "theoretical_gbs": 307.2}
-14:48:35 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws32kb]: {"latency_ns": 79.29, "max_latency_ns": 120.0, "ws_kb": 32}
-14:48:35 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws512kb]: {"latency_ns": 78.86, "max_latency_ns": 120.0, "ws_kb": 512}
-14:48:35 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws16384kb]: {"latency_ns": 135.64, "max_latency_ns": 200.0, "ws_kb": 16384}
-14:48:37 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws524288kb]: {"latency_ns": 216.16, "max_latency_ns": 300.0, "ws_kb": 524288}
-14:48:48 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
-14:48:48 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md
+03:52:24 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
+03:52:36 INFO     ai_headnode_tests Aggregate STREAM Triad BW                           measured=   812.172  theoretical=   307.200  efficiency=264.38%  threshold=    75%
+03:52:36 INFO     memory_validation MEM KPI [TC-MEM-04_aggregate_stream_triad]: {"bandwidth_gbs": 812.17, "theoretical_gbs": 307.2}
+03:52:37 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws32kb]: {"latency_ns": 83.95, "max_latency_ns": 120.0, "ws_kb": 32}
+03:52:37 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws512kb]: {"latency_ns": 79.2, "max_latency_ns": 120.0, "ws_kb": 512}
+03:52:37 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws16384kb]: {"latency_ns": 132.46, "max_latency_ns": 200.0, "ws_kb": 16384}
+03:52:39 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws524288kb]: {"latency_ns": 227.36, "max_latency_ns": 300.0, "ws_kb": 524288}
+03:52:51 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+03:52:51 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md

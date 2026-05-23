@@ -1,98 +1,99 @@
-15:17:42 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
-15:17:48 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-01a: Single tool dispatch]: {"avg_dispatch_latency_ms": 0.0010615, "iterations": 10, "max_dispatch_latency_ms": 0.003475, "min_dispatch_latency_ms": 0.000475}
-15:17:48 INFO     tests.test_agentic_ai_validation 
+04:22:06 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
+04:22:10 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-01a: Single tool dispatch]: {"avg_dispatch_latency_ms": 0.0011401999999999999, "iterations": 10, "max_dispatch_latency_ms": 0.003743, "min_dispatch_latency_ms": 0.000525}
+04:22:10 INFO     tests.test_agentic_ai_validation 
 ================================================================================
   TOOL DISPATCH LATENCY
 ================================================================================
   Avg latency:              0.001 ms
-  Min latency:              0.000 ms
-  Max latency:              0.003 ms
+  Min latency:              0.001 ms
+  Max latency:              0.004 ms
 ================================================================================
 
-15:17:48 INFO     tests.test_agentic_ai_validation   1 tools: 0.001 ms
-15:17:48 INFO     tests.test_agentic_ai_validation   4 tools: 0.002 ms
-15:17:48 INFO     tests.test_agentic_ai_validation   8 tools: 0.004 ms
-15:17:48 INFO     tests.test_agentic_ai_validation   16 tools: 0.008 ms
-15:17:48 INFO     tests.test_agentic_ai_validation   64 tokens: 1.52 ms
-15:17:48 INFO     tests.test_agentic_ai_validation   128 tokens: 2.69 ms
-15:17:48 INFO     tests.test_agentic_ai_validation   256 tokens: 5.39 ms
-15:17:48 INFO     tests.test_agentic_ai_validation   512 tokens: 10.77 ms
-15:17:48 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-02: Reasoning phase latency]: {"device": "GPU", "reasoning_latencies_by_tokens": {"64": 1.517592600066564, "128": 2.6918424999166746, "256": 5.387836199224694, "512": 10.768477201418136}}
-15:17:48 INFO     tests.test_agentic_ai_validation 
+04:22:10 INFO     tests.test_agentic_ai_validation   1 tools: 0.262 ms
+04:22:10 INFO     tests.test_agentic_ai_validation   4 tools: 0.677 ms
+04:22:10 INFO     tests.test_agentic_ai_validation   8 tools: 0.321 ms
+04:22:10 INFO     tests.test_agentic_ai_validation   16 tools: 0.415 ms
+04:22:10 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-01b: Parallel tool dispatch scalability]: {"all_results": {"1": 0.26219669999999995, "4": 0.6772744, "8": 0.3209238, "16": 0.4152177}, "latency_16_tools_ms": 0.4152177, "latency_1_tool_ms": 0.26219669999999995, "scaling_ratio": 1.5836114642175134}
+04:22:11 INFO     tests.test_agentic_ai_validation   64 tokens: 1.55 ms
+04:22:11 INFO     tests.test_agentic_ai_validation   128 tokens: 3.05 ms
+04:22:11 INFO     tests.test_agentic_ai_validation   256 tokens: 6.08 ms
+04:22:11 INFO     tests.test_agentic_ai_validation   512 tokens: 12.12 ms
+04:22:11 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-02: Reasoning phase latency]: {"device": "GPU", "reasoning_latencies_by_tokens": {"64": 1.5517528001510072, "128": 3.0459589997917647, "256": 6.077138500404544, "512": 12.118420299884747}}
+04:22:11 INFO     tests.test_agentic_ai_validation 
 ================================================================================
   REASONING PHASE LATENCY
 ================================================================================
 
-15:17:48 INFO     tests.test_agentic_ai_validation   64 tokens: 1.52 ms
-15:17:48 INFO     tests.test_agentic_ai_validation   128 tokens: 2.69 ms
-15:17:48 INFO     tests.test_agentic_ai_validation   256 tokens: 5.39 ms
-15:17:48 INFO     tests.test_agentic_ai_validation   512 tokens: 10.77 ms
-15:17:48 INFO     tests.test_agentic_ai_validation ================================================================================
+04:22:11 INFO     tests.test_agentic_ai_validation   64 tokens: 1.55 ms
+04:22:11 INFO     tests.test_agentic_ai_validation   128 tokens: 3.05 ms
+04:22:11 INFO     tests.test_agentic_ai_validation   256 tokens: 6.08 ms
+04:22:11 INFO     tests.test_agentic_ai_validation   512 tokens: 12.12 ms
+04:22:11 INFO     tests.test_agentic_ai_validation ================================================================================
 
-15:17:49 INFO     tests.test_agentic_ai_validation 
+04:22:11 INFO     tests.test_agentic_ai_validation 
 ================================================================================
   CPU-GPU SYNC OVERHEAD
 ================================================================================
-  Avg latency:              35.50 µs
-  Min latency:              34.69 µs
-  Max latency:              37.01 µs
+  Avg latency:              36.22 µs
+  Min latency:              34.20 µs
+  Max latency:              40.81 µs
 ================================================================================
 
-15:17:49 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-03: CPU-GPU sync overhead]: {"avg_sync_latency_us": 35.5004, "iterations": 10, "max_sync_latency_us": 37.012, "min_sync_latency_us": 34.686}
-15:17:55 INFO     tests.test_agentic_ai_validation 
+04:22:11 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-03: CPU-GPU sync overhead]: {"avg_sync_latency_us": 36.2227, "iterations": 10, "max_sync_latency_us": 40.81, "min_sync_latency_us": 34.203}
+04:22:18 INFO     tests.test_agentic_ai_validation 
 ================================================================================
   TOOL EXECUTION PARALLELIZATION
 ================================================================================
-  Sequential time:          4.02 s
-  Parallel time:            1.79 s
-  Speedup:                  2.24x
+  Sequential time:          4.03 s
+  Parallel time:            1.90 s
+  Speedup:                  2.12x
   Number of tools:          8
 ================================================================================
 
-15:17:55 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-04: Tool execution parallelization]: {"iterations": 10, "num_tools": 8, "parallel_time_s": 1.7915879329993913, "sequential_time_s": 4.021492774001672, "speedup": 2.2446527462758024}
-15:17:56 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-05: Multi-turn conversation]: {"avg_reasoning_latency_ms": 6.313637400307925, "avg_tool_latency_ms": 200.0619044, "num_turns": 5, "per_turn_latencies_ms": [206.64055599991116, 206.3411429990083, 206.32634700086783, 206.3084750006965, 206.2987860008434], "total_session_latency_ms": 1031.9153070013272}
-15:17:56 INFO     tests.test_agentic_ai_validation 
+04:22:18 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-04: Tool execution parallelization]: {"iterations": 10, "num_tools": 8, "parallel_time_s": 1.8984638060010184, "sequential_time_s": 4.032955809001578, "speedup": 2.1243258872007247}
+04:22:19 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-05: Multi-turn conversation]: {"avg_reasoning_latency_ms": 6.227728999874671, "avg_tool_latency_ms": 201.4346392, "num_turns": 5, "per_turn_latencies_ms": [213.50266099943838, 206.21960400058015, 206.23166499899526, 206.20729300026142, 206.1860930007242], "total_session_latency_ms": 1038.3473159999994}
+04:22:19 INFO     tests.test_agentic_ai_validation 
 ================================================================================
   MULTI-TURN CONVERSATION KPIs
 ================================================================================
-  Total session latency:    1031.92 ms
-  Avg reasoning latency:    6.31 ms
-  Avg tool latency:         200.06 ms
+  Total session latency:    1038.35 ms
+  Avg reasoning latency:    6.23 ms
+  Avg tool latency:         201.43 ms
   Number of turns:          5
 
-15:17:56 INFO     tests.test_agentic_ai_validation     Turn 1 latency:        206.64 ms
-15:17:56 INFO     tests.test_agentic_ai_validation     Turn 2 latency:        206.34 ms
-15:17:56 INFO     tests.test_agentic_ai_validation     Turn 3 latency:        206.33 ms
-15:17:56 INFO     tests.test_agentic_ai_validation     Turn 4 latency:        206.31 ms
-15:17:56 INFO     tests.test_agentic_ai_validation     Turn 5 latency:        206.30 ms
-15:17:56 INFO     tests.test_agentic_ai_validation ================================================================================
+04:22:19 INFO     tests.test_agentic_ai_validation     Turn 1 latency:        213.50 ms
+04:22:19 INFO     tests.test_agentic_ai_validation     Turn 2 latency:        206.22 ms
+04:22:19 INFO     tests.test_agentic_ai_validation     Turn 3 latency:        206.23 ms
+04:22:19 INFO     tests.test_agentic_ai_validation     Turn 4 latency:        206.21 ms
+04:22:19 INFO     tests.test_agentic_ai_validation     Turn 5 latency:        206.19 ms
+04:22:19 INFO     tests.test_agentic_ai_validation ================================================================================
 
-15:17:57 INFO     tests.test_agentic_ai_validation   1 tools: 0.00 MB delta
-15:17:58 INFO     tests.test_agentic_ai_validation   4 tools: 0.00 MB delta
-15:18:00 INFO     tests.test_agentic_ai_validation   8 tools: 0.00 MB delta
-15:18:00 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-06: CPU memory during tool execution]: {"memory_baseline_mb": 942.16796875, "memory_deltas_by_tool_count": {"1": 0.0, "4": 0.0, "8": 0.0}}
-15:18:00 INFO     tests.test_agentic_ai_validation 
+04:22:20 INFO     tests.test_agentic_ai_validation   1 tools: 0.00 MB delta
+04:22:21 INFO     tests.test_agentic_ai_validation   4 tools: 0.00 MB delta
+04:22:22 INFO     tests.test_agentic_ai_validation   8 tools: 0.00 MB delta
+04:22:22 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-06: CPU memory during tool execution]: {"memory_baseline_mb": 938.06640625, "memory_deltas_by_tool_count": {"1": 0.0, "4": 0.0, "8": 0.0}}
+04:22:23 INFO     tests.test_agentic_ai_validation 
 ================================================================================
   AGENT STATE SERIALIZATION
 ================================================================================
-  Avg serialization time:   8.594 ms
-  State size:               448.34 KB
-  Serialization rate:       52.17 MB/s
+  Avg serialization time:   9.397 ms
+  State size:               448.43 KB
+  Serialization rate:       47.72 MB/s
 ================================================================================
 
-15:18:00 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-07: Agent state serialization]: {"avg_serialization_ms": 8.5941916, "num_tools_per_turn": 4, "num_turns": 5, "serialization_rate_mbps": 52.16777384274281, "state_size_kb": 448.33984375}
-15:18:01 INFO     tests.test_agentic_ai_validation 
+04:22:23 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-07: Agent state serialization]: {"avg_serialization_ms": 9.396875900000001, "num_tools_per_turn": 4, "num_turns": 5, "serialization_rate_mbps": 47.72145785042239, "state_size_kb": 448.4326171875}
+04:22:24 INFO     tests.test_agentic_ai_validation 
 ================================================================================
   AGENT LATENCY PERCENTILES
 ================================================================================
-  P50 latency:              55.45 ms
-  P95 latency:              73.32 ms
-  P99 latency:              73.32 ms
-  Min latency:              55.38 ms
-  Max latency:              73.32 ms
-  Avg latency:              56.40 ms
+  P50 latency:              56.03 ms
+  P95 latency:              75.92 ms
+  P99 latency:              75.92 ms
+  Min latency:              55.85 ms
+  Max latency:              75.92 ms
+  Avg latency:              57.19 ms
 ================================================================================
 
-15:18:01 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-08: Latency percentiles]: {"avg_latency_ms": 56.39627179971285, "max_latency_ms": 73.31934000103502, "min_latency_ms": 55.384249997587176, "p50_latency_ms": 55.448171002353774, "p95_latency_ms": 73.31934000103502, "p99_latency_ms": 73.31934000103502, "samples": 20}
-15:18:01 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
-15:18:01 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md
+04:22:24 INFO     tests.test_agentic_ai_validation KPI [TC-AGENT-08: Latency percentiles]: {"avg_latency_ms": 57.191393899756804, "max_latency_ms": 75.91682999918703, "min_latency_ms": 55.84679899948242, "p50_latency_ms": 56.03408000024501, "p95_latency_ms": 75.91682999918703, "p99_latency_ms": 75.91682999918703, "samples": 20}
+04:22:24 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+04:22:24 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md

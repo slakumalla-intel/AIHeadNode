@@ -1,16 +1,16 @@
-14:43:08 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
-14:43:10 INFO     bottleneck_analysis CPU FP32 GEMM — Config A: 1 proc × 32 threads  (detected: 1 sockets, 224 cores/socket, 224 total cores)
-14:43:17 INFO     bottleneck_analysis 
+16:58:55 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
+16:58:57 INFO     bottleneck_analysis CPU FP32 GEMM — Config A: 1 proc × 32 threads  (detected: 1 sockets, 224 cores/socket, 224 total cores)
+16:59:07 INFO     bottleneck_analysis 
 ==========================================================================================
 METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
 ==========================================================================================
-CPU FP32 (1 processes × 32 threads)                 1.03 TFLOPS         27.24 TFLOPS     3.8%  ⚠ BOTTLENECK
+CPU FP32 (1 processes × 32 threads)                 1.04 TFLOPS         27.24 TFLOPS     3.8%  ⚠ BOTTLENECK
 ==========================================================================================
 
 ⚠  1 BOTTLENECK(S) DETECTED:
-   • CPU FP32 (1 processes × 32 threads): 3.8% efficiency (1.03 / 27.24 TFLOPS)
+   • CPU FP32 (1 processes × 32 threads): 3.8% efficiency (1.04 / 27.24 TFLOPS)
 
-14:43:17 INFO     bottleneck_analysis 
+16:59:07 INFO     bottleneck_analysis 
 CPU FP32 ANALYSIS REPORT
 ----------------------------------------------------------------------------------------
 Python processes                   : 1
@@ -18,24 +18,24 @@ BLAS threads per process           : 32
 GEMM size                          : 4096 x 4096
 Timed iterations                   : 12
 Warmup iterations                  : 3
-Measured best                      : 1.030 TFLOPS
-Measured median                    : 1.028 TFLOPS
+Measured best                      : 1.037 TFLOPS
+Measured median                    : 0.977 TFLOPS
 Theoretical aggregate (base clock) : 27.238 TFLOPS
-Efficiency (best/theoretical)      : 3.78%
-Trials TFLOPS                      : 0.995, 1.028, 1.030
+Efficiency (best/theoretical)      : 3.81%
+Trials TFLOPS                      : 1.037, 0.976, 0.977
 ----------------------------------------------------------------------------------------
-14:43:17 WARNING  bottleneck_analysis [Config A: 1 proc × 32 threads] CPU FP32 efficiency is very low (3.8%). Possible causes: (1) BLAS library is single-threaded, or (2) thread affinity disabled (NO_AFFINITY in BLAS config). On NUMA systems, run with: numactl --cpunodebind=0 --membind=0 pytest ...
-14:43:17 INFO     bottleneck_analysis CPU FP32 GEMM — Config B: 4 procs × 52 threads  (detected: 1 sockets, 224 cores/socket, 224 total cores)
-14:43:26 INFO     bottleneck_analysis 
+16:59:07 WARNING  bottleneck_analysis [Config A: 1 proc × 32 threads] CPU FP32 efficiency is very low (3.8%). Possible causes: (1) BLAS library is single-threaded, or (2) thread affinity disabled (NO_AFFINITY in BLAS config). On NUMA systems, run with: numactl --cpunodebind=0 --membind=0 pytest ...
+16:59:07 INFO     bottleneck_analysis CPU FP32 GEMM — Config B: 4 procs × 52 threads  (detected: 1 sockets, 224 cores/socket, 224 total cores)
+16:59:20 INFO     bottleneck_analysis 
 ==========================================================================================
 METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
 ==========================================================================================
-CPU FP32 (4 processes × 52 threads)                 3.88 TFLOPS         27.24 TFLOPS    14.2%            OK
+CPU FP32 (4 processes × 52 threads)                 3.81 TFLOPS         27.24 TFLOPS    14.0%            OK
 ==========================================================================================
 
 ✅  No bottlenecks detected (all metrics ≥ 70 % of theoretical).
 
-14:43:26 INFO     bottleneck_analysis 
+16:59:20 INFO     bottleneck_analysis 
 CPU FP32 ANALYSIS REPORT
 ----------------------------------------------------------------------------------------
 Python processes                   : 4
@@ -43,150 +43,45 @@ BLAS threads per process           : 52
 GEMM size                          : 4096 x 4096
 Timed iterations                   : 12
 Warmup iterations                  : 3
-Measured best                      : 3.880 TFLOPS
-Measured median                    : 3.777 TFLOPS
+Measured best                      : 3.809 TFLOPS
+Measured median                    : 3.687 TFLOPS
 Theoretical aggregate (base clock) : 27.238 TFLOPS
-Efficiency (best/theoretical)      : 14.25%
-Trials TFLOPS                      : 2.346, 3.777, 3.880
+Efficiency (best/theoretical)      : 13.98%
+Trials TFLOPS                      : 3.809, 0.989, 3.687
 ----------------------------------------------------------------------------------------
-14:43:26 INFO     bottleneck_analysis ============================================================
-14:43:26 INFO     bottleneck_analysis TC-BN-01 Summary — both configurations
-14:43:26 INFO     bottleneck_analysis 
+16:59:20 INFO     bottleneck_analysis ============================================================
+16:59:20 INFO     bottleneck_analysis TC-BN-01 Summary — both configurations
+16:59:20 INFO     bottleneck_analysis 
 ==========================================================================================
 METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
 ==========================================================================================
-CPU FP32 (1 processes × 32 threads)                 1.03 TFLOPS         27.24 TFLOPS     3.8%  ⚠ BOTTLENECK
-CPU FP32 (4 processes × 52 threads)                 3.88 TFLOPS         27.24 TFLOPS    14.2%            OK
+CPU FP32 (1 processes × 32 threads)                 1.04 TFLOPS         27.24 TFLOPS     3.8%  ⚠ BOTTLENECK
+CPU FP32 (4 processes × 52 threads)                 3.81 TFLOPS         27.24 TFLOPS    14.0%            OK
 ==========================================================================================
 
 ⚠  1 BOTTLENECK(S) DETECTED:
-   • CPU FP32 (1 processes × 32 threads): 3.8% efficiency (1.03 / 27.24 TFLOPS)
+   • CPU FP32 (1 processes × 32 threads): 3.8% efficiency (1.04 / 27.24 TFLOPS)
 
-14:43:26 INFO     bottleneck_analysis ============================================================
-14:43:26 INFO     ai_headnode_tests CPU FP32 (1 processes × 32 threads)                 measured=     1.030  theoretical=    27.238  efficiency=  3.78%  threshold=     5%
-14:43:26 INFO     bottleneck_analysis HBM3 aggregate / CPU DRAM ratio = 26.0× (8000 GB/s HBM vs 307 GB/s DRAM)
-14:43:30 INFO     bottleneck_analysis 
+16:59:20 INFO     bottleneck_analysis ============================================================
+16:59:20 INFO     bottleneck_analysis HBM3 aggregate / CPU DRAM ratio = 26.0× (8000 GB/s HBM vs 307 GB/s DRAM)
+16:59:24 INFO     bottleneck_analysis 
 ==========================================================================================
 METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
 ==========================================================================================
-CPU DRAM BW (multi-thread STREAM Copy)           1558.03 GB/s        307.20 GB/s   507.2%            OK
+CPU DRAM BW (multi-thread STREAM Copy)           1609.71 GB/s        307.20 GB/s   524.0%            OK
 ==========================================================================================
 
 ✅  No bottlenecks detected (all metrics ≥ 70 % of theoretical).
 
-14:43:30 INFO     ai_headnode_tests CPU DRAM BW (multi-thread STREAM Copy)              measured=  1558.033  theoretical=   307.200  efficiency=507.17%  threshold=    75%
-14:43:31 INFO     bottleneck_analysis Per-GPU FP16 threshold selected: 60% (HBM 2.00 TB/s, FP16 peak 756 TFLOPS)
-14:43:31 INFO     bottleneck_analysis 
-==========================================================================================
-METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
-==========================================================================================
-GPU 0 FP16 Tensor Core                            479.22 TFLOPS        756.00 TFLOPS    63.4%            OK
-GPU 1 FP16 Tensor Core                            475.74 TFLOPS        756.00 TFLOPS    62.9%            OK
-GPU 2 FP16 Tensor Core                            438.56 TFLOPS        756.00 TFLOPS    58.0%  ⚠ BOTTLENECK
-GPU 3 FP16 Tensor Core                            484.41 TFLOPS        756.00 TFLOPS    64.1%            OK
-==========================================================================================
-
-⚠  1 BOTTLENECK(S) DETECTED:
-   • GPU 2 FP16 Tensor Core: 58.0% efficiency (438.56 / 756.00 TFLOPS)
-
-14:43:31 INFO     ai_headnode_tests GPU 0 FP16 Tensor Core                              measured=   479.219  theoretical=   756.000  efficiency= 63.39%  threshold=    60%
-14:43:31 INFO     ai_headnode_tests GPU 1 FP16 Tensor Core                              measured=   475.745  theoretical=   756.000  efficiency= 62.93%  threshold=    60%
-14:43:31 INFO     ai_headnode_tests GPU 2 FP16 Tensor Core                              measured=   438.556  theoretical=   756.000  efficiency= 58.01%  threshold=    60%
-14:43:41 INFO     bottleneck_analysis Aggregate FP16 config: 4 GPUs, 3 trials, 12 iters/trial, threshold=60%
-14:43:41 INFO     bottleneck_analysis Aggregate FP16 TFLOPS per trial: [1874.7891451404573, 1873.382173092074, 1885.89183769261]
-14:43:41 INFO     bottleneck_analysis 
-==========================================================================================
-METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
-==========================================================================================
-4-GPU aggregate FP16 TFLOPS                      1885.89 TFLOPS       3024.00 TFLOPS    62.4%            OK
-==========================================================================================
-
-✅  No bottlenecks detected (all metrics ≥ 70 % of theoretical).
-
-14:43:41 INFO     ai_headnode_tests 4-GPU aggregate FP16 TFLOPS                         measured=  1885.892  theoretical=  3024.000  efficiency= 62.36%  threshold=    60%
-14:43:42 INFO     bottleneck_analysis 
-==========================================================================================
-METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
-==========================================================================================
-GPU 0 HBM3 bandwidth                                1.85 TB/s          2.00 TB/s    92.7%            OK
-GPU 1 HBM3 bandwidth                                1.85 TB/s          2.00 TB/s    92.6%            OK
-GPU 2 HBM3 bandwidth                                3.56 TB/s          2.00 TB/s   178.2%            OK
-GPU 3 HBM3 bandwidth                                1.85 TB/s          2.00 TB/s    92.7%            OK
-==========================================================================================
-
-✅  No bottlenecks detected (all metrics ≥ 70 % of theoretical).
-
-14:43:42 INFO     ai_headnode_tests GPU 0 HBM3 bandwidth                                measured=     1.854  theoretical=     2.000  efficiency= 92.68%  threshold=    80%
-14:43:42 INFO     ai_headnode_tests GPU 1 HBM3 bandwidth                                measured=     1.853  theoretical=     2.000  efficiency= 92.63%  threshold=    80%
-14:43:42 INFO     ai_headnode_tests GPU 2 HBM3 bandwidth                                measured=     3.563  theoretical=     2.000  efficiency=178.15%  threshold=    80%
-14:43:42 INFO     ai_headnode_tests GPU 3 HBM3 bandwidth                                measured=     1.854  theoretical=     2.000  efficiency= 92.69%  threshold=    80%
-14:43:44 INFO     bottleneck_analysis 
-==========================================================================================
-METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
-==========================================================================================
-GPU 0 H2D PCIe bandwidth                           56.02 GB/s         63.00 GB/s    88.9%            OK
-GPU 1 H2D PCIe bandwidth                           56.11 GB/s         63.00 GB/s    89.1%            OK
-GPU 2 H2D PCIe bandwidth                           56.15 GB/s         63.00 GB/s    89.1%            OK
-GPU 3 H2D PCIe bandwidth                           56.23 GB/s         63.00 GB/s    89.3%            OK
-==========================================================================================
-
-✅  No bottlenecks detected (all metrics ≥ 70 % of theoretical).
-
-14:43:44 INFO     ai_headnode_tests GPU 0 H2D PCIe bandwidth                            measured=    56.022  theoretical=    63.000  efficiency= 88.92%  threshold=    65%
-14:43:44 INFO     ai_headnode_tests GPU 1 H2D PCIe bandwidth                            measured=    56.107  theoretical=    63.000  efficiency= 89.06%  threshold=    65%
-14:43:44 INFO     ai_headnode_tests GPU 2 H2D PCIe bandwidth                            measured=    56.147  theoretical=    63.000  efficiency= 89.12%  threshold=    65%
-14:43:44 INFO     ai_headnode_tests GPU 3 H2D PCIe bandwidth                            measured=    56.234  theoretical=    63.000  efficiency= 89.26%  threshold=    65%
-14:43:44 INFO     bottleneck_analysis HBM/PCIe BW ratio = 31.7× (2000 GB/s HBM vs 63 GB/s PCIe H2D, threshold 25×)
-14:43:44 INFO     bottleneck_analysis 
-==========================================================================================
-METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
-==========================================================================================
-PCIe P2P P2P BW GPU 0->1                           52.61 GB/s         63.00 GB/s    83.5%            OK
-==========================================================================================
-
-✅  No bottlenecks detected (all metrics ≥ 70 % of theoretical).
-
-14:43:44 INFO     ai_headnode_tests PCIe P2P P2P BW GPU 0->1                            measured=    52.614  theoretical=    63.000  efficiency= 83.51%  threshold=    50%
-14:43:45 INFO     bottleneck_analysis FP16 roofline knee: 378.0 FLOP/byte
-14:43:45 INFO     bottleneck_analysis Roofline knee FP16 Tensor Core    :    378.0 FLOP/byte  (peak=  756.0 TFLOPS, HBM=2.00 TB/s)
-14:43:46 INFO     bottleneck_analysis Roofline knee BF16 Tensor Core    :    494.5 FLOP/byte  (peak=  989.0 TFLOPS, HBM=2.00 TB/s)
-14:43:46 INFO     bottleneck_analysis Roofline knee FP32 CUDA Core      :     33.5 FLOP/byte  (peak=   67.0 TFLOPS, HBM=2.00 TB/s)
-14:43:46 INFO     bottleneck_analysis Roofline knee FP64 Tensor Core    :     17.0 FLOP/byte  (peak=   34.0 TFLOPS, HBM=2.00 TB/s)
-14:43:46 INFO     bottleneck_analysis Roofline knee INT8 Tensor Core    :   1979.0 FLOP/byte  (peak= 3958.0 TFLOPS, HBM=2.00 TB/s)
-14:43:47 INFO     bottleneck_analysis 
-TC-BN-08 Timing Breakdown
-  batch shape                 : 4096 x 4096
-  sustained GPU GEMM window   : 32 x 8192^3 FP16 GEMMs
-  CPU preprocess times (s)    : [0.0432, 0.091, 0.034]
-  H2D copy times (s)          : [0.024, 0.0243, 0.0028]
-  GPU compute times (s)       : [0.0754, 0.0745, 0.0747]
-  CPU preprocess avg (s)      : 0.0561
-  H2D copy avg (s)            : 0.0170
-  Host stage avg (s)          : 0.0731
-  GPU compute avg (s)         : 0.0749
-  Host/GPU ratio              : 0.98x
-  Allowed host/GPU ratio      : 1.25x
-14:43:47 INFO     bottleneck_analysis 
-==========================================================================================
-METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
-==========================================================================================
-2-GPU FP16 scaling efficiency                     956.00 TFLOPS        962.43 TFLOPS    99.3%            OK
-==========================================================================================
-
-✅  No bottlenecks detected (all metrics ≥ 70 % of theoretical).
-
-14:43:47 INFO     ai_headnode_tests 2-GPU FP16 scaling efficiency                       measured=   956.004  theoretical=   962.427  efficiency= 99.33%  threshold=    80%
-14:43:47 INFO     bottleneck_analysis 
-==========================================================================================
-METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
-==========================================================================================
-4-GPU FP16 scaling efficiency                    1868.30 TFLOPS       1918.81 TFLOPS    97.4%            OK
-==========================================================================================
-
-✅  No bottlenecks detected (all metrics ≥ 70 % of theoretical).
-
-14:43:47 INFO     ai_headnode_tests 4-GPU FP16 scaling efficiency                       measured=  1868.298  theoretical=  1918.808  efficiency= 97.37%  threshold=    80%
-14:43:48 INFO     bottleneck_analysis 
+16:59:24 INFO     ai_headnode_tests CPU DRAM BW (multi-thread STREAM Copy)              measured=  1609.713  theoretical=   307.200  efficiency=524.00%  threshold=    75%
+16:59:28 INFO     bottleneck_analysis HBM/PCIe BW ratio = 31.7× (2000 GB/s HBM vs 63 GB/s PCIe H2D, threshold 25×)
+16:59:28 INFO     bottleneck_analysis FP16 roofline knee: 378.0 FLOP/byte
+16:59:29 INFO     bottleneck_analysis Roofline knee FP16 Tensor Core    :    378.0 FLOP/byte  (peak=  756.0 TFLOPS, HBM=2.00 TB/s)
+16:59:29 INFO     bottleneck_analysis Roofline knee BF16 Tensor Core    :    494.5 FLOP/byte  (peak=  989.0 TFLOPS, HBM=2.00 TB/s)
+16:59:29 INFO     bottleneck_analysis Roofline knee FP32 CUDA Core      :     33.5 FLOP/byte  (peak=   67.0 TFLOPS, HBM=2.00 TB/s)
+16:59:30 INFO     bottleneck_analysis Roofline knee FP64 Tensor Core    :     17.0 FLOP/byte  (peak=   34.0 TFLOPS, HBM=2.00 TB/s)
+16:59:30 INFO     bottleneck_analysis Roofline knee INT8 Tensor Core    :   1979.0 FLOP/byte  (peak= 3958.0 TFLOPS, HBM=2.00 TB/s)
+16:59:31 INFO     bottleneck_analysis 
 
 ======================================================================
   AI HEAD NODE — THEORETICAL PLATFORM SPECIFICATIONS
@@ -214,7 +109,7 @@ METRIC                                            MEASURED    THEORETICAL     EF
   Aggregate GPU FP16 (TFLOPS)                           3024
   Roofline knee FP16 (FLOP/byte)                       378.0
 ======================================================================
-14:43:48 INFO     bottleneck_analysis 
+16:59:31 INFO     bottleneck_analysis 
 
 ==========================================================================================
   KNOWN BOTTLENECKS — DETECTED CPU + GPU PLATFORM
@@ -246,23 +141,5 @@ METRIC                                            MEASURED    THEORETICAL     EF
      Mitigation : Fuse kernels to increase arithmetic intensity; use Flash Attention.
 
 ==========================================================================================
-14:43:49 INFO     bottleneck_analysis 
-==========================================================================================
-METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
-==========================================================================================
-CPU DRAM BW (single-thread STREAM)                 44.10 GB/s        307.20 GB/s    14.4%  ⚠ BOTTLENECK
-GPU 0 FP16 Tensor Core                            480.85 TFLOPS        756.00 TFLOPS    63.6%  ⚠ BOTTLENECK
-GPU 0 FP32 CUDA Core                               39.05 TFLOPS         67.00 TFLOPS    58.3%  ⚠ BOTTLENECK
-GPU 0 HBM3 BW                                       1.85 TB/s          2.00 TB/s    92.5%            OK
-GPU 0 PCIe H2D BW                                  55.46 GB/s         63.00 GB/s    88.0%            OK
-PCIe P2P BW (GPU 0->1)                             52.17 GB/s         63.00 GB/s    82.8%            OK
-==========================================================================================
-
-⚠  3 BOTTLENECK(S) DETECTED:
-   • CPU DRAM BW (single-thread STREAM): 14.4% efficiency (44.10 / 307.20 GB/s)
-   • GPU 0 FP16 Tensor Core: 63.6% efficiency (480.85 / 756.00 TFLOPS)
-   • GPU 0 FP32 CUDA Core: 58.3% efficiency (39.05 / 67.00 TFLOPS)
-
-14:43:49 INFO     bottleneck_analysis BN KPI [TC-BN-10_system_throughput_summary]: {"CPU DRAM BW (single-thread STREAM)": {"efficiency_pct": 14.4, "measured": 44.09582396672625, "theoretical": 307.2, "unit": "GB/s"}, "GPU 0 FP16 Tensor Core": {"efficiency_pct": 63.6, "measured": 480.8463907438546, "theoretical": 756.0, "unit": "TFLOPS"}, "GPU 0 FP32 CUDA Core": {"efficiency_pct": 58.3, "measured": 39.0536991252755, "theoretical": 67.0, "unit": "TFLOPS"}, "GPU 0 HBM3 BW": {"efficiency_pct": 92.5, "measured": 1.8506472339658555, "theoretical": 2.0, "unit": "TB/s"}, "GPU 0 PCIe H2D BW": {"efficiency_pct": 88.0, "measured": 55.45534876321599, "theoretical": 63.0, "unit": "GB/s"}, "PCIe P2P BW (GPU 0->1)": {"efficiency_pct": 82.8, "measured": 52.17323775150366, "theoretical": 63.0, "unit": "GB/s"}}
-14:43:49 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
-14:43:49 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md
+16:59:32 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+16:59:32 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md

@@ -1,48 +1,20 @@
 {
-  "generated_at_utc": "2026-05-21T16:26:32.889532+00:00",
+  "generated_at_utc": "2026-05-23T05:33:25.879687+00:00",
   "host": "sc00901168s0075",
   "python": "3.12.13",
   "domains": [
-    {
-      "domain": "bottleneck",
-      "description": "Roofline and bottleneck analysis",
-      "status": "FAIL",
-      "return_code": 1,
-      "started_at_utc": "2026-05-21T14:43:07.605884+00:00",
-      "finished_at_utc": "2026-05-21T14:43:50.331442+00:00",
-      "tests": 25,
-      "failures": 2,
-      "errors": 0,
-      "skipped": 0,
-      "duration_sec": 40.879,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_bottleneck_analysis.TestCPUComputeBottleneck::test_cpu_fp32_efficiency_report",
-          "message": "AssertionError: CPU FP32 (1 processes \u00d7 32 threads): efficiency 3.78% is below threshold 5.00% (measured=1.030, theoretical=27.238)\nassert 0.03779821688081017 >= 0.05",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_bottleneck_analysis.TestGPUComputeBottleneck::test_per_gpu_fp16_efficiency",
-          "message": "AssertionError: GPU 2 FP16 Tensor Core: efficiency 58.01% is below threshold 60.00% (measured=438.556, theoretical=756.000)\nassert 0.5801000358561131 >= 0.6",
-          "kind": "failure"
-        }
-      ],
-      "junit_xml": "artifacts/reports/junit/bottleneck.xml",
-      "log_file": "artifacts/reports/logs/bottleneck.log",
-      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/junit/bottleneck.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/logs/bottleneck.log --log-file-level INFO tests/test_bottleneck_analysis.py"
-    },
     {
       "domain": "cpu",
       "description": "CPU validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-05-21T14:43:50.331689+00:00",
-      "finished_at_utc": "2026-05-21T14:48:21.966744+00:00",
+      "started_at_utc": "2026-05-23T03:47:54.129006+00:00",
+      "finished_at_utc": "2026-05-23T03:52:24.033915+00:00",
       "tests": 33,
       "failures": 0,
       "errors": 0,
       "skipped": 1,
-      "duration_sec": 268.612,
+      "duration_sec": 268.122,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/cpu.xml",
       "log_file": "artifacts/reports/logs/cpu.log",
@@ -53,22 +25,22 @@
       "description": "Memory subsystem validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T14:48:21.966946+00:00",
-      "finished_at_utc": "2026-05-21T14:48:49.053913+00:00",
+      "started_at_utc": "2026-05-23T03:52:24.034163+00:00",
+      "finished_at_utc": "2026-05-23T03:52:52.613284+00:00",
       "tests": 28,
       "failures": 2,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 25.801,
+      "duration_sec": 27.129,
       "failed_tests": [
         {
           "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_scale_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Scale 12.23 GB/s < 15 GB/s\nassert 12.230952997548338 >= 15.0",
+          "message": "AssertionError: STREAM Scale 13.23 GB/s < 15 GB/s\nassert 13.23311603926585 >= 15.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_triad_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Triad 12.82 GB/s < 15 GB/s\nassert 12.81515025556338 >= 15.0",
+          "message": "AssertionError: STREAM Triad 13.39 GB/s < 15 GB/s\nassert 13.38512099253258 >= 15.0",
           "kind": "failure"
         }
       ],
@@ -81,17 +53,22 @@
       "description": "GPU validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T14:48:49.054319+00:00",
-      "finished_at_utc": "2026-05-21T14:49:10.385374+00:00",
+      "started_at_utc": "2026-05-23T03:52:52.613513+00:00",
+      "finished_at_utc": "2026-05-23T03:53:12.867409+00:00",
       "tests": 53,
-      "failures": 1,
+      "failures": 2,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 19.584,
+      "duration_sec": 18.516,
       "failed_tests": [
         {
-          "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[0]",
-          "message": "AssertionError: FP32 GFLOPS GPU 0: efficiency 35.86% is below threshold 52.00% (measured=24025.277, theoretical=67000.000)\nassert 0.3585862257467484 >= 0.52",
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_host_to_device_bandwidth[0]",
+          "message": "AssertionError: PCIe H2D bandwidth GPU 0: efficiency 38.10% is below threshold 65.00% (measured=24.006, theoretical=63.000)\nassert 0.38104147042384023 >= 0.65",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[1]",
+          "message": "AssertionError: PCIe D2H bandwidth GPU 1: efficiency 37.99% is below threshold 65.00% (measured=23.937, theoretical=63.000)\nassert 0.3799487783236618 >= 0.65",
           "kind": "failure"
         }
       ],
@@ -104,13 +81,13 @@
       "description": "PCIe / NVLink / P2P interconnect validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-05-21T14:49:10.385594+00:00",
-      "finished_at_utc": "2026-05-21T14:50:47.626661+00:00",
+      "started_at_utc": "2026-05-23T03:53:12.867617+00:00",
+      "finished_at_utc": "2026-05-23T03:55:03.229031+00:00",
       "tests": 77,
       "failures": 0,
       "errors": 0,
       "skipped": 4,
-      "duration_sec": 91.782,
+      "duration_sec": 104.742,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/interconnect.xml",
       "log_file": "artifacts/reports/logs/interconnect.log",
@@ -121,47 +98,27 @@
       "description": "Node bring-up and workload acceptance",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T14:50:47.626867+00:00",
-      "finished_at_utc": "2026-05-21T15:17:41.571779+00:00",
+      "started_at_utc": "2026-05-23T03:55:03.229218+00:00",
+      "finished_at_utc": "2026-05-23T04:21:22.570530+00:00",
       "tests": 51,
-      "failures": 7,
+      "failures": 3,
       "errors": 0,
-      "skipped": 10,
-      "duration_sec": 1609.162,
+      "skipped": 11,
+      "duration_sec": 1574.543,
       "failed_tests": [
         {
-          "nodeid": "tests.test_node_validation.TestPCIeBandwidthDirect::test_d2h_bandwidth_all_gpus",
-          "message": "Failed: D2H PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=39.08 GB/s, mean=51.37 GB/s\nPer-GPU failures:\nGPU 0: 39.08 GB/s < 40.95 GB/s",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_latency_binary",
-          "message": "AssertionError: 1 P2P bandwidth values below 40.0 GB/s: ['17.3']\nassert not [17.26]",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestCPUGPUPowerAndThrottling::test_sustained_gpu_power_stability",
-          "message": "AssertionError: Power variance 59.1 W is too high (expected < 50 W)\nassert np.float64(59.06382419038794) < 50",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestNCCLAndNVLinkValidation::test_nccl_p2p_perf",
-          "message": "AssertionError: NCCL sendrecv busbw 24.1 GB/s too low\nassert 24.12 >= 30.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vllm_data_pipeline_saturation_inference_prefill",
-          "message": "AssertionError: GPU utilization not sustained (>=90% ratio=0.00, mean=0.0%, target_ratio=0.50, shared_gpu=True)\nassert 0.0 >= 0.5",
+          "nodeid": "tests.test_node_validation.TestPCIeBandwidthDirect::test_h2d_bandwidth_all_gpus",
+          "message": "Failed: H2D PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=39.74 GB/s, mean=51.98 GB/s\nPer-GPU failures:\nGPU 0: 39.74 GB/s < 40.95 GB/s",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vision_object_detection_yolo_fps",
-          "message": "AssertionError: YOLO aggregate FPS too low: 92.9 < target 200.0\nassert 92.92775966709132 >= 200.0",
+          "message": "AssertionError: YOLO aggregate FPS too low: 92.8 < target 200.0\nassert 92.8198194671177 >= 200.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_predictable_memory_orchestration_kv_cache_offload",
-          "message": "AssertionError: Offload throughput degradation too high: 87.5% (baseline 339.4 -> offload 42.4)\nassert 87.50405345445897 <= 60",
+          "message": "AssertionError: Offload latency increase too high: 702.1% (baseline 5015.41ms -> offload 40228.46ms)\nassert 702.0971807380655 <= 150",
           "kind": "failure"
         }
       ],
@@ -170,24 +127,35 @@
       "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/junit/node_validation.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/logs/node_validation.log --log-file-level INFO tests/test_node_validation.py"
     },
     {
+      "domain": "cpu_headnode",
+      "description": "CPU<->GPU integration tests for head-node serving scenarios",
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-05-23T04:21:22.570737+00:00",
+      "finished_at_utc": "2026-05-23T04:22:05.591874+00:00",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "duration_sec": 40.287,
+      "failed_tests": [],
+      "junit_xml": "artifacts/reports/junit/cpu_headnode.xml",
+      "log_file": "artifacts/reports/logs/cpu_headnode.log",
+      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/junit/cpu_headnode.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/logs/cpu_headnode.log --log-file-level INFO tests/test_cpu_headnode.py"
+    },
+    {
       "domain": "agentic_ai",
       "description": "Agentic AI KPI validation",
-      "status": "FAIL",
-      "return_code": 1,
-      "started_at_utc": "2026-05-21T15:17:41.571954+00:00",
-      "finished_at_utc": "2026-05-21T15:18:02.821642+00:00",
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-05-23T04:22:05.592064+00:00",
+      "finished_at_utc": "2026-05-23T04:22:25.572769+00:00",
       "tests": 9,
-      "failures": 1,
+      "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 19.476,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_agentic_ai_validation.TestToolInvocationOverhead::test_parallel_tool_dispatch_scalability",
-          "message": "AssertionError: Tool dispatch scales poorly: 16 tools take 6.6\u00d7 time of 1 tool\nassert 6.566299469604243 < 5.0",
-          "kind": "failure"
-        }
-      ],
+      "duration_sec": 18.2,
+      "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/agentic_ai.xml",
       "log_file": "artifacts/reports/logs/agentic_ai.log",
       "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/junit/agentic_ai.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/logs/agentic_ai.log --log-file-level INFO tests/test_agentic_ai_validation.py"
@@ -195,47 +163,16 @@
     {
       "domain": "ai_pipeline",
       "description": "AI pipeline KPI validation",
-      "status": "FAIL",
-      "return_code": 1,
-      "started_at_utc": "2026-05-21T15:18:02.821855+00:00",
-      "finished_at_utc": "2026-05-21T15:18:40.638695+00:00",
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-05-23T04:22:25.573095+00:00",
+      "finished_at_utc": "2026-05-23T04:24:59.322710+00:00",
       "tests": 38,
-      "failures": 6,
+      "failures": 0,
       "errors": 0,
-      "skipped": 12,
-      "duration_sec": 34.246,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_tokenizer_multi_thread_scaling",
-          "message": "AssertionError: 4-thread tokenizer scaling 1.63\u00d7 < 2.0\u00d7 single-thread\nassert 1.6318026356755186 >= 2.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_async_prefetch_gpu_overlap_efficiency",
-          "message": "AssertionError: Async prefetch overlap efficiency 25.3% < 60.0%\nassert 25.268130746022198 >= 60.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_model_load_time_to_gpu",
-          "message": "AssertionError: Model load bandwidth 0.43 GB/s < 1.0 GB/s\nassert 0.4295125697207292 >= 1.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_tensor_parallel_allreduce_overhead_fraction",
-          "message": "AssertionError: AllReduce overhead 98.6% > 20.0% of compute\nassert 98.57780799286192 <= 20.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO::test_model_weight_load_pipeline_bandwidth",
-          "message": "AssertionError: Weight load pipeline 0.87 GB/s < 1.0 GB/s\nassert 0.8693625258957309 >= 1.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis.TestInferencePipelineKPIs::test_time_to_first_token[2048]",
-          "message": "torch.AcceleratorError: CUDA error: device-side assert triggered\nSearch for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API",
-          "kind": "failure"
-        }
-      ],
+      "skipped": 4,
+      "duration_sec": 151.112,
+      "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/ai_pipeline.xml",
       "log_file": "artifacts/reports/logs/ai_pipeline.log",
       "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/junit/ai_pipeline.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/reports/logs/ai_pipeline.log --log-file-level INFO tests/test_ai_pipeline_kpis.py"
@@ -245,13 +182,13 @@
       "description": "System health and reliability",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T15:18:40.638915+00:00",
-      "finished_at_utc": "2026-05-21T15:19:30.209019+00:00",
+      "started_at_utc": "2026-05-23T04:24:59.322941+00:00",
+      "finished_at_utc": "2026-05-23T04:25:49.145572+00:00",
       "tests": 39,
-      "failures": 6,
+      "failures": 7,
       "errors": 0,
       "skipped": 3,
-      "duration_sec": 45.196,
+      "duration_sec": 43.782,
       "failed_tests": [
         {
           "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[0]",
@@ -275,12 +212,17 @@
         },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_sustained_compute_no_thermal_throttle",
-          "message": "AssertionError: SM clock dropped 45.3% during sustained load (initial 1755 MHz \u2192 min 960 MHz, max_temp 59 \u00b0C). Thermal or power-limit throttling detected.\nassert 0.452991452991453 <= 0.1",
+          "message": "AssertionError: SM clock dropped 46.2% during sustained load (initial 1755 MHz \u2192 min 945 MHz, max_temp 59 \u00b0C). Thermal or power-limit throttling detected.\nassert 0.46153846153846156 <= 0.1",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_aggregate_4gpu_fp16_tflops_per_watt",
+          "message": "AssertionError: 4-GPU aggregate efficiency 0.821 TFLOPS/W < 1.0 floor\nassert 0.8205215640156254 >= 1.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_speedup_over_eager",
-          "message": "AssertionError: torch.compile speedup 0.806\u00d7 < floor 1.05\u00d7. Compiled kernels may be suboptimal for this H100 PCIe configuration.\nassert 0.8061902872568043 >= 1.05",
+          "message": "AssertionError: torch.compile speedup 0.811\u00d7 < floor 1.05\u00d7. Compiled kernels may be suboptimal for this H100 PCIe configuration.\nassert 0.8108262610541674 >= 1.05",
           "kind": "failure"
         }
       ],
@@ -293,13 +235,13 @@
       "description": "System config report validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-05-21T15:19:30.209248+00:00",
-      "finished_at_utc": "2026-05-21T15:19:35.152382+00:00",
+      "started_at_utc": "2026-05-23T04:25:49.145767+00:00",
+      "finished_at_utc": "2026-05-23T04:25:54.149013+00:00",
       "tests": 8,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 3.724,
+      "duration_sec": 3.748,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/system_config.xml",
       "log_file": "artifacts/reports/logs/system_config.log",
@@ -310,13 +252,13 @@
       "description": "vLLM prefill validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-05-21T15:19:35.152549+00:00",
-      "finished_at_utc": "2026-05-21T15:30:05.184129+00:00",
+      "started_at_utc": "2026-05-23T04:25:54.149356+00:00",
+      "finished_at_utc": "2026-05-23T04:36:53.359257+00:00",
       "tests": 3,
       "failures": 0,
       "errors": 0,
       "skipped": 1,
-      "duration_sec": 628.526,
+      "duration_sec": 657.76,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/vllm_prefill.xml",
       "log_file": "artifacts/reports/logs/vllm_prefill.log",
@@ -327,13 +269,13 @@
       "description": "Performance suite catalog / execution",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T15:30:05.184313+00:00",
-      "finished_at_utc": "2026-05-21T15:55:45.820452+00:00",
+      "started_at_utc": "2026-05-23T04:36:53.359683+00:00",
+      "finished_at_utc": "2026-05-23T05:02:44.960292+00:00",
       "tests": 26,
       "failures": 1,
       "errors": 0,
       "skipped": 7,
-      "duration_sec": 1539.001,
+      "duration_sec": 1549.848,
       "failed_tests": [
         {
           "nodeid": "tests.test_performance_suite::test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_011]",
@@ -350,27 +292,17 @@
       "description": "MLPerf suite catalog / execution",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T15:55:45.820655+00:00",
-      "finished_at_utc": "2026-05-21T16:26:32.889364+00:00",
+      "started_at_utc": "2026-05-23T05:02:44.960478+00:00",
+      "finished_at_utc": "2026-05-23T05:33:25.879387+00:00",
       "tests": 21,
-      "failures": 3,
+      "failures": 1,
       "errors": 0,
-      "skipped": 18,
-      "duration_sec": 1845.74,
+      "skipped": 20,
+      "duration_sec": 1839.62,
       "failed_tests": [
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_003: command failed (rc=1)\nexecuted_command: vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 --tensor-parallel-size 4 --max-model-len 32768 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=135802) Traceback (m",
-          "kind": "failure"
-        },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_004]",
           "message": "Failed: Timeout (>1800.0s) from pytest-timeout.",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=138286) Tr",
           "kind": "failure"
         }
       ],
@@ -381,12 +313,12 @@
   ],
   "summary": {
     "domains_run": 13,
-    "passed_domains": 4,
-    "failed_domains": 9,
-    "tests": 411,
-    "failures": 29,
+    "passed_domains": 7,
+    "failed_domains": 6,
+    "tests": 396,
+    "failures": 16,
     "errors": 0,
-    "skipped": 56
+    "skipped": 53
   },
   "defaults_applied": {
     "ML_EXECUTE_CASES": "1",

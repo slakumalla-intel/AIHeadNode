@@ -1,100 +1,32 @@
-15:18:03 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
-15:18:09 INFO     tests.test_ai_pipeline_kpis KPI [test_tokenizer_throughput_by_seq_len]: {"batch_size": 64, "elapsed_sec": 0.049, "iterations": 10, "seq_len": 32, "sequences_per_sec": 12947.1, "threshold_tokens_per_sec": 50000, "tokens_per_sec": 414306.0}
-15:18:10 INFO     tests.test_ai_pipeline_kpis KPI [test_tokenizer_throughput_by_seq_len]: {"batch_size": 64, "elapsed_sec": 0.105, "iterations": 10, "seq_len": 128, "sequences_per_sec": 6109.8, "threshold_tokens_per_sec": 50000, "tokens_per_sec": 782051.7}
-15:18:11 INFO     tests.test_ai_pipeline_kpis KPI [test_tokenizer_throughput_by_seq_len]: {"batch_size": 64, "elapsed_sec": 0.269, "iterations": 10, "seq_len": 512, "sequences_per_sec": 2381.4, "threshold_tokens_per_sec": 50000, "tokens_per_sec": 1219290.5}
-15:18:13 INFO     tests.test_ai_pipeline_kpis KPI [test_tokenizer_throughput_by_seq_len]: {"batch_size": 64, "elapsed_sec": 0.912, "iterations": 10, "seq_len": 2048, "sequences_per_sec": 702.0, "threshold_tokens_per_sec": 20000, "tokens_per_sec": 1437793.0}
-15:18:13 INFO     tests.test_ai_pipeline_kpis KPI [test_tokenizer_multi_thread_scaling]: {"scaling_ratio": 1.632, "threads_1_tokens_per_sec": 858423.7, "threads_4_tokens_per_sec": 1400778.1, "threshold_scaling_ratio": 2.0}
-15:18:13 INFO     tests.test_ai_pipeline_kpis KPI [test_dataloader_cpu_to_pinned_throughput]: {"batch_size": 32, "elapsed_sec": 0.007, "n_samples": 2000, "num_workers": 0, "samples_per_sec": 289069.0, "seq_len": 128, "threshold_samples_per_sec": 1000}
-15:18:14 INFO     tests.test_ai_pipeline_kpis KPI [test_dataloader_cpu_to_pinned_throughput]: {"batch_size": 32, "elapsed_sec": 0.063, "n_samples": 2000, "num_workers": 2, "samples_per_sec": 31685.0, "seq_len": 128, "threshold_samples_per_sec": 1000}
-15:18:14 INFO     tests.test_ai_pipeline_kpis KPI [test_dataloader_cpu_to_pinned_throughput]: {"batch_size": 32, "elapsed_sec": 0.049, "n_samples": 2000, "num_workers": 4, "samples_per_sec": 40624.6, "seq_len": 128, "threshold_samples_per_sec": 1000}
-15:18:15 INFO     tests.test_ai_pipeline_kpis KPI [test_async_prefetch_gpu_overlap_efficiency]: {"compute_only_sec": 0.0008, "iterations": 20, "matrix_size": 2048, "overlap_efficiency_pct": 25.27, "pipelined_sec": 0.0031, "threshold_overlap_pct": 60.0}
-15:18:15 INFO     tests.test_ai_pipeline_kpis KPI [test_cpu_preprocessing_pipeline_throughput]: {"batch_size": 64, "batches_per_sec": 80.63, "elapsed_sec": 0.248, "n_batches": 20, "seq_len": 128, "threshold_tokens_per_sec": 200000, "total_tokens_per_sec": 660545.0}
-15:18:16 INFO     tests.test_ai_pipeline_kpis KPI [test_model_load_time_to_gpu]: {"load_bandwidth_gbs": 0.43, "load_time_sec": 0.54, "model_id": "openai-community/gpt2", "model_size_gb": 0.232, "threshold_gbs": 1.0}
-15:18:16 INFO     tests.test_ai_pipeline_kpis KPI [test_checkpoint_save_restore_throughput]: {"checkpoint_size_gb": 0.156, "restore_bandwidth_gbs": 4.979, "restore_time_sec": 0.031, "save_bandwidth_gbs": 1.712, "save_time_sec": 0.091, "threshold_restore_gbs": 1.0, "threshold_save_gbs": 0.5}
-15:18:17 INFO     tests.test_ai_pipeline_kpis KPI [test_kv_cache_memory_allocation_efficiency]: {"alloc_latency_us_per_block": 7.892, "alloc_time_sec": 0.0079, "block_bytes": 8388608, "block_size_tokens": 16, "blocks_per_sec": 126710.0, "head_dim": 128, "n_blocks": 1000, "n_heads": 32, "n_layers": 32, "threshold_blocks_per_sec": 10000, "total_kv_gb": 7.812}
-15:18:17 INFO     tests.test_ai_pipeline_kpis KPI [test_tensor_parallel_allreduce_overhead_fraction]: {"allreduce_time_ms": 10.3156, "comm_overhead_pct": 98.58, "compute_time_ms": 0.1488, "hidden_dim": 8192, "iterations": 20, "seq_len": 512, "threshold_comm_overhead_pct": 20.0}
-15:18:17 INFO     tests.test_ai_pipeline_kpis KPI [test_batch_assembly_gpu_latency]: {"assemble_us_per_batch": 20.772, "batch_size": 1, "iterations": 50, "seq_len": 512, "threshold_us_per_batch": 500.0, "throughput_batches_per_sec": 48141.8}
-15:18:18 INFO     tests.test_ai_pipeline_kpis KPI [test_batch_assembly_gpu_latency]: {"assemble_us_per_batch": 19.545, "batch_size": 4, "iterations": 50, "seq_len": 512, "threshold_us_per_batch": 500.0, "throughput_batches_per_sec": 51164.2}
-15:18:18 INFO     tests.test_ai_pipeline_kpis KPI [test_batch_assembly_gpu_latency]: {"assemble_us_per_batch": 20.654, "batch_size": 16, "iterations": 50, "seq_len": 512, "threshold_us_per_batch": 500.0, "throughput_batches_per_sec": 48416.3}
-15:18:23 INFO     tests.test_ai_pipeline_kpis KPI [test_storage_sequential_read_throughput]: {"file_size_gb": 2.0, "read_bandwidth_gbs": 1.421, "read_time_sec": 1.407, "storage_path": "/tmp", "threshold_gbs": 1.0}
-15:18:25 INFO     tests.test_ai_pipeline_kpis KPI [test_storage_sequential_write_throughput]: {"file_size_gb": 2.0, "storage_path": "/tmp", "threshold_gbs": 0.5, "write_bandwidth_gbs": 1.166, "write_time_sec": 1.715}
-15:18:27 INFO     tests.test_ai_pipeline_kpis KPI [test_storage_random_4k_read_iops]: {"avg_latency_us": 93.4, "block_size_bytes": 4096, "elapsed_sec": 0.467, "iops": 10710.0, "n_reads": 5000, "storage_path": "/tmp", "threshold_iops": 5000}
-15:18:27 INFO     tests.test_ai_pipeline_kpis KPI [test_tcp_loopback_throughput]: {"elapsed_sec": 0.093, "threshold_gbps": 5.0, "throughput_gbps": 46.134, "total_bytes_mb": 512.0}
-15:18:31 INFO     tests.test_ai_pipeline_kpis KPI [test_model_weight_load_pipeline_bandwidth]: {"end_to_end_gbs": 0.869, "shard_size_gb": 1.0, "threshold_gbs": 1.0, "total_load_time_sec": 1.15}
-15:18:32 INFO     tests.test_ai_pipeline_kpis KPI [test_time_to_first_token]: {"input_len": 32, "model_id": "openai-community/gpt2", "prefill_throughput_tokens_per_sec": 5197.3, "samples": [6.177994000609033, 6.049274998076726, 6.164481001178501, 6.143913000414614, 6.157047999295173], "threshold_ms": 200, "ttft_median_ms": 6.16, "ttft_p95_ms": 6.18}
-15:18:33 INFO     tests.test_ai_pipeline_kpis KPI [test_time_to_first_token]: {"input_len": 128, "model_id": "openai-community/gpt2", "prefill_throughput_tokens_per_sec": 24491.1, "samples": [5.248329998721601, 5.319631000020308, 5.215344001044286, 5.226381999818841, 5.2012399974046275], "threshold_ms": 200, "ttft_median_ms": 5.23, "ttft_p95_ms": 5.31}
-15:18:34 INFO     tests.test_ai_pipeline_kpis KPI [test_time_to_first_token]: {"input_len": 512, "model_id": "openai-community/gpt2", "prefill_throughput_tokens_per_sec": 96667.2, "samples": [5.3131439999560826, 5.344253000657773, 5.289707998599624, 5.279287001030752, 5.296524999721441], "threshold_ms": 500, "ttft_median_ms": 5.3, "ttft_p95_ms": 5.34}
-15:18:35 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:35 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:35 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:36 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:36 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:36 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:36 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:36 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:36 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:37 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:37 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:37 WARNING  tests.test_ai_pipeline_kpis CUDA context unhealthy on cuda:0: CUDA error: device-side assert triggered
-Search for `cudaErrorAssert' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
-CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
-For debugging consider passing CUDA_LAUNCH_BLOCKING=1
-Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
-
-15:18:37 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
-15:18:37 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md
+04:22:26 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
+04:22:30 INFO     tests.test_ai_pipeline_kpis KPI [test_tokenizer_throughput_by_seq_len]: {"batch_size": 64, "elapsed_sec": 0.05, "iterations": 10, "seq_len": 32, "sequences_per_sec": 12888.1, "threshold_tokens_per_sec": 50000, "tokens_per_sec": 412419.4}
+04:22:32 INFO     tests.test_ai_pipeline_kpis KPI [test_tokenizer_throughput_by_seq_len]: {"batch_size": 64, "elapsed_sec": 0.098, "iterations": 10, "seq_len": 128, "sequences_per_sec": 6546.7, "threshold_tokens_per_sec": 50000, "tokens_per_sec": 837973.0}
+04:22:32 INFO     tests.test_ai_pipeline_kpis KPI [test_tokenizer_throughput_by_seq_len]: {"batch_size": 64, "elapsed_sec": 0.303, "iterations": 10, "seq_len": 512, "sequences_per_sec": 2115.0, "threshold_tokens_per_sec": 50000, "tokens_per_sec": 1082859.3}
+04:22:34 INFO     tests.test_ai_pipeline_kpis KPI [test_tokenizer_throughput_by_seq_len]: {"batch_size": 64, "elapsed_sec": 0.851, "iterations": 10, "seq_len": 2048, "sequences_per_sec": 751.7, "threshold_tokens_per_sec": 20000, "tokens_per_sec": 1539520.9}
+04:22:34 INFO     tests.test_ai_pipeline_kpis KPI [test_tokenizer_multi_thread_scaling]: {"scaling_ratio": 3.575, "threads_1_tokens_per_sec": 364198.8, "threads_4_tokens_per_sec": 1302109.5, "threshold_scaling_ratio": 1.4}
+04:22:35 INFO     tests.test_ai_pipeline_kpis KPI [test_dataloader_cpu_to_pinned_throughput]: {"batch_size": 32, "elapsed_sec": 0.007, "n_samples": 2000, "num_workers": 0, "samples_per_sec": 290969.1, "seq_len": 128, "threshold_samples_per_sec": 1000}
+04:22:35 INFO     tests.test_ai_pipeline_kpis KPI [test_dataloader_cpu_to_pinned_throughput]: {"batch_size": 32, "elapsed_sec": 0.056, "n_samples": 2000, "num_workers": 2, "samples_per_sec": 35738.8, "seq_len": 128, "threshold_samples_per_sec": 1000}
+04:22:35 INFO     tests.test_ai_pipeline_kpis KPI [test_dataloader_cpu_to_pinned_throughput]: {"batch_size": 32, "elapsed_sec": 0.042, "n_samples": 2000, "num_workers": 4, "samples_per_sec": 48118.8, "seq_len": 128, "threshold_samples_per_sec": 1000}
+04:22:36 INFO     tests.test_ai_pipeline_kpis KPI [test_async_prefetch_gpu_overlap_efficiency]: {"compute_only_sec": 0.0076, "iterations": 20, "matmuls_per_iter": 10, "matrix_size": 2048, "overlap_efficiency_pct": 99.15, "pipelined_sec": 0.0077, "threshold_overlap_pct": 60.0}
+04:22:37 INFO     tests.test_ai_pipeline_kpis KPI [test_cpu_preprocessing_pipeline_throughput]: {"batch_size": 64, "batches_per_sec": 53.97, "elapsed_sec": 0.371, "n_batches": 20, "seq_len": 128, "threshold_tokens_per_sec": 200000, "total_tokens_per_sec": 442094.0}
+04:22:37 INFO     tests.test_ai_pipeline_kpis KPI [test_model_load_time_to_gpu]: {"load_bandwidth_gbs": 0.374, "load_time_sec": 0.619, "model_id": "openai-community/gpt2", "model_size_gb": 0.232, "threshold_gbs": 0.3}
+04:22:38 INFO     tests.test_ai_pipeline_kpis KPI [test_checkpoint_save_restore_throughput]: {"checkpoint_size_gb": 0.156, "restore_bandwidth_gbs": 4.986, "restore_time_sec": 0.031, "save_bandwidth_gbs": 1.65, "save_time_sec": 0.095, "threshold_restore_gbs": 1.0, "threshold_save_gbs": 0.5}
+04:22:38 INFO     tests.test_ai_pipeline_kpis KPI [test_kv_cache_memory_allocation_efficiency]: {"alloc_latency_us_per_block": 8.485, "alloc_time_sec": 0.0085, "block_bytes": 8388608, "block_size_tokens": 16, "blocks_per_sec": 117852.0, "head_dim": 128, "n_blocks": 1000, "n_heads": 32, "n_layers": 32, "threshold_blocks_per_sec": 10000, "total_kv_gb": 7.812}
+04:22:38 INFO     tests.test_ai_pipeline_kpis KPI [test_batch_assembly_gpu_latency]: {"assemble_us_per_batch": 21.242, "batch_size": 1, "iterations": 50, "seq_len": 512, "threshold_us_per_batch": 500.0, "throughput_batches_per_sec": 47075.6}
+04:22:39 INFO     tests.test_ai_pipeline_kpis KPI [test_batch_assembly_gpu_latency]: {"assemble_us_per_batch": 20.781, "batch_size": 4, "iterations": 50, "seq_len": 512, "threshold_us_per_batch": 500.0, "throughput_batches_per_sec": 48121.8}
+04:22:39 INFO     tests.test_ai_pipeline_kpis KPI [test_batch_assembly_gpu_latency]: {"assemble_us_per_batch": 20.373, "batch_size": 16, "iterations": 50, "seq_len": 512, "threshold_us_per_batch": 500.0, "throughput_batches_per_sec": 49085.3}
+04:22:43 INFO     tests.test_ai_pipeline_kpis KPI [test_storage_sequential_read_throughput]: {"file_size_gb": 2.0, "read_bandwidth_gbs": 1.402, "read_time_sec": 1.427, "storage_path": "/tmp", "threshold_gbs": 1.0}
+04:22:46 INFO     tests.test_ai_pipeline_kpis KPI [test_storage_sequential_write_throughput]: {"file_size_gb": 2.0, "storage_path": "/tmp", "threshold_gbs": 0.5, "write_bandwidth_gbs": 1.154, "write_time_sec": 1.733}
+04:22:47 INFO     tests.test_ai_pipeline_kpis KPI [test_storage_random_4k_read_iops]: {"avg_latency_us": 85.4, "block_size_bytes": 4096, "elapsed_sec": 0.427, "iops": 11712.0, "n_reads": 5000, "storage_path": "/tmp", "threshold_iops": 5000}
+04:22:48 INFO     tests.test_ai_pipeline_kpis KPI [test_tcp_loopback_throughput]: {"elapsed_sec": 0.05, "threshold_gbps": 5.0, "throughput_gbps": 85.343, "total_bytes_mb": 512.0}
+04:22:52 INFO     tests.test_ai_pipeline_kpis KPI [test_model_weight_load_pipeline_bandwidth]: {"end_to_end_gbs": 0.816, "shard_size_gb": 1.0, "threshold_gbs": 0.8, "total_load_time_sec": 1.225}
+04:22:53 INFO     tests.test_ai_pipeline_kpis KPI [test_time_to_first_token]: {"input_len": 32, "model_id": "openai-community/gpt2", "prefill_throughput_tokens_per_sec": 4977.2, "samples": [6.4292730003217, 6.453162999605411, 6.545538000864326, 6.382813000527676, 6.358573999023065], "threshold_ms": 200, "ttft_median_ms": 6.43, "ttft_p95_ms": 6.53}
+04:22:54 INFO     tests.test_ai_pipeline_kpis KPI [test_time_to_first_token]: {"input_len": 128, "model_id": "openai-community/gpt2", "prefill_throughput_tokens_per_sec": 21431.5, "samples": [6.004101998769329, 5.985959000099683, 5.904928999370895, 5.9725049995904556, 5.930653000177699], "threshold_ms": 200, "ttft_median_ms": 5.97, "ttft_p95_ms": 6.0}
+04:22:55 INFO     tests.test_ai_pipeline_kpis KPI [test_time_to_first_token]: {"input_len": 512, "model_id": "openai-community/gpt2", "prefill_throughput_tokens_per_sec": 85530.1, "samples": [5.986193998978706, 6.047578999641701, 5.966568000076222, 5.991449001157889, 5.94159399952332], "threshold_ms": 500, "ttft_median_ms": 5.99, "ttft_p95_ms": 6.04}
+04:23:06 INFO     tests.test_ai_pipeline_kpis KPI [test_inter_token_latency]: {"all_itl_ms": [244.642, 245.667, 244.791, 244.803, 245.539, 279.022, 277.535, 236.081, 236.567, 236.778, 235.647, 236.083, 235.974, 299.345, 288.894, 236.237, 236.225, 225.425, 236.751, 236.488, 236.549, 236.618, 299.356, 276.455, 236.791, 237.342, 236.935, 237.082, 237.518, 236.675, 292.896, 276.859], "decode_tokens_per_sec": 4.22, "itl_median_ms": 237.008, "itl_p95_ms": 295.798, "model_id": "openai-community/gpt2", "n_decode_steps": 32, "target_itl_median_ms_informational": 50.0, "threshold_itl_median_ms": 500.0}
+04:23:11 INFO     tests.test_ai_pipeline_kpis KPI [test_prefill_vs_decode_throughput_ratio]: {"decode_samples": 32, "decode_tps": 4.2, "model_id": "openai-community/gpt2", "prefill_input_tokens": 66, "prefill_to_decode_ratio": 3581.8, "prefill_tps": 15144.8, "threshold_ratio": 5.0}
+04:23:24 INFO     tests.test_ai_pipeline_kpis KPI [test_batched_inference_throughput]: {"batch_size": 1, "iterations": 5, "latency_median_sec": 0.1568, "latency_ms": 156.8, "latency_p95_sec": 0.2205, "model_id": "openai-community/gpt2", "n_gen_tokens": 32, "seq_len": 128, "tokens_per_sec": 204.1}
+04:23:38 INFO     tests.test_ai_pipeline_kpis KPI [test_batched_inference_throughput]: {"batch_size": 4, "iterations": 5, "latency_median_sec": 0.1616, "latency_ms": 161.63, "latency_p95_sec": 0.1619, "model_id": "openai-community/gpt2", "n_gen_tokens": 32, "seq_len": 128, "tokens_per_sec": 791.9}
+04:23:52 INFO     tests.test_ai_pipeline_kpis KPI [test_batched_inference_throughput]: {"batch_size": 8, "iterations": 5, "latency_median_sec": 0.1597, "latency_ms": 159.67, "latency_p95_sec": 0.2107, "model_id": "openai-community/gpt2", "n_gen_tokens": 32, "seq_len": 128, "tokens_per_sec": 1603.3}
+04:24:04 INFO     tests.test_ai_pipeline_kpis KPI [test_batched_inference_throughput]: {"batch_size": 16, "iterations": 5, "latency_median_sec": 0.1595, "latency_ms": 159.49, "latency_p95_sec": 0.16, "model_id": "openai-community/gpt2", "n_gen_tokens": 32, "seq_len": 128, "tokens_per_sec": 3210.3}
+04:24:21 INFO     tests.test_ai_pipeline_kpis KPI [test_gpu_utilisation_during_inference]: {"batch_size": 8, "mean_gpu_util_pct": 35.76, "mean_mem_util_pct": 4.29, "model_id": "openai-community/gpt2", "n_gen_tokens": 64, "n_samples": 17, "peak_gpu_util_pct": 36.0, "threshold_mean_util_pct": 10.0}

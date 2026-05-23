@@ -1,0 +1,9 @@
+23:56:41 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
+23:56:50 INFO     ai_headnode_tests Aggregate STREAM Triad BW                           measured=   727.239  theoretical=   307.200  efficiency=236.73%  threshold=    75%
+23:56:50 INFO     memory_validation MEM KPI [TC-MEM-04_aggregate_stream_triad]: {"bandwidth_gbs": 727.24, "theoretical_gbs": 307.2}
+23:56:50 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws32kb]: {"latency_ns": 76.27, "max_latency_ns": 120.0, "ws_kb": 32}
+23:56:51 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws512kb]: {"latency_ns": 76.19, "max_latency_ns": 120.0, "ws_kb": 512}
+23:56:51 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws16384kb]: {"latency_ns": 116.95, "max_latency_ns": 200.0, "ws_kb": 16384}
+23:56:52 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws524288kb]: {"latency_ns": 225.22, "max_latency_ns": 300.0, "ws_kb": 524288}
+23:57:07 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+23:57:07 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md

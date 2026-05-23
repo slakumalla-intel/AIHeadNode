@@ -1,0 +1,970 @@
+{
+  "generated_at_utc": "2026-05-23T00:03:29.823496+00:00",
+  "host": "sc00901168s0075",
+  "python": "3.12.13",
+  "domains": [
+    {
+      "domain": "cpu",
+      "description": "CPU validation",
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-05-22T23:52:43.401088+00:00",
+      "finished_at_utc": "2026-05-22T23:56:40.216409+00:00",
+      "tests": 33,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "duration_sec": 235.479,
+      "failed_tests": [],
+      "junit_xml": "artifacts/loop/run_0001/junit/cpu.xml",
+      "log_file": "artifacts/loop/run_0001/logs/cpu.log",
+      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/junit/cpu.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/logs/cpu.log --log-file-level INFO tests/test_cpu_validation.py"
+    },
+    {
+      "domain": "memory",
+      "description": "Memory subsystem validation",
+      "status": "FAIL",
+      "return_code": 1,
+      "started_at_utc": "2026-05-22T23:56:40.216677+00:00",
+      "finished_at_utc": "2026-05-22T23:57:08.158163+00:00",
+      "tests": 28,
+      "failures": 3,
+      "errors": 0,
+      "skipped": 0,
+      "duration_sec": 26.634,
+      "failed_tests": [
+        {
+          "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_scale_bw_exceeds_15gbs",
+          "message": "AssertionError: STREAM Scale 13.78 GB/s < 15 GB/s\nassert 13.777981853952554 >= 15.0",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_triad_bw_exceeds_15gbs",
+          "message": "AssertionError: STREAM Triad 13.66 GB/s < 15 GB/s\nassert 13.664780190801295 >= 15.0",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_memory_validation.TestCacheHierarchyBandwidth::test_bandwidth_at_working_set[L3-cache-8.0-18.0]",
+          "message": "AssertionError: L3-cache: measured 17.4 GB/s < expected 18.0 GB/s\nassert 17.351036462331077 >= 18.0",
+          "kind": "failure"
+        }
+      ],
+      "junit_xml": "artifacts/loop/run_0001/junit/memory.xml",
+      "log_file": "artifacts/loop/run_0001/logs/memory.log",
+      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/junit/memory.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/logs/memory.log --log-file-level INFO tests/test_memory_validation.py"
+    },
+    {
+      "domain": "gpu",
+      "description": "GPU validation",
+      "status": "FAIL",
+      "return_code": 1,
+      "started_at_utc": "2026-05-22T23:57:08.158373+00:00",
+      "finished_at_utc": "2026-05-22T23:57:27.328661+00:00",
+      "tests": 53,
+      "failures": 42,
+      "errors": 0,
+      "skipped": 6,
+      "duration_sec": 17.398,
+      "failed_tests": [
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUDiscovery::test_all_gpus_initialise",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUModel::test_gpu_model_is_h100",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUModel::test_compute_capability_90",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestHBMCapacity::test_hbm_capacity_per_gpu",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestHBMCapacity::test_total_gpu_memory",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestHBMBandwidth::test_hbm_bandwidth_per_gpu[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestHBMBandwidth::test_hbm_bandwidth_per_gpu[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestHBMBandwidth::test_hbm_bandwidth_per_gpu[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestHBMBandwidth::test_hbm_bandwidth_per_gpu[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP32Throughput::test_fp32_gflops_per_gpu[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP16ThroughputGPU::test_fp16_tflops_per_gpu[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestBF16Throughput::test_bf16_tflops_per_gpu[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestINT8Throughput::test_int8_tops_per_gpu[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP64Throughput::test_fp64_tflops_per_gpu[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP64Throughput::test_fp64_tflops_per_gpu[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP64Throughput::test_fp64_tflops_per_gpu[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestFP64Throughput::test_fp64_tflops_per_gpu[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestMultiGPUCompute::test_all_gpus_concurrent_fp16_tflops",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUUtilisation::test_gpu_utilisation_near_100_percent",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUTemperature::test_gpu_temperature_in_range",
+          "message": "pynvml.NVMLError_ResetRequired: GPU requires restart",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUPowerDraw::test_gpu_power_within_tdp_at_idle",
+          "message": "pynvml.NVMLError_NotSupported: Not Supported",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestCUDAStreamConcurrency::test_concurrent_streams_faster_than_serial",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_host_to_device_bandwidth[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_host_to_device_bandwidth[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_host_to_device_bandwidth[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_host_to_device_bandwidth[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_gpu_validation.TestGPUEnumerationPCIeTopology::test_pcie_device_to_host_bandwidth[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        }
+      ],
+      "junit_xml": "artifacts/loop/run_0001/junit/gpu.xml",
+      "log_file": "artifacts/loop/run_0001/logs/gpu.log",
+      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/junit/gpu.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/logs/gpu.log --log-file-level INFO tests/test_gpu_validation.py"
+    },
+    {
+      "domain": "interconnect",
+      "description": "PCIe / NVLink / P2P interconnect validation",
+      "status": "FAIL",
+      "return_code": 1,
+      "started_at_utc": "2026-05-22T23:57:27.328884+00:00",
+      "finished_at_utc": "2026-05-22T23:57:57.489855+00:00",
+      "tests": 77,
+      "failures": 63,
+      "errors": 0,
+      "skipped": 12,
+      "duration_sec": 27.669,
+      "failed_tests": [
+        {
+          "nodeid": "tests.test_interconnect_validation.TestH2DBandwidth::test_h2d_bandwidth_per_gpu[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestH2DBandwidth::test_h2d_bandwidth_per_gpu[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestH2DBandwidth::test_h2d_bandwidth_per_gpu[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestH2DBandwidth::test_h2d_bandwidth_per_gpu[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestD2HBandwidth::test_d2h_bandwidth_per_gpu[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestD2HBandwidth::test_d2h_bandwidth_per_gpu[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestD2HBandwidth::test_d2h_bandwidth_per_gpu[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestD2HBandwidth::test_d2h_bandwidth_per_gpu[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestBidirectionalPCIeBandwidth::test_bidir_pcie_bandwidth_per_gpu[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestBidirectionalPCIeBandwidth::test_bidir_pcie_bandwidth_per_gpu[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestBidirectionalPCIeBandwidth::test_bidir_pcie_bandwidth_per_gpu[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestBidirectionalPCIeBandwidth::test_bidir_pcie_bandwidth_per_gpu[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestAllGPUH2D::test_concurrent_h2d_all_gpus",
+          "message": "AssertionError: Concurrent H2D BW all 4 GPUs: efficiency 0.00% is below threshold 65.00% (measured=0.000, theoretical=252.000)\nassert 0.0 >= 0.65",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestP2PBandwidth::test_p2p_bandwidth_pair[0-1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestP2PBandwidth::test_p2p_bandwidth_pair[0-2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestP2PBandwidth::test_p2p_bandwidth_pair[0-3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestP2PBandwidth::test_p2p_bandwidth_pair[1-2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestP2PBandwidth::test_p2p_bandwidth_pair[1-3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestP2PBandwidth::test_p2p_bandwidth_pair[2-3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[0-1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[0-2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[0-3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[1-0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[1-2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[1-3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[2-0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[2-1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[2-3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[3-0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[3-1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestUVAMemoryAccess::test_uva_p2p_read_write[3-2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestCPUGPUPipelineOverlap::test_compute_transfer_overlap[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestCPUGPUPipelineOverlap::test_compute_transfer_overlap[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestCPUGPUPipelineOverlap::test_compute_transfer_overlap[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestCPUGPUPipelineOverlap::test_compute_transfer_overlap[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[64-0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[64-1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[64-2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[64-3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[256-0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[256-1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[256-2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[256-3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[512-0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[512-1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[512-2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[512-3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[1024-0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[1024-1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestDMAConsistency::test_large_h2d_data_integrity[1024-2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        }
+      ],
+      "junit_xml": "artifacts/loop/run_0001/junit/interconnect.xml",
+      "log_file": "artifacts/loop/run_0001/logs/interconnect.log",
+      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/junit/interconnect.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/logs/interconnect.log --log-file-level INFO tests/test_interconnect_validation.py"
+    },
+    {
+      "domain": "node_validation",
+      "description": "Node bring-up and workload acceptance",
+      "status": "FAIL",
+      "return_code": 1,
+      "started_at_utc": "2026-05-22T23:57:57.490072+00:00",
+      "finished_at_utc": "2026-05-23T00:02:16.474274+00:00",
+      "tests": 51,
+      "failures": 18,
+      "errors": 0,
+      "skipped": 17,
+      "duration_sec": 255.543,
+      "failed_tests": [
+        {
+          "nodeid": "tests.test_node_validation.TestPCIeBandwidthDirect::test_h2d_bandwidth_all_gpus",
+          "message": "Failed: H2D PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=0.00 GB/s, mean=0.00 GB/s\nPer-GPU failures:\nGPU 0: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)\nGPU 1: 0.0 GB/s (measurement failed; check CUDA/P2P path ",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestPCIeBandwidthDirect::test_d2h_bandwidth_all_gpus",
+          "message": "Failed: D2H PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=0.00 GB/s, mean=0.00 GB/s\nPer-GPU failures:\nGPU 0: 0.0 GB/s (measurement failed; check CUDA/P2P path and logs)\nGPU 1: 0.0 GB/s (measurement failed; check CUDA/P2P path ",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestNVBandwidthMemcpy::test_pcie_bw_p2p_latency_hugepages_2mb",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_latency_binary",
+          "message": "AssertionError: 1 P2P bandwidth values below 40.0 GB/s: ['18.2']\nassert not [18.18]",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_bandwidth_pytorch_fallback",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestGPUP2PBandwidth::test_p2p_multi_stream_bandwidth",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestCPUGPULaunchAndSyncOverhead::test_kernel_launch_latency_stats",
+          "message": "AssertionError: Kernel launch measurement failed\nassert {}",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestCPUGPULaunchAndSyncOverhead::test_synchronize_overhead_stats",
+          "message": "AssertionError: Synchronize measurement failed\nassert {}",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestCPUGPUPowerAndThrottling::test_gpu_write_performance_limiters",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[llama_7b-meta-llama/Meta-Llama-3.1-8B-Instruct-32-3000.0-False]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_batch_throughput",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vision_object_detection_yolo_fps",
+          "message": "Failed: YOLO worker failure: [{'gpu': 1, 'status': 'error', 'error': 'CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTo",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vision_image_generation_diffusers_throughput",
+          "message": "Failed: Diffusers worker failure: [{'status': 'error', 'rank': 3, 'error': 'CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug t",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_encoder_training_throughput",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_one_dma_read_4kb_validation",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_looped_rdma_mmio_dma_stress_soak",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_llm_training_small_multigpu",
+          "message": "Failed: TC-013 worker failures: [{'rank': 3, 'status': 'error', 'error': 'CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to ",
+          "kind": "failure"
+        }
+      ],
+      "junit_xml": "artifacts/loop/run_0001/junit/node_validation.xml",
+      "log_file": "artifacts/loop/run_0001/logs/node_validation.log",
+      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/junit/node_validation.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/logs/node_validation.log --log-file-level INFO tests/test_node_validation.py"
+    },
+    {
+      "domain": "agentic_ai",
+      "description": "Agentic AI KPI validation",
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-05-23T00:02:16.474492+00:00",
+      "finished_at_utc": "2026-05-23T00:02:35.470876+00:00",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_sec": 17.438,
+      "failed_tests": [],
+      "junit_xml": "artifacts/loop/run_0001/junit/agentic_ai.xml",
+      "log_file": "artifacts/loop/run_0001/logs/agentic_ai.log",
+      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/junit/agentic_ai.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/logs/agentic_ai.log --log-file-level INFO tests/test_agentic_ai_validation.py"
+    },
+    {
+      "domain": "ai_pipeline",
+      "description": "AI pipeline KPI validation",
+      "status": "FAIL",
+      "return_code": 1,
+      "started_at_utc": "2026-05-23T00:02:35.471057+00:00",
+      "finished_at_utc": "2026-05-23T00:03:11.298744+00:00",
+      "tests": 38,
+      "failures": 10,
+      "errors": 0,
+      "skipped": 17,
+      "duration_sec": 32.046,
+      "failed_tests": [
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_dataloader_cpu_to_pinned_throughput[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_dataloader_cpu_to_pinned_throughput[4]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_async_prefetch_gpu_overlap_efficiency",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_model_load_time_to_gpu",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_checkpoint_save_restore_throughput",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_kv_cache_memory_allocation_efficiency",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_batch_assembly_gpu_latency[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_batch_assembly_gpu_latency[4]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_batch_assembly_gpu_latency[16]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO::test_model_weight_load_pipeline_bandwidth",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        }
+      ],
+      "junit_xml": "artifacts/loop/run_0001/junit/ai_pipeline.xml",
+      "log_file": "artifacts/loop/run_0001/logs/ai_pipeline.log",
+      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/junit/ai_pipeline.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/logs/ai_pipeline.log --log-file-level INFO tests/test_ai_pipeline_kpis.py"
+    },
+    {
+      "domain": "system_health",
+      "description": "System health and reliability",
+      "status": "FAIL",
+      "return_code": 1,
+      "started_at_utc": "2026-05-23T00:03:11.298952+00:00",
+      "finished_at_utc": "2026-05-23T00:03:24.699621+00:00",
+      "tests": 39,
+      "failures": 22,
+      "errors": 0,
+      "skipped": 6,
+      "duration_sec": 11.655,
+      "failed_tests": [
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_temperature_within_safe_limits[1]",
+          "message": "pynvml.NVMLError_ResetRequired: GPU requires restart",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[0]",
+          "message": "AssertionError: GPU 0 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)\nassert 0.19658119658119658 >= 0.8",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[2]",
+          "message": "AssertionError: GPU 2 clock ratio 19.33% below 80%; throttling suspected (current 345 MHz, max 1785 MHz)\nassert 0.19327731092436976 >= 0.8",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[3]",
+          "message": "AssertionError: GPU 3 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)\nassert 0.19658119658119658 >= 0.8",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_sustained_compute_no_thermal_throttle",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_fp16_gflops_per_watt[0]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_fp16_gflops_per_watt[1]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_fp16_gflops_per_watt[2]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_fp16_gflops_per_watt[3]",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestEnergyEfficiency::test_aggregate_4gpu_fp16_tflops_per_watt",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_int8_matmul_error_vs_fp16",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_fp8_e4m3_matmul_error_vs_fp16",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_bf16_vs_fp16_matmul_equivalence",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_quantised_softmax_output_matches_fp16",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestDDPGradientSynchronizationCorrectness::test_ddp_gradient_sync_matches_single_gpu",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestDDPGradientSynchronizationCorrectness::test_multi_gpu_parameter_consistency_after_allreduce",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_output_matches_eager",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_speedup_over_eager",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness::test_event_wait_enforces_ordering",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness::test_multi_stream_no_race_on_shared_tensor",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness::test_cuda_event_elapsed_time_positive",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness::test_concurrent_stream_throughput_vs_sequential",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        }
+      ],
+      "junit_xml": "artifacts/loop/run_0001/junit/system_health.xml",
+      "log_file": "artifacts/loop/run_0001/logs/system_health.log",
+      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/junit/system_health.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/logs/system_health.log --log-file-level INFO tests/test_system_health_and_reliability.py"
+    },
+    {
+      "domain": "system_config",
+      "description": "System config report validation",
+      "status": "FAIL",
+      "return_code": 1,
+      "started_at_utc": "2026-05-23T00:03:24.699801+00:00",
+      "finished_at_utc": "2026-05-23T00:03:29.823306+00:00",
+      "tests": 8,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 0,
+      "duration_sec": 3.769,
+      "failed_tests": [
+        {
+          "nodeid": "tests.test_system_config_report.TestGPUConfigReport::test_collect_and_print_gpu_config",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_config_report.TestGPUConfigReport::test_gpu_model_names_in_report",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_config_report.TestGPUConfigReport::test_total_gpu_memory_in_report",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_config_report.TestPCIeTopologyReport::test_pcie_topology_present_in_report",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_config_report.TestPCIeTopologyReport::test_pcie_links_healthy_in_report",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_system_config_report.TestCombinedConfigReport::test_generate_and_save_combined_report",
+          "message": "torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device >= 0 && device < num_gpus INTERNAL ASSERT FAILED at \"/pytorch/aten/src/ATen/cuda/CUDAContext.cpp\":51, please report a bug to PyTorch. device=3, num_gpus=3\n\nCUDA call",
+          "kind": "failure"
+        }
+      ],
+      "junit_xml": "artifacts/loop/run_0001/junit/system_config.xml",
+      "log_file": "artifacts/loop/run_0001/logs/system_config.log",
+      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/junit/system_config.xml --log-file /root/workloads/mpudhuch/AIHeadNode/artifacts/loop/run_0001/logs/system_config.log --log-file-level INFO tests/test_system_config_report.py"
+    }
+  ],
+  "summary": {
+    "domains_run": 9,
+    "passed_domains": 2,
+    "failed_domains": 7,
+    "tests": 336,
+    "failures": 164,
+    "errors": 0,
+    "skipped": 59
+  },
+  "defaults_applied": {
+    "ML_EXECUTE_CASES": "1",
+    "PERF_EXECUTE_CASES": "1",
+    "PIPELINE_EXECUTE": "1",
+    "AGENTIC_EXECUTE": "1",
+    "HEALTH_EXECUTE": "1",
+    "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
+    "DATASETS_ROOT": "/mnt/datasets",
+    "HF_HOME": "/mnt/datasets/huggingface",
+    "HF_HUB_CACHE": "/mnt/datasets/huggingface/hub",
+    "HUGGINGFACE_HUB_CACHE": "/mnt/datasets/huggingface/hub",
+    "TRANSFORMERS_CACHE": "/mnt/datasets/huggingface/hub",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_ENABLE_LARGE_MODELS": "1",
+    "HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD": "0",
+    "HF_ENTERPRISE_LATENCY_MIN_DURATION_SEC": "300",
+    "HF_INFERENCE_MODEL": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "HF_TRAINING_MODEL": "bert-base-uncased",
+    "NODE_VLLM_KV_OFFLOAD_MODEL": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "MLPERF_DATA_DIR": "/mnt/datasets",
+    "MLPERF_MODEL_DIR": "/mnt/datasets",
+    "NODE_WORKLOAD_AUTO_INSTALL": "1",
+    "NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC": "1800",
+    "NVBANDWIDTH_BIN": "/root/workloads/nvbandwidth",
+    "PERF_NVBANDWIDTH_BIN": "/root/workloads/nvbandwidth",
+    "PERF_NCCL_TESTS_DIR": "/root/workloads/nccl-tests/build",
+    "PERF_VLLM_BENCH_NUM_PROMPTS_CAP": "100",
+    "PYTEST_TIMEOUT": "1800",
+    "PERF_CMD_TIMEOUT_SEC": "1800",
+    "ML_CMD_TIMEOUT_SEC": "3600",
+    "NODE_VALIDATION_KPI_FILE": "artifacts/node_validation_kpis.jsonl",
+    "PERF_SUITE_KPI_FILE": "artifacts/performance_suite_kpis.jsonl",
+    "ML_SUITE_KPI_FILE": "artifacts/mlperf_suite_kpis.jsonl",
+    "VLLM_PREFILL_KPI_FILE": "artifacts/vllm_prefill_kpis.jsonl",
+    "PIPELINE_KPI_FILE": "artifacts/ai_pipeline_kpis.jsonl",
+    "HEALTH_KPI_FILE": "artifacts/system_health_kpis.jsonl",
+    "AGENTIC_KPI_FILE": "artifacts/agentic_ai_kpis.jsonl"
+  }
+}

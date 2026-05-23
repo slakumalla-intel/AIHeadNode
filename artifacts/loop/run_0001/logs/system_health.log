@@ -1,0 +1,23 @@
+00:03:12 INFO     ai_headnode_tests System config captured: /root/workloads/mpudhuch/AIHeadNode/system_config_report.json
+00:03:14 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_temperature_within_safe_limits[0] -> {'device_idx': 0, 'temperature_c': 35, 'threshold_c': 83}
+00:03:14 INFO     tests.test_system_health_and_reliability GPU 0 temperature: 35 °C (limit 83 °C)
+00:03:14 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_temperature_within_safe_limits[2] -> {'device_idx': 2, 'temperature_c': 36, 'threshold_c': 83}
+00:03:14 INFO     tests.test_system_health_and_reliability GPU 2 temperature: 36 °C (limit 83 °C)
+00:03:14 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_temperature_within_safe_limits[3] -> {'device_idx': 3, 'temperature_c': 33, 'threshold_c': 83}
+00:03:14 INFO     tests.test_system_health_and_reliability GPU 3 temperature: 33 °C (limit 83 °C)
+00:03:15 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_clock_boost_ratio[0] -> {'device_idx': 0, 'current_clock_mhz': 345, 'max_clock_mhz': 1755, 'clock_ratio': 0.1966}
+00:03:15 INFO     tests.test_system_health_and_reliability GPU 0 clock: 345 / 1755 MHz = 19.66%
+00:03:15 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_clock_boost_ratio[2] -> {'device_idx': 2, 'current_clock_mhz': 345, 'max_clock_mhz': 1785, 'clock_ratio': 0.1933}
+00:03:15 INFO     tests.test_system_health_and_reliability GPU 2 clock: 345 / 1785 MHz = 19.33%
+00:03:15 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_clock_boost_ratio[3] -> {'device_idx': 3, 'current_clock_mhz': 345, 'max_clock_mhz': 1755, 'clock_ratio': 0.1966}
+00:03:15 INFO     tests.test_system_health_and_reliability GPU 3 clock: 345 / 1755 MHz = 19.66%
+00:03:16 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_power_limit_headroom -> {'gpu0_power_w': 52.069, 'gpu2_power_w': 62.311, 'gpu3_power_w': 48.816, 'gpu0_limit_w': 350.0, 'gpu2_limit_w': 400.0, 'gpu3_limit_w': 350.0, 'gpu0_ratio': 0.1488, 'gpu2_ratio': 0.1558, 'gpu3_ratio': 0.1395}
+00:03:17 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_uncorrected_errors_zero[0] -> {'device_idx': 0, 'uncorrected_ecc_errors': 0}
+00:03:17 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_uncorrected_errors_zero[2] -> {'device_idx': 2, 'uncorrected_ecc_errors': 0}
+00:03:17 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_uncorrected_errors_zero[3] -> {'device_idx': 3, 'uncorrected_ecc_errors': 0}
+00:03:17 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_corrected_errors_below_threshold[0] -> {'device_idx': 0, 'corrected_ecc_errors': 0, 'threshold': 100}
+00:03:18 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_corrected_errors_below_threshold[2] -> {'device_idx': 2, 'corrected_ecc_errors': 0, 'threshold': 100}
+00:03:18 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_corrected_errors_below_threshold[3] -> {'device_idx': 3, 'corrected_ecc_errors': 0, 'threshold': 100}
+00:03:18 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_nvml_health_flags_clean -> {'gpu0_retired_pages_dbe': 0, 'gpu1_retired_pages_dbe': 0, 'gpu2_retired_pages_dbe': 0, 'gpu3_retired_pages_dbe': 0}
+00:03:24 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+00:03:24 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/mpudhuch/AIHeadNode/NODE_VALIDATION_REPORT.md

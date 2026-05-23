@@ -1,0 +1,745 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="8" time="3.769" timestamp="2026-05-23T00:03:25.448077+00:00" hostname="sc00901168s0075"><testcase classname="tests.test_system_config_report.TestCPUConfigReport" name="test_collect_and_print_cpu_config" time="0.320" /><testcase classname="tests.test_system_config_report.TestCPUConfigReport" name="test_cpu_spec_conforms_to_theoretical" time="0.217" /><testcase classname="tests.test_system_config_report.TestGPUConfigReport" name="test_collect_and_print_gpu_config" time="0.204"><failure message="torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at &quot;/pytorch/aten/src/ATen/cuda/CUDAContext.cpp&quot;:51, please report a bug to PyTorch. device=3, num_gpus=3&#10;&#10;CUDA call was originally invoked at:&#10;&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 198, in _run_module_as_main&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 88, in _run_code&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py&quot;, line 9, in &lt;module&gt;&#10;    raise SystemExit(pytest.console_main())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 223, in console_main&#10;    code = main()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 199, in main&#10;    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 365, in pytest_cmdline_main&#10;    return wrap_session(config, _main)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 318, in wrap_session&#10;    session.exitstatus = doit(config, session) or 0&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 371, in _main&#10;    config.hook.pytest_collection(session=session)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 382, in pytest_collection&#10;    session.perform_collect()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 857, in perform_collect&#10;    self.items.extend(self.genitems(node))&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 1020, in genitems&#10;    rep, duplicate = self._collect_one_node(node, handle_dupes)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 883, in _collect_one_node&#10;    rep = collect_one_node(node)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 576, in collect_one_node&#10;    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 400, in pytest_make_collect_report&#10;    call = CallInfo.from_call(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 353, in from_call&#10;    result: TResult | None = func()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 398, in collect&#10;    return list(collector.collect())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 563, in collect&#10;    self._register_setup_module_fixture()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 576, in _register_setup_module_fixture&#10;    self.obj, (&quot;setUpModule&quot;, &quot;setup_module&quot;)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 289, in obj&#10;    self._obj = obj = self._getobj()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 560, in _getobj&#10;    return importtestmodule(self.path, self.config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 507, in importtestmodule&#10;    mod = import_path(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py&quot;, line 587, in import_path&#10;    importlib.import_module(module_name)&#10;  File &quot;/usr/lib64/python3.12/importlib/__init__.py&quot;, line 90, in import_module&#10;    return _bootstrap._gcd_import(name[level:], package, level)&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1387, in _gcd_import&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py&quot;, line 197, in exec_module&#10;    exec(co, module.__dict__)&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py&quot;, line 36, in &lt;module&gt;&#10;    from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py&quot;, line 24, in &lt;module&gt;&#10;    import torch&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py&quot;, line 2167, in &lt;module&gt;&#10;    _C._initExtension(_manager_path())&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 424, in &lt;module&gt;&#10;    _lazy_call(_check_capability)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 421, in _lazy_call&#10;    _queued_calls.append((callable, traceback.format_stack()))">/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:489: in _lazy_init
+    queued_call()
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:366: in _check_capability
+    major, minor = get_device_capability(d)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:669: in get_device_capability
+    prop = get_device_properties(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:690: in get_device_properties
+    return _get_device_properties(device)  # type: ignore[name-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   RuntimeError: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+
+The above exception was the direct cause of the following exception:
+tests/test_system_config_report.py:428: in test_collect_and_print_gpu_config
+    gpu_info = _collect_gpu_info()
+               ^^^^^^^^^^^^^^^^^^^
+tests/test_system_config_report.py:140: in _collect_gpu_info
+    g["name"] = torch.cuda.get_device_name(i)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:653: in get_device_name
+    return get_device_properties(device).name
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:686: in get_device_properties
+    _lazy_init()  # will define _get_device_properties
+    ^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:495: in _lazy_init
+    raise DeferredCudaCallError(msg) from e
+E   torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+E   
+E   CUDA call was originally invoked at:
+E   
+E     File "&lt;frozen runpy&gt;", line 198, in _run_module_as_main
+E     File "&lt;frozen runpy&gt;", line 88, in _run_code
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in &lt;module&gt;
+E       raise SystemExit(pytest.console_main())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+E       code = main()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+E       ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+E       return wrap_session(config, _main)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+E       session.exitstatus = doit(config, session) or 0
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+E       config.hook.pytest_collection(session=session)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+E       session.perform_collect()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+E       self.items.extend(self.genitems(node))
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+E       rep, duplicate = self._collect_one_node(node, handle_dupes)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+E       rep = collect_one_node(node)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+E       rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+E       call = CallInfo.from_call(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+E       result: TResult | None = func()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+E       return list(collector.collect())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+E       self._register_setup_module_fixture()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+E       self.obj, ("setUpModule", "setup_module")
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+E       self._obj = obj = self._getobj()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+E       return importtestmodule(self.path, self.config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+E       mod = import_path(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+E       importlib.import_module(module_name)
+E     File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+E       return _bootstrap._gcd_import(name[level:], package, level)
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1387, in _gcd_import
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+E       exec(co, module.__dict__)
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py", line 36, in &lt;module&gt;
+E       from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in &lt;module&gt;
+E       import torch
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in &lt;module&gt;
+E       _C._initExtension(_manager_path())
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in &lt;module&gt;
+E       _lazy_call(_check_capability)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+E       _queued_calls.append((callable, traceback.format_stack()))</failure></testcase><testcase classname="tests.test_system_config_report.TestGPUConfigReport" name="test_gpu_model_names_in_report" time="0.198"><failure message="torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at &quot;/pytorch/aten/src/ATen/cuda/CUDAContext.cpp&quot;:51, please report a bug to PyTorch. device=3, num_gpus=3&#10;&#10;CUDA call was originally invoked at:&#10;&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 198, in _run_module_as_main&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 88, in _run_code&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py&quot;, line 9, in &lt;module&gt;&#10;    raise SystemExit(pytest.console_main())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 223, in console_main&#10;    code = main()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 199, in main&#10;    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 365, in pytest_cmdline_main&#10;    return wrap_session(config, _main)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 318, in wrap_session&#10;    session.exitstatus = doit(config, session) or 0&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 371, in _main&#10;    config.hook.pytest_collection(session=session)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 382, in pytest_collection&#10;    session.perform_collect()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 857, in perform_collect&#10;    self.items.extend(self.genitems(node))&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 1020, in genitems&#10;    rep, duplicate = self._collect_one_node(node, handle_dupes)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 883, in _collect_one_node&#10;    rep = collect_one_node(node)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 576, in collect_one_node&#10;    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 400, in pytest_make_collect_report&#10;    call = CallInfo.from_call(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 353, in from_call&#10;    result: TResult | None = func()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 398, in collect&#10;    return list(collector.collect())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 563, in collect&#10;    self._register_setup_module_fixture()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 576, in _register_setup_module_fixture&#10;    self.obj, (&quot;setUpModule&quot;, &quot;setup_module&quot;)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 289, in obj&#10;    self._obj = obj = self._getobj()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 560, in _getobj&#10;    return importtestmodule(self.path, self.config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 507, in importtestmodule&#10;    mod = import_path(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py&quot;, line 587, in import_path&#10;    importlib.import_module(module_name)&#10;  File &quot;/usr/lib64/python3.12/importlib/__init__.py&quot;, line 90, in import_module&#10;    return _bootstrap._gcd_import(name[level:], package, level)&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1387, in _gcd_import&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py&quot;, line 197, in exec_module&#10;    exec(co, module.__dict__)&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py&quot;, line 36, in &lt;module&gt;&#10;    from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py&quot;, line 24, in &lt;module&gt;&#10;    import torch&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py&quot;, line 2167, in &lt;module&gt;&#10;    _C._initExtension(_manager_path())&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 424, in &lt;module&gt;&#10;    _lazy_call(_check_capability)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 421, in _lazy_call&#10;    _queued_calls.append((callable, traceback.format_stack()))">/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:489: in _lazy_init
+    queued_call()
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:366: in _check_capability
+    major, minor = get_device_capability(d)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:669: in get_device_capability
+    prop = get_device_properties(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:690: in get_device_properties
+    return _get_device_properties(device)  # type: ignore[name-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   RuntimeError: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+
+The above exception was the direct cause of the following exception:
+tests/test_system_config_report.py:441: in test_gpu_model_names_in_report
+    gpu_info = _collect_gpu_info()
+               ^^^^^^^^^^^^^^^^^^^
+tests/test_system_config_report.py:140: in _collect_gpu_info
+    g["name"] = torch.cuda.get_device_name(i)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:653: in get_device_name
+    return get_device_properties(device).name
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:686: in get_device_properties
+    _lazy_init()  # will define _get_device_properties
+    ^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:495: in _lazy_init
+    raise DeferredCudaCallError(msg) from e
+E   torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+E   
+E   CUDA call was originally invoked at:
+E   
+E     File "&lt;frozen runpy&gt;", line 198, in _run_module_as_main
+E     File "&lt;frozen runpy&gt;", line 88, in _run_code
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in &lt;module&gt;
+E       raise SystemExit(pytest.console_main())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+E       code = main()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+E       ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+E       return wrap_session(config, _main)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+E       session.exitstatus = doit(config, session) or 0
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+E       config.hook.pytest_collection(session=session)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+E       session.perform_collect()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+E       self.items.extend(self.genitems(node))
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+E       rep, duplicate = self._collect_one_node(node, handle_dupes)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+E       rep = collect_one_node(node)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+E       rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+E       call = CallInfo.from_call(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+E       result: TResult | None = func()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+E       return list(collector.collect())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+E       self._register_setup_module_fixture()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+E       self.obj, ("setUpModule", "setup_module")
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+E       self._obj = obj = self._getobj()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+E       return importtestmodule(self.path, self.config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+E       mod = import_path(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+E       importlib.import_module(module_name)
+E     File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+E       return _bootstrap._gcd_import(name[level:], package, level)
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1387, in _gcd_import
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+E       exec(co, module.__dict__)
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py", line 36, in &lt;module&gt;
+E       from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in &lt;module&gt;
+E       import torch
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in &lt;module&gt;
+E       _C._initExtension(_manager_path())
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in &lt;module&gt;
+E       _lazy_call(_check_capability)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+E       _queued_calls.append((callable, traceback.format_stack()))</failure></testcase><testcase classname="tests.test_system_config_report.TestGPUConfigReport" name="test_total_gpu_memory_in_report" time="0.203"><failure message="torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at &quot;/pytorch/aten/src/ATen/cuda/CUDAContext.cpp&quot;:51, please report a bug to PyTorch. device=3, num_gpus=3&#10;&#10;CUDA call was originally invoked at:&#10;&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 198, in _run_module_as_main&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 88, in _run_code&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py&quot;, line 9, in &lt;module&gt;&#10;    raise SystemExit(pytest.console_main())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 223, in console_main&#10;    code = main()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 199, in main&#10;    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 365, in pytest_cmdline_main&#10;    return wrap_session(config, _main)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 318, in wrap_session&#10;    session.exitstatus = doit(config, session) or 0&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 371, in _main&#10;    config.hook.pytest_collection(session=session)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 382, in pytest_collection&#10;    session.perform_collect()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 857, in perform_collect&#10;    self.items.extend(self.genitems(node))&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 1020, in genitems&#10;    rep, duplicate = self._collect_one_node(node, handle_dupes)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 883, in _collect_one_node&#10;    rep = collect_one_node(node)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 576, in collect_one_node&#10;    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 400, in pytest_make_collect_report&#10;    call = CallInfo.from_call(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 353, in from_call&#10;    result: TResult | None = func()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 398, in collect&#10;    return list(collector.collect())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 563, in collect&#10;    self._register_setup_module_fixture()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 576, in _register_setup_module_fixture&#10;    self.obj, (&quot;setUpModule&quot;, &quot;setup_module&quot;)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 289, in obj&#10;    self._obj = obj = self._getobj()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 560, in _getobj&#10;    return importtestmodule(self.path, self.config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 507, in importtestmodule&#10;    mod = import_path(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py&quot;, line 587, in import_path&#10;    importlib.import_module(module_name)&#10;  File &quot;/usr/lib64/python3.12/importlib/__init__.py&quot;, line 90, in import_module&#10;    return _bootstrap._gcd_import(name[level:], package, level)&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1387, in _gcd_import&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py&quot;, line 197, in exec_module&#10;    exec(co, module.__dict__)&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py&quot;, line 36, in &lt;module&gt;&#10;    from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py&quot;, line 24, in &lt;module&gt;&#10;    import torch&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py&quot;, line 2167, in &lt;module&gt;&#10;    _C._initExtension(_manager_path())&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 424, in &lt;module&gt;&#10;    _lazy_call(_check_capability)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 421, in _lazy_call&#10;    _queued_calls.append((callable, traceback.format_stack()))">/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:489: in _lazy_init
+    queued_call()
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:366: in _check_capability
+    major, minor = get_device_capability(d)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:669: in get_device_capability
+    prop = get_device_properties(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:690: in get_device_properties
+    return _get_device_properties(device)  # type: ignore[name-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   RuntimeError: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+
+The above exception was the direct cause of the following exception:
+tests/test_system_config_report.py:452: in test_total_gpu_memory_in_report
+    gpu_info = _collect_gpu_info()
+               ^^^^^^^^^^^^^^^^^^^
+tests/test_system_config_report.py:140: in _collect_gpu_info
+    g["name"] = torch.cuda.get_device_name(i)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:653: in get_device_name
+    return get_device_properties(device).name
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:686: in get_device_properties
+    _lazy_init()  # will define _get_device_properties
+    ^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:495: in _lazy_init
+    raise DeferredCudaCallError(msg) from e
+E   torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+E   
+E   CUDA call was originally invoked at:
+E   
+E     File "&lt;frozen runpy&gt;", line 198, in _run_module_as_main
+E     File "&lt;frozen runpy&gt;", line 88, in _run_code
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in &lt;module&gt;
+E       raise SystemExit(pytest.console_main())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+E       code = main()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+E       ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+E       return wrap_session(config, _main)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+E       session.exitstatus = doit(config, session) or 0
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+E       config.hook.pytest_collection(session=session)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+E       session.perform_collect()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+E       self.items.extend(self.genitems(node))
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+E       rep, duplicate = self._collect_one_node(node, handle_dupes)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+E       rep = collect_one_node(node)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+E       rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+E       call = CallInfo.from_call(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+E       result: TResult | None = func()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+E       return list(collector.collect())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+E       self._register_setup_module_fixture()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+E       self.obj, ("setUpModule", "setup_module")
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+E       self._obj = obj = self._getobj()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+E       return importtestmodule(self.path, self.config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+E       mod = import_path(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+E       importlib.import_module(module_name)
+E     File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+E       return _bootstrap._gcd_import(name[level:], package, level)
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1387, in _gcd_import
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+E       exec(co, module.__dict__)
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py", line 36, in &lt;module&gt;
+E       from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in &lt;module&gt;
+E       import torch
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in &lt;module&gt;
+E       _C._initExtension(_manager_path())
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in &lt;module&gt;
+E       _lazy_call(_check_capability)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+E       _queued_calls.append((callable, traceback.format_stack()))</failure></testcase><testcase classname="tests.test_system_config_report.TestPCIeTopologyReport" name="test_pcie_topology_present_in_report" time="0.202"><failure message="torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at &quot;/pytorch/aten/src/ATen/cuda/CUDAContext.cpp&quot;:51, please report a bug to PyTorch. device=3, num_gpus=3&#10;&#10;CUDA call was originally invoked at:&#10;&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 198, in _run_module_as_main&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 88, in _run_code&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py&quot;, line 9, in &lt;module&gt;&#10;    raise SystemExit(pytest.console_main())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 223, in console_main&#10;    code = main()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 199, in main&#10;    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 365, in pytest_cmdline_main&#10;    return wrap_session(config, _main)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 318, in wrap_session&#10;    session.exitstatus = doit(config, session) or 0&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 371, in _main&#10;    config.hook.pytest_collection(session=session)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 382, in pytest_collection&#10;    session.perform_collect()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 857, in perform_collect&#10;    self.items.extend(self.genitems(node))&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 1020, in genitems&#10;    rep, duplicate = self._collect_one_node(node, handle_dupes)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 883, in _collect_one_node&#10;    rep = collect_one_node(node)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 576, in collect_one_node&#10;    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 400, in pytest_make_collect_report&#10;    call = CallInfo.from_call(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 353, in from_call&#10;    result: TResult | None = func()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 398, in collect&#10;    return list(collector.collect())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 563, in collect&#10;    self._register_setup_module_fixture()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 576, in _register_setup_module_fixture&#10;    self.obj, (&quot;setUpModule&quot;, &quot;setup_module&quot;)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 289, in obj&#10;    self._obj = obj = self._getobj()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 560, in _getobj&#10;    return importtestmodule(self.path, self.config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 507, in importtestmodule&#10;    mod = import_path(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py&quot;, line 587, in import_path&#10;    importlib.import_module(module_name)&#10;  File &quot;/usr/lib64/python3.12/importlib/__init__.py&quot;, line 90, in import_module&#10;    return _bootstrap._gcd_import(name[level:], package, level)&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1387, in _gcd_import&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py&quot;, line 197, in exec_module&#10;    exec(co, module.__dict__)&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py&quot;, line 36, in &lt;module&gt;&#10;    from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py&quot;, line 24, in &lt;module&gt;&#10;    import torch&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py&quot;, line 2167, in &lt;module&gt;&#10;    _C._initExtension(_manager_path())&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 424, in &lt;module&gt;&#10;    _lazy_call(_check_capability)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 421, in _lazy_call&#10;    _queued_calls.append((callable, traceback.format_stack()))">/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:489: in _lazy_init
+    queued_call()
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:366: in _check_capability
+    major, minor = get_device_capability(d)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:669: in get_device_capability
+    prop = get_device_properties(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:690: in get_device_properties
+    return _get_device_properties(device)  # type: ignore[name-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   RuntimeError: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+
+The above exception was the direct cause of the following exception:
+tests/test_system_config_report.py:471: in test_pcie_topology_present_in_report
+    gpu_info = _collect_gpu_info()
+               ^^^^^^^^^^^^^^^^^^^
+tests/test_system_config_report.py:140: in _collect_gpu_info
+    g["name"] = torch.cuda.get_device_name(i)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:653: in get_device_name
+    return get_device_properties(device).name
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:686: in get_device_properties
+    _lazy_init()  # will define _get_device_properties
+    ^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:495: in _lazy_init
+    raise DeferredCudaCallError(msg) from e
+E   torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+E   
+E   CUDA call was originally invoked at:
+E   
+E     File "&lt;frozen runpy&gt;", line 198, in _run_module_as_main
+E     File "&lt;frozen runpy&gt;", line 88, in _run_code
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in &lt;module&gt;
+E       raise SystemExit(pytest.console_main())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+E       code = main()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+E       ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+E       return wrap_session(config, _main)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+E       session.exitstatus = doit(config, session) or 0
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+E       config.hook.pytest_collection(session=session)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+E       session.perform_collect()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+E       self.items.extend(self.genitems(node))
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+E       rep, duplicate = self._collect_one_node(node, handle_dupes)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+E       rep = collect_one_node(node)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+E       rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+E       call = CallInfo.from_call(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+E       result: TResult | None = func()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+E       return list(collector.collect())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+E       self._register_setup_module_fixture()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+E       self.obj, ("setUpModule", "setup_module")
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+E       self._obj = obj = self._getobj()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+E       return importtestmodule(self.path, self.config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+E       mod = import_path(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+E       importlib.import_module(module_name)
+E     File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+E       return _bootstrap._gcd_import(name[level:], package, level)
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1387, in _gcd_import
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+E       exec(co, module.__dict__)
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py", line 36, in &lt;module&gt;
+E       from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in &lt;module&gt;
+E       import torch
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in &lt;module&gt;
+E       _C._initExtension(_manager_path())
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in &lt;module&gt;
+E       _lazy_call(_check_capability)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+E       _queued_calls.append((callable, traceback.format_stack()))</failure></testcase><testcase classname="tests.test_system_config_report.TestPCIeTopologyReport" name="test_pcie_links_healthy_in_report" time="0.203"><failure message="torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at &quot;/pytorch/aten/src/ATen/cuda/CUDAContext.cpp&quot;:51, please report a bug to PyTorch. device=3, num_gpus=3&#10;&#10;CUDA call was originally invoked at:&#10;&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 198, in _run_module_as_main&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 88, in _run_code&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py&quot;, line 9, in &lt;module&gt;&#10;    raise SystemExit(pytest.console_main())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 223, in console_main&#10;    code = main()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 199, in main&#10;    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 365, in pytest_cmdline_main&#10;    return wrap_session(config, _main)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 318, in wrap_session&#10;    session.exitstatus = doit(config, session) or 0&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 371, in _main&#10;    config.hook.pytest_collection(session=session)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 382, in pytest_collection&#10;    session.perform_collect()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 857, in perform_collect&#10;    self.items.extend(self.genitems(node))&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 1020, in genitems&#10;    rep, duplicate = self._collect_one_node(node, handle_dupes)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 883, in _collect_one_node&#10;    rep = collect_one_node(node)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 576, in collect_one_node&#10;    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 400, in pytest_make_collect_report&#10;    call = CallInfo.from_call(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 353, in from_call&#10;    result: TResult | None = func()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 398, in collect&#10;    return list(collector.collect())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 563, in collect&#10;    self._register_setup_module_fixture()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 576, in _register_setup_module_fixture&#10;    self.obj, (&quot;setUpModule&quot;, &quot;setup_module&quot;)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 289, in obj&#10;    self._obj = obj = self._getobj()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 560, in _getobj&#10;    return importtestmodule(self.path, self.config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 507, in importtestmodule&#10;    mod = import_path(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py&quot;, line 587, in import_path&#10;    importlib.import_module(module_name)&#10;  File &quot;/usr/lib64/python3.12/importlib/__init__.py&quot;, line 90, in import_module&#10;    return _bootstrap._gcd_import(name[level:], package, level)&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1387, in _gcd_import&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py&quot;, line 197, in exec_module&#10;    exec(co, module.__dict__)&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py&quot;, line 36, in &lt;module&gt;&#10;    from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py&quot;, line 24, in &lt;module&gt;&#10;    import torch&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py&quot;, line 2167, in &lt;module&gt;&#10;    _C._initExtension(_manager_path())&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 424, in &lt;module&gt;&#10;    _lazy_call(_check_capability)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 421, in _lazy_call&#10;    _queued_calls.append((callable, traceback.format_stack()))">/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:489: in _lazy_init
+    queued_call()
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:366: in _check_capability
+    major, minor = get_device_capability(d)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:669: in get_device_capability
+    prop = get_device_properties(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:690: in get_device_properties
+    return _get_device_properties(device)  # type: ignore[name-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   RuntimeError: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+
+The above exception was the direct cause of the following exception:
+tests/test_system_config_report.py:484: in test_pcie_links_healthy_in_report
+    gpu_info = _collect_gpu_info()
+               ^^^^^^^^^^^^^^^^^^^
+tests/test_system_config_report.py:140: in _collect_gpu_info
+    g["name"] = torch.cuda.get_device_name(i)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:653: in get_device_name
+    return get_device_properties(device).name
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:686: in get_device_properties
+    _lazy_init()  # will define _get_device_properties
+    ^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:495: in _lazy_init
+    raise DeferredCudaCallError(msg) from e
+E   torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+E   
+E   CUDA call was originally invoked at:
+E   
+E     File "&lt;frozen runpy&gt;", line 198, in _run_module_as_main
+E     File "&lt;frozen runpy&gt;", line 88, in _run_code
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in &lt;module&gt;
+E       raise SystemExit(pytest.console_main())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+E       code = main()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+E       ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+E       return wrap_session(config, _main)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+E       session.exitstatus = doit(config, session) or 0
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+E       config.hook.pytest_collection(session=session)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+E       session.perform_collect()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+E       self.items.extend(self.genitems(node))
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+E       rep, duplicate = self._collect_one_node(node, handle_dupes)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+E       rep = collect_one_node(node)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+E       rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+E       call = CallInfo.from_call(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+E       result: TResult | None = func()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+E       return list(collector.collect())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+E       self._register_setup_module_fixture()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+E       self.obj, ("setUpModule", "setup_module")
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+E       self._obj = obj = self._getobj()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+E       return importtestmodule(self.path, self.config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+E       mod = import_path(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+E       importlib.import_module(module_name)
+E     File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+E       return _bootstrap._gcd_import(name[level:], package, level)
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1387, in _gcd_import
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+E       exec(co, module.__dict__)
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py", line 36, in &lt;module&gt;
+E       from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in &lt;module&gt;
+E       import torch
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in &lt;module&gt;
+E       _C._initExtension(_manager_path())
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in &lt;module&gt;
+E       _lazy_call(_check_capability)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+E       _queued_calls.append((callable, traceback.format_stack()))</failure></testcase><testcase classname="tests.test_system_config_report.TestCombinedConfigReport" name="test_generate_and_save_combined_report" time="0.221"><failure message="torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at &quot;/pytorch/aten/src/ATen/cuda/CUDAContext.cpp&quot;:51, please report a bug to PyTorch. device=3, num_gpus=3&#10;&#10;CUDA call was originally invoked at:&#10;&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 198, in _run_module_as_main&#10;  File &quot;&lt;frozen runpy&gt;&quot;, line 88, in _run_code&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py&quot;, line 9, in &lt;module&gt;&#10;    raise SystemExit(pytest.console_main())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 223, in console_main&#10;    code = main()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py&quot;, line 199, in main&#10;    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 365, in pytest_cmdline_main&#10;    return wrap_session(config, _main)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 318, in wrap_session&#10;    session.exitstatus = doit(config, session) or 0&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 371, in _main&#10;    config.hook.pytest_collection(session=session)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 382, in pytest_collection&#10;    session.perform_collect()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 857, in perform_collect&#10;    self.items.extend(self.genitems(node))&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 1020, in genitems&#10;    rep, duplicate = self._collect_one_node(node, handle_dupes)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py&quot;, line 883, in _collect_one_node&#10;    rep = collect_one_node(node)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 576, in collect_one_node&#10;    rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py&quot;, line 512, in __call__&#10;    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py&quot;, line 120, in _hookexec&#10;    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py&quot;, line 121, in _multicall&#10;    res = hook_impl.function(*args)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 400, in pytest_make_collect_report&#10;    call = CallInfo.from_call(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 353, in from_call&#10;    result: TResult | None = func()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py&quot;, line 398, in collect&#10;    return list(collector.collect())&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 563, in collect&#10;    self._register_setup_module_fixture()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 576, in _register_setup_module_fixture&#10;    self.obj, (&quot;setUpModule&quot;, &quot;setup_module&quot;)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 289, in obj&#10;    self._obj = obj = self._getobj()&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 560, in _getobj&#10;    return importtestmodule(self.path, self.config)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py&quot;, line 507, in importtestmodule&#10;    mod = import_path(&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py&quot;, line 587, in import_path&#10;    importlib.import_module(module_name)&#10;  File &quot;/usr/lib64/python3.12/importlib/__init__.py&quot;, line 90, in import_module&#10;    return _bootstrap._gcd_import(name[level:], package, level)&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1387, in _gcd_import&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py&quot;, line 197, in exec_module&#10;    exec(co, module.__dict__)&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py&quot;, line 36, in &lt;module&gt;&#10;    from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py&quot;, line 24, in &lt;module&gt;&#10;    import torch&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py&quot;, line 2167, in &lt;module&gt;&#10;    _C._initExtension(_manager_path())&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1360, in _find_and_load&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 1331, in _find_and_load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 935, in _load_unlocked&#10;  File &quot;&lt;frozen importlib._bootstrap_external&gt;&quot;, line 999, in exec_module&#10;  File &quot;&lt;frozen importlib._bootstrap&gt;&quot;, line 488, in _call_with_frames_removed&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 424, in &lt;module&gt;&#10;    _lazy_call(_check_capability)&#10;  File &quot;/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py&quot;, line 421, in _lazy_call&#10;    _queued_calls.append((callable, traceback.format_stack()))">/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:489: in _lazy_init
+    queued_call()
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:366: in _check_capability
+    major, minor = get_device_capability(d)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:669: in get_device_capability
+    prop = get_device_properties(device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:690: in get_device_properties
+    return _get_device_properties(device)  # type: ignore[name-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   RuntimeError: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+
+The above exception was the direct cause of the following exception:
+tests/test_system_config_report.py:508: in test_generate_and_save_combined_report
+    "gpus": _collect_gpu_info(),
+            ^^^^^^^^^^^^^^^^^^^
+tests/test_system_config_report.py:140: in _collect_gpu_info
+    g["name"] = torch.cuda.get_device_name(i)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:653: in get_device_name
+    return get_device_properties(device).name
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:686: in get_device_properties
+    _lazy_init()  # will define _get_device_properties
+    ^^^^^^^^^^^^
+/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py:495: in _lazy_init
+    raise DeferredCudaCallError(msg) from e
+E   torch.cuda.DeferredCudaCallError: CUDA call failed lazily at initialization with error: device &gt;= 0 &amp;&amp; device &lt; num_gpus INTERNAL ASSERT FAILED at "/pytorch/aten/src/ATen/cuda/CUDAContext.cpp":51, please report a bug to PyTorch. device=3, num_gpus=3
+E   
+E   CUDA call was originally invoked at:
+E   
+E     File "&lt;frozen runpy&gt;", line 198, in _run_module_as_main
+E     File "&lt;frozen runpy&gt;", line 88, in _run_code
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pytest/__main__.py", line 9, in &lt;module&gt;
+E       raise SystemExit(pytest.console_main())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 223, in console_main
+E       code = main()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/config/__init__.py", line 199, in main
+E       ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 365, in pytest_cmdline_main
+E       return wrap_session(config, _main)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 318, in wrap_session
+E       session.exitstatus = doit(config, session) or 0
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 371, in _main
+E       config.hook.pytest_collection(session=session)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 382, in pytest_collection
+E       session.perform_collect()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 857, in perform_collect
+E       self.items.extend(self.genitems(node))
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 1020, in genitems
+E       rep, duplicate = self._collect_one_node(node, handle_dupes)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/main.py", line 883, in _collect_one_node
+E       rep = collect_one_node(node)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 576, in collect_one_node
+E       rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+E       return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+E       return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+E       res = hook_impl.function(*args)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+E       call = CallInfo.from_call(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 353, in from_call
+E       result: TResult | None = func()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/runner.py", line 398, in collect
+E       return list(collector.collect())
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 563, in collect
+E       self._register_setup_module_fixture()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+E       self.obj, ("setUpModule", "setup_module")
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 289, in obj
+E       self._obj = obj = self._getobj()
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 560, in _getobj
+E       return importtestmodule(self.path, self.config)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/python.py", line 507, in importtestmodule
+E       mod = import_path(
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/pathlib.py", line 587, in import_path
+E       importlib.import_module(module_name)
+E     File "/usr/lib64/python3.12/importlib/__init__.py", line 90, in import_module
+E       return _bootstrap._gcd_import(name[level:], package, level)
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1387, in _gcd_import
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+E       exec(co, module.__dict__)
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/test_system_config_report.py", line 36, in &lt;module&gt;
+E       from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/root/workloads/mpudhuch/AIHeadNode/tests/theoretical_specs.py", line 24, in &lt;module&gt;
+E       import torch
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/__init__.py", line 2167, in &lt;module&gt;
+E       _C._initExtension(_manager_path())
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1360, in _find_and_load
+E     File "&lt;frozen importlib._bootstrap&gt;", line 1331, in _find_and_load_unlocked
+E     File "&lt;frozen importlib._bootstrap&gt;", line 935, in _load_unlocked
+E     File "&lt;frozen importlib._bootstrap_external&gt;", line 999, in exec_module
+E     File "&lt;frozen importlib._bootstrap&gt;", line 488, in _call_with_frames_removed
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 424, in &lt;module&gt;
+E       _lazy_call(_check_capability)
+E     File "/opt/venvs/torch-cu128/lib64/python3.12/site-packages/torch/cuda/__init__.py", line 421, in _lazy_call
+E       _queued_calls.append((callable, traceback.format_stack()))</failure></testcase></testsuite></testsuites>

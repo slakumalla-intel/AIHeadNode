@@ -236,6 +236,26 @@ python scripts/run_all_workloads.py \
 # Each iteration writes artifacts/loop/run_<NNNN>/{status.json,status.md,junit/,logs/}
 # plus a roll-up at artifacts/loop/aggregate.{json,md}.
 python scripts/run_all_workloads.py --only cpu_headnode,node_validation --repeat 50
+
+# Wipe stale per-domain XMLs / logs before running so the consolidated
+# report cannot mix old data with new (recommended for a clean baseline).
+python scripts/run_all_workloads.py --clean-artifacts
+
+# GPU health gate (ENABLED BY DEFAULT)
+# -----------------------------------
+# Between domains the runner does a 1-second CUDA probe in a fresh
+# subprocess. If the probe fails (e.g. cudaErrorDevicesUnavailable),
+# the runner:
+#   1) attempts recovery: pkill leftover vllm/EngineCore workers,
+#      then try `nvidia-smi --gpu-reset`;
+#   2) re-probes; if still broken, marks remaining CUDA-dependent
+#      domains as BLOCKED in the report (status != FAIL) instead of
+#      running them and producing dozens of identical fake failures.
+# The default domain order is also CUDA-risk-aware: cheap CPU/GPU
+# diagnostics run first, KV-cache-offload and serving workloads run
+# last so an early crash doesn't pollute downstream results.
+python scripts/run_all_workloads.py --no-gpu-gate          # disable the gate
+python scripts/run_all_workloads.py --gpu-probe-timeout 60 # longer probe budget
 ```
 
 ### 5. Direct Pytest (Power Users)

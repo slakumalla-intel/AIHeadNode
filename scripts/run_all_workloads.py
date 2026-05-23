@@ -112,13 +112,27 @@ def _default_cuda_visible_devices() -> str:
 
 
 DOMAINS: "OrderedDict[str, DomainSpec]" = OrderedDict(
+    # Domain ordering is significant:
+    #   1) CPU-only / read-only diagnostics first (system_config, cpu, memory) --
+    #      cheap, always-safe, give us a baseline before any CUDA context exists.
+    #   2) GPU diagnostics that only do short CUDA work next (bottleneck, gpu,
+    #      interconnect, system_health) -- they need clean GPUs but don't risk
+    #      wedging the driver.
+    #   3) CPU<->GPU integration and lightweight serving (cpu_headnode,
+    #      agentic_ai, ai_pipeline, vllm_prefill) -- modest risk.
+    #   4) Heavy / serving / cache-offload workloads LAST (node_validation,
+    #      performance_suite, mlperf_suite). These are the suites that have
+    #      historically left vLLM EngineCore workers in D-state and wedged the
+    #      CUDA driver. Putting them last means the cheap suites above always
+    #      produce valid data even if the heavies crash the driver.
     [
+        # --- Phase 1: CPU-only / safe diagnostics ---
         (
-            "bottleneck",
+            "system_config",
             DomainSpec(
-                key="bottleneck",
-                description="Roofline and bottleneck analysis",
-                pytest_args=["tests/test_bottleneck_analysis.py"],
+                key="system_config",
+                description="System config report validation",
+                pytest_args=["tests/test_system_config_report.py"],
             ),
         ),
         (
@@ -135,6 +149,15 @@ DOMAINS: "OrderedDict[str, DomainSpec]" = OrderedDict(
                 key="memory",
                 description="Memory subsystem validation",
                 pytest_args=["tests/test_memory_validation.py"],
+            ),
+        ),
+        # --- Phase 2: short CUDA diagnostics (need clean GPUs, don't wedge driver) ---
+        (
+            "bottleneck",
+            DomainSpec(
+                key="bottleneck",
+                description="Roofline and bottleneck analysis",
+                pytest_args=["tests/test_bottleneck_analysis.py"],
             ),
         ),
         (
@@ -154,13 +177,14 @@ DOMAINS: "OrderedDict[str, DomainSpec]" = OrderedDict(
             ),
         ),
         (
-            "node_validation",
+            "system_health",
             DomainSpec(
-                key="node_validation",
-                description="Node bring-up and workload acceptance",
-                pytest_args=["tests/test_node_validation.py"],
+                key="system_health",
+                description="System health and reliability",
+                pytest_args=["tests/test_system_health_and_reliability.py"],
             ),
         ),
+        # --- Phase 3: CPU<->GPU integration / lightweight serving ---
         (
             "cpu_headnode",
             DomainSpec(
@@ -186,27 +210,21 @@ DOMAINS: "OrderedDict[str, DomainSpec]" = OrderedDict(
             ),
         ),
         (
-            "system_health",
-            DomainSpec(
-                key="system_health",
-                description="System health and reliability",
-                pytest_args=["tests/test_system_health_and_reliability.py"],
-            ),
-        ),
-        (
-            "system_config",
-            DomainSpec(
-                key="system_config",
-                description="System config report validation",
-                pytest_args=["tests/test_system_config_report.py"],
-            ),
-        ),
-        (
             "vllm_prefill",
             DomainSpec(
                 key="vllm_prefill",
                 description="vLLM prefill validation",
                 pytest_args=["tests/test_vllm_prefill_validation.py"],
+            ),
+        ),
+        # --- Phase 4: heavy / KV-offload / long-running (may wedge driver) ---
+        (
+            "node_validation",
+            DomainSpec(
+                key="node_validation",
+                description="Node bring-up and workload acceptance (heavy; runs late "
+                            "because KV-cache-offload tests can wedge the CUDA driver)",
+                pytest_args=["tests/test_node_validation.py"],
             ),
         ),
         (
@@ -227,6 +245,25 @@ DOMAINS: "OrderedDict[str, DomainSpec]" = OrderedDict(
         ),
     ]
 )
+
+
+# Domains in phase 2+ that need a working CUDA context. If the GPU health gate
+# detects a wedged driver, the runner will mark remaining members of this set
+# BLOCKED (skipped with explanation) instead of running them and producing dozens
+# of identical, misleading cudaErrorDevicesUnavailable failures.
+_CUDA_DEPENDENT_DOMAINS: frozenset = frozenset({
+    "bottleneck",
+    "gpu",
+    "interconnect",
+    "system_health",
+    "cpu_headnode",
+    "agentic_ai",
+    "ai_pipeline",
+    "vllm_prefill",
+    "node_validation",
+    "performance_suite",
+    "mlperf_suite",
+})
 
 
 def _timestamp() -> str:
@@ -476,6 +513,138 @@ def _build_env() -> Dict[str, str]:
     return env
 
 
+# ---------------------------------------------------------------------------
+# GPU health gate: probe between domains to detect a wedged CUDA driver and
+# stop running CUDA-dependent suites in a known-broken state.
+# ---------------------------------------------------------------------------
+_GPU_PROBE_SCRIPT = (
+    "import sys\n"
+    "try:\n"
+    "    import torch\n"
+    "    if not torch.cuda.is_available():\n"
+    "        print('no_cuda'); sys.exit(2)\n"
+    "    n = torch.cuda.device_count()\n"
+    "    if n == 0:\n"
+    "        print('zero_devices'); sys.exit(2)\n"
+    "    for i in range(n):\n"
+    "        torch.cuda.set_device(i)\n"
+    "        x = torch.ones(64, device=f'cuda:{i}')\n"
+    "        y = (x + x).sum().item()\n"
+    "        if y != 128.0:\n"
+    "            print(f'bad_result_gpu_{i}'); sys.exit(3)\n"
+    "    print(f'ok n={n}')\n"
+    "    sys.exit(0)\n"
+    "except Exception as e:\n"
+    "    print(f'probe_failed: {type(e).__name__}: {e}')\n"
+    "    sys.exit(4)\n"
+)
+
+
+def _probe_gpu_health(env: Dict[str, str], timeout_sec: float = 30.0) -> Dict[str, object]:
+    """Run a short CUDA probe in a subprocess. Returns dict with ok/reason/output.
+
+    Subprocess isolation is critical: if the driver is wedged in the parent
+    process's CUDA context, a probe in the parent would itself hang.
+    """
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-c", _GPU_PROBE_SCRIPT],
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=timeout_sec,
+        )
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "reason": "timeout", "stdout": "", "stderr": "probe timed out"}
+    out = (proc.stdout or "").strip()
+    err = (proc.stderr or "").strip()
+    return {
+        "ok": proc.returncode == 0,
+        "returncode": proc.returncode,
+        "stdout": out,
+        "stderr": err,
+        "reason": out if not proc.returncode == 0 else "ok",
+    }
+
+
+def _attempt_gpu_recovery(env: Dict[str, str]) -> Dict[str, object]:
+    """Best-effort recovery: kill leftover python/vllm procs, then try gpu-reset.
+
+    Returns a dict describing what was tried. We never raise; the caller decides
+    whether to keep running based on the next probe.
+    """
+    actions: List[str] = []
+
+    # 1) Reap any obvious orphan vllm/python workers holding GPU memory.
+    try:
+        r = subprocess.run(
+            ["pkill", "-9", "-f", "vllm|EngineCore|test_node_validation"],
+            capture_output=True, text=True, timeout=10,
+        )
+        actions.append(f"pkill rc={r.returncode}")
+    except Exception as e:
+        actions.append(f"pkill_failed: {type(e).__name__}")
+
+    # 2) Try a userspace GPU reset. Requires no compute clients attached;
+    #    skips silently if the driver refuses.
+    try:
+        r = subprocess.run(
+            ["nvidia-smi", "--gpu-reset"],
+            capture_output=True, text=True, timeout=60,
+        )
+        actions.append(f"gpu-reset rc={r.returncode}")
+        if r.stdout:
+            actions.append("stdout=" + r.stdout.strip().splitlines()[0][:120])
+    except FileNotFoundError:
+        actions.append("nvidia-smi_not_found")
+    except subprocess.TimeoutExpired:
+        actions.append("gpu-reset_timeout")
+    except Exception as e:
+        actions.append(f"gpu-reset_failed: {type(e).__name__}")
+
+    return {"actions": actions}
+
+
+def _make_blocked_row(domain: "DomainSpec", reason: str) -> Dict[str, object]:
+    """Synthesize a domain-result row representing 'did not run due to broken GPUs'."""
+    return {
+        "domain": domain.key,
+        "description": domain.description,
+        "status": "BLOCKED",
+        "return_code": -1,
+        "duration_sec": 0.0,
+        "tests": 0,
+        "passed": 0,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "first_failure": None,
+        "junit": None,
+        "log": None,
+        "command": "",
+        "blocked_reason": reason,
+    }
+
+
+def _clean_artifacts(junit_dir: Path, logs_dir: Path) -> int:
+    """Remove stale per-domain JUnit XML and log files. Returns count removed."""
+    removed = 0
+    for d in (junit_dir, logs_dir):
+        if not d.exists():
+            continue
+        for p in d.glob("*.xml"):
+            try:
+                p.unlink(); removed += 1
+            except OSError:
+                pass
+        for p in d.glob("*.log"):
+            try:
+                p.unlink(); removed += 1
+            except OSError:
+                pass
+    return removed
+
+
 def _parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run all workload domains and emit a status/failure report."
@@ -525,6 +694,26 @@ def _parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
              "reports are written to artifacts/loop/run_<i>/ and an aggregated "
              "cross-run summary to artifacts/loop/aggregate.{json,md}.",
     )
+    parser.add_argument(
+        "--clean-artifacts",
+        action="store_true",
+        help="Wipe artifacts/reports/{junit,logs}/*.xml,*.log before running so "
+             "the consolidated report cannot include stale data from a previous run.",
+    )
+    parser.add_argument(
+        "--no-gpu-gate",
+        action="store_true",
+        help="Disable the inter-domain GPU health probe. Default behavior probes "
+             "CUDA between domains and marks remaining CUDA-dependent suites BLOCKED "
+             "if the driver is wedged (avoiding dozens of fake 'cudaErrorDevicesUnavailable' "
+             "failures). Use --no-gpu-gate to restore the legacy unconditional run.",
+    )
+    parser.add_argument(
+        "--gpu-probe-timeout",
+        type=float,
+        default=30.0,
+        help="Per-probe timeout (seconds) for the inter-domain GPU health check.",
+    )
     return parser.parse_args(argv)
 
 
@@ -545,7 +734,25 @@ def _run_once(
     Returns the consolidated report dict for cross-run aggregation.
     """
     domain_results: List[Dict[str, object]] = []
+    gpus_wedged = False
+    wedged_reason = ""
+    gate_enabled = not getattr(args, "no_gpu_gate", False)
+    probe_timeout = float(getattr(args, "gpu_probe_timeout", 30.0))
+
     for domain in domains:
+        # If the GPU driver was previously detected wedged and this domain
+        # needs CUDA, skip it with a clear BLOCKED status instead of running
+        # it and producing identical cudaErrorDevicesUnavailable failures.
+        if gate_enabled and gpus_wedged and domain.key in _CUDA_DEPENDENT_DOMAINS:
+            reason = (
+                f"GPU health gate: CUDA driver wedged after a prior domain "
+                f"({wedged_reason}). Skipped to avoid misleading failure cascade. "
+                f"Run 'nvidia-smi --gpu-reset' or reboot, then rerun."
+            )
+            print(f"[skip] {domain.key}: BLOCKED — {reason}")
+            domain_results.append(_make_blocked_row(domain, reason))
+            continue
+
         print(f"[run] {domain.key}: {domain.description}")
         row = _run_domain(
             root=root,
@@ -560,13 +767,41 @@ def _run_once(
             f"[done] {domain.key}: status={row['status']} tests={row['tests']} "
             f"failures={row['failures']} errors={row['errors']} skipped={row['skipped']}"
         )
+
+        # After this domain, if it's one that might wedge the driver (or simply
+        # the next domain needs CUDA), probe GPU health. Cheap and informative.
+        if gate_enabled and not gpus_wedged:
+            probe = _probe_gpu_health(env, timeout_sec=probe_timeout)
+            if not probe["ok"]:
+                wedged_reason = (
+                    f"after domain '{domain.key}' "
+                    f"(probe rc={probe.get('returncode')}, "
+                    f"reason={probe.get('reason')!r})"
+                )
+                print(f"[gate] GPU probe FAILED {wedged_reason}")
+                if probe.get("stdout"):
+                    print(f"[gate] probe stdout: {probe['stdout'][:200]}")
+                if probe.get("stderr"):
+                    print(f"[gate] probe stderr: {probe['stderr'][:200]}")
+                # Attempt a single best-effort recovery.
+                rec = _attempt_gpu_recovery(env)
+                print(f"[gate] recovery attempted: {rec['actions']}")
+                # Re-probe once after recovery.
+                probe2 = _probe_gpu_health(env, timeout_sec=probe_timeout)
+                if probe2["ok"]:
+                    print("[gate] GPUs recovered, continuing.")
+                else:
+                    gpus_wedged = True
+                    print("[gate] GPUs still wedged; remaining CUDA domains will be BLOCKED.")
+
         if args.stop_on_failure and row["status"] != "PASS":
             break
 
     summary = {
         "domains_run": len(domain_results),
         "passed_domains": sum(1 for d in domain_results if d["status"] == "PASS"),
-        "failed_domains": sum(1 for d in domain_results if d["status"] != "PASS"),
+        "failed_domains": sum(1 for d in domain_results if d["status"] not in ("PASS", "BLOCKED")),
+        "blocked_domains": sum(1 for d in domain_results if d["status"] == "BLOCKED"),
         "tests": sum(int(d["tests"]) for d in domain_results),
         "failures": sum(int(d["failures"]) for d in domain_results),
         "errors": sum(int(d["errors"]) for d in domain_results),
@@ -606,6 +841,11 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
 
     root = Path(__file__).resolve().parents[1]
     dirs = _ensure_artifact_dirs(root)
+
+    if getattr(args, "clean_artifacts", False):
+        removed = _clean_artifacts(dirs["junit"], dirs["logs"])
+        print(f"[clean] removed {removed} stale artifact file(s) from "
+              f"{dirs['junit'].relative_to(root)} and {dirs['logs'].relative_to(root)}")
 
     domains = _select_domains(args.only, args.skip)
     env = _build_env()

@@ -694,7 +694,7 @@ export CPU_HEADNODE_TOK_THREADS=1,4,8
 export CPU_HEADNODE_TOK_MIN_SINGLE_TPS=30000
 export CPU_HEADNODE_TOK_MIN_SCALING_RATIO=0.20
 export CPU_HEADNODE_DL_WORKERS=0,4,8
-export CPU_HEADNODE_DL_MIN_SPEEDUP=1.50
+export CPU_HEADNODE_DL_MIN_SPEEDUP=1.20
 
 # Sysfs / IRQ policy (set WARN_ONLY=1 to downgrade to log warnings)
 export CPU_HEADNODE_ALLOWED_GOVERNORS=performance
@@ -849,7 +849,7 @@ export NODE_VALIDATION_KPI_FILE=artifacts/node_validation_kpis.jsonl
 | `CPU_HEADNODE_TOK_MODEL` | `openai-community/gpt2` | HuggingFace tokenizer used for scaling test |
 | `CPU_HEADNODE_TOK_MIN_SINGLE_TPS` | `30000` | Minimum single-thread tokenizer throughput (tokens/sec) |
 | `CPU_HEADNODE_TOK_MIN_SCALING_RATIO` | `0.20` | Min tokenizer thread-scaling efficiency vs linear (per-prompt encode is GIL-bound) |
-| `CPU_HEADNODE_DL_MIN_SPEEDUP` | `1.50` | Minimum `DataLoader(num_workers>0)` speedup over `num_workers=0` |
+| `CPU_HEADNODE_DL_MIN_SPEEDUP` | `1.20` | Min `DataLoader(num_workers>0)` speedup over `num_workers=0` (synthetic dataset; raise for I/O-heavy workloads) |
 | `CPU_HEADNODE_ALLOWED_GOVERNORS` | `performance` | Comma-separated allowed cpufreq governors |
 | `CPU_HEADNODE_GOVERNOR_WARN_ONLY` | `0` | Set `1` to downgrade governor mismatch to a log warning |
 | `CPU_HEADNODE_IRQ_DRIVERS` | `mlx5,nvme,nvidia` | Drivers whose IRQ affinity is validated |

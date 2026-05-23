@@ -224,6 +224,14 @@ python scripts/run_all_workloads.py --pytest-args "-s --maxfail=1"
 # Combine options
 python scripts/run_all_workloads.py --only bottleneck,cpu --pytest-args "-v"
 
+# Exclude specific domains (applied after --only; "everything except X")
+python scripts/run_all_workloads.py --skip mlperf_suite,performance_suite
+
+# --only and --skip compose: run all GPU-side domains except the slow ones
+python scripts/run_all_workloads.py \
+    --only gpu,interconnect,node_validation,ai_pipeline,vllm_prefill \
+    --skip vllm_prefill
+
 # Stress / reliability loop: run the same selection N times.
 # Each iteration writes artifacts/loop/run_<NNNN>/{status.json,status.md,junit/,logs/}
 # plus a roll-up at artifacts/loop/aggregate.{json,md}.

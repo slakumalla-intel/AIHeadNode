@@ -383,16 +383,32 @@ def _ensure_artifact_dirs(root: Path) -> Dict[str, Path]:
     }
 
 
-def _select_domains(only: Optional[str]) -> List[DomainSpec]:
-    if not only:
-        return list(DOMAINS.values())
+def _select_domains(only: Optional[str], skip: Optional[str] = None) -> List[DomainSpec]:
+    if only:
+        requested = [x.strip() for x in only.split(",") if x.strip()]
+        unknown = [x for x in requested if x not in DOMAINS]
+        if unknown:
+            known = ", ".join(DOMAINS.keys())
+            raise SystemExit(f"Unknown domain(s): {', '.join(unknown)}. Known domains: {known}")
+        selected = [DOMAINS[k] for k in requested]
+    else:
+        selected = list(DOMAINS.values())
 
-    requested = [x.strip() for x in only.split(",") if x.strip()]
-    unknown = [x for x in requested if x not in DOMAINS]
-    if unknown:
-        known = ", ".join(DOMAINS.keys())
-        raise SystemExit(f"Unknown domain(s): {', '.join(unknown)}. Known domains: {known}")
-    return [DOMAINS[k] for k in requested]
+    if skip:
+        skip_keys = {x.strip() for x in skip.split(",") if x.strip()}
+        unknown_skip = [k for k in skip_keys if k not in DOMAINS]
+        if unknown_skip:
+            known = ", ".join(DOMAINS.keys())
+            raise SystemExit(
+                f"Unknown --skip domain(s): {', '.join(unknown_skip)}. Known domains: {known}"
+            )
+        selected = [d for d in selected if d.key not in skip_keys]
+        if not selected:
+            raise SystemExit(
+                f"--skip removed every selected domain (skip={sorted(skip_keys)}). "
+                "Nothing to run."
+            )
+    return selected
 
 
 def _run_domain(
@@ -468,6 +484,13 @@ def _parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
         "--only",
         default="",
         help="Comma-separated domain keys to run. Default: run all domains.",
+    )
+    parser.add_argument(
+        "--skip",
+        default="",
+        help="Comma-separated domain keys to exclude. Applied after --only. "
+             "Useful for 'run everything except the slow heavyweights', e.g. "
+             "--skip mlperf_suite,performance_suite",
     )
     parser.add_argument(
         "--stop-on-failure",
@@ -584,7 +607,7 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     root = Path(__file__).resolve().parents[1]
     dirs = _ensure_artifact_dirs(root)
 
-    domains = _select_domains(args.only)
+    domains = _select_domains(args.only, args.skip)
     env = _build_env()
     extra_pytest_args = shlex.split(args.pytest_args) if args.pytest_args else []
 
@@ -671,6 +694,7 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         "host": socket.gethostname(),
         "iterations": args.repeat,
         "only": args.only or "<all>",
+        "skip": args.skip or "<none>",
         "full_pass_runs": full_pass_runs,
         "any_failure_runs": args.repeat - full_pass_runs,
         "per_domain": domain_stats,

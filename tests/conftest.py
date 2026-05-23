@@ -59,6 +59,49 @@ def _vllm_cleanup_enabled() -> bool:
     return os.environ.get("VLLM_STRICT_CLEANUP", "1") == "1"
 
 
+# PIDs we have already given up on (zombies whose parent isn't us, or D-state
+# stuck-in-driver processes). We log these once at WARNING and thereafter at
+# DEBUG to avoid spamming every subsequent test setup/teardown.
+_UNREAPABLE_PIDS: Dict[int, str] = {}
+
+
+def _proc_state(pid: int) -> Optional[str]:
+    """Return the single-char Linux process state (R/S/D/Z/T/X) or None."""
+    try:
+        with open(f"/proc/{pid}/status", "r") as fh:
+            for line in fh:
+                if line.startswith("State:"):
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        return parts[1].strip()
+    except (FileNotFoundError, ProcessLookupError, PermissionError, OSError):
+        return None
+    return None
+
+
+def _proc_ppid(pid: int) -> Optional[int]:
+    try:
+        with open(f"/proc/{pid}/status", "r") as fh:
+            for line in fh:
+                if line.startswith("PPid:"):
+                    return int(line.split()[1])
+    except (FileNotFoundError, ProcessLookupError, PermissionError, OSError, ValueError):
+        return None
+    return None
+
+
+def _try_reap_zombie(pid: int) -> bool:
+    """If pid is our child zombie, reap it. Returns True if reaped or not-our-child."""
+    try:
+        reaped_pid, _ = os.waitpid(pid, os.WNOHANG)
+        return reaped_pid == pid
+    except ChildProcessError:
+        # Not our child -- can't reap; parent must do it.
+        return False
+    except OSError:
+        return False
+
+
 def _is_vllm_related_item(item: pytest.Item) -> bool:
     marker_names = {marker.name for marker in item.iter_markers()}
     file_name = Path(str(item.fspath)).name.lower()
@@ -165,7 +208,59 @@ def _cleanup_vllm_processes_via_ps(tag: str, nodeid: str) -> None:
     if not pids:
         return
 
-    logger.warning("[%s] ps-based cleanup found stale vLLM PIDs for %s: %s", tag, nodeid, pids)
+    # Classify each PID before warning: zombies / D-state are not regressions,
+    # they're stuck processes the OS will reap. Don't spam the same PID on
+    # every subsequent test.
+    new_actionable: List[int] = []
+    suppressed: List[int] = []
+    classified: List[str] = []
+    for pid in pids:
+        state = _proc_state(pid)
+        if state == "Z":
+            # Try to reap if we're the parent; otherwise mark unreapable.
+            if _try_reap_zombie(pid):
+                classified.append(f"{pid}(Z->reaped)")
+                continue
+            if pid in _UNREAPABLE_PIDS:
+                suppressed.append(pid)
+                continue
+            _UNREAPABLE_PIDS[pid] = f"zombie (PPid={_proc_ppid(pid)})"
+            classified.append(f"{pid}(Z,ppid={_proc_ppid(pid)})")
+            continue
+        if state == "D":
+            if pid in _UNREAPABLE_PIDS:
+                suppressed.append(pid)
+                continue
+            _UNREAPABLE_PIDS[pid] = "D-state (uninterruptible, stuck in kernel/driver)"
+            classified.append(f"{pid}(D,stuck)")
+            continue
+        if state is None:
+            # Already gone between ps and our /proc read.
+            continue
+        new_actionable.append(pid)
+        classified.append(f"{pid}({state})")
+
+    if suppressed:
+        logger.debug(
+            "[%s] %d previously-reported unreapable vLLM PID(s) still present for %s: %s",
+            tag, len(suppressed), nodeid, suppressed,
+        )
+
+    if not new_actionable and not any("->reaped" in c for c in classified):
+        # Nothing we can do; either everything was suppressed or only zombies/D.
+        if classified and not suppressed:
+            logger.warning(
+                "[%s] vLLM PIDs detected for %s but cannot be killed: %s. "
+                "Zombies need their parent to wait(); D-state means a CUDA "
+                "driver call is stuck (consider 'nvidia-smi --gpu-reset' or "
+                "a node reboot if persistent).",
+                tag, nodeid, classified,
+            )
+        return
+
+    logger.warning("[%s] ps-based cleanup found stale vLLM PIDs for %s: %s",
+                   tag, nodeid, classified)
+    pids = new_actionable
 
     for pid in pids:
         try:
@@ -198,15 +293,59 @@ def _terminate_stale_vllm_processes(tag: str, nodeid: str) -> None:
         _cleanup_vllm_processes_via_ps(tag, nodeid)
         return
 
+    # Pre-classify: skip PIDs we've already given up on (zombies whose parent
+    # isn't us, D-state stuck in driver). Try to reap zombies we own.
+    actionable: List[Tuple[int, str]] = []
+    unreapable_seen: List[int] = []
+    for pid, cmd in stale:
+        state = _proc_state(pid)
+        if state == "Z":
+            if _try_reap_zombie(pid):
+                continue
+            if pid not in _UNREAPABLE_PIDS:
+                _UNREAPABLE_PIDS[pid] = f"zombie (PPid={_proc_ppid(pid)})"
+                logger.warning(
+                    "[%s] vLLM PID=%s is a zombie owned by PPid=%s; cannot reap from here. "
+                    "Skipping further warnings for this PID.",
+                    tag, pid, _proc_ppid(pid),
+                )
+            unreapable_seen.append(pid)
+            continue
+        if state == "D":
+            if pid not in _UNREAPABLE_PIDS:
+                _UNREAPABLE_PIDS[pid] = "D-state stuck in driver"
+                logger.warning(
+                    "[%s] vLLM PID=%s is in D-state (uninterruptible sleep, likely stuck "
+                    "in a CUDA driver call). SIGKILL will not free it until the kernel "
+                    "call returns. Consider 'nvidia-smi --gpu-reset' or node reboot if "
+                    "persistent. Suppressing further warnings for this PID.",
+                    tag, pid,
+                )
+            unreapable_seen.append(pid)
+            continue
+        actionable.append((pid, cmd))
+
+    if unreapable_seen:
+        logger.debug(
+            "[%s] Skipping %d unreapable vLLM PID(s) for %s: %s",
+            tag, len(unreapable_seen), nodeid, unreapable_seen,
+        )
+
+    if not actionable:
+        # Everything stale was either reaped or unreapable; no work to do here.
+        # Still try the ps fallback for processes evading psutil matching.
+        _cleanup_vllm_processes_via_ps(tag, nodeid)
+        return
+
     logger.warning(
         "[%s] Found %d stale vLLM process(es) before cleanup for %s",
         tag,
-        len(stale),
+        len(actionable),
         nodeid,
     )
 
     # First pass: SIGTERM to allow graceful shutdown
-    for pid, cmd in stale:
+    for pid, cmd in actionable:
         try:
             logger.warning("[%s] Terminating stale vLLM PID=%s cmd=%s", tag, pid, cmd[:220])
             _safe_kill_vllm_pid(pid, signal.SIGTERM)
@@ -216,13 +355,15 @@ def _terminate_stale_vllm_processes(tag: str, nodeid: str) -> None:
     # Wait for graceful termination
     deadline = time.time() + 5.0
     while time.time() < deadline:
-        remaining = _find_stale_vllm_processes()
+        remaining = [(p, c) for (p, c) in _find_stale_vllm_processes()
+                     if p not in _UNREAPABLE_PIDS]
         if not remaining:
             return
         time.sleep(0.2)
 
     # Second pass: Escalate to hard kill when process did not terminate gracefully
-    remaining = _find_stale_vllm_processes()
+    remaining = [(p, c) for (p, c) in _find_stale_vllm_processes()
+                 if p not in _UNREAPABLE_PIDS]
     for pid, cmd in remaining:
         try:
             logger.warning("[%s] Hard-killing stale vLLM PID=%s (graceful shutdown failed)", tag, pid)

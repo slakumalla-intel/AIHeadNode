@@ -377,7 +377,15 @@ def _write_markdown(report: Dict[str, object], output_path: Path) -> None:
     for row in report["domains"]:
         lines.append(
             "| {domain} | {status} | {tests} | {failures} | {errors} | {skipped} | {duration_sec} | {junit_xml} | {log_file} |".format(
-                **row
+                domain=row.get("domain", "-"),
+                status=row.get("status", "-"),
+                tests=row.get("tests", 0),
+                failures=row.get("failures", 0),
+                errors=row.get("errors", 0),
+                skipped=row.get("skipped", 0),
+                duration_sec=row.get("duration_sec", 0.0),
+                junit_xml=row.get("junit_xml", "-"),
+                log_file=row.get("log_file", "-"),
             )
         )
 
@@ -621,6 +629,9 @@ def _make_blocked_row(domain: "DomainSpec", reason: str) -> Dict[str, object]:
         "first_failure": None,
         "junit": None,
         "log": None,
+        # Keep the same keys expected by markdown report rendering.
+        "junit_xml": "-",
+        "log_file": "-",
         "command": "",
         "blocked_reason": reason,
     }

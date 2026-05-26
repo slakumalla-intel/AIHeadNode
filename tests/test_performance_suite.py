@@ -1121,8 +1121,9 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         subsystem="Inference_MixedPrompt",
         workload="Mixed prompt sizes with realistic ShareGPT-like distribution",
         purpose="Capture real-world prompt distribution latency and tail behavior",
-        prerequisites=["vLLM or compatible server", "ShareGPT dataset"],
+        prerequisites=["vLLM installed", "model access", "ShareGPT dataset"],
         commands=[
+            "vllm serve meta-llama/Meta-Llama-3.1-8B-Instruct --dtype bfloat16 --tensor-parallel-size 1 --max-model-len 8192 --port 8000",
             "vllm bench serve --backend vllm --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --request-rate poisson --max-concurrency 256 --num-prompts 3000 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,99",
         ],
         expected="Meets scenario-specific P50/P99 SLO",

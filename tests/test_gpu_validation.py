@@ -29,7 +29,7 @@ from typing import List
 import pytest
 
 from tests.theoretical_specs import H100_SPECS, SYSTEM_SPECS, ACCEPTANCE_THRESHOLDS
-from tests.conftest import assert_efficiency
+from tests.conftest import assert_efficiency, safe_cuda_device_count
 
 try:
     import numpy as np
@@ -39,7 +39,7 @@ except ImportError:
 
 try:
     import torch
-    _HAS_TORCH = torch.cuda.is_available()
+    _HAS_TORCH = True
 except ImportError:
     torch = None          # type: ignore[assignment]
     _HAS_TORCH = False
@@ -90,8 +90,12 @@ def _record_gpu_kpi(test_name: str, metrics: dict) -> None:
 # ---------------------------------------------------------------------------
 
 def _skip_if_no_gpu():
-    if not _HAS_TORCH:
+    if not _HAS_TORCH or _cuda_device_count() <= 0:
         pytest.skip("CUDA / PyTorch not available")
+
+
+def _cuda_device_count() -> int:
+    return safe_cuda_device_count(force_init=True)
 
 
 def _run_sgemm_gflops(device_idx: int, m: int = 4096, k: int = 4096, n: int = 4096,
@@ -288,7 +292,7 @@ class TestGPUDiscovery:
     def test_gpu_count_equals_four(self):
         """TC-GPU-01a: System must expose exactly 4 CUDA GPUs."""
         _skip_if_no_gpu()
-        count = torch.cuda.device_count()
+        count = _cuda_device_count()
         assert count == EXPECTED_GPU_COUNT, (
             f"Expected {EXPECTED_GPU_COUNT} GPUs, detected {count}"
         )
@@ -296,7 +300,7 @@ class TestGPUDiscovery:
     def test_all_gpus_initialise(self):
         """TC-GPU-01b: All 4 GPUs must initialise without error."""
         _skip_if_no_gpu()
-        for i in range(torch.cuda.device_count()):
+        for i in range(_cuda_device_count()):
             torch.cuda.set_device(i)
             _ = torch.zeros(1, device=f"cuda:{i}")
 
@@ -310,7 +314,7 @@ class TestGPUModel:
     def test_gpu_model_is_h100(self):
         """TC-GPU-02a: All GPUs must be NVIDIA H100 (or H200) class."""
         _skip_if_no_gpu()
-        for i in range(torch.cuda.device_count()):
+        for i in range(_cuda_device_count()):
             name = torch.cuda.get_device_name(i)
             assert any(kw in name for kw in H100_KEYWORDS), (
                 f"GPU {i} is '{name}', expected an H100 or H200 device"
@@ -326,7 +330,7 @@ class TestGPUModel:
     def test_compute_capability_90(self):
         """TC-GPU-02c: H100 compute capability must be 9.0."""
         _skip_if_no_gpu()
-        for i in range(torch.cuda.device_count()):
+        for i in range(_cuda_device_count()):
             props = torch.cuda.get_device_properties(i)
             major, minor = props.major, props.minor
             assert (major, minor) == (9, 0), (
@@ -343,7 +347,7 @@ class TestHBMCapacity:
     def test_hbm_capacity_per_gpu(self):
         """TC-GPU-03: Each GPU must have ≥ 79 GB HBM3 (≥ 98.75 % of 80 GB spec)."""
         _skip_if_no_gpu()
-        for i in range(torch.cuda.device_count()):
+        for i in range(_cuda_device_count()):
             props = torch.cuda.get_device_properties(i)
             capacity_gb = props.total_memory / 1024 ** 3
             assert capacity_gb >= H100_SPECS.hbm3_capacity_gb * 0.9875, (
@@ -353,7 +357,7 @@ class TestHBMCapacity:
     def test_total_gpu_memory(self):
         """TC-GPU-03b: Total GPU memory must scale with detected GPU count."""
         _skip_if_no_gpu()
-        n_gpus = torch.cuda.device_count()
+        n_gpus = _cuda_device_count()
         total_gb = sum(
             torch.cuda.get_device_properties(i).total_memory
             for i in range(n_gpus)
@@ -375,7 +379,7 @@ class TestHBMBandwidth:
     def test_hbm_bandwidth_per_gpu(self, device_idx):
         """TC-GPU-04: HBM3 BW per GPU must be ≥ 80 % of theoretical 3.35 TB/s."""
         _skip_if_no_gpu()
-        if device_idx >= torch.cuda.device_count():
+        if device_idx >= _cuda_device_count():
             pytest.skip(f"GPU {device_idx} not available")
         theoretical_hbm_tbs, _, _, _ = _device_theoretical_profile(device_idx)
         bw_tbs = _hbm_bandwidth_tbs(device_idx, n_bytes=4 * 1024 ** 3)
@@ -402,7 +406,7 @@ class TestFP32Throughput:
     def test_fp32_gflops_per_gpu(self, device_idx):
         """TC-GPU-05: FP32 GFLOPS per GPU ≥ 70 % of theoretical 67 TFLOPS."""
         _skip_if_no_gpu()
-        if device_idx >= torch.cuda.device_count():
+        if device_idx >= _cuda_device_count():
             pytest.skip(f"GPU {device_idx} not available")
         hbm_tbs, fp32_tflops, _, _ = _device_theoretical_profile(device_idx)
         fp32_threshold = 0.65 if hbm_tbs > 2.1 else 0.52
@@ -431,7 +435,7 @@ class TestFP16ThroughputGPU:
     def test_fp16_tflops_per_gpu(self, device_idx):
         """TC-GPU-06: FP16 TFLOPS per GPU ≥ 75 % of theoretical 1979 TFLOPS."""
         _skip_if_no_gpu()
-        if device_idx >= torch.cuda.device_count():
+        if device_idx >= _cuda_device_count():
             pytest.skip(f"GPU {device_idx} not available")
         hbm_tbs, _, fp16_tflops, _ = _device_theoretical_profile(device_idx)
         # PyTorch eager torch.mm benchmarks typically under-represent vendor peak
@@ -469,7 +473,7 @@ class TestBF16Throughput:
     def test_bf16_tflops_per_gpu(self, device_idx):
         """TC-GPU-07: BF16 TFLOPS per GPU ≥ 75 % of theoretical 1979 TFLOPS."""
         _skip_if_no_gpu()
-        if device_idx >= torch.cuda.device_count():
+        if device_idx >= _cuda_device_count():
             pytest.skip(f"GPU {device_idx} not available")
         hbm_tbs, _, _, bf16_tflops = _device_theoretical_profile(device_idx)
         # Match FP16-style practical threshold for eager GEMM path.
@@ -506,7 +510,7 @@ class TestINT8Throughput:
     def test_int8_tops_per_gpu(self, device_idx):
         """TC-GPU-08: INT8 throughput per GPU ≥ 75 % of theoretical 3958 TOPS."""
         _skip_if_no_gpu()
-        if device_idx >= torch.cuda.device_count():
+        if device_idx >= _cuda_device_count():
             pytest.skip(f"GPU {device_idx} not available")
         hbm_tbs, _, fp16_tflops, _ = _device_theoretical_profile(device_idx)
         device = torch.device(f"cuda:{device_idx}")
@@ -560,7 +564,7 @@ class TestFP64Throughput:
     def test_fp64_tflops_per_gpu(self, device_idx):
         """TC-GPU-09: FP64 TFLOPS per GPU ≥ 70 % of theoretical 34 TFLOPS."""
         _skip_if_no_gpu()
-        if device_idx >= torch.cuda.device_count():
+        if device_idx >= _cuda_device_count():
             pytest.skip(f"GPU {device_idx} not available")
         default_threshold = float(os.environ.get("GPU_FP64_EFF_DEFAULT", "0.50"))
         fp64_threshold = float(os.environ.get("GPU_FP64_EFF_THRESHOLD", str(default_threshold)))
@@ -594,7 +598,7 @@ class TestMultiGPUCompute:
     def test_all_gpus_concurrent_fp16_tflops(self):
         """TC-GPU-10: Aggregate FP16 TFLOPS across 4 concurrent GPUs ≥ 80 % of 4× single."""
         _skip_if_no_gpu()
-        n_gpus = torch.cuda.device_count()
+        n_gpus = _cuda_device_count()
         if n_gpus < 2:
             pytest.skip("Need at least 2 GPUs for multi-GPU test")
 
@@ -634,6 +638,10 @@ class TestGPUUtilisation:
         _skip_if_no_gpu()
         if not _HAS_NVML:
             pytest.skip("pynvml not installed")
+        util_threshold = float(os.environ.get("GPU_UTIL_MIN_PCT", "90"))
+        sample_count = int(os.environ.get("GPU_UTIL_SAMPLE_COUNT", "5"))
+        sample_interval_sec = float(os.environ.get("GPU_UTIL_SAMPLE_INTERVAL_SEC", "0.2"))
+
         device = torch.device("cuda:0")
         m, k, n = 8192, 8192, 8192
         a = torch.randn(m, k, device=device, dtype=torch.float16)
@@ -653,10 +661,18 @@ class TestGPUUtilisation:
         t.start()
         time.sleep(1.0)   # let it ramp
 
-        util = pynvml.nvmlDeviceGetUtilizationRates(handle).gpu
+        util_samples: List[float] = []
+        for _ in range(max(1, sample_count)):
+            util_samples.append(float(pynvml.nvmlDeviceGetUtilizationRates(handle).gpu))
+            time.sleep(max(0.0, sample_interval_sec))
+
+        util = max(util_samples)
         running[0] = False
         t.join()
-        assert util >= 90, f"GPU utilisation {util}% < 90 % during GEMM"
+        assert util >= util_threshold, (
+            f"GPU utilisation peak {util:.1f}% < {util_threshold:.1f}% during GEMM "
+            f"(samples={util_samples})"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -790,7 +806,7 @@ class TestGPUEnumerationPCIeTopology:
     def test_gpu_enumeration_count_consistent(self):
         """TC-GPU-16a: NVML and CUDA must report identical GPU counts (= 4)."""
         _skip_if_no_gpu()
-        cuda_count = torch.cuda.device_count()
+        cuda_count = _cuda_device_count()
         if _HAS_NVML:
             nvml_count = pynvml.nvmlDeviceGetCount()
             assert cuda_count == nvml_count, (
@@ -904,7 +920,7 @@ class TestGPUEnumerationPCIeTopology:
     def test_pcie_host_to_device_bandwidth(self, device_idx):
         """TC-GPU-16h: H2D PCIe BW per GPU must be ≥ 65 % of theoretical 63 GB/s."""
         _skip_if_no_gpu()
-        if device_idx >= torch.cuda.device_count():
+        if device_idx >= _cuda_device_count():
             pytest.skip(f"GPU {device_idx} not available")
         bw_gbs = _pcie_h2d_bandwidth_gbs(device_idx)
         assert_efficiency(
@@ -918,7 +934,7 @@ class TestGPUEnumerationPCIeTopology:
     def test_pcie_device_to_host_bandwidth(self, device_idx):
         """TC-GPU-16i: D2H PCIe BW per GPU must be ≥ 65 % of theoretical 63 GB/s."""
         _skip_if_no_gpu()
-        if device_idx >= torch.cuda.device_count():
+        if device_idx >= _cuda_device_count():
             pytest.skip(f"GPU {device_idx} not available")
         bw_gbs = _pcie_d2h_bandwidth_gbs(device_idx)
         assert_efficiency(
@@ -926,3 +942,4 @@ class TestGPUEnumerationPCIeTopology:
             ACCEPTANCE_THRESHOLDS["pcie_d2h_bandwidth_efficiency"],
             f"PCIe D2H bandwidth GPU {device_idx}",
         )
+

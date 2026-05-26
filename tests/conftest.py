@@ -1554,6 +1554,46 @@ def _get_torch():
     return _torch
 
 
+def is_cuda_runtime_unhealthy_error(exc: Exception) -> bool:
+    """Return True for known CUDA runtime poisoning/deferred-init failures."""
+    msg = str(exc).lower()
+    return (
+        "deferredcudacallerror" in msg
+        or "cuda call failed lazily at initialization" in msg
+        or "device >= 0 && device < num_gpus" in msg
+        or "unspecified launch failure" in msg
+        or "cudaerrorlaunchfailure" in msg
+        or "device-side assert" in msg
+    )
+
+
+def safe_cuda_device_count(force_init: bool = True) -> int:
+    """Best-effort CUDA device discovery that tolerates poisoned runtime state."""
+    torch_mod = _get_torch()
+    if torch_mod is None:
+        return 0
+    try:
+        count = int(torch_mod.cuda.device_count())
+        if count <= 0:
+            return 0
+        if force_init:
+            torch_mod.cuda.get_device_properties(0)
+        return count
+    except Exception as exc:
+        logger.warning("CUDA device enumeration failed; treating CUDA as unavailable: %s", exc)
+        return 0
+
+
+def ensure_cuda_available_or_skip(context: str, min_devices: int = 1) -> int:
+    """Skip the current test if CUDA is unavailable or runtime is unhealthy."""
+    n_gpus = safe_cuda_device_count(force_init=True)
+    if n_gpus < min_devices:
+        pytest.skip(
+            f"Skipping {context}: need at least {min_devices} CUDA device(s), found {n_gpus}"
+        )
+    return n_gpus
+
+
 # ---------------------------------------------------------------------------
 # Markers
 # ---------------------------------------------------------------------------

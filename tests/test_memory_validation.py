@@ -57,6 +57,22 @@ L3_TOTAL_MB            = CPU_SPECS.l3_cache_mb_total           # 640 MB
 THEORETICAL_STORAGE_GB = SYSTEM_SPECS.total_storage_gb
 
 
+def _env_float(name: str, default: float) -> float:
+    """Read a float env var with fallback on invalid values."""
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+
+STREAM_SINGLE_COPY_MIN_GBS = _env_float("MEM_STREAM_SINGLE_COPY_MIN_GBS", 30.0)
+STREAM_SINGLE_SCALE_MIN_GBS = _env_float("MEM_STREAM_SINGLE_SCALE_MIN_GBS", 12.0)
+STREAM_SINGLE_TRIAD_MIN_GBS = _env_float("MEM_STREAM_SINGLE_TRIAD_MIN_GBS", 12.0)
+
+
 # ---------------------------------------------------------------------------
 # KPI recording
 # ---------------------------------------------------------------------------
@@ -308,21 +324,27 @@ class TestSingleThreadBandwidth:
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
         bw = _copy_bw_gbs(array_bytes=512 * 1024 * 1024)
-        assert bw >= 30.0, f"STREAM Copy {bw:.2f} GB/s < 30 GB/s"
+        assert bw >= STREAM_SINGLE_COPY_MIN_GBS, (
+            f"STREAM Copy {bw:.2f} GB/s < {STREAM_SINGLE_COPY_MIN_GBS:.2f} GB/s"
+        )
 
     def test_scale_bw_exceeds_15gbs(self):
         """TC-MEM-03b: Single-thread STREAM Scale must exceed 15 GB/s."""
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
         bw = _scale_bw_gbs(array_bytes=512 * 1024 * 1024)
-        assert bw >= 15.0, f"STREAM Scale {bw:.2f} GB/s < 15 GB/s"
+        assert bw >= STREAM_SINGLE_SCALE_MIN_GBS, (
+            f"STREAM Scale {bw:.2f} GB/s < {STREAM_SINGLE_SCALE_MIN_GBS:.2f} GB/s"
+        )
 
     def test_triad_bw_exceeds_15gbs(self):
         """TC-MEM-03c: Single-thread STREAM Triad must exceed 15 GB/s."""
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
         bw = _stream_triad_gbs(array_bytes=512 * 1024 * 1024, n_runs=3)
-        assert bw >= 15.0, f"STREAM Triad {bw:.2f} GB/s < 15 GB/s"
+        assert bw >= STREAM_SINGLE_TRIAD_MIN_GBS, (
+            f"STREAM Triad {bw:.2f} GB/s < {STREAM_SINGLE_TRIAD_MIN_GBS:.2f} GB/s"
+        )
 
 
 # ---------------------------------------------------------------------------

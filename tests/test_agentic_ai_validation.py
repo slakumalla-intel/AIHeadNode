@@ -58,6 +58,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 import pytest
 
+from tests.conftest import safe_cuda_device_count
 from tests.kpi_efficiency import enrich_efficiency_kpis
 
 logger = logging.getLogger(__name__)
@@ -129,18 +130,20 @@ except ImportError:
 
 try:
     import torch
-    _HAS_TORCH = torch.cuda.is_available()
-    _CUDA_DEVICE_COUNT = torch.cuda.device_count() if _HAS_TORCH else 0
+    _HAS_TORCH = True
 except ImportError:
     torch = None  # type: ignore[assignment]
     _HAS_TORCH = False
-    _CUDA_DEVICE_COUNT = 0
 
 try:
     from transformers import AutoTokenizer, AutoModelForCausalLM
     _HAS_TRANSFORMERS = True
 except ImportError:
     _HAS_TRANSFORMERS = False
+
+
+def _cuda_available() -> bool:
+    return _HAS_TORCH and safe_cuda_device_count(force_init=True) > 0
 
 # ---------------------------------------------------------------------------
 # Data models for agent state tracking
@@ -293,9 +296,9 @@ def _simulate_gpu_reasoning(num_tokens: int = 256) -> Tuple[str, float]:
     Simulate GPU-based language model reasoning phase.
     Returns (reasoning_text, latency_ms).
     """
-    if _HAS_TORCH:
+    if _cuda_available():
         try:
-            device = torch.device("cuda" if _HAS_TORCH else "cpu")
+            device = torch.device("cuda")
             # Simulate token generation on GPU
             t0 = time.perf_counter()
             for _ in range(num_tokens):
@@ -330,20 +333,20 @@ def _measure_cpu_gpu_sync_overhead() -> float:
     (e.g., copying results, synchronizing events)
     Returns latency in microseconds.
     """
-    if not _HAS_TORCH:
+    if not _cuda_available():
         return 0.0
     
     try:
-        device = torch.device("cuda" if _HAS_TORCH else "cpu")
+        device = torch.device("cuda")
         
         # Create a small tensor and copy it back and forth
         t0 = time.perf_counter_ns()
         
         x = torch.randn(1000, device="cpu")
         x_gpu = x.to(device)
-        torch.cuda.synchronize() if _HAS_TORCH else None
+        torch.cuda.synchronize()
         x_cpu = x_gpu.to("cpu")
-        torch.cuda.synchronize() if _HAS_TORCH else None
+        torch.cuda.synchronize()
         
         elapsed_ns = time.perf_counter_ns() - t0
         return elapsed_ns / 1000.0  # Convert to microseconds
@@ -526,7 +529,7 @@ class TestReasoningPhaseLatency:
         
         metrics = {
             "reasoning_latencies_by_tokens": results,
-            "device": "GPU" if _HAS_TORCH else "CPU",
+            "device": "GPU" if _cuda_available() else "CPU",
         }
         _record_kpi("TC-AGENT-02: Reasoning phase latency", metrics)
         
@@ -551,7 +554,7 @@ class TestCPUGPUSynchronization:
 
     def test_cpu_gpu_sync_latency(self):
         """TC-AGENT-03: CPU-GPU sync overhead must be < 500µs."""
-        if not _HAS_TORCH:
+        if not _cuda_available():
             pytest.skip("CUDA not available")
         if not _EXECUTE:
             pytest.skip("Agentic AI execution disabled")

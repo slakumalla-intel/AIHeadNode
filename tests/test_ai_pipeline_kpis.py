@@ -53,6 +53,7 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import pytest
 
+from tests.conftest import safe_cuda_device_count
 from tests.kpi_efficiency import enrich_efficiency_kpis
 
 logger = logging.getLogger(__name__)
@@ -121,12 +122,14 @@ def _record_kpi(test_name: str, metrics: dict) -> None:
 
 try:
     import torch
-    _HAS_TORCH = torch.cuda.is_available()
-    _CUDA_DEVICE_COUNT = torch.cuda.device_count() if _HAS_TORCH else 0
+    _HAS_TORCH = True
 except ImportError:
     torch = None  # type: ignore[assignment]
     _HAS_TORCH = False
-    _CUDA_DEVICE_COUNT = 0
+
+
+def _cuda_device_count() -> int:
+    return safe_cuda_device_count(force_init=True)
 
 try:
     from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
@@ -192,7 +195,7 @@ def _nvml_mem_util_pct(device: int = 0) -> float:
 
 def _cuda_context_healthy(device: int = 0) -> bool:
     """Return False when CUDA context is poisoned (e.g., prior device-side assert)."""
-    if not _HAS_TORCH or _CUDA_DEVICE_COUNT == 0:
+    if not _HAS_TORCH or _cuda_device_count() == 0:
         return True
     try:
         torch.cuda.synchronize(device)
@@ -565,7 +568,7 @@ class TestModelOrchestration:
         """
         if not _HAS_TORCH or not _HAS_TRANSFORMERS:
             pytest.skip("torch or transformers not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         # Use small model to keep test time reasonable; override via env
@@ -629,7 +632,7 @@ class TestModelOrchestration:
         """
         if not _HAS_TORCH:
             pytest.skip("torch not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
         if not _STORAGE_PATH.exists():
             pytest.skip(f"STORAGE_TEST_PATH {_STORAGE_PATH} not accessible")
@@ -696,7 +699,7 @@ class TestModelOrchestration:
         """
         if not _HAS_TORCH:
             pytest.skip("torch not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         # H100 80 GB: typical vLLM-style KV block parameters
@@ -769,7 +772,7 @@ class TestModelOrchestration:
         """
         if not _HAS_TORCH:
             pytest.skip("torch not available")
-        if _CUDA_DEVICE_COUNT < 2:
+        if _cuda_device_count() < 2:
             pytest.skip("need ≥ 2 GPUs for AllReduce overhead test")
         if not torch.distributed.is_available():
             pytest.skip("torch.distributed not available")
@@ -864,7 +867,7 @@ class TestModelOrchestration:
         """
         if not _HAS_TORCH:
             pytest.skip("torch not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         seq_len = 512
@@ -1162,7 +1165,7 @@ class TestNetworkingAndStorageIO:
         """
         if not _HAS_TORCH:
             pytest.skip("torch not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         shard_gb = min(_STORAGE_GB, 1)  # 1 GB shard
@@ -1238,7 +1241,7 @@ class TestInferencePipelineKPIs:
         """
         if not _HAS_TORCH or not _HAS_TRANSFORMERS:
             pytest.skip("torch or transformers not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
@@ -1322,7 +1325,7 @@ class TestInferencePipelineKPIs:
         """
         if not _HAS_TORCH or not _HAS_TRANSFORMERS:
             pytest.skip("torch or transformers not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
@@ -1417,7 +1420,7 @@ class TestInferencePipelineKPIs:
         """
         if not _HAS_TORCH or not _HAS_TRANSFORMERS:
             pytest.skip("torch or transformers not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
@@ -1500,7 +1503,7 @@ class TestInferencePipelineKPIs:
         """
         if not _HAS_TORCH or not _HAS_TRANSFORMERS:
             pytest.skip("torch or transformers not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
@@ -1566,7 +1569,7 @@ class TestInferencePipelineKPIs:
         """
         if not _HAS_TORCH or not _HAS_TRANSFORMERS:
             pytest.skip("torch or transformers not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
         if not _HAS_NVML:
             pytest.skip("pynvml not available – cannot measure GPU utilisation")
@@ -1647,7 +1650,7 @@ class TestInferencePipelineKPIs:
         """
         if not _HAS_TORCH or not _HAS_TRANSFORMERS:
             pytest.skip("torch or transformers not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
         if not _HAS_NVML:
             pytest.skip("pynvml not available")
@@ -1747,7 +1750,7 @@ class TestInferencePipelineKPIs:
         except ImportError:
             pytest.skip("vllm not installed")
 
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         model_id = os.environ.get("PIPELINE_VLLM_MODEL_ID", _MODEL_ID)
@@ -1815,7 +1818,7 @@ class TestInferencePipelineKPIs:
         """
         if not _HAS_TORCH or not _HAS_TRANSFORMERS:
             pytest.skip("torch or transformers not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
@@ -1882,7 +1885,7 @@ class TestInferencePipelineKPIs:
         """
         if not _HAS_TORCH or not _HAS_TRANSFORMERS:
             pytest.skip("torch or transformers not available")
-        if _CUDA_DEVICE_COUNT == 0:
+        if _cuda_device_count() == 0:
             pytest.skip("no CUDA device available")
 
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
@@ -1973,7 +1976,7 @@ class TestInferencePipelineKPIs:
         """
         if not _HAS_TORCH or not _HAS_TRANSFORMERS:
             pytest.skip("torch or transformers not available")
-        if _CUDA_DEVICE_COUNT < 2:
+        if _cuda_device_count() < 2:
             pytest.skip("need ≥ 2 GPUs for multi-GPU scaling test")
 
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
@@ -2036,7 +2039,7 @@ class TestInferencePipelineKPIs:
 
         _record_kpi("test_multi_gpu_inference_throughput_scaling", {
             "model_id": _MODEL_ID,
-            "n_gpus": _CUDA_DEVICE_COUNT,
+            "n_gpus": _cuda_device_count(),
             "batch_size": batch,
             "n_gen_tokens": n_gen,
             "tps_single_gpu": round(tps_1gpu, 1),
@@ -2047,5 +2050,6 @@ class TestInferencePipelineKPIs:
 
         assert ratio >= threshold_ratio, (
             f"Multi-GPU inference scaling {ratio:.2f}× < {threshold_ratio}× "
-            f"(1-GPU: {tps_1gpu:.0f} tps, {_CUDA_DEVICE_COUNT}-GPU: {tps_mgpu:.0f} tps)"
+            f"(1-GPU: {tps_1gpu:.0f} tps, {_cuda_device_count()}-GPU: {tps_mgpu:.0f} tps)"
         )
+

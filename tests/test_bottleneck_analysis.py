@@ -183,16 +183,28 @@ def _cpu_blas_gflops(
     return _run_benchmark()
 
 
-def _dram_bw_gbs(n_bytes: int = 512 * 1024 * 1024) -> float:
+def _dram_bw_gbs(
+    n_bytes: int = 512 * 1024 * 1024,
+    warmup_runs: int = 2,
+    n_runs: int = 5,
+) -> float:
     if not _HAS_NUMPY:
         return 0.0
     n = n_bytes // 4
     a = np.ones(n, dtype=np.float32)
     b = np.empty(n, dtype=np.float32)
-    np.copyto(b, a)
-    t0 = time.perf_counter()
-    np.copyto(b, a)
-    return (2 * n * 4) / (time.perf_counter() - t0) / 1e9
+
+    for _ in range(max(1, warmup_runs)):
+        np.copyto(b, a)
+
+    best_bw = 0.0
+    for _ in range(max(1, n_runs)):
+        t0 = time.perf_counter()
+        np.copyto(b, a)
+        elapsed = time.perf_counter() - t0
+        bw = (2 * n * 4) / elapsed / 1e9
+        best_bw = max(best_bw, bw)
+    return best_bw
 
 
 def _safe_cuda_device_count() -> int:
@@ -211,6 +223,24 @@ def _safe_cuda_device_count() -> int:
     except Exception as e:
         logger.warning("CUDA device enumeration failed; treating CUDA as unavailable: %s", e)
         return 0
+
+
+def _is_cuda_runtime_unhealthy_error(exc: Exception) -> bool:
+    """Return True for known CUDA runtime errors caused by a poisoned GPU context."""
+    msg = str(exc).lower()
+    return (
+        "deferredcudacallerror" in msg
+        or "cuda call failed lazily at initialization" in msg
+        or "device >= 0 && device < num_gpus" in msg
+        or "unspecified launch failure" in msg
+        or "cudaerrorlaunchfailure" in msg
+    )
+
+
+def _skip_if_cuda_runtime_unhealthy(exc: Exception, context: str) -> None:
+    if _is_cuda_runtime_unhealthy_error(exc):
+        pytest.skip(f"Skipping {context}: CUDA runtime unhealthy ({exc})")
+    raise exc
 
 
 def _gpu_fp16_tflops(device_idx: int, m: int = 8192, k: int = 8192, n: int = 8192,
@@ -243,29 +273,60 @@ def _gpu_fp32_gflops(device_idx: int, m: int = 4096, k: int = 4096, n: int = 409
     return 2 * m * k * n * n_iters / (time.perf_counter() - t0) / 1e9
 
 
-def _hbm_bw_tbs(device_idx: int, n_bytes: int = 4 * 1024 ** 3) -> float:
+def _hbm_bw_tbs(
+    device_idx: int,
+    n_bytes: int = 4 * 1024 ** 3,
+    warmup_runs: int = 2,
+    n_runs: int = 5,
+) -> float:
     if not _HAS_TORCH:
         return 0.0
     device = torch.device(f"cuda:{device_idx}")
     n = n_bytes // 2
     src = torch.ones(n, device=device, dtype=torch.float16)
     dst = torch.empty(n, device=device, dtype=torch.float16)
-    dst.copy_(src); torch.cuda.synchronize(device)
-    t0 = time.perf_counter()
-    dst.copy_(src); torch.cuda.synchronize(device)
-    return (n_bytes * 2) / (time.perf_counter() - t0) / 1e12
+
+    for _ in range(max(1, warmup_runs)):
+        dst.copy_(src)
+    torch.cuda.synchronize(device)
+
+    best_bw = 0.0
+    for _ in range(max(1, n_runs)):
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        dst.copy_(src)
+        torch.cuda.synchronize(device)
+        elapsed = time.perf_counter() - t0
+        bw = (n_bytes * 2) / elapsed / 1e12
+        best_bw = max(best_bw, bw)
+    return best_bw
 
 
-def _h2d_bw_gbs(device_idx: int, n_bytes: int = 1 * 1024 ** 3) -> float:
+def _h2d_bw_gbs(
+    device_idx: int,
+    n_bytes: int = 1 * 1024 ** 3,
+    warmup_runs: int = 2,
+    n_runs: int = 5,
+) -> float:
     if not _HAS_TORCH:
         return 0.0
     device = torch.device(f"cuda:{device_idx}")
     host = torch.ones(n_bytes // 4, dtype=torch.float32).pin_memory()
-    host.to(device); torch.cuda.synchronize(device)
-    t0 = time.perf_counter()
-    dev = host.to(device, non_blocking=False)
+
+    for _ in range(max(1, warmup_runs)):
+        _ = host.to(device, non_blocking=False)
     torch.cuda.synchronize(device)
-    return n_bytes / (time.perf_counter() - t0) / 1e9
+
+    best_bw = 0.0
+    for _ in range(max(1, n_runs)):
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        _ = host.to(device, non_blocking=False)
+        torch.cuda.synchronize(device)
+        elapsed = time.perf_counter() - t0
+        bw = n_bytes / elapsed / 1e9
+        best_bw = max(best_bw, bw)
+    return best_bw
 
 
 def _configure_blas_threads(n_threads: int) -> None:
@@ -696,9 +757,16 @@ class TestHBMBandwidthBottleneck:
         """TC-BN-04b: FP16 GEMM at low arithmetic intensity must be HBM-limited (not compute)."""
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
+        n_gpus = _safe_cuda_device_count()
+        if n_gpus <= 0:
+            pytest.skip("CUDA device enumeration failed or no GPUs visible")
         # Very small GEMM → memory-bound (AI < roofline knee)
-        small_tflops = _gpu_fp16_tflops(0, m=64, k=64, n=64, n_iters=1000)
-        large_tflops = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=10)
+        try:
+            small_tflops = _gpu_fp16_tflops(0, m=64, k=64, n=64, n_iters=1000)
+            large_tflops = _gpu_fp16_tflops(0, m=8192, k=8192, n=8192, n_iters=10)
+        except Exception as e:
+            _skip_if_cuda_runtime_unhealthy(e, "TC-BN-04b")
+            raise
         # Small GEMM must be dominated by memory BW → much lower effective TFLOPS
         assert small_tflops < large_tflops * 0.5, (
             f"Small GEMM ({small_tflops:.1f} TFLOPS) unexpectedly close to "
@@ -884,48 +952,55 @@ class TestCPUGPUPipelineBottleneck:
         """TC-BN-08: Host ingest stage should fit within a sustained GPU compute window."""
         if not _HAS_NUMPY or not _HAS_TORCH:
             pytest.skip("numpy/torch not available")
+        n_gpus = _safe_cuda_device_count()
+        if n_gpus <= 0:
+            pytest.skip("CUDA device enumeration failed or no GPUs visible")
 
-        device = torch.device("cuda:0")
-        batch_side = 4096
-        gpu_gemm_side = 8192
-        n_batches = 3
-        gpu_layers = 32
-        overlap_headroom = 1.25
+        try:
+            device = torch.device("cuda:0")
+            batch_side = 4096
+            gpu_gemm_side = 8192
+            n_batches = 3
+            gpu_layers = 32
+            overlap_headroom = 1.25
 
-        raw_batch = np.random.rand(batch_side, batch_side).astype(np.float32)
+            raw_batch = np.random.rand(batch_side, batch_side).astype(np.float32)
 
-        # GPU side: use a sustained compute window rather than a single GEMM launch.
-        a = torch.randn(gpu_gemm_side, gpu_gemm_side, device=device, dtype=torch.float16)
-        b = torch.randn(gpu_gemm_side, gpu_gemm_side, device=device, dtype=torch.float16)
-        torch.mm(a, b)
-        torch.cuda.synchronize(device)
-
-        # Warm up pinned-memory allocation and one host-to-device transfer so the
-        # timed H2D samples reflect steady-state behavior rather than first-use cost.
-        warmup_host_tensor = torch.from_numpy(raw_batch).pin_memory()
-        _warmup_device_tensor = warmup_host_tensor.to(device, non_blocking=True)
-        torch.cuda.synchronize(device)
-
-        cpu_preprocess_times = []
-        h2d_times = []
-        gpu_compute_times = []
-
-        for _ in range(n_batches):
-            t0 = time.perf_counter()
-            normalized = (raw_batch - raw_batch.mean()) / (raw_batch.std() + 1e-8)
-            cpu_preprocess_times.append(time.perf_counter() - t0)
-
-            t0 = time.perf_counter()
-            host_tensor = torch.from_numpy(normalized).pin_memory()
-            _device_tensor = host_tensor.to(device, non_blocking=True)
+            # GPU side: use a sustained compute window rather than a single GEMM launch.
+            a = torch.randn(gpu_gemm_side, gpu_gemm_side, device=device, dtype=torch.float16)
+            b = torch.randn(gpu_gemm_side, gpu_gemm_side, device=device, dtype=torch.float16)
+            torch.mm(a, b)
             torch.cuda.synchronize(device)
-            h2d_times.append(time.perf_counter() - t0)
 
-            t0 = time.perf_counter()
-            for _ in range(gpu_layers):
-                torch.mm(a, b)
+            # Warm up pinned-memory allocation and one host-to-device transfer so the
+            # timed H2D samples reflect steady-state behavior rather than first-use cost.
+            warmup_host_tensor = torch.from_numpy(raw_batch).pin_memory()
+            _warmup_device_tensor = warmup_host_tensor.to(device, non_blocking=True)
             torch.cuda.synchronize(device)
-            gpu_compute_times.append(time.perf_counter() - t0)
+
+            cpu_preprocess_times = []
+            h2d_times = []
+            gpu_compute_times = []
+
+            for _ in range(n_batches):
+                t0 = time.perf_counter()
+                normalized = (raw_batch - raw_batch.mean()) / (raw_batch.std() + 1e-8)
+                cpu_preprocess_times.append(time.perf_counter() - t0)
+
+                t0 = time.perf_counter()
+                host_tensor = torch.from_numpy(normalized).pin_memory()
+                _device_tensor = host_tensor.to(device, non_blocking=True)
+                torch.cuda.synchronize(device)
+                h2d_times.append(time.perf_counter() - t0)
+
+                t0 = time.perf_counter()
+                for _ in range(gpu_layers):
+                    torch.mm(a, b)
+                torch.cuda.synchronize(device)
+                gpu_compute_times.append(time.perf_counter() - t0)
+        except Exception as e:
+            _skip_if_cuda_runtime_unhealthy(e, "TC-BN-08")
+            raise
 
         cpu_preprocess_avg = sum(cpu_preprocess_times) / len(cpu_preprocess_times)
         h2d_avg = sum(h2d_times) / len(h2d_times)

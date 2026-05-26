@@ -22,7 +22,7 @@ except ImportError:
 
 try:
     import torch
-    _HAS_TORCH = torch.cuda.is_available()
+    _HAS_TORCH = True
 except ImportError:
     torch = None  # type: ignore[assignment]
     _HAS_TORCH = False
@@ -70,7 +70,15 @@ def _detect_total_storage_gb() -> float:
 def _detect_gpu_count() -> int:
     """Return number of detected CUDA GPUs; 0 when CUDA is unavailable."""
     if _HAS_TORCH:
-        return torch.cuda.device_count()
+        try:
+            count = int(torch.cuda.device_count())
+            if count <= 0:
+                return 0
+            # Force lightweight init so deferred failures are handled here.
+            torch.cuda.get_device_properties(0)
+            return count
+        except Exception:
+            return 0
     return 0
 
 

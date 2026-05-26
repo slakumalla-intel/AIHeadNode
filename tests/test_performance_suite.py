@@ -467,6 +467,25 @@ def _rewrite_genai_perf_profile_parts(parts: List[str]) -> List[str]:
     if endpoint_type and endpoint_type != "kserve" and "--backend" in rewritten:
         rewritten, _ = _remove_flag_and_value(rewritten, "--backend")
 
+    # Resolve model/tokenizer references to local cache snapshots when available.
+    idx = 0
+    while idx < len(rewritten):
+        token = rewritten[idx]
+        if token in {"--tokenizer"} and idx + 1 < len(rewritten) and not rewritten[idx + 1].startswith("-"):
+            rewritten[idx + 1] = _resolve_hf_model_reference(rewritten[idx + 1])
+            idx += 2
+            continue
+
+        if token in {"--model", "-m"}:
+            scan = idx + 1
+            while scan < len(rewritten) and not rewritten[scan].startswith("-"):
+                rewritten[scan] = _resolve_hf_model_reference(rewritten[scan])
+                scan += 1
+            idx = scan
+            continue
+
+        idx += 1
+
     return rewritten
 
 
@@ -1239,8 +1258,8 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Validate containerized serving path, networking, and tail latency",
         prerequisites=["genai-perf installed", "two vLLM servers pinned to distinct GPUs"],
         commands=[
-            "genai-perf profile --endpoint-type chat --url http://127.0.0.1:8000/v1 --model meta-llama/Llama-3.1-8B-Instruct",
-            "genai-perf profile --endpoint-type chat --url http://127.0.0.1:8001/v1 --model meta-llama/Llama-3.1-8B-Instruct",
+            "genai-perf profile --endpoint-type chat --url http://127.0.0.1:8000/v1 --model meta-llama/Meta-Llama-3.1-8B-Instruct --tokenizer meta-llama/Meta-Llama-3.1-8B-Instruct",
+            "genai-perf profile --endpoint-type chat --url http://127.0.0.1:8001/v1 --model meta-llama/Meta-Llama-3.1-8B-Instruct --tokenizer meta-llama/Meta-Llama-3.1-8B-Instruct",
         ],
         expected="Both server instances satisfy SLO simultaneously without cross-GPU contention",
     ),

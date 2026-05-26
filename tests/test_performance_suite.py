@@ -467,24 +467,26 @@ def _rewrite_genai_perf_profile_parts(parts: List[str]) -> List[str]:
     if endpoint_type and endpoint_type != "kserve" and "--backend" in rewritten:
         rewritten, _ = _remove_flag_and_value(rewritten, "--backend")
 
-    # Resolve model/tokenizer references to local cache snapshots when available.
+    # Keep --model as the served endpoint model identifier. For OpenAI-like flows,
+    # perf_analyzer sends this to the server and it must match the served model name.
+    # Resolve only --tokenizer to a local path so offline runs can avoid hf.co lookups.
+    model_name: Optional[str] = None
     idx = 0
     while idx < len(rewritten):
         token = rewritten[idx]
-        if token in {"--tokenizer"} and idx + 1 < len(rewritten) and not rewritten[idx + 1].startswith("-"):
+        if token in {"--model", "-m"}:
+            if idx + 1 < len(rewritten) and not rewritten[idx + 1].startswith("-"):
+                model_name = rewritten[idx + 1]
+            idx += 2
+            continue
+        if token == "--tokenizer" and idx + 1 < len(rewritten) and not rewritten[idx + 1].startswith("-"):
             rewritten[idx + 1] = _resolve_hf_model_reference(rewritten[idx + 1])
             idx += 2
             continue
-
-        if token in {"--model", "-m"}:
-            scan = idx + 1
-            while scan < len(rewritten) and not rewritten[scan].startswith("-"):
-                rewritten[scan] = _resolve_hf_model_reference(rewritten[scan])
-                scan += 1
-            idx = scan
-            continue
-
         idx += 1
+
+    if "--tokenizer" not in rewritten and model_name:
+        rewritten.extend(["--tokenizer", _resolve_hf_model_reference(model_name)])
 
     return rewritten
 

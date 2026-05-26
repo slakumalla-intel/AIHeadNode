@@ -1243,8 +1243,9 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         subsystem="Inference burst",
         workload="1x to 10x burst, 30s spike",
         purpose="Validate resilience, recovery, and burst-tail behavior",
-        prerequisites=["vLLM benchmark tools", "model access"],
+        prerequisites=["vLLM installed", "model access"],
         commands=[
+            "vllm serve meta-llama/Meta-Llama-3.1-8B-Instruct --dtype bfloat16 --tensor-parallel-size 1 --max-model-len 8192 --port 8000",
             "vllm bench serve --backend vllm --dataset-name sharegpt --dataset-path ${SHAREGPT_DATASET_PATH} --request-rate burst --burst-length 30 --burst-rps 200 --max-concurrency 512 --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,99",
         ],
         expected="No OOM/crash, recovers after burst, P99 within burst SLO",

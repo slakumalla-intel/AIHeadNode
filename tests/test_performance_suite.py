@@ -51,6 +51,7 @@ _HF_MODEL_ALIASES: Dict[str, str] = {
     "mistralai/Mixtral-8x22B-v0.1": "mistralai/Mixtral-8x22B-Instruct-v0.1",
     "deepseek-ai/DeepSeek-R1": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
 }
+_GENAI_PERF_PROFILE_HELP_CACHE: Optional[str] = None
 
 
 def _configure_performance_env_defaults() -> None:
@@ -411,6 +412,64 @@ def _rewrite_legacy_vllm_benchmark_parts(parts: List[str]) -> List[str]:
     return rewritten
 
 
+def _genai_perf_profile_help_text() -> str:
+    global _GENAI_PERF_PROFILE_HELP_CACHE
+    if _GENAI_PERF_PROFILE_HELP_CACHE is not None:
+        return _GENAI_PERF_PROFILE_HELP_CACHE
+    try:
+        _GENAI_PERF_PROFILE_HELP_CACHE = subprocess.check_output(
+            ["genai-perf", "profile", "--help"],
+            stderr=subprocess.STDOUT,
+            text=True,
+            timeout=10,
+        )
+    except Exception:
+        _GENAI_PERF_PROFILE_HELP_CACHE = ""
+    return _GENAI_PERF_PROFILE_HELP_CACHE
+
+
+def _remove_flag_and_value(parts: List[str], flag: str) -> tuple[List[str], Optional[str]]:
+    updated = list(parts)
+    captured_value: Optional[str] = None
+    while flag in updated:
+        idx = updated.index(flag)
+        if idx + 1 < len(updated) and not updated[idx + 1].startswith("-"):
+            captured_value = updated[idx + 1]
+            del updated[idx : idx + 2]
+        else:
+            del updated[idx]
+    return updated, captured_value
+
+
+def _value_after_flag(parts: List[str], flag: str) -> Optional[str]:
+    if flag in parts:
+        idx = parts.index(flag)
+        if idx + 1 < len(parts):
+            return parts[idx + 1]
+    return None
+
+
+def _rewrite_genai_perf_profile_parts(parts: List[str]) -> List[str]:
+    help_text = _genai_perf_profile_help_text()
+    supports_service_kind = "--service-kind" in help_text
+    supports_service_type = "--service-type" in help_text
+
+    rewritten = list(parts)
+
+    # Old/new genai-perf compatibility: some builds reject --service-kind.
+    if not supports_service_kind and "--service-kind" in rewritten:
+        rewritten, service_kind_value = _remove_flag_and_value(rewritten, "--service-kind")
+        if supports_service_type and service_kind_value and "--service-type" not in rewritten:
+            rewritten.extend(["--service-type", service_kind_value])
+
+    endpoint_type = (_value_after_flag(rewritten, "--endpoint-type") or "").strip().lower()
+    # Some builds accept --backend only for Triton/KServe. Drop it for chat/completions.
+    if endpoint_type and endpoint_type != "kserve" and "--backend" in rewritten:
+        rewritten, _ = _remove_flag_and_value(rewritten, "--backend")
+
+    return rewritten
+
+
 def _prepare_command(command: str) -> str:
     """Rewrite commands to use auto-derived paths and safe runtime defaults."""
     # Expand env-var placeholders before tokenising.
@@ -484,6 +543,9 @@ def _prepare_command(command: str) -> str:
             resolved_nccl = _resolve_nccl_test_binary(token)
             if resolved_nccl:
                 parts[idx] = resolved_nccl
+
+    if len(parts) >= 2 and parts[0] == "genai-perf" and parts[1] == "profile":
+        parts = _rewrite_genai_perf_profile_parts(parts)
 
     # Normalize command-level GPU masking to configured performance device set.
     perf_gpu_devices = os.environ.get("PERF_CUDA_VISIBLE_DEVICES", "").strip()
@@ -1177,8 +1239,8 @@ PERFORMANCE_CASES: List[PerformanceCase] = [
         purpose="Validate containerized serving path, networking, and tail latency",
         prerequisites=["genai-perf installed", "two vLLM servers pinned to distinct GPUs"],
         commands=[
-            "genai-perf profile --endpoint-type chat --service-kind openai --url http://127.0.0.1:8000/v1 --model meta-llama/Llama-3.1-8B-Instruct",
-            "genai-perf profile --endpoint-type chat --service-kind openai --url http://127.0.0.1:8001/v1 --model meta-llama/Llama-3.1-8B-Instruct",
+            "genai-perf profile --endpoint-type chat --url http://127.0.0.1:8000/v1 --model meta-llama/Llama-3.1-8B-Instruct",
+            "genai-perf profile --endpoint-type chat --url http://127.0.0.1:8001/v1 --model meta-llama/Llama-3.1-8B-Instruct",
         ],
         expected="Both server instances satisfy SLO simultaneously without cross-GPU contention",
     ),

@@ -5833,11 +5833,16 @@ class TestWorkloadAcceptanceHuggingFace:
     @pytest.mark.workload_acceptance
     @pytest.mark.rdma_validation
     def test_one_dma_read_4kb_validation(self):
-        """Validate one exact 4KB DMA-like transfer with data pattern compare."""
+        """Validate one DMA-like transfer with data pattern compare (default 4KB)."""
         if torch.cuda.device_count() == 0:
             pytest.skip("No CUDA devices")
 
-        n_bytes = 4096
+        n_bytes = int(os.environ.get("ONE_DMA_READ_BYTES", os.environ.get("RDMA_DMA_TRANSFER_BYTES", "4096")))
+        if n_bytes <= 0 or (n_bytes % 4096) != 0:
+            pytest.fail(f"ONE_DMA_READ_BYTES must be a positive 4KB multiple, got: {n_bytes}")
+        if n_bytes != 4096:
+            logger.info("test_one_dma_read_4kb_validation using override transfer_bytes=%d", n_bytes)
+
         host_src = bytearray((i % 256 for i in range(n_bytes)))
         cpu_in = torch.tensor(list(host_src), dtype=torch.uint8, pin_memory=True)
         gpu_buf = torch.empty(n_bytes, dtype=torch.uint8, device="cuda:0")
@@ -5862,7 +5867,6 @@ class TestWorkloadAcceptanceHuggingFace:
             },
         )
 
-        assert n_bytes == 4096, "Transfer length must be exactly 4KB"
         assert data_match, "4KB DMA data compare failed"
 
     @pytest.mark.skipif(not _HAS_TORCH, reason="torch not available")
@@ -5874,7 +5878,9 @@ class TestWorkloadAcceptanceHuggingFace:
             pytest.skip("No CUDA devices")
 
         loops = int(os.environ.get("RDMA_SOAK_LOOPS", "1000"))
-        n_bytes = 4096
+        n_bytes = int(os.environ.get("RDMA_SOAK_TRANSFER_BYTES", os.environ.get("RDMA_DMA_TRANSFER_BYTES", "4096")))
+        if n_bytes <= 0 or (n_bytes % 4096) != 0:
+            pytest.fail(f"RDMA_SOAK_TRANSFER_BYTES must be a positive 4KB multiple, got: {n_bytes}")
         lat_us: List[float] = []
         failures = 0
 

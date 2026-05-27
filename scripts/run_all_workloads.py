@@ -270,6 +270,11 @@ def _timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _report_stamp() -> str:
+    """Compact UTC timestamp for unique report filenames."""
+    return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
+
+
 def _coalesce_message(testcase: ET.Element) -> str:
     for tag in ("failure", "error", "skipped"):
         child = testcase.find(tag)
@@ -417,14 +422,17 @@ def _ensure_artifact_dirs(root: Path) -> Dict[str, Path]:
     reports = artifacts / "reports"
     junit_dir = reports / "junit"
     logs_dir = reports / "logs"
+    full_logs_dir = logs_dir / "full_logs"
     reports.mkdir(parents=True, exist_ok=True)
     junit_dir.mkdir(parents=True, exist_ok=True)
     logs_dir.mkdir(parents=True, exist_ok=True)
+    full_logs_dir.mkdir(parents=True, exist_ok=True)
     return {
         "artifacts": artifacts,
         "reports": reports,
         "junit": junit_dir,
         "logs": logs_dir,
+        "full_logs": full_logs_dir,
     }
 
 
@@ -463,9 +471,10 @@ def _run_domain(
     junit_dir: Path,
     logs_dir: Path,
     extra_pytest_args: List[str],
+    run_stamp: str,
 ) -> Dict[str, object]:
-    junit_xml = junit_dir / f"{domain.key}.xml"
-    log_file = logs_dir / f"{domain.key}.log"
+    junit_xml = junit_dir / f"{domain.key}_{run_stamp}.xml"
+    log_file = logs_dir / f"{domain.key}_{run_stamp}.log"
     cmd = [
         sys.executable,
         "-m",
@@ -684,12 +693,12 @@ def _parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--report-json",
-        default="artifacts/workload_status_report.json",
+        default="",
         help="Output path for consolidated JSON report.",
     )
     parser.add_argument(
         "--report-md",
-        default="artifacts/workload_status_report.md",
+        default="",
         help="Output path for consolidated Markdown report.",
     )
     parser.add_argument(
@@ -739,6 +748,7 @@ def _run_once(
     logs_dir: Path,
     report_json: Path,
     report_md: Path,
+    run_stamp: str,
 ) -> Dict[str, object]:
     """Execute one full pass over the selected domains and write per-run reports.
 
@@ -772,6 +782,7 @@ def _run_once(
             junit_dir=junit_dir,
             logs_dir=logs_dir,
             extra_pytest_args=extra_pytest_args,
+            run_stamp=run_stamp,
         )
         domain_results.append(row)
         print(
@@ -861,8 +872,14 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     domains = _select_domains(args.only, args.skip)
     env = _build_env()
     extra_pytest_args = shlex.split(args.pytest_args) if args.pytest_args else []
+    run_stamp = _report_stamp()
+    test_name = domains[0].key if len(domains) == 1 else "all_workloads"
+    default_report_json = dirs["full_logs"] / f"{test_name}_{run_stamp}_workload_status_report.json"
+    default_report_md = dirs["full_logs"] / f"{test_name}_{run_stamp}_workload_status_report.md"
+    report_json_path = (root / args.report_json) if args.report_json else default_report_json
+    report_md_path = (root / args.report_md) if args.report_md else default_report_md
 
-    # Single-run mode: preserve the original artifact layout exactly.
+    # Single-run mode: keep all reports in artifacts/reports/logs/full_logs.
     if args.repeat == 1:
         report = _run_once(
             root=root,
@@ -870,25 +887,22 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
             domains=domains,
             env=env,
             extra_pytest_args=extra_pytest_args,
-            junit_dir=dirs["junit"],
-            logs_dir=dirs["logs"],
-            report_json=root / args.report_json,
-            report_md=root / args.report_md,
+            junit_dir=dirs["full_logs"],
+            logs_dir=dirs["full_logs"],
+            report_json=report_json_path,
+            report_md=report_md_path,
+            run_stamp=run_stamp,
         )
         return 1 if report["summary"]["failed_domains"] > 0 else 0
 
-    # Repeat mode: per-iteration artifacts under artifacts/loop/run_<i>/
-    loop_root = root / "artifacts" / "loop"
-    loop_root.mkdir(parents=True, exist_ok=True)
+    # Repeat mode: keep all per-iteration and aggregate reports in full_logs.
+    loop_root = dirs["full_logs"]
     iteration_reports: List[Dict[str, object]] = []
     print(f"[loop] running {args.repeat} iterations across {len(domains)} domain(s)")
     started_at = _timestamp()
     for i in range(1, args.repeat + 1):
-        iter_dir = loop_root / f"run_{i:04d}"
-        iter_junit = iter_dir / "junit"
-        iter_logs = iter_dir / "logs"
-        iter_junit.mkdir(parents=True, exist_ok=True)
-        iter_logs.mkdir(parents=True, exist_ok=True)
+        iter_stamp = _report_stamp()
+        iter_name = f"{test_name}_iter{i:04d}"
         print(f"\n===== loop iteration {i} / {args.repeat} =====")
         report = _run_once(
             root=root,
@@ -896,10 +910,11 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
             domains=domains,
             env=env,
             extra_pytest_args=extra_pytest_args,
-            junit_dir=iter_junit,
-            logs_dir=iter_logs,
-            report_json=iter_dir / "status.json",
-            report_md=iter_dir / "status.md",
+            junit_dir=dirs["full_logs"],
+            logs_dir=dirs["full_logs"],
+            report_json=loop_root / f"{iter_name}_{iter_stamp}_status.json",
+            report_md=loop_root / f"{iter_name}_{iter_stamp}_status.md",
+            run_stamp=iter_stamp,
         )
         iteration_reports.append({
             "iteration": i,
@@ -907,7 +922,7 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
             "summary": report["summary"],
             "per_domain": [
                 {
-                    "key": d["key"],
+                    "key": d["domain"],
                     "status": d["status"],
                     "tests": d["tests"],
                     "failures": d["failures"],
@@ -951,8 +966,9 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         "per_domain": domain_stats,
         "iteration_reports": iteration_reports,
     }
-    agg_json = loop_root / "aggregate.json"
-    agg_md = loop_root / "aggregate.md"
+    agg_stamp = _report_stamp()
+    agg_json = loop_root / f"{test_name}_{agg_stamp}_aggregate.json"
+    agg_md = loop_root / f"{test_name}_{agg_stamp}_aggregate.md"
     agg_json.write_text(json.dumps(aggregate, indent=2), encoding="utf-8")
 
     md_lines = [

@@ -221,8 +221,6 @@ class TestRAMCapacity:
 
     def test_total_ram_at_least_1tb(self):
         """TC-MEM-01a: Total RAM must be ≥ 1 TB (minimum working configuration).
-
-        """TC-MEM-01a: Total RAM must be ≥ 1 TB (minimum working configuration)."""
         """
         if not _HAS_PSUTIL:
             pytest.skip("psutil not installed")

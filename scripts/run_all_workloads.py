@@ -19,7 +19,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 from xml.etree import ElementTree as ET
 
 
@@ -348,6 +348,160 @@ def _parse_junit(xml_path: Path) -> Dict[str, object]:
     return payload
 
 
+def _as_float(value: Any) -> Optional[float]:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _lower_is_better(metric_name: str) -> bool:
+    key = metric_name.lower()
+    tokens = (
+        "latency",
+        "ttft",
+        "time",
+        "error",
+        "overhead",
+        "drop",
+        "temperature",
+        "_ms",
+        "_us",
+    )
+    return any(token in key for token in tokens)
+
+
+def _domain_kpi_path(root: Path, domain_key: str, env: Dict[str, str]) -> Optional[Path]:
+    env_key_by_domain = {
+        "node_validation": "NODE_VALIDATION_KPI_FILE",
+        "performance_suite": "PERF_SUITE_KPI_FILE",
+        "mlperf_suite": "ML_SUITE_KPI_FILE",
+        "vllm_prefill": "VLLM_PREFILL_KPI_FILE",
+        "ai_pipeline": "PIPELINE_KPI_FILE",
+        "system_health": "HEALTH_KPI_FILE",
+        "agentic_ai": "AGENTIC_KPI_FILE",
+    }
+    default_by_domain = {
+        "node_validation": "artifacts/node_validation_kpis.jsonl",
+        "performance_suite": "artifacts/performance_suite_kpis.jsonl",
+        "mlperf_suite": "artifacts/mlperf_suite_kpis.jsonl",
+        "vllm_prefill": "artifacts/vllm_prefill_kpis.jsonl",
+        "ai_pipeline": "artifacts/ai_pipeline_kpis.jsonl",
+        "system_health": "artifacts/system_health_kpis.jsonl",
+        "agentic_ai": "artifacts/agentic_ai_kpis.jsonl",
+    }
+    env_key = env_key_by_domain.get(domain_key)
+    default_path = default_by_domain.get(domain_key)
+    if not env_key and not default_path:
+        return None
+    rel = env.get(env_key, default_path) if env_key else default_path
+    if rel is None:
+        return None
+    path = Path(rel)
+    return path if path.is_absolute() else (root / path)
+
+
+def _capture_kpi_table(
+    root: Path,
+    domain_key: str,
+    kpi_path: Optional[Path],
+    before_size: int,
+    table_path: Path,
+) -> Tuple[int, int, str]:
+    if kpi_path is None or not kpi_path.exists():
+        return 0, 0, ""
+
+    if kpi_path.stat().st_size <= before_size:
+        return 0, 0, ""
+
+    rows: List[Tuple[str, str, str, str, str, str, str]] = []
+    new_records = 0
+    new_checks = 0
+    with kpi_path.open("r", encoding="utf-8") as fh:
+        fh.seek(before_size)
+        for line in fh:
+            text = line.strip()
+            if not text:
+                continue
+            try:
+                obj = json.loads(text)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(obj, dict):
+                continue
+            new_records += 1
+            timestamp = str(obj.get("timestamp", ""))
+            test_name = str(obj.get("test", "unknown_test"))
+            metrics = obj.get("metrics")
+            if not isinstance(metrics, dict):
+                continue
+
+            for key, value in metrics.items():
+                if not str(key).startswith("threshold_"):
+                    continue
+                metric_name = str(key).replace("threshold_", "", 1)
+                threshold = _as_float(value)
+                measured_val = _as_float(metrics.get(metric_name))
+                measured = "n/a" if measured_val is None else f"{measured_val:.6g}"
+                threshold_txt = "n/a" if threshold is None else f"{threshold:.6g}"
+                status = "N/A"
+                if threshold is not None and measured_val is not None:
+                    if _lower_is_better(metric_name):
+                        status = "PASS" if measured_val <= threshold else "FAIL"
+                    else:
+                        status = "PASS" if measured_val >= threshold else "FAIL"
+                rows.append(
+                    (
+                        timestamp,
+                        test_name,
+                        metric_name,
+                        measured,
+                        threshold_txt,
+                        status,
+                        "threshold_check",
+                    )
+                )
+                new_checks += 1
+
+            for key, value in metrics.items():
+                if str(key).startswith("threshold_"):
+                    continue
+                if _as_float(value) is None:
+                    continue
+                rows.append(
+                    (
+                        timestamp,
+                        test_name,
+                        str(key),
+                        f"{float(value):.6g}",
+                        "",
+                        "",
+                        "measured_kpi",
+                    )
+                )
+
+    if not rows:
+        return new_records, new_checks, ""
+
+    lines: List[str] = []
+    lines.append(f"# KPI Table for {domain_key}")
+    lines.append("")
+    lines.append(f"Source KPI file: {kpi_path.relative_to(root) if kpi_path.is_relative_to(root) else kpi_path}")
+    lines.append(f"Generated (UTC): {_timestamp()}")
+    lines.append(f"New KPI records in this run: {new_records}")
+    lines.append(f"Threshold checks in this run: {new_checks}")
+    lines.append("")
+    lines.append("| timestamp | test | metric | measured_value | threshold | status | row_type |")
+    lines.append("|---|---|---|---:|---:|---|---|")
+    for row in rows:
+        lines.append(
+            f"| {row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]} | {row[6]} |"
+        )
+    table_path.parent.mkdir(parents=True, exist_ok=True)
+    table_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return new_records, new_checks, str(table_path.relative_to(root))
+
+
 def _domain_status(result: Dict[str, object], return_code: int) -> str:
     if int(result.get("failures", 0)) > 0 or int(result.get("errors", 0)) > 0:
         return "FAIL"
@@ -377,11 +531,11 @@ def _write_markdown(report: Dict[str, object], output_path: Path) -> None:
 
     lines.append("## Domain Status")
     lines.append("")
-    lines.append("| Domain | Status | Tests | Failures | Errors | Skipped | Duration (s) | XML | Log |")
-    lines.append("|---|---|---:|---:|---:|---:|---:|---|---|")
+    lines.append("| Domain | Status | Tests | Failures | Errors | Skipped | Duration (s) | XML | Log | KPI Table |")
+    lines.append("|---|---|---:|---:|---:|---:|---:|---|---|---|")
     for row in report["domains"]:
         lines.append(
-            "| {domain} | {status} | {tests} | {failures} | {errors} | {skipped} | {duration_sec} | {junit_xml} | {log_file} |".format(
+            "| {domain} | {status} | {tests} | {failures} | {errors} | {skipped} | {duration_sec} | {junit_xml} | {log_file} | {kpi_table_file} |".format(
                 domain=row.get("domain", "-"),
                 status=row.get("status", "-"),
                 tests=row.get("tests", 0),
@@ -391,6 +545,7 @@ def _write_markdown(report: Dict[str, object], output_path: Path) -> None:
                 duration_sec=row.get("duration_sec", 0.0),
                 junit_xml=row.get("junit_xml", "-"),
                 log_file=row.get("log_file", "-"),
+                kpi_table_file=row.get("kpi_table_file", "-"),
             )
         )
 
@@ -475,17 +630,24 @@ def _run_domain(
 ) -> Dict[str, object]:
     junit_xml = junit_dir / f"{domain.key}_{run_stamp}.xml"
     log_file = logs_dir / f"{domain.key}_{run_stamp}.log"
+    kpi_table_file = logs_dir / f"{domain.key}_{run_stamp}_kpi_table.md"
+    kpi_path = _domain_kpi_path(root, domain.key, env)
+    kpi_before_size = kpi_path.stat().st_size if (kpi_path and kpi_path.exists()) else 0
     cmd = [
         sys.executable,
         "-m",
         "pytest",
-        "-v",
-        "--tb=short",
+        "-vv",
+        "-rA",
+        "--tb=long",
+        "--capture=tee-sys",
         "--junitxml",
         str(junit_xml),
         "--log-file",
         str(log_file),
         "--log-file-level",
+        "DEBUG",
+        "--log-cli-level",
         "INFO",
         *domain.pytest_args,
         *extra_pytest_args,
@@ -495,6 +657,13 @@ def _run_domain(
     result = subprocess.run(cmd, cwd=str(root), env=env, check=False)
     junit_stats = _parse_junit(junit_xml)
     status = _domain_status(junit_stats, result.returncode)
+    kpi_records, threshold_checks, kpi_table_rel = _capture_kpi_table(
+        root=root,
+        domain_key=domain.key,
+        kpi_path=kpi_path,
+        before_size=kpi_before_size,
+        table_path=kpi_table_file,
+    )
 
     return {
         "domain": domain.key,
@@ -511,6 +680,9 @@ def _run_domain(
         "failed_tests": list(junit_stats.get("failed_tests", [])),
         "junit_xml": str(junit_xml.relative_to(root)),
         "log_file": str(log_file.relative_to(root)),
+        "kpi_table_file": kpi_table_rel or "-",
+        "kpi_records_captured": kpi_records,
+        "kpi_threshold_checks": threshold_checks,
         "command": " ".join(shlex.quote(x) for x in cmd),
     }
 

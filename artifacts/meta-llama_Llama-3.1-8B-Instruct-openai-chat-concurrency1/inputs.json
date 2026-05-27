@@ -1,0 +1,1504 @@
+{
+  "data": [
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " so graceless be to be ingrate HORTENSIO Sir you say well and well you do conceive And since you do profess to be a suitor You"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " wit and fortune will TOUCHSTONE Or as the destinies decrees CELIA Well said That was laid on with a trowel TOUCHSTONE Nay if I keep"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " foe A villain that is hither come in spite To scorn at our solemnity this night CAPULET Young Romeo is it TYBALT Tis he that"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " serve for tabletalk Then howsomeer thou speakst mong other things I shall digest it JESSICA Well Ill set you forth Exeunt ACT IV SC"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " night or day When I was got Sir Robert was away QUEEN ELEANOR The very spirit of Plantagenet I am thy grandam Richard call me so"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " masters of our manners What need I Affect anothers gait which is not catching Where there is faith Or to be fond upon Anothers way of speech when"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " of my sons BELARIUS I am too blunt and saucy heres my knee Ere I arise I will prefer my sons Then spare not the old father"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "ly swear not commit not with mans sworn spouse set not thy sweetheart on proud array Toms acold LEAR What hast thou been EDGAR A servingman"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " with my rapier as I may in fair terms If you would walk off I would prick your guts a little in good terms as I may and thats the humour"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " trifle woman take the honour What is it Dispense with trifles What is it MISTRESS FORD If I would but go to hell for an eternal"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "s and new jollity Exeunt Enter Puck PUCK Now the hungry lion roars And the wolf behowls the moon Whilst the heavy pl"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "ROILUS O that I thought it could be in a woman As if it can I will presume in you To feed for aye her lamp and flames of"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " he is by this or will be presently But truly he is very courageous mad about his throwing into the water Mistress Ford desires you to come suddenly MISTRESS PAGE"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " Here is warrant from The King t attach Lord Montague and the bodies Of the Dukes confessor John de la Car One Gilbert Peck his chancellor BUCK"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " great errand Please your ladyship To visit the next room Ill presently Acquaint the queen of your most noble offer Who but today hammerd of this design"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " paper KING Madam I will if suddenly I may PRINCESS You will the sooner that I were away For youll prove perjured if you make me stay"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " to bring me down Must answer for your raising I know her well She had her breeding at my fathers charge A poor physicians daughter my wife Disdain Rather corrupt me"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " boast were neither true nor modest Unless I add we are honest CYMBELINE Bow your knees Arise my knights o th battle I create you Companions"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "inous crime O carve not with thy hours my loves fair brow Nor draw no lines there with thine antique pen Him in thy course untainted do allow For beaut"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " and conspire against my youth Now trust me tis an office of great worth And you an officer fit for the place There take the paper see it be returned"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " eye Or russetpated choughs many in sort Rising and cawing at the guns report Sever themselves and madly sweep the sky So at his"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " MARTIUS I am glad ont Then we shall ha means to vent Our musty superfluity Enter Sicinius Velutus Junius Brutus two"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " not great Julius bleed for justice sake What villain touchd his body that did stab And not for justice What Shall one of us That struck the foremost man of all"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "he and forgotten CHIEF JUSTICE I then did use the person of your father The image of his power lay then in me And in the administration of his"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " not betray Mine interest and his honour or have chargd him At the sixth hour of morn at noon at midnight T encounter me with orisons for then I"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " and wine and metheglins and to drinkings and swearings and starings pribbles and prabbles FALSTAFF Well I am your"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "es That I have done for you VIOLA I know of none Nor know I you by voice or any feature I hate ingratitude more in a man Than lying"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " KING Dead QUEEN But not by him KING Let him demand his fill LAERTES How came he dead Ill not be juggled with To hell allegiance Vows"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " estridges that with the wind Bated like eagles having lately bathed Glittering in golden coats like images As full of spirit as the month of May"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " hear 700 And now his grief may be compared well To one sore sick that hears the passing bell Then shalt thou see the dewbedabbled wretch Turn"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " Maid of Honour afterwards Queen An OLD LADY friend to Anne Bullen LORD CHAMBERLAIN LORD SANDYS called also SIR WILLIAM SANDYS"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " This canker that eats up loves tender spring 656 This carrytale dissentious jealousy That sometime true news sometime false doth bring Knocks at my heart"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " And still as you are weary of this weight Rest you whiles I lament King Henrys corse They take up the bier Enter Richard Duke of Gloucester"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " down the basket villain Somebody call my wife Youth in a basket O you panderly rascals Theres a knot a gin a pack a conspiracy against me"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " thou that I will leave my kingly throne Wherein my grandsire and my father sat No First shall war unpeople this my realm Ay and their colours often"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " thou mayst be turned to hobnails Here they fight and Cade falls O I am slain Famine and no other hath slain me Let ten thousand dev"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " painted flourish of your praise Beauty is bought by judgement of the eye Not uttered by base sale of chapmens tongues I am less proud to hear you tell my worth"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " hot as Perseus spur thy Phrygian steed Despising many forfeits and subduements When thou hast hung thy advanced sword i th"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " satin as I am a true knight and he sends me security Well he may sleep in security for he hath the horn of abundance and the lightness of his wife"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "ours Your honour wins bad humours Exeunt all but Boy BOY As young as I am I have observd these three swashers I am boy"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " in night would cloistered be Revealing day through every cranny spies And seems to point her out where she sits weeping To whom she sobbing speaks"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " but they were none RICHARD My lord the Mayor of London comes to greet you Enter Lord Mayor with Attendants MAYOR God bless your Grace with health and"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " tis commends it to your blessing Laying down the child LEONTES Out A mankind witch Hence with her out o door A most intelligencing baw"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " BruteThen fall Caesar Dies The Senators and People retire in confusion CINNA Liberty Freedom Tyranny is dead Run hence proclaim cry it about the streets CASS"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " PETRUCHIO A senseless villain Good Hortensio I bade the rascal knock upon your gate And could not get him for my heart to do"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " as a gap in our great feast And allthing unbecoming MACBETH Tonight we hold a solemn supper sir And Ill request your presence BANQUO"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " quench thee thou flaming minister I can again thy former light restore Should I repent me But once put out thy light Thou cunningst pattern of excelling nature I"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " both mine ears Must not in haste abuse if it be true How should I be revengd IACHIMO Should he make me Live like Dianas priest"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " I have just cause being her uncle and her guardian DON PEDRO I would she had bestowed this dotage on me I would have daffed all other respects"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " your hold my lord YORK Ay with my sword What thinkst thou that we fear them Edward and Richard you shall stay with me My brother Montague shall post to"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " lantern to see my gelding in the stable FIRST CARRIER Nay by God soft I know a trick worth two of that ifaith GADSHILL I"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "IZEN Heralds from off our towers we might behold From first to last the onset and retire Of both your armies whose equality By our best eyes cannot be"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " cannot tell I fear tis choleric What say you to a piece of beef and mustard KATHERINA A dish that I do love to feed upon GRUM"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " Speak I pray you FIRST CITIZEN Our business is not unknown to th Senate They have had inkling this fortnight what we intend to do which now well"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " mother To whom am I beholding for these limbs Sir Robert never holp to make this leg LADY FAULCONBRIDGE Hast thou conspired with"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "age Exeunt Corin and Touchstone CELIA Didst thou hear these verses ROSALIND O yes I heard them all and more too for some of"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " fell aturning Was this a lover or a lecher whether Bad in the best though excellent in neither VIII If music and sweet poetry agree As they must needs"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " that name remains The cruelty and envy of the people Permitted by our dastard nobles who Have all forsook me hath devoured the rest And"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " mountain open palpable Why thou claybrained guts thou knottypated fool thou whoreson obscene greasy tallowcatch FALSTAFF What art"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " to the sanctuary Exeunt ACT III SCENE I London A street The trumpets sound Enter young Prince Edward Richard Buckingham Cardinal Bourchier Catesby and"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " times they breathed and three times did they drink Upon agreement of swift Severns flood Who then affrighted with their bloody looks Ran fearfully among the trembling re"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " as great As that which makes it Enter below Diomedes How now Is he dead DIOMEDES His deaths upon him but not dead Look out o th other"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "HAM My gracious lord retire to Killingworth Until a power be raised to put them down QUEEN MARGARET Ah were the Duke of Suffolk now alive These"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "ESS Theres neither faith truth nor womanhood in me else FALSTAFF Theres no more faith in thee than in a stewed prune nor no more"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " my blood froze up Yet hath my night of life some memory My wasting lamps some fading glimmer left My dull deaf ears a little use to hear All these old"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " It was not lent me neither KING Where did you find it then DIANA I found it not KING If it were yours by none of all these ways How could"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "uced and he had a very good wit Cupids buttshaft is too hard for Hercules club and therefore too much odds for a Spaniards rapier The first and"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " ruin of the state BRUTUS Why shall the people give One that speaks thus their voice CORIOLANUS Ill give my reasons More worthier than their"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "ASSIO Madam not now I am very ill at ease Unfit for mine own purposes DESDEMONA Well do your discretion Exit Cassio IAGO Ha"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " sleep there thou mayst brain him Having first seizd his books or with a log Batter his skull or paunch him with a stake Or cut his wez"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "ires OLIVER Now sir what make you here ORLANDO Nothing I am not taught to make anything OLIVER What mar you then sir ORLANDO Marry"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " his solicitings As they fell out by time by means and place All given to mine ear KING But how hath she receivd his love POLONIUS"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " attend Like humblevisaged suitors his high will BOYET Proud of employment willingly I go PRINCESS All pride is willing pride and yours is so Exit"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " Ay ay O lay me by my mistress side GRATIANO Hes gone but his wifes killd MONTANO Tis a notorious villain Take you this"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " and Talbot Too rashly plotted All our general force Might with a sally of the very town Be buckled with The overdaring Talbot Hath sull"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " Duke of Norfolk at one door at the other the Duke of Buckingham and the Lord Abergavenny BUCKINGHAM Good morrow and well met How have"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " The venom of such looks we fairly hope Have lost their quality and that this day Shall change all griefs and quarrels into love KING HENRY To cry"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " GLOUCESTER Lieutenant is it you whose voice I hear Open the gates heres Gloucester that would enter WOODVILLE Have patience noble Duke I may not"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " alls spent hed be crossed then an he could Tis pity bounty had not eyes behind That man might neer be wretched for his mind Exit FIRST LORD"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " Gloucesters grove Shall lose his head for his presumption But list to me my Humphrey my sweet Duke Methought I sat in seat of majesty In the"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " made such scruples of the wrong he did To me and to my father Yet I hope When he considers more this love of mine Will take more root within him"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " a very jealousy man she leads a very frampold life with him good heart FALSTAFF Ten and eleven Woman commend me to her I will not fail"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "d my wits What a nights this I do beseech your grace LEAR O cry you mercy sir Noble philosopher your company EDGAR Toms ac"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " him at all adventures so we were quit here KING HENRY By my troth I will speak my conscience of the King I think he would not wish himself"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " of Belarius ACT V Scene I Britain The Roman camp Scene II Britain A field of battle between the British and Roman camps Scene III Another part of the field Scene"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " URSULA And did they bid you tell her of it madam HERO They did entreat me to acquaint her of it But I persuaded them if they lo"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "STAFF A rascal to brave me DOLL Ah you sweet little rogue you Alas poor ape how thou sweatst Come let me wipe thy face Come on"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " To fasten in our thoughts that they have courage But tis not so Enter a Messenger MESSENGER Prepare you generals The enemy comes on in gallant"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " much amiss Yet as the matter now stands he will avoid your accusation he made trial of you only Therefore fasten your ear on my advisings to the love"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " of the Moor For they succeed on you To you lord governor Remains the censure of this hellish villain The time the place the torture O enforce it My"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " Pray thee peace Pay her the debt you owe her and unpay the villany you have done with her The one you may do with sterling money and the"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " not what he puts into the press when he would put us two I had rather be a giantess and lie under Mount Pelion Well I will find you twenty"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " with what I heard than in my every action to be guided by others experiences but upon my mended judgement if I offend not to say it is mended my"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " from the book of honour razed quite And all the rest forgot for which he toiled Then happy I that love and am beloved Where I may not remove nor"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " SCENE I London The Palace SCENE II France Plains in Anjou SCENE III Before Angiers SCENE IV Camp of the Duke of York in An"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " Therein our letters do not well agree Mine speak of seventy Senators that died By their proscriptions Cicero being one CASSIUS Cicero one MESS"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " MUSICIAN What a pestilent knave is this same SECOND MUSICIAN Hang him Jack Come well in here tarry for the mourners and stay dinner Exe"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "obarbus CLEOPATRA I will be even with thee doubt it not ENOBARBUS But why why why CLEOPATRA Thou hast for"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": "vd you know That is not to bestow my youngest daughter Before I have a husband for the elder If either of you both love Katherina Because I know"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    },
+    {
+      "payload": [
+        {
+          "model": "meta-llama/Llama-3.1-8B-Instruct",
+          "messages": [
+            {
+              "role": "user",
+              "content": " TOUCHSTONE I will not take her on gift of any man MARTEXT Truly she must be given or the marriage is not lawful JAQUES Coming forward Proceed proceed"
+            }
+          ],
+          "stream": true,
+          "max_tokens": 8
+        }
+      ]
+    }
+  ]
+}

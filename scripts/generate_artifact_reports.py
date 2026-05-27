@@ -117,6 +117,8 @@ def _threshold_pairs(metrics: Dict[str, object]) -> List[Tuple[str, float, float
 
         suffix_matches: List[Tuple[str, float]] = []
         for m_key, m_val in metrics.items():
+            if m_key.startswith("threshold_"):
+                continue
             if m_key.endswith(candidate_key):
                 actual2 = _to_float(m_val)
                 if actual2 is not None:
@@ -213,6 +215,8 @@ def _domain_kpi_summary(path: Path) -> Tuple[DomainKpiSummary, List[Tuple[str, s
 def _write_test_report(status: Dict[str, object], out_path: Path) -> None:
     summary = status.get("summary", {})
     domains = status.get("domains", [])
+    passing_domains = [d for d in domains if isinstance(d, dict) and d.get("status") == "PASS"]
+    failing_domains = [d for d in domains if isinstance(d, dict) and d.get("status") != "PASS"]
     lines: List[str] = []
     lines.append("# Test Report")
     lines.append("")
@@ -252,9 +256,28 @@ def _write_test_report(status: Dict[str, object], out_path: Path) -> None:
         )
 
     lines.append("")
-    lines.append("## Failures")
+    lines.append("## Good Data")
     lines.append("")
-    failing_domains = [d for d in domains if isinstance(d, dict) and d.get("status") != "PASS"]
+    if not passing_domains:
+        lines.append("No passing domains were recorded in this run.")
+    else:
+        for d in passing_domains:
+            lines.append(
+                "- {domain}: PASS with {tests} tests, {failures} failures, {errors} errors, {skipped} skipped, duration {duration_sec}s".format(
+                    **{
+                        "domain": d.get("domain", "unknown"),
+                        "tests": d.get("tests", 0),
+                        "failures": d.get("failures", 0),
+                        "errors": d.get("errors", 0),
+                        "skipped": d.get("skipped", 0),
+                        "duration_sec": d.get("duration_sec", 0),
+                    }
+                )
+            )
+
+    lines.append("")
+    lines.append("## Bad Data")
+    lines.append("")
     if not failing_domains:
         lines.append("All domains passed.")
     else:
@@ -308,16 +331,28 @@ def _write_kpi_report(
         )
 
     all_checks = [item for values in checks_by_file.values() for item in values]
+    passing = [c for c in all_checks if c[4] == "PASS"]
+    failing = [c for c in all_checks if c[4] == "FAIL"]
     lines.append("")
     lines.append("## Threshold Check Totals")
     lines.append("")
     lines.append(f"- Total threshold checks: {len(all_checks)}")
-    lines.append(f"- Passed checks: {sum(1 for c in all_checks if c[4] == 'PASS')}")
-    lines.append(f"- Failed checks: {sum(1 for c in all_checks if c[4] == 'FAIL')}")
+    lines.append(f"- Passed checks: {len(passing)}")
+    lines.append(f"- Failed checks: {len(failing)}")
 
-    failing = [c for c in all_checks if c[4] == "FAIL"]
     lines.append("")
-    lines.append("## Failed KPI Threshold Checks")
+    lines.append("## Good Data")
+    lines.append("")
+    if not passing:
+        lines.append("No passing threshold checks found in the latest KPI rows.")
+    else:
+        lines.append("| Test | Metric | Actual | Threshold |")
+        lines.append("|---|---|---:|---:|")
+        for test_name, metric_name, actual, threshold, _ in passing[:30]:
+            lines.append(f"| {test_name} | {metric_name} | {actual:.4f} | {threshold:.4f} |")
+
+    lines.append("")
+    lines.append("## Bad Data")
     lines.append("")
     if not failing:
         lines.append("No failed threshold checks found in the latest KPI rows.")
@@ -332,10 +367,7 @@ def _write_kpi_report(
     lines.append("## Correlation With Test Outcomes")
     lines.append("")
     lines.append(f"- Workload test failures (from status report): {summary.get('failures', 0)}")
-    lines.append(
-        "- KPI threshold failures (latest metric rows): "
-        f"{sum(1 for c in all_checks if c[4] == 'FAIL')}"
-    )
+    lines.append(f"- KPI threshold failures (latest metric rows): {len(failing)}")
     lines.append("- Note: A domain can fail from runtime errors even if threshold checks are limited.")
 
     out_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")

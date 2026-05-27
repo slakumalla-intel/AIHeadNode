@@ -1,62 +1,44 @@
 {
-  "generated_at_utc": "2026-05-21T01:49:53.502642+00:00",
+  "generated_at_utc": "2026-05-27T04:38:50.814131+00:00",
   "host": "sc00901168s0075",
   "python": "3.12.13",
   "domains": [
-    {
-      "domain": "agentic_ai",
-      "description": "Agentic AI KPI validation",
-      "status": "FAIL",
-      "return_code": 1,
-      "started_at_utc": "2026-05-21T01:37:09.204685+00:00",
-      "finished_at_utc": "2026-05-21T01:37:28.912322+00:00",
-      "tests": 9,
-      "failures": 1,
-      "errors": 0,
-      "skipped": 0,
-      "duration_sec": 18.029,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_agentic_ai_validation.TestToolInvocationOverhead::test_parallel_tool_dispatch_scalability",
-          "message": "AssertionError: Tool dispatch scales poorly: 16 tools take 6.8\u00d7 time of 1 tool\nassert 6.794190516873131 < 5.0",
-          "kind": "failure"
-        }
-      ],
-      "junit_xml": "artifacts/reports/junit/agentic_ai.xml",
-      "log_file": "artifacts/reports/logs/agentic_ai.log",
-      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/agentic_ai.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/agentic_ai.log --log-file-level INFO tests/test_agentic_ai_validation.py"
-    },
     {
       "domain": "ai_pipeline",
       "description": "AI pipeline KPI validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-05-21T01:37:28.912576+00:00",
-      "finished_at_utc": "2026-05-21T01:38:09.186180+00:00",
+      "started_at_utc": "2026-05-27T04:38:10.887710+00:00",
+      "finished_at_utc": "2026-05-27T04:38:50.813895+00:00",
       "tests": 38,
-      "failures": 5,
+      "failures": 6,
       "errors": 0,
       "skipped": 12,
-      "duration_sec": 36.67,
+      "duration_sec": 35.702,
       "failed_tests": [
         {
+          "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_tokenizer_multi_thread_scaling",
+          "message": "AssertionError: 4-thread tokenizer scaling 0.91\u00d7 < 2.0\u00d7 single-thread\nassert 0.9138791827999527 >= 2.0",
+          "kind": "failure"
+        },
+        {
           "nodeid": "tests.test_ai_pipeline_kpis.TestDataLoadingAndPreprocessing::test_async_prefetch_gpu_overlap_efficiency",
-          "message": "AssertionError: Async prefetch overlap efficiency 25.0% < 60.0%\nassert 24.981896126754208 >= 60.0",
+          "message": "AssertionError: Async prefetch overlap efficiency 25.0% < 60.0%\nassert 25.02408713555639 >= 60.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_model_load_time_to_gpu",
-          "message": "AssertionError: Model load bandwidth 0.40 GB/s < 1.0 GB/s\nassert 0.4001328022972373 >= 1.0",
+          "message": "AssertionError: Model load bandwidth 0.30 GB/s < 1.0 GB/s\nassert 0.30320926109528845 >= 1.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestModelOrchestration::test_tensor_parallel_allreduce_overhead_fraction",
-          "message": "AssertionError: AllReduce overhead 98.7% > 20.0% of compute\nassert 98.65338073057603 <= 20.0",
+          "message": "AssertionError: AllReduce overhead 98.7% > 20.0% of compute\nassert 98.71310505800027 <= 20.0",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_ai_pipeline_kpis.TestNetworkingAndStorageIO::test_model_weight_load_pipeline_bandwidth",
-          "message": "AssertionError: Weight load pipeline 0.85 GB/s < 1.0 GB/s\nassert 0.8517238650420215 >= 1.0",
+          "message": "AssertionError: Weight load pipeline 0.89 GB/s < 1.0 GB/s\nassert 0.8872573157490499 >= 1.0",
           "kind": "failure"
         },
         {
@@ -68,103 +50,16 @@
       "junit_xml": "artifacts/reports/junit/ai_pipeline.xml",
       "log_file": "artifacts/reports/logs/ai_pipeline.log",
       "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/ai_pipeline.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/ai_pipeline.log --log-file-level INFO tests/test_ai_pipeline_kpis.py"
-    },
-    {
-      "domain": "system_health",
-      "description": "System health and reliability",
-      "status": "FAIL",
-      "return_code": 1,
-      "started_at_utc": "2026-05-21T01:38:09.186395+00:00",
-      "finished_at_utc": "2026-05-21T01:38:58.443794+00:00",
-      "tests": 39,
-      "failures": 7,
-      "errors": 0,
-      "skipped": 3,
-      "duration_sec": 45.54,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[0]",
-          "message": "AssertionError: GPU 0 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)\nassert 0.19658119658119658 >= 0.8",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[1]",
-          "message": "AssertionError: GPU 1 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)\nassert 0.19658119658119658 >= 0.8",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[2]",
-          "message": "AssertionError: GPU 2 clock ratio 19.33% below 80%; throttling suspected (current 345 MHz, max 1785 MHz)\nassert 0.19327731092436976 >= 0.8",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[3]",
-          "message": "AssertionError: GPU 3 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)\nassert 0.19658119658119658 >= 0.8",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_sustained_compute_no_thermal_throttle",
-          "message": "AssertionError: SM clock dropped 46.2% during sustained load (initial 1755 MHz \u2192 min 945 MHz, max_temp 58 \u00b0C). Thermal or power-limit throttling detected.\nassert 0.46153846153846156 <= 0.1",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_quantised_softmax_output_matches_fp16",
-          "message": "AssertionError: Quantised softmax max error 2.56e-03 exceeds 1e-03\nassert 0.0025634765625 < 0.001",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_speedup_over_eager",
-          "message": "AssertionError: torch.compile speedup 0.808\u00d7 < floor 1.05\u00d7. Compiled kernels may be suboptimal for this H100 PCIe configuration.\nassert 0.8077488450400229 >= 1.05",
-          "kind": "failure"
-        }
-      ],
-      "junit_xml": "artifacts/reports/junit/system_health.xml",
-      "log_file": "artifacts/reports/logs/system_health.log",
-      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/system_health.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/system_health.log --log-file-level INFO tests/test_system_health_and_reliability.py"
-    },
-    {
-      "domain": "system_config",
-      "description": "System config report validation",
-      "status": "PASS",
-      "return_code": 0,
-      "started_at_utc": "2026-05-21T01:38:58.444001+00:00",
-      "finished_at_utc": "2026-05-21T01:39:03.502755+00:00",
-      "tests": 8,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0,
-      "duration_sec": 3.794,
-      "failed_tests": [],
-      "junit_xml": "artifacts/reports/junit/system_config.xml",
-      "log_file": "artifacts/reports/logs/system_config.log",
-      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/system_config.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/system_config.log --log-file-level INFO tests/test_system_config_report.py"
-    },
-    {
-      "domain": "vllm_prefill",
-      "description": "vLLM prefill validation",
-      "status": "PASS",
-      "return_code": 0,
-      "started_at_utc": "2026-05-21T01:39:03.502934+00:00",
-      "finished_at_utc": "2026-05-21T01:49:53.502405+00:00",
-      "tests": 3,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 1,
-      "duration_sec": 648.589,
-      "failed_tests": [],
-      "junit_xml": "artifacts/reports/junit/vllm_prefill.xml",
-      "log_file": "artifacts/reports/logs/vllm_prefill.log",
-      "command": "/opt/venvs/torch-cu128/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/vllm_prefill.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/vllm_prefill.log --log-file-level INFO tests/test_vllm_prefill_validation.py"
     }
   ],
   "summary": {
-    "domains_run": 5,
-    "passed_domains": 2,
-    "failed_domains": 3,
-    "tests": 97,
-    "failures": 13,
+    "domains_run": 1,
+    "passed_domains": 0,
+    "failed_domains": 1,
+    "tests": 38,
+    "failures": 6,
     "errors": 0,
-    "skipped": 16
+    "skipped": 12
   },
   "defaults_applied": {
     "ML_EXECUTE_CASES": "1",

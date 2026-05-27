@@ -1310,14 +1310,7 @@ class TestPCIeBandwidthDirect:
         """
         n_gpus = torch.cuda.device_count()
         assert n_gpus > 0, "No CUDA devices found"
-        # H2D efficiency floor: 60%% of PCIe Gen5 x16 theoretical (63 GB/s).
-        # On 4-GPU PCIe-only nodes with a shared root complex, sustained per-
-        # GPU H2D lands at ~60-70%% efficiency depending on which root port
-        # the GPU is wired to. 65%% was unachievable on GPU 3 in our topology
-        # (consistently lands at ~63%%, ~39.8 GB/s). Override via env to tighten
-        # on dedicated-root single-GPU nodes.
-        threshold_pct = float(os.environ.get("NODE_PCIE_H2D_MIN_EFFICIENCY", "0.60"))
-        threshold_gbs = 63.0 * threshold_pct
+        threshold_gbs = 63.0 * 0.65  # 65% of PCIe Gen5×16 theoretical
         boundary_gbs = float(os.environ.get("NODE_PCIE_BW_BOUNDARY_GBS", "1.0"))
         n_iters = int(os.environ.get("NODE_PCIE_BW_ITERS", "8"))
         n_bytes = int(os.environ.get("NODE_PCIE_BW_BYTES", str(1024**3)))
@@ -1380,11 +1373,8 @@ class TestPCIeBandwidthDirect:
         """
         n_gpus = torch.cuda.device_count()
         assert n_gpus > 0, "No CUDA devices found"
-        # 60%% (was 65%%) of 63 GB/s PCIe Gen5 theoretical accounts for realistic
-        # sustained efficiency on multi-GPU nodes where shared PCIe-root
-        # contention and per-pair lane training jitter reduce achievable BW.
-        threshold_gbs = 63.0 * 0.60
-        boundary_gbs = float(os.environ.get("NODE_PCIE_BW_BOUNDARY_GBS", "1.5"))
+        threshold_gbs = 63.0 * 0.65
+        boundary_gbs = float(os.environ.get("NODE_PCIE_BW_BOUNDARY_GBS", "1.0"))
         n_iters = int(os.environ.get("NODE_PCIE_BW_ITERS", "8"))
         n_bytes = int(os.environ.get("NODE_PCIE_BW_BYTES", str(1024**3)))
         per_gpu_bw: List[float] = []
@@ -1693,12 +1683,8 @@ class TestGPUP2PBandwidth:
                 min(latency), sum(latency)/len(latency), max(latency)
             )
 
-        # On NVLink systems off-diagonal BW should be >> PCIe (40 GB/s minimum).
-        # On PCIe-only systems with mixed NUMA topology (cross-domain pairs route
-        # through CPU root complex), realistic floor is ~15 GB/s. Use a single
-        # conservative gate that catches genuinely broken paths without flagging
-        # the inherent cross-NUMA penalty.
-        min_threshold = float(os.environ.get("NODE_P2P_BINARY_MIN_GBS", "15.0"))
+        # On NVLink systems off-diagonal BW should be >> PCIe (40 GB/s minimum)
+        min_threshold = 40.0
         off_diag_bw = bidir or unidir
         assert off_diag_bw, "No inter-GPU bandwidth values parsed"
         _record_kpi(
@@ -1728,13 +1714,7 @@ class TestGPUP2PBandwidth:
         if n_gpus < 2:
             pytest.skip("Need ≥ 2 GPUs for P2P test")
 
-        # Lower the default P2P floor from 40 to 25 GB/s. On PCIe-only H100
-        # nodes with mixed-NUMA topology (cross-domain pairs route through the
-        # CPU root complex / inter-socket link), achievable per-pair BW is
-        # commonly 25-40 GB/s for intra-socket pairs and 15-25 GB/s for cross-
-        # socket pairs. 40 GB/s was an NVLink-era assumption. Override with
-        # NODE_P2P_MIN_GBS for NVLink-enabled SKUs.
-        min_threshold = float(os.environ.get("NODE_P2P_MIN_GBS", "25.0"))
+        min_threshold = float(os.environ.get("NODE_P2P_MIN_GBS", "40.0"))
         n_iters = int(os.environ.get("NODE_P2P_TORCH_ITERS", "8"))
         n_bytes = int(os.environ.get("NODE_P2P_TORCH_BYTES", str(1024**3)))
         header = ["\n", "=" * 60, "  PyTorch P2P Bandwidth Matrix (GB/s)", "=" * 60]
@@ -2596,12 +2576,7 @@ class TestNCCLAndNVLinkValidation:
                 "samples": len(busbw),
             },
         )
-        # 20 GB/s (was 30) is the realistic SendRecv busbw floor on PCIe-only
-        # H100 nodes. 30 GB/s assumed NVLink fabric; on PCIe-only the pair-
-        # serialised SendRecv is bounded by per-pair PCIe lanes minus NCCL
-        # framing overhead. Override via env if NVLink is present.
-        min_busbw = float(os.environ.get("NODE_NCCL_SENDRECV_MIN_GBS", "20.0"))
-        assert peak >= min_busbw, f"NCCL sendrecv busbw {peak:.1f} GB/s < {min_busbw} GB/s"
+        assert peak >= 30.0, f"NCCL sendrecv busbw {peak:.1f} GB/s too low"
 
     def test_nccl_deterministic_init_variance(self):
         """Run AllReduce 50× with small message and measure init/launch variance."""
@@ -4725,12 +4700,7 @@ class TestWorkloadAcceptanceHuggingFace:
         cpu_sample_interval_sec = float(os.environ.get("YOLO_CPU_SAMPLE_INTERVAL_SEC", "0.5"))
         # YOLOv8x (the largest variant, default model) on 4xH100 with imgsz=640,
         # fp16, batch=128, single image source replicated, realistically lands
-        # in the 80-150 FPS aggregate range -- the dominant cost is the
-        # per-frame Python/postprocess pipeline (NMS, result marshalling),
-        # not the GPU itself. 200 FPS is achievable with yolov8n/s but not
-        # with yolov8x. Default lowered to 80; override via env for smaller
-        # models or after pipeline optimization.
-        fps_target = float(os.environ.get("YOLO_AGGREGATE_FPS_TARGET", "80"))
+        fps_target = float(os.environ.get("YOLO_AGGREGATE_FPS_TARGET", "200"))
         cpu_target = float(os.environ.get("YOLO_CPU_UTIL_TARGET", "50"))
 
         logger.info(
@@ -5370,17 +5340,11 @@ class TestWorkloadAcceptanceHuggingFace:
         # Assertions
         assert baseline_tps >= 10, f"Baseline throughput {baseline_tps:.1f} tok/s too low"
         assert offload_tps >= 5, f"Offload throughput {offload_tps:.1f} tok/s too low"
-        # CPU/host-RAM offload of KV cache is fundamentally PCIe-bound
-        # (~50 GB/s) vs HBM (~2000 GB/s), a ~40x bandwidth gap. For memory-
-        # bound decode the realistic throughput degradation is 70-90%, so a
-        # 60%% cap was unachievable by construction. 90%% still catches a
-        # completely broken offload path (>= 95%% would mean offload made
-        # the workload essentially serial).
-        assert throughput_degradation <= 90, (
+        assert throughput_degradation <= 60, (
             f"Offload throughput degradation too high: {throughput_degradation:.1f}% "
             f"(baseline {baseline_tps:.1f} -> offload {offload_tps:.1f})"
         )
-        assert latency_increase <= float(os.environ.get("NODE_VLLM_KV_OFFLOAD_MAX_LATENCY_INCREASE_PCT", "900")), (
+        assert latency_increase <= 150, (
             f"Offload latency increase too high: {latency_increase:.1f}% "
             f"(baseline {baseline_latency_ms:.2f}ms -> offload {offload_latency_ms:.2f}ms)"
         )

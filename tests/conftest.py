@@ -669,12 +669,7 @@ def _configure_default_env() -> None:
     os.environ.setdefault("YOLO_HALF_PRECISION", "1")
     os.environ.setdefault("YOLO_GPU_COUNT", str(visible_gpu_hint))
     os.environ.setdefault("YOLO_CPU_SAMPLE_INTERVAL_SEC", "0.5")
-    # YOLOv8x on 4xH100 PCIe (mixed-SKU node) aggregate lands at 80-130 FPS
-    # because the per-frame Python/postprocess pipeline (NMS + result
-    # marshalling) dominates GPU time. 200 FPS is only achievable with the
-    # smaller yolov8n/s models. Set higher on real production smaller-model
-    # workloads.
-    os.environ.setdefault("YOLO_AGGREGATE_FPS_TARGET", "80")
+    os.environ.setdefault("YOLO_AGGREGATE_FPS_TARGET", "200")
     os.environ.setdefault("YOLO_CPU_UTIL_TARGET", "50")
     
     # =========================================================================

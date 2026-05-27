@@ -46,6 +46,7 @@ import subprocess
 import tempfile
 import threading
 import time
+from itertools import repeat
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -114,6 +115,36 @@ def _record_kpi(test_name: str, metrics: dict) -> None:
     with out.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(payload, default=str) + "\n")
     logger.info("KPI [%s]: %s", test_name, json.dumps(enriched_metrics, default=str, sort_keys=True))
+
+
+_TOKENIZER_WORKER = None
+
+
+def _init_tokenizer_worker(model_id: str) -> None:
+    """Initialise one tokenizer per process for process-pool throughput tests."""
+    global _TOKENIZER_WORKER
+    from transformers import AutoTokenizer
+
+    tok = AutoTokenizer.from_pretrained(model_id)
+    if tok.pad_token is None and tok.eos_token is not None:
+        tok.pad_token = tok.eos_token
+    _TOKENIZER_WORKER = tok
+
+
+def _tokenize_batch_worker(seq_len: int, batch: int, text_repeat: int) -> int:
+    """Tokenize one batch inside a process and return token count."""
+    tok = _TOKENIZER_WORKER
+    if tok is None:
+        raise RuntimeError("Tokenizer worker is not initialized")
+    texts = ["benchmark token throughput " * text_repeat] * batch
+    _ = tok(
+        texts,
+        truncation=True,
+        max_length=seq_len,
+        padding="max_length",
+        return_tensors="pt",
+    )
+    return batch * seq_len
 
 
 # ---------------------------------------------------------------------------
@@ -243,6 +274,7 @@ class TestDataLoadingAndPreprocessing:
 
         KPIs: tokens_per_sec, sequences_per_sec, seq_len
         Threshold: ≥ 50 000 tokens/sec for seq_len ≤ 512; ≥ 20 000 for longer.
+        (default base=50k at seq<=512, decays for longer seq with floor=20k).
         """
         if not _HAS_TRANSFORMERS:
             pytest.skip("transformers not available")
@@ -293,55 +325,59 @@ class TestDataLoadingAndPreprocessing:
     @pytest.mark.ai_pipeline
     @pytest.mark.data_loading
     def test_tokenizer_multi_thread_scaling(self):
-        """TC-PIPE-A-02: Tokenizer throughput scales with worker thread count.
+        """TC-PIPE-A-02: Tokenizer throughput scales with worker processes.
 
-        KPIs: threads_1_tps, threads_4_tps, scaling_ratio
+        Measures per-process (independent) tokenization to test true CPU parallelism.
+        Uses ProcessPoolExecutor to bypass Python GIL and isolate tokenizer scalability.
+
+        KPIs: proc_1_tps, proc_4_tps, scaling_ratio
         Threshold: 4-thread throughput ≥ 2× single-thread throughput.
         """
         if not _HAS_TRANSFORMERS:
             pytest.skip("transformers not available")
 
-        from concurrent.futures import ThreadPoolExecutor
+        from concurrent.futures import ProcessPoolExecutor
 
-        tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
-        tokenizer.pad_token = tokenizer.eos_token
-
-        seq_len, batch = 128, 32
-        texts = ["benchmark token throughput " * 20] * batch
-
-        def _tokenize_batch(_):
-            return tokenizer(texts, truncation=True, max_length=seq_len,
-                             padding="max_length", return_tensors="pt")
-
-        def _measure_tps(n_threads: int) -> float:
+        def _measure_tps(n_workers: int) -> float:
+            """Measure tokens/sec with n independent worker processes."""
+            seq_len, batch, text_repeat = 128, 32, 20
             n_calls = max(_BENCH, 8)
             t0 = time.perf_counter()
-            with ThreadPoolExecutor(max_workers=n_threads) as pool:
-                list(pool.map(_tokenize_batch, range(n_calls)))
+            with ProcessPoolExecutor(
+                max_workers=n_workers,
+                initializer=_init_tokenizer_worker,
+                initargs=(_MODEL_ID,),
+            ) as pool:
+                token_counts = list(
+                    pool.map(
+                        _tokenize_batch_worker,
+                        repeat(seq_len, n_calls),
+                        repeat(batch, n_calls),
+                        repeat(text_repeat, n_calls),
+                    )
+                )
             elapsed = time.perf_counter() - t0
-            return (batch * seq_len * n_calls) / elapsed
+            total_tokens = sum(token_counts)
+            return total_tokens / elapsed if elapsed > 0 else 0.0
+
+        # Pre-warm once so workers hit local cache instead of cold download path.
+        tokenizer_test = AutoTokenizer.from_pretrained(_MODEL_ID)
+        if tokenizer_test.pad_token is None and tokenizer_test.eos_token is not None:
+            tokenizer_test.pad_token = tokenizer_test.eos_token
+        del tokenizer_test
 
         tps_1 = _measure_tps(1)
         tps_4 = _measure_tps(4)
         scaling_ratio = tps_4 / tps_1 if tps_1 > 0 else 0.0
-        # HuggingFace fast tokenizers are Rust-backed and already parallelise
-        # internally via Rayon when given a list of texts. Wrapping those
-        # calls in a Python ThreadPoolExecutor adds GIL contention on the
-        # orchestration side without unlocking new parallelism in the Rust
-        # core, so realistic 1-vs-4 thread scaling for fast tokenisers is
-        # ~1.3-1.7x (not the 2x+ you would see from a GIL-releasing
-        # CPU-bound Python workload).
-        threshold_ratio = 1.4
-
         _record_kpi("test_tokenizer_multi_thread_scaling", {
             "threads_1_tokens_per_sec": round(tps_1, 1),
             "threads_4_tokens_per_sec": round(tps_4, 1),
             "scaling_ratio": round(scaling_ratio, 3),
-            "threshold_scaling_ratio": threshold_ratio,
+            "threshold_scaling_ratio": 2.0,
         })
 
-        assert scaling_ratio >= threshold_ratio, (
-            f"4-thread tokenizer scaling {scaling_ratio:.2f}× < {threshold_ratio}× single-thread"
+        assert scaling_ratio >= 2.0, (
+            f"4-thread tokenizer scaling {scaling_ratio:.2f}× < 2.0× single-thread"
         )
 
     # -----------------------------------------------------------------------
@@ -591,17 +627,7 @@ class TestModelOrchestration:
         model_bytes = sum(p.numel() * p.element_size() for p in model.parameters())
         model_gb = model_bytes / 1024 ** 3
         bw_gbs = model_gb / load_time if load_time > 0 else 0.0
-        # For small models (< 2 GB, e.g. gpt2 ~0.5 GB) the apparent bandwidth
-        # is dominated by fixed framework overhead (HF Hub validation,
-        # safetensors header parse, accelerate device_map planning, CUDA
-        # context init) rather than the actual disk/PCIe/HBM transfer, so
-        # the 1 GB/s threshold is not physically meaningful. Scale the
-        # threshold by model size: 0.3 GB/s for tiny models, 1 GB/s once
-        # the transfer time itself dominates (>= 2 GB).
-        if model_gb < 2.0:
-            threshold_gbs = 0.3
-        else:
-            threshold_gbs = 1.0
+        threshold_gbs = 1.0
 
         _record_kpi("test_model_load_time_to_gpu", {
             "model_id": model_id,
@@ -615,8 +641,7 @@ class TestModelOrchestration:
         torch.cuda.empty_cache()
 
         assert bw_gbs >= threshold_gbs, (
-            f"Model load bandwidth {bw_gbs:.2f} GB/s < {threshold_gbs} GB/s "
-            f"(model_size={model_gb:.2f} GB)"
+            f"Model load bandwidth {bw_gbs:.2f} GB/s < {threshold_gbs} GB/s"
         )
 
     # -----------------------------------------------------------------------
@@ -1196,13 +1221,7 @@ class TestNetworkingAndStorageIO:
 
         data_gb = shard_bytes / 1024 ** 3
         e2e_gbs = data_gb / total_sec
-        # End-to-end path is: page-cache-cold disk read -> np.load (copy into
-        # heap array) -> pin_memory (a second copy into pinned host RAM) ->
-        # H2D over PCIe. Two unavoidable host-side memcpy passes of the full
-        # shard cap the achievable throughput well below pure PCIe BW, even
-        # on fast NVMe. 0.8 GB/s is the realistic floor for this composed
-        # pipeline on a healthy node.
-        threshold_gbs = 0.8
+        threshold_gbs = 1.0
 
         _record_kpi("test_model_weight_load_pipeline_bandwidth", {
             "shard_size_gb": round(data_gb, 3),
@@ -1382,8 +1401,7 @@ class TestInferencePipelineKPIs:
         # The 500 ms ceiling confirms the inference path is operational
         # even on a degraded or slow stack; the recorded KPI value is the
         # signal to track for actual performance regression.
-        threshold_itl_median_ms = 500.0
-        target_itl_median_ms = 50.0  # informational: target for healthy H100
+        threshold_itl_ms = 100.0
 
         _record_kpi("test_inter_token_latency", {
             "model_id": _MODEL_ID,
@@ -1391,17 +1409,15 @@ class TestInferencePipelineKPIs:
             "itl_median_ms": round(itl_median, 3),
             "itl_p95_ms": round(itl_p95, 3),
             "decode_tokens_per_sec": round(decode_tps, 2),
-            "threshold_itl_median_ms": threshold_itl_median_ms,
-            "target_itl_median_ms_informational": target_itl_median_ms,
+            "threshold_itl_p95_ms": threshold_itl_ms,
             "all_itl_ms": [round(v, 3) for v in itl_list],
         })
 
         del model
         torch.cuda.empty_cache()
 
-        assert itl_median <= threshold_itl_median_ms, (
-            f"ITL median {itl_median:.2f} ms > {threshold_itl_median_ms} ms "
-            f"(p95={itl_p95:.2f} ms) -- decode pipeline appears non-functional"
+        assert itl_p95 <= threshold_itl_ms, (
+            f"ITL p95 {itl_p95:.2f} ms > {threshold_itl_ms} ms"
         )
 
     # -----------------------------------------------------------------------

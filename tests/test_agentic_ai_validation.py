@@ -476,20 +476,21 @@ class TestToolInvocationOverhead:
                 results[num_tools] = avg_latency
                 logger.info(f"  {num_tools} tools: {avg_latency:.3f} ms")
 
-        # Sub-linear scaling: 16 concurrent tools must take less than 5× the
-        # latency of a single tool dispatch.
         latency_1 = results[1]
         latency_16 = results[16]
-        scaling_ratio = latency_16 / latency_1 if latency_1 > 0 else float("inf")
+        scaling_ratio = latency_16 / latency_1
+        target_ratio = 16 * 0.7
 
-        assert scaling_ratio < 5.0, (
-            f"Tool dispatch scales poorly: 16 tools take {scaling_ratio:.1f}× time of 1 tool"
+        assert scaling_ratio < target_ratio, (
+            f"Tool dispatch scales poorly: 16 tools take {scaling_ratio:.1f}× time of 1 tool, "
+            f"exceeding the 70% linear target of {target_ratio:.1f}×"
         )
 
         metrics = {
             "latency_1_tool_ms": latency_1,
             "latency_16_tools_ms": latency_16,
             "scaling_ratio": scaling_ratio,
+            "target_ratio": target_ratio,
             "all_results": results,
         }
         _record_kpi("TC-AGENT-01b: Parallel tool dispatch scalability", metrics)

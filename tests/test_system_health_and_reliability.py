@@ -732,13 +732,7 @@ class TestQuantizationNumericalCorrectness:
         quant_sm    = torch.softmax(logits_deq.float(), dim=-1).half()
 
         max_abs_err = (ref_sm - quant_sm).abs().max().item()
-        # INT8-dequantised inputs introduce up to ~scale/254 of additive noise per
-        # logit; after softmax this can reach a few × 1e-3 in absolute terms even
-        # when the relative attention distribution is still well-preserved. The
-        # original 1e-3 ceiling was too tight for the INT8 path used by vLLM /
-        # TensorRT-LLM (typical max-abs error ~2-4e-3). 5e-3 still flags genuine
-        # quantisation breakage while accepting numerically-correct INT8.
-        tol = 5e-3
+        tol = 1e-3
 
         _write_kpi("test_quantised_softmax_output_matches_fp16", {
             "softmax_max_abs_error": round(max_abs_err, 8),

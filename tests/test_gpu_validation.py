@@ -638,10 +638,6 @@ class TestGPUUtilisation:
         _skip_if_no_gpu()
         if not _HAS_NVML:
             pytest.skip("pynvml not installed")
-        util_threshold = float(os.environ.get("GPU_UTIL_MIN_PCT", "90"))
-        sample_count = int(os.environ.get("GPU_UTIL_SAMPLE_COUNT", "5"))
-        sample_interval_sec = float(os.environ.get("GPU_UTIL_SAMPLE_INTERVAL_SEC", "0.2"))
-
         device = torch.device("cuda:0")
         m, k, n = 8192, 8192, 8192
         a = torch.randn(m, k, device=device, dtype=torch.float16)
@@ -661,18 +657,10 @@ class TestGPUUtilisation:
         t.start()
         time.sleep(1.0)   # let it ramp
 
-        util_samples: List[float] = []
-        for _ in range(max(1, sample_count)):
-            util_samples.append(float(pynvml.nvmlDeviceGetUtilizationRates(handle).gpu))
-            time.sleep(max(0.0, sample_interval_sec))
-
-        util = max(util_samples)
+        util = pynvml.nvmlDeviceGetUtilizationRates(handle).gpu
         running[0] = False
         t.join()
-        assert util >= util_threshold, (
-            f"GPU utilisation peak {util:.1f}% < {util_threshold:.1f}% during GEMM "
-            f"(samples={util_samples})"
-        )
+        assert util >= 90, f"GPU utilisation {util}% < 90 % during GEMM"
 
 
 # ---------------------------------------------------------------------------

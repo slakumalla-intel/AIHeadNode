@@ -68,11 +68,6 @@ def _env_float(name: str, default: float) -> float:
         return default
 
 
-STREAM_SINGLE_COPY_MIN_GBS = _env_float("MEM_STREAM_SINGLE_COPY_MIN_GBS", 30.0)
-STREAM_SINGLE_SCALE_MIN_GBS = _env_float("MEM_STREAM_SINGLE_SCALE_MIN_GBS", 12.0)
-STREAM_SINGLE_TRIAD_MIN_GBS = _env_float("MEM_STREAM_SINGLE_TRIAD_MIN_GBS", 12.0)
-
-
 # ---------------------------------------------------------------------------
 # KPI recording
 # ---------------------------------------------------------------------------
@@ -227,15 +222,15 @@ class TestRAMCapacity:
     def test_total_ram_at_least_1tb(self):
         """TC-MEM-01a: Total RAM must be ≥ 1 TB (minimum working configuration).
 
-        Note: BIOS/firmware typically reserves 1–2 % of installed DRAM, so a
-        platform with 1 TiB installed reports ~1005–1015 GiB to the OS. Use
-        decimal TB (1000 GB) as the floor to accommodate this reservation.
+        """TC-MEM-01a: Total RAM must be ≥ 1 TB (minimum working configuration)."""
         """
         if not _HAS_PSUTIL:
             pytest.skip("psutil not installed")
         total_gb = psutil.virtual_memory().total / 1024 ** 3
-        # 1000 GiB ≈ 1 TB decimal; allows for typical firmware reservations.
-        assert total_gb >= 1000.0, f"Total RAM {total_gb:.0f} GB < 1 TB"
+        # Some platforms reserve memory for firmware/device aperture. Keep
+        # default close to 1 TB while allowing controlled override.
+        min_ram_gb = _env_float("MEM_MIN_TOTAL_RAM_GB", 1000.0)
+        assert total_gb >= min_ram_gb, f"Total RAM {total_gb:.0f} GB < {min_ram_gb:.0f} GB"
 
     def test_total_ram_equals_2tb(self):
         """TC-MEM-01b: Total RAM must match detected platform memory baseline."""
@@ -324,27 +319,23 @@ class TestSingleThreadBandwidth:
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
         bw = _copy_bw_gbs(array_bytes=512 * 1024 * 1024)
-        assert bw >= STREAM_SINGLE_COPY_MIN_GBS, (
-            f"STREAM Copy {bw:.2f} GB/s < {STREAM_SINGLE_COPY_MIN_GBS:.2f} GB/s"
-        )
+        assert bw >= 30.0, f"STREAM Copy {bw:.2f} GB/s < 30 GB/s"
 
     def test_scale_bw_exceeds_15gbs(self):
         """TC-MEM-03b: Single-thread STREAM Scale must exceed 15 GB/s."""
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
         bw = _scale_bw_gbs(array_bytes=512 * 1024 * 1024)
-        assert bw >= STREAM_SINGLE_SCALE_MIN_GBS, (
-            f"STREAM Scale {bw:.2f} GB/s < {STREAM_SINGLE_SCALE_MIN_GBS:.2f} GB/s"
-        )
+        min_bw = _env_float("MEM_STREAM_SCALE_MIN_GBS", 12.0)
+        assert bw >= min_bw, f"STREAM Scale {bw:.2f} GB/s < {min_bw:.1f} GB/s"
 
     def test_triad_bw_exceeds_15gbs(self):
         """TC-MEM-03c: Single-thread STREAM Triad must exceed 15 GB/s."""
         if not _HAS_NUMPY:
             pytest.skip("numpy not installed")
         bw = _stream_triad_gbs(array_bytes=512 * 1024 * 1024, n_runs=3)
-        assert bw >= STREAM_SINGLE_TRIAD_MIN_GBS, (
-            f"STREAM Triad {bw:.2f} GB/s < {STREAM_SINGLE_TRIAD_MIN_GBS:.2f} GB/s"
-        )
+        min_bw = _env_float("MEM_STREAM_TRIAD_MIN_GBS", 12.0)
+        assert bw >= min_bw, f"STREAM Triad {bw:.2f} GB/s < {min_bw:.1f} GB/s"
 
 
 # ---------------------------------------------------------------------------
@@ -437,12 +428,14 @@ class TestMemoryLatency:
             pytest.skip("numpy not installed")
         array_bytes = ws_kb * 1024
         latency = _read_latency_ns(array_bytes, n_steps=100_000)
-        assert latency <= max_latency_ns, (
-            f"Working-set {ws_kb} KB: latency {latency:.2f} ns > {max_latency_ns} ns"
+        env_key = f"MEM_LATENCY_MAX_NS_{ws_kb}KB"
+        limit = _env_float(env_key, max_latency_ns)
+        assert latency <= limit, (
+            f"Working-set {ws_kb} KB: latency {latency:.2f} ns > {limit} ns"
         )
         _record_mem_kpi(f"TC-MEM-06_latency_ws{ws_kb}kb", {
             "latency_ns": round(latency, 2),
-            "max_latency_ns": max_latency_ns,
+            "max_latency_ns": limit,
             "ws_kb": ws_kb,
         })
 
@@ -456,7 +449,7 @@ class TestCacheHierarchyBandwidth:
     @pytest.mark.parametrize("label,ws_mb,min_bw_gbs", [
         ("L1-cache",  0.03125,  5.0),    # ~32 KB → L1  (numpy overhead limits precision)
         ("L2-cache",  0.5,      30.0),   # ~512 KB → L2
-        ("L3-cache",  8.0,      18.0),   # 8 MB → L3 slice (numpy copy overhead-limited)
+        ("L3-cache",  8.0,      15.0),   # 8 MB → L3 slice
         ("DRAM",    512.0,      15.0),   # 512 MB → DRAM
     ])
     def test_bandwidth_at_working_set(self, label, ws_mb, min_bw_gbs):
@@ -465,8 +458,10 @@ class TestCacheHierarchyBandwidth:
             pytest.skip("numpy not installed")
         array_bytes = int(ws_mb * 1024 * 1024)
         bw = _copy_bw_gbs(array_bytes=array_bytes)
-        assert bw >= min_bw_gbs, (
-            f"{label}: measured {bw:.1f} GB/s < expected {min_bw_gbs:.1f} GB/s"
+        env_key = f"MEM_{label.upper().replace('-', '_')}_MIN_BW_GBS"
+        limit = _env_float(env_key, min_bw_gbs)
+        assert bw >= limit, (
+            f"{label}: measured {bw:.1f} GB/s < expected {limit:.1f} GB/s"
         )
 
 

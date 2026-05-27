@@ -542,23 +542,13 @@ class TestCPUComputeBottleneck:
         logger.info(_format_report(results))
         logger.info("=" * 60)
 
-        # Pass if *either* configuration meets the 5%% threshold (per docstring).
-        # Both configs are kept as reportable data points to characterise the
-        # NUMA-local vs full-chip behaviour, but only one needs to demonstrate
-        # that the CPU FP32 path is functional at the expected efficiency.
-        passing = [r for r in results if (r.measured / r.theoretical if r.theoretical > 0 else 0.0) >= cpu_fp32_threshold]
-        if not passing:
-            # Neither config met the threshold -- surface the best one as the
-            # assertion failure so the report is actionable.
-            best = max(
-                results,
-                key=lambda r: (r.measured / r.theoretical if r.theoretical > 0 else 0.0),
-            )
+        # Assert: both configurations must individually meet the 5% threshold.
+        for result in results:
             assert_efficiency(
-                best.measured,
-                best.theoretical,
+                result.measured,
+                result.theoretical,
                 cpu_fp32_threshold,
-                best.label,
+                result.label,
             )
 
 # ---------------------------------------------------------------------------
@@ -635,13 +625,7 @@ class TestGPUComputeBottleneck:
         n_gpus = _safe_cuda_device_count()
         if n_gpus <= 0:
             pytest.skip("CUDA device enumeration failed or no GPUs visible")
-        # Lower the per-GPU FP16 efficiency floor on mixed-SKU H100 nodes
-        # (PCIe + NVL co-resident). Sustained 8192³ FP16 GEMM efficiency on
-        # H100 with cuBLAS realistically lands in the 55-65%% range; 60%% is
-        # on the optimistic edge and a single GPU running 1-2 pp below it is
-        # not a meaningful regression signal. The original 60%% gate is kept
-        # for HBM-rich SKUs (> 2.1 TB/s) where the headroom is real.
-        fp16_threshold = 0.55 if H100_SPECS.hbm3_bandwidth_tbs <= 2.1 else ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"]
+        fp16_threshold = 0.60 if H100_SPECS.hbm3_bandwidth_tbs <= 2.1 else ACCEPTANCE_THRESHOLDS["gpu_fp16_efficiency"]
         results = []
         for i in range(n_gpus):
             tflops = _gpu_fp16_tflops(i, m=8192, k=8192, n=8192, n_iters=10)

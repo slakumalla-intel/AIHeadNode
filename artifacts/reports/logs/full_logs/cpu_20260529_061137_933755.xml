@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="1" tests="33" time="134.695" timestamp="2026-05-29T06:11:43.845215+00:00" hostname="sc00901168s0070"><testcase classname="tests.test_cpu_validation.TestCPUTopology" name="test_physical_core_count" time="0.216" /><testcase classname="tests.test_cpu_validation.TestCPUTopology" name="test_logical_thread_count" time="0.127" /><testcase classname="tests.test_cpu_validation.TestCPUTopology" name="test_os_cpu_count_matches_logical" time="0.124" /><testcase classname="tests.test_cpu_validation.TestCPUTopology" name="test_smt_is_enabled" time="0.124" /><testcase classname="tests.test_cpu_validation.TestNUMATopology" name="test_numa_node_count" time="0.124" /><testcase classname="tests.test_cpu_validation.TestNUMATopology" name="test_numa_node_file_exists" time="0.122" /><testcase classname="tests.test_cpu_validation.TestNUMATopology" name="test_numa_node1_file_exists" time="0.124"><skipped type="pytest.skip" message="Single-socket topology detected">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_cpu_validation.py:266: Single-socket topology detected</skipped></testcase><testcase classname="tests.test_cpu_validation.TestSingleCoreFP32" name="test_single_core_gflops_above_floor" time="0.210" /><testcase classname="tests.test_cpu_validation.TestAllCoreFP32Scaling" name="test_all_core_fp32_gflops" time="2.024" /><testcase classname="tests.test_cpu_validation.TestAllCoreFP32Scaling" name="test_all_core_throughput_scales_with_cores" time="6.319" /><testcase classname="tests.test_cpu_validation.TestMemoryBandwidth" name="test_single_thread_stream_bandwidth" time="0.271"><failure message="AssertionError: Single-thread memory BW 7.32 GB/s &lt; 30 GB/s&#10;assert 7.316549947344709 &gt;= 30.0">self = &lt;tests.test_cpu_validation.TestMemoryBandwidth object at 0x7f9711c3a750&gt;
+
+    def test_single_thread_stream_bandwidth(self):
+        """TC-CPU-05a: Single-thread memory BW must be ≥ 30 GB/s."""
+        if not _HAS_NUMPY:
+            pytest.skip("numpy not installed")
+        bw = _stream_bw_gbs(array_bytes=256 * 1024 * 1024)
+&gt;       assert bw &gt;= 30.0, f"Single-thread memory BW {bw:.2f} GB/s &lt; 30 GB/s"
+E       AssertionError: Single-thread memory BW 7.32 GB/s &lt; 30 GB/s
+E       assert 7.316549947344709 &gt;= 30.0
+
+tests/test_cpu_validation.py:444: AssertionError</failure></testcase><testcase classname="tests.test_cpu_validation.TestMemoryBandwidth" name="test_multi_thread_peak_bandwidth" time="0.953" /><testcase classname="tests.test_cpu_validation.TestL3CacheBandwidth" name="test_l3_bandwidth_gbs" time="1.706" /><testcase classname="tests.test_cpu_validation.TestParallelSpeedup" name="test_parallel_speedup_at_n_cores[1]" time="13.208" /><testcase classname="tests.test_cpu_validation.TestParallelSpeedup" name="test_parallel_speedup_at_n_cores[2]" time="13.056" /><testcase classname="tests.test_cpu_validation.TestParallelSpeedup" name="test_parallel_speedup_at_n_cores[4]" time="13.473" /><testcase classname="tests.test_cpu_validation.TestParallelSpeedup" name="test_parallel_speedup_at_n_cores[8]" time="13.162" /><testcase classname="tests.test_cpu_validation.TestParallelSpeedup" name="test_parallel_speedup_at_n_cores[16]" time="11.755"><failure message="AssertionError: Parallel speedup at 16 cores: efficiency 79.04% is below threshold 85.00% (measured=580.860, theoretical=734.897)&#10;assert 0.7903953773550404 &gt;= 0.85">self = &lt;tests.test_cpu_validation.TestParallelSpeedup object at 0x7f9711c38cb0&gt;
+n_cores = 16
+
+    @pytest.mark.parametrize("n_cores", [1, 2, 4, 8, 16, 32, 64])
+    def test_parallel_speedup_at_n_cores(self, n_cores):
+        """TC-CPU-07: Parallel speedup at n_cores ≥ 0.85 × ideal (linear)."""
+        if not _HAS_NUMPY:
+            pytest.skip("numpy not installed")
+        available = os.cpu_count() or 1
+        if n_cores &gt; available:
+            pytest.skip(f"Only {available} logical CPUs available, need {n_cores}")
+    
+        # Use a heavier workload for low core counts so process-launch overhead does
+        # not dominate the scaling measurement.
+        if n_cores &lt;= 8:
+            size, n_iters = 512, 120
+        elif n_cores &lt;= 32:
+            size, n_iters = 384, 80
+        else:
+            size, n_iters = 256, 50
+        n_trials = 3
+    
+        # ------------------------------------------------------------------ #
+        # Determine which logical CPU IDs to pin each worker to.
+        #
+        # Default: sequential IDs starting from 0 → [0, 1, 2, …, n_cores-1]
+        #
+        # Manual override: set the CPU_AFFINITY_CORES environment variable to
+        # a comma-separated list of logical CPU IDs and/or ranges, e.g.
+        #   CPU_AFFINITY_CORES=0,2,4,6   (use 4 specific cores)
+        #   CPU_AFFINITY_CORES=0-63      (use logical cores 0 through 63)
+        #   CPU_AFFINITY_CORES=0-15,32-47,96
+        # The list must have at least n_cores entries; extra entries are ignored.
+        # Set CPU_AFFINITY_CORES=none to disable affinity pinning entirely.
+        # ------------------------------------------------------------------ #
+        def _parse_affinity_list(raw: str) -&gt; List[int]:
+            ids: List[int] = []
+            for token in raw.split(","):
+                token = token.strip()
+                if not token:
+                    continue
+                if "-" in token:
+                    parts = token.split("-", 1)
+                    if len(parts) != 2 or not parts[0].strip() or not parts[1].strip():
+                        raise ValueError(f"Invalid CPU range token: '{token}'")
+                    start = int(parts[0])
+                    end = int(parts[1])
+                    if start &lt; 0 or end &lt; 0:
+                        raise ValueError(f"CPU IDs must be non-negative: '{token}'")
+                    if end &lt; start:
+                        raise ValueError(f"CPU range end must be &gt;= start: '{token}'")
+                    ids.extend(range(start, end + 1))
+                else:
+                    cpu = int(token)
+                    if cpu &lt; 0:
+                        raise ValueError(f"CPU IDs must be non-negative: '{token}'")
+                    ids.append(cpu)
+            return ids
+    
+        affinity_env = os.environ.get("CPU_AFFINITY_CORES", "").strip()
+        if affinity_env.lower() == "none":
+            cpu_ids = [-1] * n_cores   # -1 → skip pinning
+        elif affinity_env:
+            try:
+                parsed = _parse_affinity_list(affinity_env)
+            except ValueError as exc:
+                pytest.fail(f"Invalid CPU_AFFINITY_CORES='{affinity_env}': {exc}")
+            if len(parsed) &lt; n_cores:
+                pytest.fail(
+                    f"CPU_AFFINITY_CORES has {len(parsed)} entries but n_cores={n_cores}; "
+                    "provide at least as many IDs as cores under test."
+                )
+            cpu_ids = parsed[:n_cores]
+        else:
+            cpu_ids = list(range(n_cores))   # sequential: 0, 1, 2, …
+    
+        args = [(size, n_iters, cpu_ids[i]) for i in range(n_cores)]
+    
+        logger.info(
+            "Core affinity map for %d-core run: %s",
+            n_cores,
+            cpu_ids,
+        )
+    
+        # Use the same single-threaded BLAS + process-pool path for baseline and
+        # n-core runs; compute medians to reduce run-to-run noise.
+        baseline_runs = []
+        multi_runs = []
+        with _single_thread_blas_env():
+            mp_ctx = multiprocessing.get_context("spawn")
+            for _ in range(n_trials):
+                with ProcessPoolExecutor(max_workers=1, mp_context=mp_ctx) as ex:
+                    baseline_runs.append(list(ex.map(_parallel_blas_worker, [(size, n_iters, cpu_ids[0])]))[0])
+                with ProcessPoolExecutor(max_workers=n_cores, mp_context=mp_ctx) as ex:
+                    results = list(ex.map(_parallel_blas_worker, args))
+                    multi_runs.append(sum(results))
+    
+        single_gflops = sorted(baseline_runs)[n_trials // 2]
+        multi_gflops = sorted(multi_runs)[n_trials // 2]
+        ideal = single_gflops * n_cores
+        scaling_threshold = ACCEPTANCE_THRESHOLDS["cpu_core_scaling_efficiency"]
+        scaling_threshold = float(os.environ.get("CPU_PARALLEL_SPEEDUP_EFF_THRESHOLD", str(scaling_threshold)))
+        logger.info(
+            "Parallel speedup config: n_cores=%d size=%d n_iters=%d baseline_runs=%s multi_runs=%s threshold=%.1f%%",
+            n_cores,
+            size,
+            n_iters,
+            [round(x, 2) for x in baseline_runs],
+            [round(x, 2) for x in multi_runs],
+            scaling_threshold * 100,
+        )
+        efficiency_pct = round(multi_gflops / ideal * 100.0, 2) if ideal &gt; 0 else 0.0
+&gt;       assert_efficiency(
+            multi_gflops, ideal,
+            scaling_threshold,
+            f"Parallel speedup at {n_cores} cores"
+        )
+
+tests/test_cpu_validation.py:646: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+measured = 580.8595693115406, theoretical = 734.8974778361112, threshold = 0.85
+label = 'Parallel speedup at 16 cores'
+
+    def assert_efficiency(
+        measured: float,
+        theoretical: float,
+        threshold: float,
+        label: str,
+    ) -&gt; None:
+        """
+        Assert that *measured* is at least *threshold* × *theoretical*.
+    
+        Prints a structured efficiency report regardless of pass/fail.
+        """
+        if theoretical &lt;= 0:
+            pytest.skip(f"Theoretical value for '{label}' is zero or negative")
+        efficiency = measured / theoretical
+        logger.info(
+            "%-50s  measured=%10.3f  theoretical=%10.3f  efficiency=%6.2f%%  threshold=%6.0f%%",
+            label,
+            measured,
+            theoretical,
+            efficiency * 100,
+            threshold * 100,
+        )
+&gt;       assert efficiency &gt;= threshold, (
+            f"{label}: efficiency {efficiency:.2%} is below threshold {threshold:.2%} "
+            f"(measured={measured:.3f}, theoretical={theoretical:.3f})"
+        )
+E       AssertionError: Parallel speedup at 16 cores: efficiency 79.04% is below threshold 85.00% (measured=580.860, theoretical=734.897)
+E       assert 0.7903953773550404 &gt;= 0.85
+
+tests/conftest.py:1902: AssertionError</failure></testcase><testcase classname="tests.test_cpu_validation.TestParallelSpeedup" name="test_parallel_speedup_at_n_cores[32]" time="17.303" /><testcase classname="tests.test_cpu_validation.TestParallelSpeedup" name="test_parallel_speedup_at_n_cores[64]" time="19.952" /><testcase classname="tests.test_cpu_validation.TestNUMABandwidth" name="test_numa_node0_accessible" time="0.132" /><testcase classname="tests.test_cpu_validation.TestNUMABandwidth" name="test_numa_local_bw_exceeds_remote" time="0.123" /><testcase classname="tests.test_cpu_validation.TestIntegerThroughput" name="test_integer_vector_ops_throughput" time="0.173" /><testcase classname="tests.test_cpu_validation.TestIntegerThroughput" name="test_integer_multiply_throughput" time="0.412" /><testcase classname="tests.test_cpu_validation.TestBranchPrediction" name="test_predictable_branch_loop" time="0.368" /><testcase classname="tests.test_cpu_validation.TestBranchPrediction" name="test_unpredictable_branch_penalty" time="0.602" /><testcase classname="tests.test_cpu_validation.TestThreadPoolOverhead" name="test_threadpool_spawn_latency" time="0.206" /><testcase classname="tests.test_cpu_validation.TestThreadPoolOverhead" name="test_threadpool_reuse_overhead" time="0.139" /><testcase classname="tests.test_cpu_validation.TestCacheCoherency" name="test_false_sharing_detection" time="1.570" /><testcase classname="tests.test_cpu_validation.TestFrequencyStability" name="test_frequency_does_not_degrade_under_load" time="0.850" /><testcase classname="tests.test_cpu_validation.TestSMTThroughput" name="test_smt_provides_throughput_gain" time="14.361" /><testcase classname="tests.test_cpu_validation.TestCPUAffinity" name="test_process_can_set_affinity" time="0.133" /><testcase classname="tests.test_cpu_validation.TestCPUAffinity" name="test_all_cores_schedulable" time="0.168" /></testsuite></testsuites>

@@ -1,0 +1,125 @@
+# KPI Table for node_validation
+
+Source KPI file: artifacts/node_validation_kpis.jsonl
+Generated (UTC): 2026-05-29T11:18:14.767281+00:00
+New KPI records in this run: 19
+Threshold checks in this run: 2
+
+| timestamp | test | metric | measured_value | threshold | status | row_type |
+|---|---|---|---:|---:|---|---|
+| 2026-05-29T11:16:21 | test_gpu_enumeration | gpu_count | 4 |  |  | measured_kpi |
+| 2026-05-29T11:16:22 | test_pcie_topology_discovery | gpu_entries | 4 |  |  | measured_kpi |
+| 2026-05-29T11:16:22 | test_pcie_topology_discovery | downgraded_gpu_count | 0 |  |  | measured_kpi |
+| 2026-05-29T11:16:22 | test_pcie_topology_discovery | nvlink_pair_count | 0 |  |  | measured_kpi |
+| 2026-05-29T11:16:22 | test_pcie_topology_discovery | pcie_pair_count | 0 |  |  | measured_kpi |
+| 2026-05-29T11:16:22 | test_topology_consistency | valid | 1 |  |  | measured_kpi |
+| 2026-05-29T11:16:22 | test_topology_consistency | gpu_count | 4 |  |  | measured_kpi |
+| 2026-05-29T11:16:22 | test_topology_consistency | topology_count | 4 |  |  | measured_kpi |
+| 2026-05-29T11:16:26 | test_h2d_bandwidth_all_gpus | gbs | n/a | 40.95 | N/A | threshold_check |
+| 2026-05-29T11:16:26 | test_h2d_bandwidth_all_gpus | gpu_count | 4 |  |  | measured_kpi |
+| 2026-05-29T11:16:26 | test_h2d_bandwidth_all_gpus | n_bytes | 1.07374e+09 |  |  | measured_kpi |
+| 2026-05-29T11:16:26 | test_h2d_bandwidth_all_gpus | n_iters | 8 |  |  | measured_kpi |
+| 2026-05-29T11:16:26 | test_h2d_bandwidth_all_gpus | boundary_gbs | 1 |  |  | measured_kpi |
+| 2026-05-29T11:16:26 | test_h2d_bandwidth_all_gpus | min_gbs | 51.58 |  |  | measured_kpi |
+| 2026-05-29T11:16:26 | test_h2d_bandwidth_all_gpus | mean_gbs | 51.8 |  |  | measured_kpi |
+| 2026-05-29T11:16:27 | test_d2h_bandwidth_all_gpus | gbs | n/a | 40.95 | N/A | threshold_check |
+| 2026-05-29T11:16:27 | test_d2h_bandwidth_all_gpus | gpu_count | 4 |  |  | measured_kpi |
+| 2026-05-29T11:16:27 | test_d2h_bandwidth_all_gpus | n_bytes | 1.07374e+09 |  |  | measured_kpi |
+| 2026-05-29T11:16:27 | test_d2h_bandwidth_all_gpus | n_iters | 8 |  |  | measured_kpi |
+| 2026-05-29T11:16:27 | test_d2h_bandwidth_all_gpus | boundary_gbs | 1 |  |  | measured_kpi |
+| 2026-05-29T11:16:27 | test_d2h_bandwidth_all_gpus | min_gbs | 55.49 |  |  | measured_kpi |
+| 2026-05-29T11:16:27 | test_d2h_bandwidth_all_gpus | mean_gbs | 55.95 |  |  | measured_kpi |
+| 2026-05-29T11:16:29 | test_pcie_bw_p2p_latency_hugepages_2mb | hugepages_before | 0 |  |  | measured_kpi |
+| 2026-05-29T11:16:29 | test_pcie_bw_p2p_latency_hugepages_2mb | hugepages_active | 1 |  |  | measured_kpi |
+| 2026-05-29T11:16:29 | test_p2p_bandwidth_pytorch_fallback | gpu_count | 4 |  |  | measured_kpi |
+| 2026-05-29T11:16:29 | test_p2p_bandwidth_pytorch_fallback | n_bytes | 1.07374e+09 |  |  | measured_kpi |
+| 2026-05-29T11:16:29 | test_p2p_bandwidth_pytorch_fallback | n_iters | 8 |  |  | measured_kpi |
+| 2026-05-29T11:16:29 | test_p2p_bandwidth_pytorch_fallback | min_threshold_gbs | 40 |  |  | measured_kpi |
+| 2026-05-29T11:16:29 | test_p2p_bandwidth_pytorch_fallback | attempted_pairs | 12 |  |  | measured_kpi |
+| 2026-05-29T11:16:29 | test_p2p_bandwidth_pytorch_fallback | measured_pairs | 0 |  |  | measured_kpi |
+| 2026-05-29T11:16:29 | test_p2p_bandwidth_pytorch_fallback | inaccessible_pairs | 12 |  |  | measured_kpi |
+| 2026-05-29T11:16:29 | test_p2p_bandwidth_pytorch_fallback | failing_pairs | 0 |  |  | measured_kpi |
+| 2026-05-29T11:16:31 | test_kernel_launch_latency_stats | samples | 200 |  |  | measured_kpi |
+| 2026-05-29T11:16:31 | test_kernel_launch_latency_stats | min_us | 17.886 |  |  | measured_kpi |
+| 2026-05-29T11:16:31 | test_kernel_launch_latency_stats | p50_us | 19.204 |  |  | measured_kpi |
+| 2026-05-29T11:16:31 | test_kernel_launch_latency_stats | mean_us | 20.578 |  |  | measured_kpi |
+| 2026-05-29T11:16:31 | test_kernel_launch_latency_stats | p95_us | 21.914 |  |  | measured_kpi |
+| 2026-05-29T11:16:31 | test_kernel_launch_latency_stats | p99_us | 26.532 |  |  | measured_kpi |
+| 2026-05-29T11:16:31 | test_kernel_launch_latency_stats | max_us | 219.037 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_10kb_us | 17.143 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_10kb_bw_gbs | 0.643823 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_100kb_us | 18.135 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_100kb_bw_gbs | 5.76869 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_1mb_us | 41.898 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_1mb_bw_gbs | 25.4533 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_10mb_us | 261.432 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_10mb_bw_gbs | 41.8866 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_100mb_us | 2097.63 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_100mb_bw_gbs | 52.4977 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_1gb_us | 20574 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_1gb_bw_gbs | 52.3627 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_10gb_us | 212386 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | h2d_10gb_bw_gbs | 50.6757 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_10kb_us | 12.996 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_10kb_bw_gbs | 0.802005 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_100kb_us | 14.545 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_100kb_bw_gbs | 7.43592 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_1mb_us | 33.852 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_1mb_bw_gbs | 31.9026 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_10mb_us | 202.977 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_10mb_bw_gbs | 51.7399 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_100mb_us | 1902.83 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_100mb_bw_gbs | 55.1143 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_1gb_us | 19359.8 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_1gb_bw_gbs | 55.4656 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_10gb_us | 194184 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | d2h_10gb_bw_gbs | 55.2988 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | cpu_gpu_roundtrip_min_us | 64.482 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | cpu_gpu_roundtrip_p50_us | 67.504 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | cpu_gpu_roundtrip_p95_us | 74.4949 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | cpu_gpu_roundtrip_max_us | 3076.9 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | cpu_compute_us | 325.331 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_kernel_launch_latency_stats_extended | gpu_compute_us | 18.7161 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_synchronize_overhead_stats | samples | 200 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_synchronize_overhead_stats | min_us | 2.678 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_synchronize_overhead_stats | p50_us | 2.831 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_synchronize_overhead_stats | mean_us | 2.841 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_synchronize_overhead_stats | p95_us | 2.983 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_synchronize_overhead_stats | p99_us | 3.076 |  |  | measured_kpi |
+| 2026-05-29T11:16:48 | test_synchronize_overhead_stats | max_us | 3.125 |  |  | measured_kpi |
+| 2026-05-29T11:17:20 | test_sustained_gpu_power_stability | duration_sec | 30 |  |  | measured_kpi |
+| 2026-05-29T11:17:20 | test_sustained_gpu_power_stability | samples | 120 |  |  | measured_kpi |
+| 2026-05-29T11:17:20 | test_sustained_gpu_power_stability | min_w | 88.17 |  |  | measured_kpi |
+| 2026-05-29T11:17:20 | test_sustained_gpu_power_stability | mean_w | 346.17 |  |  | measured_kpi |
+| 2026-05-29T11:17:20 | test_sustained_gpu_power_stability | max_w | 419.21 |  |  | measured_kpi |
+| 2026-05-29T11:17:20 | test_sustained_gpu_power_stability | std_w | 58.39 |  |  | measured_kpi |
+| 2026-05-29T11:17:20 | test_gpu_write_performance_limiters | n_iters | 10 |  |  | measured_kpi |
+| 2026-05-29T11:17:20 | test_gpu_write_performance_limiters | peak_write_bw_gbs | 2135.02 |  |  | measured_kpi |
+| 2026-05-29T11:17:20 | test_nvlink_status | available | 0 |  |  | measured_kpi |
+| 2026-05-29T11:17:20 | test_nccl_availability | available | 1 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | gpu_count | 4 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | images_per_gpu | 256 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | total_images | 1024 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | makespan_sec | 11.119 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | batch | 128 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | imgsz | 640 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | aggregate_fps | 92.09 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | aggregate_fps_target | 200 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | cpu_mean_util_pct | 2.12 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | cpu_p95_util_pct | 2.5 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | cpu_target_util_pct | 50 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | per_gpu_mean_fps | 50.77 |  |  | measured_kpi |
+| 2026-05-29T11:17:56 | test_vision_object_detection_yolo_fps | per_gpu_min_fps | 50.59 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_mmio_write_read_validation | command_reg_read_1 | 546 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_mmio_write_read_validation | command_reg_read_2 | 546 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_mmio_write_read_validation | write_attempted | 0 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_one_dma_read_4kb_validation | transfer_bytes | 4096 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_one_dma_read_4kb_validation | elapsed_ms | 0.1672 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_one_dma_read_4kb_validation | data_compare_pass | 1 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_looped_rdma_mmio_dma_stress_soak | loops | 1000 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_looped_rdma_mmio_dma_stress_soak | transfer_bytes | 4096 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_looped_rdma_mmio_dma_stress_soak | avg_latency_us | 13.86 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_looped_rdma_mmio_dma_stress_soak | p95_latency_us | 14.6 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_looped_rdma_mmio_dma_stress_soak | bandwidth_gbps | 0.55 |  |  | measured_kpi |
+| 2026-05-29T11:18:04 | test_looped_rdma_mmio_dma_stress_soak | data_mismatch_count | 0 |  |  | measured_kpi |
+| 2026-05-29T11:18:10 | test_vllm_training_kpi_status | training_supported | 0 |  |  | measured_kpi |

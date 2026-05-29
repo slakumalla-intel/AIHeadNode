@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="25" tests="26" time="73.046" timestamp="2026-05-29T11:18:18.397138+00:00" hostname="sc00901168s0070"><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_001]" time="3.505"><skipped type="pytest.skip" message="No usable tokenizer model found for performance case 001 (mode=offline). Tried: meta-llama/Meta-Llama-3.1-8B-Instruct, meta-llama/Meta-Llama-3-8B, openai-community/gpt2. Errors: meta-llama/Meta-Llama-3.1-8B-Instruct: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.&#10;Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'. | meta-llama/Meta-Llama-3-8B: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.&#10;Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'. | openai-community/gpt2: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.&#10;Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1015: No usable tokenizer model found for performance case 001 (mode=offline). Tried: meta-llama/Meta-Llama-3.1-8B-Instruct, meta-llama/Meta-Llama-3-8B, openai-community/gpt2. Errors: meta-llama/Meta-Llama-3.1-8B-Instruct: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'. | meta-llama/Meta-Llama-3-8B: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'. | openai-community/gpt2: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_002]" time="0.593"><skipped type="pytest.skip" message="Missing required binaries: ['nvbandwidth']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['nvbandwidth']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_003]" time="6.615"><skipped type="pytest.skip" message="Missing required binaries: ['vllm']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['vllm']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_004]" time="6.310"><skipped type="pytest.skip" message="Missing required binaries: ['vllm']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['vllm']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_005]" time="6.121"><skipped type="pytest.skip" message="Missing required binaries: ['vllm']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['vllm']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_006]" time="6.122"><skipped type="pytest.skip" message="Missing required binaries: ['vllm']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['vllm']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_007]" time="6.198"><skipped type="pytest.skip" message="Missing required binaries: ['vllm']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['vllm']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_008]" time="6.200"><skipped type="pytest.skip" message="Missing required binaries: ['vllm']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['vllm']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_009]" time="6.385"><skipped type="pytest.skip" message="Missing required binaries: ['vllm']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['vllm']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_010]" time="0.589"><skipped type="pytest.skip" message="Missing required binaries: ['trtllm-bench']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['trtllm-bench']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_011]" time="0.921"><failure message="Failed: Command failed for AI_HOSTCPU_PERF_TEST_ID_011: genai-perf profile --endpoint-type chat --service-kind openai --url http://127.0.0.1:8000/v1 --model meta-llama/Llama-3.1-8B-Instruct&#10;executed_command:&#10;genai-perf profile --endpoint-type chat --service-kind openai --url http://127.0.0.1:8000/v1 --model meta-llama/Llama-3.1-8B-Instruct&#10;returncode: 2&#10;stderr_tail:&#10;usage: genai-perf [-h] [--version] {config,profile,analyze,create-template,process-export-files} ...&#10;genai-perf: error: unrecognized arguments: --service-kind openai&#10;&#10;stdout_tail:">case = PerformanceCase(case_id='AI_HOSTCPU_PERF_TEST_ID_011', title='Server + load generator, real HTTP (GenAI-Perf)', category='Performance', subsystem='Gen-AI end-to-end benchmarking', workload='Containerized server plus load generator with real HTTP traffic', purpose='Validate containerized serving path, networking, and tail latency', prerequisites=['genai-perf installed', 'two vLLM servers pinned to distinct GPUs'], commands=['genai-perf profile --endpoint-type chat --service-kind openai --url http://127.0.0.1:8000/v1 --model meta-llama/Llama-3.1-8B-Instruct', 'genai-perf profile --endpoint-type chat --service-kind openai --url http://127.0.0.1:8001/v1 --model meta-llama/Llama-3.1-8B-Instruct'], expected='Both server instances satisfy SLO simultaneously without cross-GPU contention', planned_only=False)
+
+    @pytest.mark.node_validation
+    @pytest.mark.workload_acceptance
+    @pytest.mark.slow
+    @pytest.mark.parametrize("case", PERFORMANCE_CASES, ids=[c.case_id for c in PERFORMANCE_CASES])
+    def test_performance_case_suite(case: PerformanceCase):
+        """Catalog + optional execution harness for AI host CPU performance cases."""
+        if not _is_selected(case.case_id):
+            pytest.skip("Filtered by PERF_CASE_IDS")
+    
+        # Always validate metadata shape so this file is useful in dry-run mode.
+        assert case.case_id.startswith("AI_HOSTCPU_PERF_TEST_ID_")
+        assert case.title.strip(), "Case title must be defined"
+        assert case.category == "Performance"
+        assert case.subsystem.strip()
+        assert case.workload.strip()
+        assert case.purpose.strip()
+    
+        _record_kpi(
+            case.case_id,
+            {
+                "mode": "catalog",
+                "title": case.title,
+                "subsystem": case.subsystem,
+                "workload": case.workload,
+                "expected": case.expected,
+                "planned_only": case.planned_only,
+                "commands": case.commands,
+            },
+        )
+    
+        if case.planned_only:
+            pytest.skip("Planned placeholder case; details not provided yet")
+    
+        execute = os.environ.get("PERF_EXECUTE_CASES", "0").lower() in {"1", "true", "yes", "on"}
+        if not execute:
+            pytest.skip("Catalog validated. Set PERF_EXECUTE_CASES=1 to execute benchmark commands")
+    
+        require_4_gpus = _env_flag("PERF_REQUIRE_4GPUS", "0")
+        visible_gpu_count = _visible_gpu_count()
+        if require_4_gpus and visible_gpu_count &lt; 4:
+            pytest.skip(
+                "Performance execution requires 4 visible GPUs; "
+                f"found {visible_gpu_count}. Set PERF_REQUIRE_4GPUS=0 to allow running with fewer GPUs."
+            )
+    
+        # Internal Python implementation for tokenizer case gives deterministic local validation.
+        if case.case_id == "AI_HOSTCPU_PERF_TEST_ID_001":
+            _benchmark_tokenizer_micro(case.case_id)
+            return
+    
+        # Normalize all case commands up-front so every downstream path — preflight,
+        # binary/module detection, background serve launch, and _run_command — all
+        # operate on the same prepared strings. This ensures legacy command forms
+        # (e.g. `python3 -m vllm.benchmarks.benchmark_serving`) are rewritten to the
+        # current CLI (`vllm bench serve`) before any execution decision is made.
+        prepared_commands: List[str] = [_prepare_command(cmd) for cmd in case.commands]
+        for raw, prepared in zip(case.commands, prepared_commands):
+            if raw != prepared:
+                logger.info("Command rewritten: %s -&gt; %s", raw, prepared)
+    
+        required_bins = _required_binaries_from_commands(prepared_commands)
+        missing = [b for b in required_bins if not _binary_exists(b)]
+        if missing:
+            auto_install = _env_flag("PERF_AUTO_INSTALL", "1")
+            if auto_install:
+                package_specs = sorted(
+                    {
+                        package_spec
+                        for package_spec in (_package_spec_for_requirement(item) for item in missing)
+                        if package_spec
+                    }
+                )
+                if package_specs:
+                    logger.info("Auto-installing packages for missing binaries: %s", package_specs)
+                    install_results = _auto_install_python_packages(package_specs)
+                    for pkg, status in install_results.items():
+                        logger.info("  %s: %s", pkg, status)
+                    missing = [b for b in required_bins if not _binary_exists(b)]
+            if missing:
+                pytest.skip(f"Missing required binaries: {missing}")
+    
+        missing_modules = _missing_python_modules_from_commands(prepared_commands)
+        if missing_modules:
+            # Attempt auto-install if enabled before giving up
+            auto_install = _env_flag("PERF_AUTO_INSTALL", "1")
+            if auto_install:
+                packages_to_install = {
+                    package_spec
+                    for package_spec in (_package_spec_for_requirement(module) for module in missing_modules)
+                    if package_spec
+                }
+    
+                if packages_to_install:
+                    logger.info("Auto-installing missing Python packages: %s", packages_to_install)
+                    install_results = _auto_install_python_packages(sorted(packages_to_install))
+                    for pkg, status in install_results.items():
+                        logger.info("  %s: %s", pkg, status)
+    
+                    # Re-check after install attempt
+                    missing_modules = _missing_python_modules_from_commands(prepared_commands)
+    
+            if missing_modules:
+                pytest.skip(f"Missing required Python module(s): {missing_modules}")
+    
+        timeout_sec = int(os.environ.get("PERF_CMD_TIMEOUT_SEC", "1800"))
+        command_results: List[Dict] = []
+    
+        # Special handling for vllm serve + benchmark pattern (serve must run in background)
+        serve_process = None
+        serve_log_fh = None
+        try:
+            vllm_serve_idx = None
+            for idx, cmd in enumerate(prepared_commands):
+                if _is_vllm_serve_command(cmd):
+                    vllm_serve_idx = idx
+                    break
+    
+            if vllm_serve_idx is not None:
+                # Start vllm serve in background (command is already prepared)
+                prepared_serve = prepared_commands[vllm_serve_idx]
+                # Use 1800s (30 min) for case 003 (70B with CUDA graphs), 900s for others
+                ready_timeout_default = "1800" if case.case_id == "AI_HOSTCPU_PERF_TEST_ID_003" else "900"
+                ready_timeout_sec = int(os.environ.get("PERF_VLLM_SERVE_READY_TIMEOUT_SEC", ready_timeout_default))
+                serve_candidates = [prepared_serve]
+                fallback_serve = _retune_vllm_serve_for_startup(prepared_serve)
+                if fallback_serve != prepared_serve:
+                    serve_candidates.append(fallback_serve)
+    
+                readiness_error: Optional[str] = None
+                serve_start_elapsed = 0.0
+                _serve_log_dir = Path(os.environ.get("PERF_VLLM_SERVE_LOG_DIR", "/tmp"))
+                _serve_log_dir.mkdir(parents=True, exist_ok=True)
+                for attempt_idx, serve_candidate in enumerate(serve_candidates, start=1):
+                    _serve_log_path = _serve_log_dir / f"vllm_serve_{case.case_id}_attempt{attempt_idx}_{time.strftime('%Y%m%d_%H%M%S')}.log"
+                    logger.info("Starting vLLM server in background (attempt %d/%d): %s", attempt_idx, len(serve_candidates), serve_candidate)
+                    logger.info("vLLM serve log: %s", _serve_log_path)
+                    start_wait = time.time()
+                    _serve_log_fh = open(_serve_log_path, "w", encoding="utf-8", buffering=1)
+                    serve_process = subprocess.Popen(
+                        serve_candidate,
+                        shell=True,
+                        stdout=_serve_log_fh,
+                        stderr=subprocess.STDOUT,
+                        start_new_session=True,
+                    )
+                    readiness_error = _wait_for_vllm_serve_ready(
+                        serve_candidate,
+                        serve_process,
+                        timeout_sec=ready_timeout_sec,
+                    )
+                    serve_start_elapsed = time.time() - start_wait
+                    if readiness_error is None:
+                        prepared_serve = serve_candidate
+                        break
+    
+                    if serve_process.poll() is None:
+                        _terminate_process_group(serve_process, graceful_timeout_sec=10.0)
+                    serve_process.wait()
+                    _serve_log_fh.close()
+                    _log_tail = ""
+                    try:
+                        _log_tail = _serve_log_path.read_text(encoding="utf-8", errors="replace")[-4000:]
+                    except Exception:
+                        pass
+                    result = {
+                        "command": serve_candidate,
+                        "executed_command": serve_candidate,
+                        "returncode": serve_process.returncode if serve_process.returncode is not None else -1,
+                        "stdout_tail": _log_tail,
+                        "stderr_tail": "",
+                    }
+                    command_results.append(result)
+                    if attempt_idx &lt; len(serve_candidates):
+                        logger.warning("vLLM serve startup attempt %d failed, retrying with fallback command", attempt_idx)
+    
+                # Skip benchmark commands if serve failed to start after all attempts
+                if readiness_error is not None:
+                    last_result = command_results[-1] if command_results else {}
+                    skip_reason = _known_skip_reason_from_result(last_result)
+                    if skip_reason:
+                        pytest.skip(f"vLLM server failed to start: {skip_reason}")
+                    pytest.skip(f"vLLM server was not ready: {readiness_error}")
+    
+                # Record serve startup success
+                command_results.append({
+                    "command": prepared_serve,
+                    "executed_command": prepared_serve,
+                    "returncode": 0,
+                    "status": "background_started",
+                    "elapsed_sec": round(serve_start_elapsed, 3),
+                })
+    
+                # Now run benchmark commands (all except the serve command, already prepared)
+                for idx, prepared_cmd in enumerate(prepared_commands):
+                    if idx == vllm_serve_idx:
+                        continue  # Skip the serve command; it's already running
+    
+                    if _is_vllm_bench_serve_command(prepared_cmd):
+                        if serve_process is not None and serve_process.poll() is not None:
+                            _exit_log_tail = ""
+                            try:
+                                _exit_log_tail = _serve_log_path.read_text(encoding="utf-8", errors="replace")[-4000:]
+                            except Exception:
+                                pass
+                            serve_exit_result = {
+                                "command": prepared_serve,
+                                "executed_command": prepared_serve,
+                                "returncode": serve_process.returncode,
+                                "stdout_tail": _exit_log_tail,
+                                "stderr_tail": "",
+                            }
+                            command_results.append(serve_exit_result)
+                            skip_reason = _known_skip_reason_from_result(serve_exit_result) or (
+                                "vLLM serving process exited before benchmark execution"
+                            )
+                            _record_kpi(
+                                case.case_id,
+                                {
+                                    "mode": "execution",
+                                    "status": "skipped",
+                                    "reason": skip_reason,
+                                    "results": command_results,
+                                },
+                            )
+                            pytest.skip(f"{case.case_id}: {skip_reason}")
+    
+                        pre_bench_ready_timeout_sec = int(
+                            os.environ.get("PERF_VLLM_PRE_BENCH_READY_TIMEOUT_SEC", "15")
+                        )
+                        pre_bench_readiness_error = _wait_for_vllm_serve_ready(
+                            prepared_serve,
+                            serve_process,
+                            timeout_sec=pre_bench_ready_timeout_sec,
+                        )
+                        if pre_bench_readiness_error is not None:
+                            skip_reason = (
+                                "vLLM serving endpoint was not reachable immediately before benchmark: "
+                                f"{pre_bench_readiness_error}"
+                            )
+                            _record_kpi(
+                                case.case_id,
+                                {
+                                    "mode": "execution",
+                                    "status": "skipped",
+                                    "reason": skip_reason,
+                                    "results": command_results,
+                                },
+                            )
+                            pytest.skip(f"{case.case_id}: {skip_reason}")
+    
+                    result = _run_command(prepared_cmd, timeout_sec=timeout_sec, already_prepared=True)
+                    command_results.append(result)
+                    skip_reason = _known_skip_reason_from_result(result)
+                    if skip_reason:
+                        _record_kpi(
+                            case.case_id,
+                            {
+                                "mode": "execution",
+                                "status": "skipped",
+                                "reason": skip_reason,
+                                "results": command_results,
+                            },
+                        )
+                        pytest.skip(f"{case.case_id}: {skip_reason}")
+    
+                    if _benchmark_all_requests_failed(result):
+                        reason = "vLLM benchmark completed but all requests failed"
+                        _record_kpi(
+                            case.case_id,
+                            {
+                                "mode": "execution",
+                                "status": "skipped",
+                                "reason": reason,
+                                "results": command_results,
+                            },
+                        )
+                        pytest.skip(f"{case.case_id}: {reason}")
+    
+                    if result["returncode"] != 0:
+                        if _is_vllm_bench_serve_command(prepared_cmd):
+                            reason = "vLLM benchmark command failed in this environment"
+                            _record_kpi(
+                                case.case_id,
+                                {
+                                    "mode": "execution",
+                                    "status": "skipped",
+                                    "reason": reason,
+                                    "results": command_results,
+                                },
+                            )
+                            pytest.skip(f"{case.case_id}: {reason}")
+                        _record_kpi(case.case_id, {"mode": "execution", "status": "failed", "results": command_results})
+                        pytest.fail(
+                            f"Command failed for {case.case_id}: {prepared_cmd}\n"
+                            f"executed_command:\n{result['executed_command']}\n"
+                            f"returncode: {result['returncode']}\n"
+                            f"stderr_tail:\n{result['stderr_tail']}\nstdout_tail:\n{result['stdout_tail']}"
+                        )
+            else:
+                # No vllm serve command; run prepared commands sequentially
+                for prepared_cmd in prepared_commands:
+                    result = _run_command(prepared_cmd, timeout_sec=timeout_sec, already_prepared=True)
+                    command_results.append(result)
+                    if result["returncode"] != 0:
+                        skip_reason = _known_skip_reason_from_result(result)
+                        if skip_reason:
+                            _record_kpi(
+                                case.case_id,
+                                {
+                                    "mode": "execution",
+                                    "status": "skipped",
+                                    "reason": skip_reason,
+                                    "results": command_results,
+                                },
+                            )
+                            pytest.skip(f"{case.case_id}: {skip_reason}")
+                        _record_kpi(case.case_id, {"mode": "execution", "status": "failed", "results": command_results})
+                        logger.error(
+                            "Performance case %s failed. command=%s executed_command=%s returncode=%s\nstderr_tail:\n%s\nstdout_tail:\n%s",
+                            case.case_id,
+                            prepared_cmd,
+                            result["executed_command"],
+                            result["returncode"],
+                            result["stderr_tail"],
+                            result["stdout_tail"],
+                        )
+&gt;                       pytest.fail(
+                            f"Command failed for {case.case_id}: {prepared_cmd}\n"
+                            f"executed_command:\n{result['executed_command']}\n"
+                            f"returncode: {result['returncode']}\n"
+                            f"stderr_tail:\n{result['stderr_tail']}\nstdout_tail:\n{result['stdout_tail']}"
+                        )
+E                       Failed: Command failed for AI_HOSTCPU_PERF_TEST_ID_011: genai-perf profile --endpoint-type chat --service-kind openai --url http://127.0.0.1:8000/v1 --model meta-llama/Llama-3.1-8B-Instruct
+E                       executed_command:
+E                       genai-perf profile --endpoint-type chat --service-kind openai --url http://127.0.0.1:8000/v1 --model meta-llama/Llama-3.1-8B-Instruct
+E                       returncode: 2
+E                       stderr_tail:
+E                       usage: genai-perf [-h] [--version] {config,profile,analyze,create-template,process-export-files} ...
+E                       genai-perf: error: unrecognized arguments: --service-kind openai
+E                       
+E                       stdout_tail:
+
+tests/test_performance_suite.py:1715: Failed</failure></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_012]" time="0.152"><skipped type="pytest.skip" message="Planned placeholder case; details not provided yet">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1420: Planned placeholder case; details not provided yet</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_013]" time="0.205"><skipped type="pytest.skip" message="Planned placeholder case; details not provided yet">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1420: Planned placeholder case; details not provided yet</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_014]" time="0.148"><skipped type="pytest.skip" message="Planned placeholder case; details not provided yet">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1420: Planned placeholder case; details not provided yet</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_015]" time="0.148"><skipped type="pytest.skip" message="Planned placeholder case; details not provided yet">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1420: Planned placeholder case; details not provided yet</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_016]" time="6.252"><skipped type="pytest.skip" message="Missing required binaries: ['vllm']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['vllm']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_017]" time="6.233"><skipped type="pytest.skip" message="Missing required binaries: ['vllm']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['vllm']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_018]" time="0.596"><skipped type="pytest.skip" message="Missing required binaries: ['mpirun']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['mpirun']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_019]" time="0.453"><skipped type="pytest.skip" message="Missing required binaries: ['mpirun']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['mpirun']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_020]" time="0.444"><skipped type="pytest.skip" message="Missing required binaries: ['mpirun']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['mpirun']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_021]" time="0.491"><skipped type="pytest.skip" message="Missing required binaries: ['mpirun']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['mpirun']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_022]" time="0.455"><skipped type="pytest.skip" message="Missing required binaries: ['mpirun']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['mpirun']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_023]" time="0.539"><skipped type="pytest.skip" message="Missing required binaries: ['mpirun']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['mpirun']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_024]" time="0.457"><skipped type="pytest.skip" message="Missing required binaries: ['mpirun']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['mpirun']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_025]" time="0.514"><skipped type="pytest.skip" message="Missing required binaries: ['mpirun']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['mpirun']</skipped></testcase><testcase classname="tests.test_performance_suite" name="test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_026]" time="6.276"><skipped type="pytest.skip" message="Missing required binaries: ['vllm']">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_performance_suite.py:1468: Missing required binaries: ['vllm']</skipped></testcase></testsuite></testsuites>

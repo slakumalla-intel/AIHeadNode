@@ -1,0 +1,222 @@
+11:16:19 INFO     ai_headnode_tests System config captured: /root/mpudhuch/branch/AIheadnode_mpudhuch_branch/system_config_report.json
+11:16:21 INFO     tests.test_node_validation GPU enumeration: 4 GPU(s) found
+11:16:21 INFO     tests.test_node_validation   GPU 0: NVIDIA H100 PCIe (00000000:61:00.0)
+11:16:21 INFO     tests.test_node_validation   GPU 1: NVIDIA H100 PCIe (00000000:B1:00.0)
+11:16:21 INFO     tests.test_node_validation   GPU 2: NVIDIA H100 NVL (00000001:61:00.0)
+11:16:21 INFO     tests.test_node_validation   GPU 3: NVIDIA H100 PCIe (00000001:B1:00.0)
+11:16:21 INFO     tests.test_node_validation KPI test_gpu_enumeration: {"gpu_count": 4, "gpus": [{"driver_version": "610.43.02", "index": 0, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000000:61:00.0"}, {"driver_version": "610.43.02", "index": 1, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000000:B1:00.0"}, {"driver_version": "610.43.02", "index": 2, "name": "NVIDIA H100 NVL", "pci_bus_id": "00000001:61:00.0"}, {"driver_version": "610.43.02", "index": 3, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000001:B1:00.0"}]}
+11:16:21 INFO     tests.test_node_validation 
+
+================================================================================
+  PCIe NEGOTIATED LINK SPEED / WIDTH PER GPU
+================================================================================
+  GPU    PCI Bus ID       Gen (cur/max)    Width (cur/max)    Neg. BW      Status
+  ----------------------------------------------------------------------------
+  GPU0   00000000:61:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
+  GPU1   00000000:B1:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
+  GPU2   00000001:61:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
+  GPU3   00000001:B1:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
+================================================================================
+11:16:22 INFO     tests.test_node_validation 
+
+nvidia-smi topo -m output:
+	[4mGPU0	GPU1	GPU2	GPU3	CPU Affinity	NUMA Affinity	GPU NUMA ID[0m
+GPU0	 X 	NODE	NODE	NODE	0-159	0		N/A
+GPU1	NODE	 X 	NODE	NODE	0-159	0		N/A
+GPU2	NODE	NODE	 X 	NODE	0-159	0		N/A
+GPU3	NODE	NODE	NODE	 X 	0-159	0		N/A
+
+Legend:
+
+  X    = Self
+  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)
+  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node
+  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)
+  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)
+  PIX  = Connection traversing at most a single PCIe bridge
+  NV#  = Connection traversing a bonded set of # NVLinks
+
+11:16:22 INFO     tests.test_node_validation 
+
+  GPU INTERCONNECT SUMMARY (from topo -m)
+  --------------------------------------------------
+11:16:22 INFO     tests.test_node_validation KPI test_pcie_topology_discovery: {"downgraded_gpu_count": 0, "downgraded_gpus": [], "gpu_entries": 4, "matrix_error": null, "nvlink_pair_count": 0, "pcie_pair_count": 0}
+11:16:22 INFO     tests.test_node_validation KPI test_topology_consistency: {"gpu_count": 4, "topology_count": 4, "valid": true}
+11:16:22 INFO     tests.test_node_validation Found 4 GPU(s) with valid PCIe topology:
+  GPU 0: NVIDIA H100 PCIe, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
+  GPU 1: NVIDIA H100 PCIe, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
+  GPU 2: NVIDIA H100 NVL, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
+  GPU 3: NVIDIA H100 PCIe, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
+
+11:16:23 INFO     tests.test_node_validation GPU 0 H2D BW: 52.0 GB/s (82.6% of 63 GB/s)
+11:16:24 INFO     tests.test_node_validation GPU 1 H2D BW: 51.6 GB/s (81.9% of 63 GB/s)
+11:16:25 INFO     tests.test_node_validation GPU 2 H2D BW: 52.0 GB/s (82.5% of 63 GB/s)
+11:16:26 INFO     tests.test_node_validation GPU 3 H2D BW: 51.6 GB/s (82.0% of 63 GB/s)
+11:16:26 INFO     tests.test_node_validation KPI test_h2d_bandwidth_all_gpus: {"borderline_gpus": [], "boundary_gbs": 1.0, "failing_gpus": [], "gpu_count": 4, "mean_gbs": 51.8, "min_gbs": 51.58, "n_bytes": 1073741824, "n_iters": 8, "per_gpu_gbs": [52.02, 51.58, 51.96, 51.63], "threshold_gbs": 40.95}
+11:16:27 INFO     tests.test_node_validation GPU 0 D2H BW: 55.5 GB/s (88.1% of 63 GB/s)
+11:16:27 INFO     tests.test_node_validation GPU 1 D2H BW: 55.5 GB/s (88.1% of 63 GB/s)
+11:16:27 INFO     tests.test_node_validation GPU 2 D2H BW: 57.3 GB/s (91.0% of 63 GB/s)
+11:16:27 INFO     tests.test_node_validation GPU 3 D2H BW: 55.5 GB/s (88.1% of 63 GB/s)
+11:16:27 INFO     tests.test_node_validation KPI test_d2h_bandwidth_all_gpus: {"borderline_gpus": [], "boundary_gbs": 1.0, "failing_gpus": [], "gpu_count": 4, "mean_gbs": 55.95, "min_gbs": 55.49, "n_bytes": 1073741824, "n_iters": 8, "per_gpu_gbs": [55.49, 55.5, 57.32, 55.5], "threshold_gbs": 40.95}
+11:16:28 INFO     tests.test_node_validation 2 MB hugepages: before=0  active=True
+11:16:29 INFO     tests.test_node_validation PyTorch BW (hugepages=True, 512 MB): H2D=52.68 GB/s  D2H=55.46 GB/s
+11:16:29 INFO     tests.test_node_validation KPI test_pcie_bw_p2p_latency_hugepages_2mb: {"bw_results": {"hugepages_active": true, "torch_D2H_gbs": 55.46, "torch_H2D_gbs": 52.68}, "hugepages_active": true, "hugepages_before": 0}
+11:16:29 INFO     tests.test_node_validation 
+
+============================================================
+  PyTorch P2P Bandwidth Matrix (GB/s)
+============================================================
+          GPU0    GPU1    GPU2    GPU3  
+  GPU0     ---    N/A    N/A    N/A  
+  GPU1     N/A    ---    N/A    N/A  
+  GPU2     N/A    N/A    ---    N/A  
+  GPU3     N/A    N/A    N/A    ---  
+============================================================
+11:16:29 INFO     tests.test_node_validation KPI test_p2p_bandwidth_pytorch_fallback: {"attempted_pairs": 12, "failing_pairs": 0, "gpu_count": 4, "inaccessible_pairs": 12, "mean_gbs": null, "measured_pairs": 0, "min_gbs": null, "min_threshold_gbs": 40.0, "n_bytes": 1073741824, "n_iters": 8}
+11:16:31 INFO     tests.test_node_validation Kernel launch latency (microseconds):
+11:16:31 INFO     tests.test_node_validation   min  :    17.89 µs
+11:16:31 INFO     tests.test_node_validation   p50  :    19.20 µs
+11:16:31 INFO     tests.test_node_validation   mean :    20.58 µs
+11:16:31 INFO     tests.test_node_validation   p95  :    21.91 µs
+11:16:31 INFO     tests.test_node_validation   p99  :    26.53 µs
+11:16:31 INFO     tests.test_node_validation   max  :   219.04 µs
+11:16:31 INFO     tests.test_node_validation KPI test_kernel_launch_latency_stats: {"max_us": 219.037, "mean_us": 20.578, "min_us": 17.886, "p50_us": 19.204, "p95_us": 21.914, "p99_us": 26.532, "samples": 200}
+11:16:31 INFO     tests.test_node_validation 
+================================================================================
+11:16:31 INFO     tests.test_node_validation Additional Data Movement and Compute Metrics
+11:16:31 INFO     tests.test_node_validation ================================================================================
+11:16:31 INFO     tests.test_node_validation 
+Host-to-Device (RAM→GPU) Transfer Times:
+11:16:46 INFO     tests.test_node_validation   h2d_100kb_bw_gbs: 5.77 GB/s
+11:16:46 INFO     tests.test_node_validation   h2d_100kb_us: 18.14 µs
+11:16:46 INFO     tests.test_node_validation   h2d_100mb_bw_gbs: 52.50 GB/s
+11:16:46 INFO     tests.test_node_validation   h2d_100mb_us: 2097.63 µs
+11:16:46 INFO     tests.test_node_validation   h2d_10gb_bw_gbs: 50.68 GB/s
+11:16:46 INFO     tests.test_node_validation   h2d_10gb_us: 212386.08 µs
+11:16:46 INFO     tests.test_node_validation   h2d_10kb_bw_gbs: 0.64 GB/s
+11:16:46 INFO     tests.test_node_validation   h2d_10kb_us: 17.14 µs
+11:16:46 INFO     tests.test_node_validation   h2d_10mb_bw_gbs: 41.89 GB/s
+11:16:46 INFO     tests.test_node_validation   h2d_10mb_us: 261.43 µs
+11:16:46 INFO     tests.test_node_validation   h2d_1gb_bw_gbs: 52.36 GB/s
+11:16:46 INFO     tests.test_node_validation   h2d_1gb_us: 20573.99 µs
+11:16:46 INFO     tests.test_node_validation   h2d_1mb_bw_gbs: 25.45 GB/s
+11:16:46 INFO     tests.test_node_validation   h2d_1mb_us: 41.90 µs
+11:16:46 INFO     tests.test_node_validation 
+Device-to-Host (GPU→RAM) Transfer Times:
+11:16:47 INFO     tests.test_node_validation   d2h_100kb_bw_gbs: 7.44 GB/s
+11:16:47 INFO     tests.test_node_validation   d2h_100kb_us: 14.55 µs
+11:16:47 INFO     tests.test_node_validation   d2h_100mb_bw_gbs: 55.11 GB/s
+11:16:47 INFO     tests.test_node_validation   d2h_100mb_us: 1902.83 µs
+11:16:47 INFO     tests.test_node_validation   d2h_10gb_bw_gbs: 55.30 GB/s
+11:16:47 INFO     tests.test_node_validation   d2h_10gb_us: 194183.83 µs
+11:16:47 INFO     tests.test_node_validation   d2h_10kb_bw_gbs: 0.80 GB/s
+11:16:47 INFO     tests.test_node_validation   d2h_10kb_us: 13.00 µs
+11:16:47 INFO     tests.test_node_validation   d2h_10mb_bw_gbs: 51.74 GB/s
+11:16:47 INFO     tests.test_node_validation   d2h_10mb_us: 202.98 µs
+11:16:47 INFO     tests.test_node_validation   d2h_1gb_bw_gbs: 55.47 GB/s
+11:16:47 INFO     tests.test_node_validation   d2h_1gb_us: 19359.80 µs
+11:16:47 INFO     tests.test_node_validation   d2h_1mb_bw_gbs: 31.90 GB/s
+11:16:47 INFO     tests.test_node_validation   d2h_1mb_us: 33.85 µs
+11:16:47 INFO     tests.test_node_validation 
+CPU Compute Time (512×512 matrix multiply):
+11:16:48 INFO     tests.test_node_validation   avg per iteration: 325.33 µs
+11:16:48 INFO     tests.test_node_validation 
+GPU Compute Time (512×512 matrix multiply):
+11:16:48 INFO     tests.test_node_validation   avg per iteration: 18.72 µs
+11:16:48 INFO     tests.test_node_validation 
+CPU↔GPU Round-Trip Latency (1 MB, H2D→D2H):
+11:16:48 INFO     tests.test_node_validation   cpu_gpu_roundtrip_max_us: 3076.90 µs
+11:16:48 INFO     tests.test_node_validation   cpu_gpu_roundtrip_min_us: 64.48 µs
+11:16:48 INFO     tests.test_node_validation   cpu_gpu_roundtrip_p50_us: 67.50 µs
+11:16:48 INFO     tests.test_node_validation   cpu_gpu_roundtrip_p95_us: 74.49 µs
+11:16:48 INFO     tests.test_node_validation KPI test_kernel_launch_latency_stats_extended: {"cpu_compute_us": 325.33098999920185, "cpu_gpu_roundtrip_max_us": 3076.9039994993364, "cpu_gpu_roundtrip_min_us": 64.48200019804062, "cpu_gpu_roundtrip_p50_us": 67.50400007149437, "cpu_gpu_roundtrip_p95_us": 74.49485005963649, "d2h_100kb_bw_gbs": 7.435915871858559, "d2h_100kb_us": 14.545000340149272, "d2h_100mb_bw_gbs": 55.11432831593829, "d2h_100mb_us": 1902.8310007342952, "d2h_10gb_bw_gbs": 55.29883861557083, "d2h_10gb_us": 194183.82799995015, "d2h_10kb_bw_gbs": 0.802004981878578, "d2h_10kb_us": 12.99599989579292, "d2h_10mb_bw_gbs": 51.7398834564751, "d2h_10mb_us": 202.97700029914267, "d2h_1gb_bw_gbs": 55.465566868198465, "d2h_1gb_us": 19359.797000106482, "d2h_1mb_bw_gbs": 31.90264014415239, "d2h_1mb_us": 33.85199943295447, "gpu_compute_us": 18.716129998210818, "h2d_100kb_bw_gbs": 5.768689059757015, "h2d_100kb_us": 18.135000573238358, "h2d_100mb_bw_gbs": 52.49770322423965, "h2d_100mb_us": 2097.6330006305943, "h2d_10gb_bw_gbs": 50.675654693601544, "h2d_10gb_us": 212386.08499970724, "h2d_10kb_bw_gbs": 0.6438227134557093, "h2d_10kb_us": 17.143000150099397, "h2d_10mb_bw_gbs": 41.88657679734258, "h2d_10mb_us": 261.43200011574663, "h2d_1gb_bw_gbs": 52.36272274233411, "h2d_1gb_us": 20573.99300065299, "h2d_1mb_bw_gbs": 25.4533449949863, "h2d_1mb_us": 41.897999835782684}
+11:16:48 INFO     tests.test_node_validation cudaDeviceSynchronize() overhead (microseconds):
+11:16:48 INFO     tests.test_node_validation   min  :     2.68 µs
+11:16:48 INFO     tests.test_node_validation   p50  :     2.83 µs
+11:16:48 INFO     tests.test_node_validation   mean :     2.84 µs
+11:16:48 INFO     tests.test_node_validation   p95  :     2.98 µs
+11:16:48 INFO     tests.test_node_validation   p99  :     3.08 µs
+11:16:48 INFO     tests.test_node_validation   max  :     3.13 µs
+11:16:48 INFO     tests.test_node_validation KPI test_synchronize_overhead_stats: {"max_us": 3.125, "mean_us": 2.841, "min_us": 2.678, "p50_us": 2.831, "p95_us": 2.983, "p99_us": 3.076, "samples": 200}
+11:17:20 INFO     tests.test_node_validation GPU Power profile (sustained workload, 120 samples):
+11:17:20 INFO     tests.test_node_validation   Min:   88.2 W
+11:17:20 INFO     tests.test_node_validation   Mean:  346.2 W
+11:17:20 INFO     tests.test_node_validation   Max:   419.2 W
+11:17:20 INFO     tests.test_node_validation   Std:   58.4 W
+11:17:20 INFO     tests.test_node_validation KPI test_sustained_gpu_power_stability: {"duration_sec": 30, "max_w": 419.21, "mean_w": 346.17, "min_w": 88.17, "samples": 120, "std_w": 58.39}
+11:17:20 INFO     tests.test_node_validation Write BW  4KB      :      0.7 GB/s
+11:17:20 INFO     tests.test_node_validation Write BW  64KB     :     12.8 GB/s
+11:17:20 INFO     tests.test_node_validation Write BW  1MB      :    221.0 GB/s
+11:17:20 INFO     tests.test_node_validation Write BW  16MB     :   2135.0 GB/s
+11:17:20 INFO     tests.test_node_validation Write BW  256MB    :   1984.6 GB/s
+11:17:20 INFO     tests.test_node_validation Write BW  512MB    :   2014.0 GB/s
+11:17:20 INFO     tests.test_node_validation GPU write BW summary: peak=2135.0 GB/s  small(4KB)=0.7  large(256MB)=1984.5  ratio=2681.8x
+11:17:20 INFO     tests.test_node_validation KPI test_gpu_write_performance_limiters: {"bw_by_size_gbs": {"16MB": 2135.02, "1MB": 221.03, "256MB": 1984.55, "4KB": 0.74, "512MB": 2013.97, "64KB": 12.78}, "device": "NVIDIA H100 PCIe", "n_iters": 10, "peak_write_bw_gbs": 2135.02}
+11:17:20 INFO     tests.test_node_validation 
+NVLink status:
+GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)
+Device does not have or support Nvlink
+GPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)
+Device does not have or support Nvlink
+GPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)
+Device does not have or support Nvlink
+GPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)
+Device does not have or support Nvlink
+11:17:20 INFO     tests.test_node_validation 
+NVLink capabilities:
+GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)
+Device does not have or support Nvlink
+GPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)
+Device does not have or support Nvlink
+GPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)
+Device does not have or support Nvlink
+GPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)
+Device does not have or support Nvlink
+11:17:20 INFO     tests.test_node_validation KPI test_nvlink_status: {"available": false, "status_excerpt": "GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)\nDevice does not have or support Nvlink\nGPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)\nDevice does not have or support Nvlink\nGPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)\nDevice does not have or support Nvlink\nGPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)\nDevice does not have or support Nvlink"}
+11:17:20 WARNING  tests.test_node_validation NVLink not detected — system may be PCIe-only interconnect
+11:17:20 INFO     tests.test_node_validation NCCL availability: NCCL available via torch.cuda.nccl (version tuple: (2, 28, 9))
+11:17:20 INFO     tests.test_node_validation KPI test_nccl_availability: {"available": true, "message": "NCCL available via torch.cuda.nccl (version tuple: (2, 28, 9))"}
+11:17:21 INFO     tests.test_node_validation Workload preflight auto-install enabled; installing missing packages: vllm
+11:17:38 INFO     tests.test_node_validation auto-install vllm: failed: hint: The package was installed by rpm. You should check if it can uninstall the package.
+11:17:38 INFO     tests.test_node_validation Workload preflight: strict=False, large_models=True
+11:17:38 INFO     tests.test_node_validation Workload preflight blockers: none
+11:17:38 INFO     tests.test_node_validation Workload preflight notes (2):
+11:17:38 INFO     tests.test_node_validation   - HF_ENABLE_LARGE_MODELS=1 but HF_TOKEN is not set; gated models may fail or skip
+11:17:38 INFO     tests.test_node_validation   - Missing optional package: vllm (required for vLLM saturation/throughput tests)
+11:17:40 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-8B-Instruct for causal-LM inference …
+11:17:40 INFO     tests.test_node_validation Running workload=deepseek_r1_quantized model=deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+11:17:40 INFO     tests.test_node_validation Loading deepseek-ai/DeepSeek-R1-Distill-Qwen-7B for causal-LM latency workload …
+11:17:41 INFO     tests.test_node_validation Running workload=llama_7b model=meta-llama/Meta-Llama-3.1-8B-Instruct
+11:17:41 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-8B-Instruct for causal-LM latency workload …
+11:17:41 INFO     tests.test_node_validation Running workload=llama_70b model=meta-llama/Meta-Llama-3.1-70B-Instruct
+11:17:41 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-70B-Instruct for causal-LM latency workload …
+11:17:41 INFO     tests.test_node_validation Large model local-cache mode enabled for meta-llama/Meta-Llama-3.1-70B-Instruct. Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to allow remote download.
+11:17:41 WARNING  tests.test_node_validation Large model meta-llama/Meta-Llama-3.1-70B-Instruct not found in local cache (We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.). Falling back to remote download.
+11:17:42 INFO     tests.test_node_validation Running workload=qwen_70b model=Qwen/Qwen2.5-72B-Instruct
+11:17:42 INFO     tests.test_node_validation Loading Qwen/Qwen2.5-72B-Instruct for causal-LM latency workload …
+11:17:43 DEBUG    matplotlib matplotlib data path: /root/.local/lib/python3.12/site-packages/matplotlib/mpl-data
+11:17:43 DEBUG    matplotlib CONFIGDIR=/root/.config/matplotlib
+11:17:43 DEBUG    matplotlib interactive is False
+11:17:43 DEBUG    matplotlib platform is linux
+11:17:43 DEBUG    matplotlib CACHEDIR=/root/.cache/matplotlib
+11:17:43 DEBUG    matplotlib.font_manager Using fontManager instance from /root/.cache/matplotlib/fontlist-v390.json
+11:17:43 INFO     tests.test_node_validation Pre-downloading YOLO model: yolov8x.pt
+11:17:45 INFO     tests.test_node_validation YOLO model yolov8x.pt ready at cache
+11:17:45 INFO     tests.test_node_validation Running YOLO workload: model=yolov8x.pt gpus=[0, 1, 2, 3] images_per_gpu=256 batch=128 imgsz=640 half=True source=artifacts/vision_inputs/bus.jpg
+11:17:56 INFO     tests.test_node_validation YOLO GPU 0: images=256 elapsed=5.043s fps=50.77
+11:17:56 INFO     tests.test_node_validation YOLO GPU 1: images=256 elapsed=5.060s fps=50.59
+11:17:56 INFO     tests.test_node_validation YOLO GPU 2: images=256 elapsed=5.047s fps=50.73
+11:17:56 INFO     tests.test_node_validation YOLO GPU 3: images=256 elapsed=5.021s fps=50.98
+11:17:56 INFO     tests.test_node_validation YOLO object detection workload: makespan=11.1s aggregate_fps=92.1 cpu_mean=2.1% cpu_p95=2.5%
+11:17:56 INFO     tests.test_node_validation KPI test_vision_object_detection_yolo_fps: {"aggregate_fps": 92.09, "aggregate_fps_target": 200.0, "batch": 128, "cpu_mean_util_pct": 2.12, "cpu_p95_util_pct": 2.5, "cpu_target_util_pct": 50.0, "gpu_count": 4, "images_per_gpu": 256, "imgsz": 640, "makespan_sec": 11.119, "model": "yolov8x.pt", "per_gpu_mean_fps": 50.77, "per_gpu_min_fps": 50.59, "total_images": 1024}
+11:17:57 INFO     tests.test_node_validation Running Diffusers distributed workload: model=stabilityai/sd-turbo world_size=4 images_per_gpu=32 steps=1 guidance=0.00 size=512x512
+11:18:03 INFO     tests.test_node_validation Loading bert-base-uncased for training throughput test …
+11:18:04 INFO     tests.test_node_validation KPI test_mmio_write_read_validation: {"command_reg_read_1": "0546", "command_reg_read_2": "0546", "mode": "setpci_fallback", "nic_bdf": "0000:11:00.0", "write_attempted": false}
+11:18:04 INFO     tests.test_node_validation KPI test_one_dma_read_4kb_validation: {"completion_status": "success", "data_compare_pass": true, "elapsed_ms": 0.1672, "transfer_bytes": 4096}
+11:18:04 INFO     tests.test_node_validation KPI test_looped_rdma_mmio_dma_stress_soak: {"avg_latency_us": 13.86, "bandwidth_gbps": 0.55, "data_mismatch_count": 0, "loops": 1000, "p95_latency_us": 14.6, "transfer_bytes": 4096}
+11:18:04 INFO     tests.test_node_validation TC-013 LLM Training Small: model=google/gemma-3-270m-it world_size=4 batch=2 seq=512 steps=50 (interconnect=PCIe-only, sync_threshold=25%)
+11:18:10 INFO     tests.test_node_validation KPI test_vllm_training_kpi_status: {"component": "vllm", "note": "vLLM is inference-serving runtime; use PyTorch/DeepSpeed for training KPIs", "status": "not_applicable", "training_supported": false}
+11:18:10 INFO     tests.test_node_validation vLLM training KPI status: not_applicable (vLLM is inference-focused; training not supported)
+11:18:10 INFO     ai_headnode_tests Wrote testcase report: /root/mpudhuch/branch/AIheadnode_mpudhuch_branch/TESTCASE_EXECUTION_FINAL_REPORT.md
+11:18:10 INFO     ai_headnode_tests Wrote testcase report: /root/mpudhuch/branch/AIheadnode_mpudhuch_branch/NODE_VALIDATION_REPORT.md

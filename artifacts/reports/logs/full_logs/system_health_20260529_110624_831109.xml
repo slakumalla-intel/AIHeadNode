@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="7" skipped="3" tests="39" time="41.662" timestamp="2026-05-29T11:13:38.961304+00:00" hostname="sc00901168s0070"><testcase classname="tests.test_system_health_and_reliability.TestGPUThermalAndClockStability" name="test_gpu_temperature_within_safe_limits[0]" time="0.275" /><testcase classname="tests.test_system_health_and_reliability.TestGPUThermalAndClockStability" name="test_gpu_temperature_within_safe_limits[1]" time="0.149" /><testcase classname="tests.test_system_health_and_reliability.TestGPUThermalAndClockStability" name="test_gpu_temperature_within_safe_limits[2]" time="0.152" /><testcase classname="tests.test_system_health_and_reliability.TestGPUThermalAndClockStability" name="test_gpu_temperature_within_safe_limits[3]" time="0.149" /><testcase classname="tests.test_system_health_and_reliability.TestGPUThermalAndClockStability" name="test_gpu_clock_boost_ratio[0]" time="0.161"><failure message="AssertionError: GPU 0 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)&#10;assert 0.19658119658119658 &gt;= 0.8">self = &lt;tests.test_system_health_and_reliability.TestGPUThermalAndClockStability object at 0x7f58fa9b0a10&gt;
+device_idx = 0
+
+    @pytest.mark.parametrize("device_idx", [0, 1, 2, 3])
+    def test_gpu_clock_boost_ratio(self, device_idx):
+        """TC-HEALTH-E-02: GPU graphics clock must be ≥ 80 % of the advertised max clock.
+    
+        A ratio below 0.80 at idle/boost indicates persistent throttling (thermal,
+        power, or reliability limits) that will reduce peak AI compute throughput.
+        """
+        if not _HAS_PYNVML:
+            pytest.skip("pynvml not available")
+        n = _gpu_count()
+        if device_idx &gt;= n:
+            pytest.skip(f"GPU {device_idx} not present (system has {n} GPUs)")
+    
+        handle = _nvml_handle(device_idx)
+        try:
+            max_clock_mhz  = pynvml.nvmlDeviceGetMaxClockInfo(handle, pynvml.NVML_CLOCK_SM)
+            curr_clock_mhz = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_SM)
+        except pynvml.NVMLError:
+            pytest.skip(f"Clock query not supported on GPU {device_idx}")
+    
+        ratio = curr_clock_mhz / max_clock_mhz if max_clock_mhz &gt; 0 else 0.0
+        min_ratio = 0.80
+    
+        _write_kpi(f"test_gpu_clock_boost_ratio[{device_idx}]", {
+            "device_idx": device_idx,
+            "current_clock_mhz": curr_clock_mhz,
+            "max_clock_mhz": max_clock_mhz,
+            "clock_ratio": round(ratio, 4),
+        })
+        logger.info("GPU %d clock: %d / %d MHz = %.2f%%", device_idx, curr_clock_mhz, max_clock_mhz, ratio * 100)
+&gt;       assert ratio &gt;= min_ratio, (
+            f"GPU {device_idx} clock ratio {ratio:.2%} below {min_ratio:.0%}; "
+            f"throttling suspected (current {curr_clock_mhz} MHz, max {max_clock_mhz} MHz)"
+        )
+E       AssertionError: GPU 0 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)
+E       assert 0.19658119658119658 &gt;= 0.8
+
+tests/test_system_health_and_reliability.py:187: AssertionError</failure></testcase><testcase classname="tests.test_system_health_and_reliability.TestGPUThermalAndClockStability" name="test_gpu_clock_boost_ratio[1]" time="0.156"><failure message="AssertionError: GPU 1 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)&#10;assert 0.19658119658119658 &gt;= 0.8">self = &lt;tests.test_system_health_and_reliability.TestGPUThermalAndClockStability object at 0x7f57e1efed20&gt;
+device_idx = 1
+
+    @pytest.mark.parametrize("device_idx", [0, 1, 2, 3])
+    def test_gpu_clock_boost_ratio(self, device_idx):
+        """TC-HEALTH-E-02: GPU graphics clock must be ≥ 80 % of the advertised max clock.
+    
+        A ratio below 0.80 at idle/boost indicates persistent throttling (thermal,
+        power, or reliability limits) that will reduce peak AI compute throughput.
+        """
+        if not _HAS_PYNVML:
+            pytest.skip("pynvml not available")
+        n = _gpu_count()
+        if device_idx &gt;= n:
+            pytest.skip(f"GPU {device_idx} not present (system has {n} GPUs)")
+    
+        handle = _nvml_handle(device_idx)
+        try:
+            max_clock_mhz  = pynvml.nvmlDeviceGetMaxClockInfo(handle, pynvml.NVML_CLOCK_SM)
+            curr_clock_mhz = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_SM)
+        except pynvml.NVMLError:
+            pytest.skip(f"Clock query not supported on GPU {device_idx}")
+    
+        ratio = curr_clock_mhz / max_clock_mhz if max_clock_mhz &gt; 0 else 0.0
+        min_ratio = 0.80
+    
+        _write_kpi(f"test_gpu_clock_boost_ratio[{device_idx}]", {
+            "device_idx": device_idx,
+            "current_clock_mhz": curr_clock_mhz,
+            "max_clock_mhz": max_clock_mhz,
+            "clock_ratio": round(ratio, 4),
+        })
+        logger.info("GPU %d clock: %d / %d MHz = %.2f%%", device_idx, curr_clock_mhz, max_clock_mhz, ratio * 100)
+&gt;       assert ratio &gt;= min_ratio, (
+            f"GPU {device_idx} clock ratio {ratio:.2%} below {min_ratio:.0%}; "
+            f"throttling suspected (current {curr_clock_mhz} MHz, max {max_clock_mhz} MHz)"
+        )
+E       AssertionError: GPU 1 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)
+E       assert 0.19658119658119658 &gt;= 0.8
+
+tests/test_system_health_and_reliability.py:187: AssertionError</failure></testcase><testcase classname="tests.test_system_health_and_reliability.TestGPUThermalAndClockStability" name="test_gpu_clock_boost_ratio[2]" time="0.157"><failure message="AssertionError: GPU 2 clock ratio 19.33% below 80%; throttling suspected (current 345 MHz, max 1785 MHz)&#10;assert 0.19327731092436976 &gt;= 0.8">self = &lt;tests.test_system_health_and_reliability.TestGPUThermalAndClockStability object at 0x7f57e2013a40&gt;
+device_idx = 2
+
+    @pytest.mark.parametrize("device_idx", [0, 1, 2, 3])
+    def test_gpu_clock_boost_ratio(self, device_idx):
+        """TC-HEALTH-E-02: GPU graphics clock must be ≥ 80 % of the advertised max clock.
+    
+        A ratio below 0.80 at idle/boost indicates persistent throttling (thermal,
+        power, or reliability limits) that will reduce peak AI compute throughput.
+        """
+        if not _HAS_PYNVML:
+            pytest.skip("pynvml not available")
+        n = _gpu_count()
+        if device_idx &gt;= n:
+            pytest.skip(f"GPU {device_idx} not present (system has {n} GPUs)")
+    
+        handle = _nvml_handle(device_idx)
+        try:
+            max_clock_mhz  = pynvml.nvmlDeviceGetMaxClockInfo(handle, pynvml.NVML_CLOCK_SM)
+            curr_clock_mhz = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_SM)
+        except pynvml.NVMLError:
+            pytest.skip(f"Clock query not supported on GPU {device_idx}")
+    
+        ratio = curr_clock_mhz / max_clock_mhz if max_clock_mhz &gt; 0 else 0.0
+        min_ratio = 0.80
+    
+        _write_kpi(f"test_gpu_clock_boost_ratio[{device_idx}]", {
+            "device_idx": device_idx,
+            "current_clock_mhz": curr_clock_mhz,
+            "max_clock_mhz": max_clock_mhz,
+            "clock_ratio": round(ratio, 4),
+        })
+        logger.info("GPU %d clock: %d / %d MHz = %.2f%%", device_idx, curr_clock_mhz, max_clock_mhz, ratio * 100)
+&gt;       assert ratio &gt;= min_ratio, (
+            f"GPU {device_idx} clock ratio {ratio:.2%} below {min_ratio:.0%}; "
+            f"throttling suspected (current {curr_clock_mhz} MHz, max {max_clock_mhz} MHz)"
+        )
+E       AssertionError: GPU 2 clock ratio 19.33% below 80%; throttling suspected (current 345 MHz, max 1785 MHz)
+E       assert 0.19327731092436976 &gt;= 0.8
+
+tests/test_system_health_and_reliability.py:187: AssertionError</failure></testcase><testcase classname="tests.test_system_health_and_reliability.TestGPUThermalAndClockStability" name="test_gpu_clock_boost_ratio[3]" time="0.149"><failure message="AssertionError: GPU 3 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)&#10;assert 0.19658119658119658 &gt;= 0.8">self = &lt;tests.test_system_health_and_reliability.TestGPUThermalAndClockStability object at 0x7f57e291ad20&gt;
+device_idx = 3
+
+    @pytest.mark.parametrize("device_idx", [0, 1, 2, 3])
+    def test_gpu_clock_boost_ratio(self, device_idx):
+        """TC-HEALTH-E-02: GPU graphics clock must be ≥ 80 % of the advertised max clock.
+    
+        A ratio below 0.80 at idle/boost indicates persistent throttling (thermal,
+        power, or reliability limits) that will reduce peak AI compute throughput.
+        """
+        if not _HAS_PYNVML:
+            pytest.skip("pynvml not available")
+        n = _gpu_count()
+        if device_idx &gt;= n:
+            pytest.skip(f"GPU {device_idx} not present (system has {n} GPUs)")
+    
+        handle = _nvml_handle(device_idx)
+        try:
+            max_clock_mhz  = pynvml.nvmlDeviceGetMaxClockInfo(handle, pynvml.NVML_CLOCK_SM)
+            curr_clock_mhz = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_SM)
+        except pynvml.NVMLError:
+            pytest.skip(f"Clock query not supported on GPU {device_idx}")
+    
+        ratio = curr_clock_mhz / max_clock_mhz if max_clock_mhz &gt; 0 else 0.0
+        min_ratio = 0.80
+    
+        _write_kpi(f"test_gpu_clock_boost_ratio[{device_idx}]", {
+            "device_idx": device_idx,
+            "current_clock_mhz": curr_clock_mhz,
+            "max_clock_mhz": max_clock_mhz,
+            "clock_ratio": round(ratio, 4),
+        })
+        logger.info("GPU %d clock: %d / %d MHz = %.2f%%", device_idx, curr_clock_mhz, max_clock_mhz, ratio * 100)
+&gt;       assert ratio &gt;= min_ratio, (
+            f"GPU {device_idx} clock ratio {ratio:.2%} below {min_ratio:.0%}; "
+            f"throttling suspected (current {curr_clock_mhz} MHz, max {max_clock_mhz} MHz)"
+        )
+E       AssertionError: GPU 3 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)
+E       assert 0.19658119658119658 &gt;= 0.8
+
+tests/test_system_health_and_reliability.py:187: AssertionError</failure></testcase><testcase classname="tests.test_system_health_and_reliability.TestGPUThermalAndClockStability" name="test_sustained_compute_no_thermal_throttle" time="31.440"><failure message="AssertionError: SM clock dropped 46.2% during sustained load (initial 1755 MHz → min 945 MHz, max_temp 58 °C). Thermal or power-limit throttling detected.&#10;assert 0.46153846153846156 &lt;= 0.1">self = &lt;tests.test_system_health_and_reliability.TestGPUThermalAndClockStability object at 0x7f57e188d550&gt;
+
+    def test_sustained_compute_no_thermal_throttle(self):
+        """TC-HEALTH-E-03: SM clock must not drop &gt; 10 % during sustained FP16 GEMM load.
+    
+        Runs a sustained GEMM workload for HEALTH_THERMAL_DURATION_SEC seconds and
+        samples the SM clock every 2 s. A clock drop &gt; 10 % relative to the initial
+        reading indicates thermal or power-budget throttling.
+        """
+        if not _HAS_TORCH:
+            pytest.skip("torch not available")
+        if not _HAS_PYNVML:
+            pytest.skip("pynvml not available")
+        if not torch.cuda.is_available():
+            pytest.skip("No CUDA device available")
+        if not _EXECUTE:
+            pytest.skip("HEALTH_EXECUTE=0")
+    
+        device = torch.device("cuda:0")
+        handle = _nvml_handle(0)
+    
+        # Warm up
+        a = torch.randn(4096, 4096, dtype=torch.float16, device=device)
+        b = torch.randn(4096, 4096, dtype=torch.float16, device=device)
+        for _ in range(3):
+            torch.mm(a, b)
+        torch.cuda.synchronize()
+    
+        initial_clock = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_SM)
+        clocks: List[int] = [initial_clock]
+        temps:  List[int] = [pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)]
+    
+        deadline = time.monotonic() + _THERMAL_DURATION
+        sample_interval = 2.0
+    
+        def _run_gemm_loop(stop_flag: list):
+            while not stop_flag[0]:
+                torch.mm(a, b)
+            torch.cuda.synchronize()
+    
+        import threading
+        stop_flag = [False]
+        worker = threading.Thread(target=_run_gemm_loop, args=(stop_flag,), daemon=True)
+        worker.start()
+    
+        try:
+            while time.monotonic() &lt; deadline:
+                time.sleep(sample_interval)
+                clocks.append(pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_SM))
+                temps.append(pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU))
+        finally:
+            stop_flag[0] = True
+            worker.join(timeout=5)
+    
+        min_clock = min(clocks)
+        max_temp  = max(temps)
+        drop_ratio = (initial_clock - min_clock) / initial_clock if initial_clock &gt; 0 else 0.0
+        max_allowed_drop = 0.10
+    
+        _write_kpi("test_sustained_compute_no_thermal_throttle", {
+            "initial_clock_mhz":  initial_clock,
+            "min_clock_mhz":      min_clock,
+            "clock_drop_ratio":   round(drop_ratio, 4),
+            "max_temp_c":         max_temp,
+            "duration_sec":       _THERMAL_DURATION,
+        })
+        logger.info(
+            "Thermal test: init_clock=%d min_clock=%d drop=%.2f%% max_temp=%d°C",
+            initial_clock, min_clock, drop_ratio * 100, max_temp
+        )
+&gt;       assert drop_ratio &lt;= max_allowed_drop, (
+            f"SM clock dropped {drop_ratio:.1%} during sustained load "
+            f"(initial {initial_clock} MHz → min {min_clock} MHz, max_temp {max_temp} °C). "
+            "Thermal or power-limit throttling detected."
+        )
+E       AssertionError: SM clock dropped 46.2% during sustained load (initial 1755 MHz → min 945 MHz, max_temp 58 °C). Thermal or power-limit throttling detected.
+E       assert 0.46153846153846156 &lt;= 0.1
+
+tests/test_system_health_and_reliability.py:260: AssertionError</failure></testcase><testcase classname="tests.test_system_health_and_reliability.TestGPUThermalAndClockStability" name="test_gpu_power_limit_headroom" time="0.225" /><testcase classname="tests.test_system_health_and_reliability.TestGPUECCAndPCIeLinkHealth" name="test_hbm_ecc_uncorrected_errors_zero[0]" time="0.154" /><testcase classname="tests.test_system_health_and_reliability.TestGPUECCAndPCIeLinkHealth" name="test_hbm_ecc_uncorrected_errors_zero[1]" time="0.153" /><testcase classname="tests.test_system_health_and_reliability.TestGPUECCAndPCIeLinkHealth" name="test_hbm_ecc_uncorrected_errors_zero[2]" time="0.153" /><testcase classname="tests.test_system_health_and_reliability.TestGPUECCAndPCIeLinkHealth" name="test_hbm_ecc_uncorrected_errors_zero[3]" time="0.152" /><testcase classname="tests.test_system_health_and_reliability.TestGPUECCAndPCIeLinkHealth" name="test_hbm_ecc_corrected_errors_below_threshold[0]" time="0.151" /><testcase classname="tests.test_system_health_and_reliability.TestGPUECCAndPCIeLinkHealth" name="test_hbm_ecc_corrected_errors_below_threshold[1]" time="0.196" /><testcase classname="tests.test_system_health_and_reliability.TestGPUECCAndPCIeLinkHealth" name="test_hbm_ecc_corrected_errors_below_threshold[2]" time="0.149" /><testcase classname="tests.test_system_health_and_reliability.TestGPUECCAndPCIeLinkHealth" name="test_hbm_ecc_corrected_errors_below_threshold[3]" time="0.145" /><testcase classname="tests.test_system_health_and_reliability.TestGPUECCAndPCIeLinkHealth" name="test_pcie_link_error_counters_zero" time="0.157"><skipped type="pytest.skip" message="nvidia-smi unavailable or replay count query not supported">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_system_health_and_reliability.py:393: nvidia-smi unavailable or replay count query not supported</skipped></testcase><testcase classname="tests.test_system_health_and_reliability.TestGPUECCAndPCIeLinkHealth" name="test_gpu_nvml_health_flags_clean" time="0.151" /><testcase classname="tests.test_system_health_and_reliability.TestEnergyEfficiency" name="test_fp16_gflops_per_watt[0]" time="0.171" /><testcase classname="tests.test_system_health_and_reliability.TestEnergyEfficiency" name="test_fp16_gflops_per_watt[1]" time="0.367" /><testcase classname="tests.test_system_health_and_reliability.TestEnergyEfficiency" name="test_fp16_gflops_per_watt[2]" time="0.312" /><testcase classname="tests.test_system_health_and_reliability.TestEnergyEfficiency" name="test_fp16_gflops_per_watt[3]" time="0.320" /><testcase classname="tests.test_system_health_and_reliability.TestEnergyEfficiency" name="test_aggregate_4gpu_fp16_tflops_per_watt" time="0.166" /><testcase classname="tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness" name="test_int8_matmul_error_vs_fp16" time="0.330" /><testcase classname="tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness" name="test_fp8_e4m3_matmul_error_vs_fp16" time="0.157" /><testcase classname="tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness" name="test_bf16_vs_fp16_matmul_equivalence" time="0.235" /><testcase classname="tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness" name="test_quantised_softmax_output_matches_fp16" time="0.162"><failure message="AssertionError: Quantised softmax max error 2.56e-03 exceeds 1e-03&#10;assert 0.0025634765625 &lt; 0.001">self = &lt;tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness object at 0x7f57e190f1a0&gt;
+
+    def test_quantised_softmax_output_matches_fp16(self):
+        """TC-HEALTH-H-04: Softmax over INT8-quantised logits must match FP16 within 1e-3.
+    
+        Validates the attention score softmax path that vLLM and TensorRT use
+        in conjunction with quantised QK projection. A large divergence here
+        directly corrupts attention weights and degrades output quality.
+        """
+        if not _HAS_TORCH:
+            pytest.skip("torch not available")
+        if not torch.cuda.is_available():
+            pytest.skip("No CUDA device available")
+    
+        device = torch.device("cuda:0")
+        B, H, S = 4, 32, 512
+        torch.manual_seed(3)
+    
+        logits_fp16 = torch.randn(B, H, S, S, dtype=torch.float16, device=device)
+        ref_sm = torch.softmax(logits_fp16.float(), dim=-1).half()
+    
+        scale = logits_fp16.abs().max() / 127.0
+        logits_int8 = (logits_fp16 / scale).round().to(torch.int8)
+        logits_deq  = logits_int8.to(torch.float16) * scale
+        quant_sm    = torch.softmax(logits_deq.float(), dim=-1).half()
+    
+        max_abs_err = (ref_sm - quant_sm).abs().max().item()
+        tol = 1e-3
+    
+        _write_kpi("test_quantised_softmax_output_matches_fp16", {
+            "softmax_max_abs_error": round(max_abs_err, 8),
+            "threshold":             tol,
+        })
+&gt;       assert max_abs_err &lt; tol, (
+            f"Quantised softmax max error {max_abs_err:.2e} exceeds {tol:.0e}"
+        )
+E       AssertionError: Quantised softmax max error 2.56e-03 exceeds 1e-03
+E       assert 0.0025634765625 &lt; 0.001
+
+tests/test_system_health_and_reliability.py:741: AssertionError</failure></testcase><testcase classname="tests.test_system_health_and_reliability.TestDDPGradientSynchronizationCorrectness" name="test_nccl_allreduce_mean_correctness" time="0.290"><skipped type="pytest.skip" message="DDP worker error (likely environment): rank 0: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method; rank 1: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method; rank 2: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method; rank 3: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_system_health_and_reliability.py:827: DDP worker error (likely environment): rank 0: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method; rank 1: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method; rank 2: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method; rank 3: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method</skipped></testcase><testcase classname="tests.test_system_health_and_reliability.TestDDPGradientSynchronizationCorrectness" name="test_ddp_gradient_sync_matches_single_gpu" time="0.184" /><testcase classname="tests.test_system_health_and_reliability.TestDDPGradientSynchronizationCorrectness" name="test_multi_gpu_parameter_consistency_after_allreduce" time="0.228" /><testcase classname="tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup" name="test_compile_output_matches_eager" time="1.995" /><testcase classname="tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup" name="test_compile_speedup_over_eager" time="0.189"><failure message="AssertionError: torch.compile speedup 0.808× &lt; floor 1.05×. Compiled kernels may be suboptimal for this H100 PCIe configuration.&#10;assert 0.8080083039376981 &gt;= 1.05">self = &lt;tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup object at 0x7f57e190c830&gt;
+
+    def test_compile_speedup_over_eager(self):
+        """TC-HEALTH-J-02: torch.compile() throughput must be ≥ HEALTH_COMPILE_SPEEDUP_FLOOR × eager.
+    
+        After compilation warm-up, the compiled model should be measurably faster
+        than the eager path. The default floor is 1.05× (5 % speedup).
+        A ratio &lt; 1.0 indicates the inductor/triton backend is generating
+        suboptimal kernels for this GPU and warrants investigation.
+        """
+        if not _HAS_TORCH:
+            pytest.skip("torch not available")
+        if not torch.cuda.is_available():
+            pytest.skip("No CUDA device available")
+        if not hasattr(torch, "compile"):
+            pytest.skip("torch.compile not available (requires PyTorch ≥ 2.0)")
+        if not _EXECUTE:
+            pytest.skip("HEALTH_EXECUTE=0")
+    
+        device = torch.device("cuda:0")
+        torch.manual_seed(5)
+    
+        def _gemm_block(a: torch.Tensor, b: torch.Tensor) -&gt; torch.Tensor:
+            c = torch.mm(a, b)
+            return torch.relu(c)
+    
+        M = 4096
+        a = torch.randn(M, M, dtype=torch.float16, device=device)
+        b = torch.randn(M, M, dtype=torch.float16, device=device)
+    
+        # Eager warm-up and timing
+        for _ in range(3):
+            _gemm_block(a, b)
+        torch.cuda.synchronize(device)
+    
+        N = 20
+        t0 = time.perf_counter()
+        for _ in range(N):
+            _gemm_block(a, b)
+        torch.cuda.synchronize(device)
+        eager_time = time.perf_counter() - t0
+    
+        # Compiled warm-up and timing
+        compiled_fn = torch.compile(_gemm_block, mode="reduce-overhead", fullgraph=True)
+        for _ in range(5):  # triton compilation warm-up
+            compiled_fn(a, b)
+        torch.cuda.synchronize(device)
+    
+        t0 = time.perf_counter()
+        for _ in range(N):
+            compiled_fn(a, b)
+        torch.cuda.synchronize(device)
+        compiled_time = time.perf_counter() - t0
+    
+        speedup = eager_time / compiled_time if compiled_time &gt; 0 else 0.0
+    
+        _write_kpi("test_compile_speedup_over_eager", {
+            "eager_time_s":    round(eager_time, 4),
+            "compiled_time_s": round(compiled_time, 4),
+            "speedup_ratio":   round(speedup, 4),
+            "floor_ratio":     _COMPILE_SPEEDUP,
+        })
+        logger.info(
+            "torch.compile speedup: %.3f× (eager %.4fs, compiled %.4fs)",
+            speedup, eager_time, compiled_time
+        )
+&gt;       assert speedup &gt;= _COMPILE_SPEEDUP, (
+            f"torch.compile speedup {speedup:.3f}× &lt; floor {_COMPILE_SPEEDUP:.2f}×. "
+            "Compiled kernels may be suboptimal for this H100 PCIe configuration."
+        )
+E       AssertionError: torch.compile speedup 0.808× &lt; floor 1.05×. Compiled kernels may be suboptimal for this H100 PCIe configuration.
+E       assert 0.8080083039376981 &gt;= 1.05
+
+tests/test_system_health_and_reliability.py:1060: AssertionError</failure></testcase><testcase classname="tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness" name="test_event_wait_enforces_ordering" time="0.155" /><testcase classname="tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness" name="test_multi_stream_no_race_on_shared_tensor" time="0.148" /><testcase classname="tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness" name="test_cuda_event_elapsed_time_positive" time="0.192" /><testcase classname="tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness" name="test_stream_callback_executes_on_host" time="0.146"><skipped type="pytest.skip" message="torch.cuda.Stream.add_callback not available in this PyTorch version">/root/mpudhuch/branch/AIheadnode_mpudhuch_branch/tests/test_system_health_and_reliability.py:1212: torch.cuda.Stream.add_callback not available in this PyTorch version</skipped></testcase><testcase classname="tests.test_system_health_and_reliability.TestCUDAStreamOrderingCorrectness" name="test_concurrent_stream_throughput_vs_sequential" time="0.152" /></testsuite></testsuites>

@@ -126,3 +126,53 @@
 {"test": "test_multi_stream_no_race_on_shared_tensor", "timestamp": "2026-05-21T02:50:21Z", "metrics": {"initial_val": 1.0, "final_val": 4.0, "expected": 4.0}}
 {"test": "test_cuda_event_elapsed_time_positive", "timestamp": "2026-05-21T02:50:21Z", "metrics": {"gemm_elapsed_ms": 0.2941}}
 {"test": "test_concurrent_stream_throughput_vs_sequential", "timestamp": "2026-05-21T02:50:22Z", "metrics": {"sequential_time_s": 0.0066, "concurrent_time_s": 0.007, "concurrent_vs_sequential_ratio": 1.0617, "max_allowed_ratio": 1.5}}
+{"test": "test_gpu_temperature_within_safe_limits[0]", "timestamp": "2026-07-21T06:36:25Z", "metrics": {"device_idx": 0, "temperature_c": 36, "threshold_c": 83}}
+{"test": "test_gpu_temperature_within_safe_limits[1]", "timestamp": "2026-07-21T06:36:25Z", "metrics": {"device_idx": 1, "temperature_c": 36, "threshold_c": 83}}
+{"test": "test_gpu_clock_boost_ratio[0]", "timestamp": "2026-07-21T06:36:25Z", "metrics": {"device_idx": 0, "current_clock_mhz": 345, "max_clock_mhz": 1755, "clock_ratio": 0.1966}}
+{"test": "test_gpu_clock_boost_ratio[1]", "timestamp": "2026-07-21T06:36:26Z", "metrics": {"device_idx": 1, "current_clock_mhz": 345, "max_clock_mhz": 1755, "clock_ratio": 0.1966}}
+{"test": "test_sustained_compute_no_thermal_throttle", "timestamp": "2026-07-21T06:36:57Z", "metrics": {"initial_clock_mhz": 1755, "min_clock_mhz": 945, "clock_drop_ratio": 0.4615, "max_temp_c": 59, "duration_sec": 30}}
+{"test": "test_gpu_power_limit_headroom", "timestamp": "2026-07-21T06:36:57Z", "metrics": {"gpu0_power_w": 296.291, "gpu1_power_w": 53.462, "gpu0_limit_w": 350.0, "gpu1_limit_w": 350.0, "gpu0_ratio": 0.8465, "gpu1_ratio": 0.1527}}
+{"test": "test_hbm_ecc_uncorrected_errors_zero[0]", "timestamp": "2026-07-21T06:36:58Z", "metrics": {"device_idx": 0, "uncorrected_ecc_errors": 0}}
+{"test": "test_hbm_ecc_uncorrected_errors_zero[1]", "timestamp": "2026-07-21T06:36:58Z", "metrics": {"device_idx": 1, "uncorrected_ecc_errors": 0}}
+{"test": "test_hbm_ecc_corrected_errors_below_threshold[0]", "timestamp": "2026-07-21T06:36:58Z", "metrics": {"device_idx": 0, "corrected_ecc_errors": 0, "threshold": 100}}
+{"test": "test_hbm_ecc_corrected_errors_below_threshold[1]", "timestamp": "2026-07-21T06:36:59Z", "metrics": {"device_idx": 1, "corrected_ecc_errors": 0, "threshold": 100}}
+{"test": "test_gpu_nvml_health_flags_clean", "timestamp": "2026-07-21T06:36:59Z", "metrics": {"gpu0_retired_pages_dbe": 0, "gpu1_retired_pages_dbe": 0}}
+{"test": "test_fp16_gflops_per_watt[0]", "timestamp": "2026-07-21T06:37:00Z", "metrics": {"device_idx": 0, "fp16_tflops": 456.66, "mean_power_w": 97.8, "tflops_per_watt": 4.67, "min_tflops_per_watt": 1.0}}
+{"test": "test_fp16_gflops_per_watt[1]", "timestamp": "2026-07-21T06:37:00Z", "metrics": {"device_idx": 1, "fp16_tflops": 471.87, "mean_power_w": 58.3, "tflops_per_watt": 8.1, "min_tflops_per_watt": 1.0}}
+{"test": "test_int8_matmul_error_vs_fp16", "timestamp": "2026-07-21T06:37:01Z", "metrics": {"int8_vs_fp16_mean_rel_error": 0.015343, "threshold_rel_error": 0.05}}
+{"test": "test_fp8_e4m3_matmul_error_vs_fp16", "timestamp": "2026-07-21T06:37:01Z", "metrics": {"fp8_vs_fp16_mean_rel_error": 0.037445, "threshold_rel_error": 0.15000000000000002}}
+{"test": "test_bf16_vs_fp16_matmul_equivalence", "timestamp": "2026-07-21T06:37:01Z", "metrics": {"bf16_vs_fp16_mean_rel_error": 0.002869, "threshold_rel_error": 0.1}}
+{"test": "test_quantised_softmax_output_matches_fp16", "timestamp": "2026-07-21T06:37:01Z", "metrics": {"softmax_max_abs_error": 0.00256348, "threshold": 0.001}}
+{"test": "test_ddp_gradient_sync_matches_single_gpu", "timestamp": "2026-07-21T06:37:02Z", "metrics": {"grad_max_rel_error": 0.0, "tolerance": 0.001}}
+{"test": "test_multi_gpu_parameter_consistency_after_allreduce", "timestamp": "2026-07-21T06:37:02Z", "metrics": {"n_gpu": 2, "max_diff": 0.0}}
+{"test": "test_compile_output_matches_eager", "timestamp": "2026-07-21T06:37:05Z", "metrics": {"max_abs_error": 0.0, "tolerance": 0.01}}
+{"test": "test_compile_speedup_over_eager", "timestamp": "2026-07-21T06:37:05Z", "metrics": {"eager_time_s": 0.0068, "compiled_time_s": 0.0082, "speedup_ratio": 0.8222, "floor_ratio": 1.05}}
+{"test": "test_event_wait_enforces_ordering", "timestamp": "2026-07-21T06:37:05Z", "metrics": {"expected_sum": 16777216.0, "actual_sum": 16777216.0, "correct": true}}
+{"test": "test_multi_stream_no_race_on_shared_tensor", "timestamp": "2026-07-21T06:37:05Z", "metrics": {"initial_val": 1.0, "final_val": 4.0, "expected": 4.0}}
+{"test": "test_cuda_event_elapsed_time_positive", "timestamp": "2026-07-21T06:37:06Z", "metrics": {"gemm_elapsed_ms": 0.298}}
+{"test": "test_concurrent_stream_throughput_vs_sequential", "timestamp": "2026-07-21T06:37:06Z", "metrics": {"sequential_time_s": 0.0014, "concurrent_time_s": 0.0014, "concurrent_vs_sequential_ratio": 1.0354, "max_allowed_ratio": 1.5}}
+{"test": "test_gpu_temperature_within_safe_limits[0]", "timestamp": "2026-07-21T07:47:39Z", "metrics": {"device_idx": 0, "temperature_c": 36, "threshold_c": 83}}
+{"test": "test_gpu_temperature_within_safe_limits[1]", "timestamp": "2026-07-21T07:47:39Z", "metrics": {"device_idx": 1, "temperature_c": 36, "threshold_c": 83}}
+{"test": "test_gpu_clock_boost_ratio[0]", "timestamp": "2026-07-21T07:47:40Z", "metrics": {"device_idx": 0, "current_clock_mhz": 345, "max_clock_mhz": 1755, "clock_ratio": 0.1966}}
+{"test": "test_gpu_clock_boost_ratio[1]", "timestamp": "2026-07-21T07:47:40Z", "metrics": {"device_idx": 1, "current_clock_mhz": 345, "max_clock_mhz": 1755, "clock_ratio": 0.1966}}
+{"test": "test_sustained_compute_no_thermal_throttle", "timestamp": "2026-07-21T07:48:11Z", "metrics": {"initial_clock_mhz": 1755, "min_clock_mhz": 945, "clock_drop_ratio": 0.4615, "max_temp_c": 59, "duration_sec": 30}}
+{"test": "test_gpu_power_limit_headroom", "timestamp": "2026-07-21T07:48:12Z", "metrics": {"gpu0_power_w": 296.958, "gpu1_power_w": 53.47, "gpu0_limit_w": 350.0, "gpu1_limit_w": 350.0, "gpu0_ratio": 0.8485, "gpu1_ratio": 0.1528}}
+{"test": "test_hbm_ecc_uncorrected_errors_zero[0]", "timestamp": "2026-07-21T07:48:12Z", "metrics": {"device_idx": 0, "uncorrected_ecc_errors": 0}}
+{"test": "test_hbm_ecc_uncorrected_errors_zero[1]", "timestamp": "2026-07-21T07:48:12Z", "metrics": {"device_idx": 1, "uncorrected_ecc_errors": 0}}
+{"test": "test_hbm_ecc_corrected_errors_below_threshold[0]", "timestamp": "2026-07-21T07:48:13Z", "metrics": {"device_idx": 0, "corrected_ecc_errors": 0, "threshold": 100}}
+{"test": "test_hbm_ecc_corrected_errors_below_threshold[1]", "timestamp": "2026-07-21T07:48:13Z", "metrics": {"device_idx": 1, "corrected_ecc_errors": 0, "threshold": 100}}
+{"test": "test_gpu_nvml_health_flags_clean", "timestamp": "2026-07-21T07:48:14Z", "metrics": {"gpu0_retired_pages_dbe": 0, "gpu1_retired_pages_dbe": 0}}
+{"test": "test_fp16_gflops_per_watt[0]", "timestamp": "2026-07-21T07:48:14Z", "metrics": {"device_idx": 0, "fp16_tflops": 456.28, "mean_power_w": 97.9, "tflops_per_watt": 4.659, "min_tflops_per_watt": 1.0}}
+{"test": "test_fp16_gflops_per_watt[1]", "timestamp": "2026-07-21T07:48:14Z", "metrics": {"device_idx": 1, "fp16_tflops": 469.13, "mean_power_w": 56.6, "tflops_per_watt": 8.287, "min_tflops_per_watt": 1.0}}
+{"test": "test_int8_matmul_error_vs_fp16", "timestamp": "2026-07-21T07:48:15Z", "metrics": {"int8_vs_fp16_mean_rel_error": 0.015343, "threshold_rel_error": 0.05}}
+{"test": "test_fp8_e4m3_matmul_error_vs_fp16", "timestamp": "2026-07-21T07:48:15Z", "metrics": {"fp8_vs_fp16_mean_rel_error": 0.037445, "threshold_rel_error": 0.15000000000000002}}
+{"test": "test_bf16_vs_fp16_matmul_equivalence", "timestamp": "2026-07-21T07:48:15Z", "metrics": {"bf16_vs_fp16_mean_rel_error": 0.002869, "threshold_rel_error": 0.1}}
+{"test": "test_quantised_softmax_output_matches_fp16", "timestamp": "2026-07-21T07:48:16Z", "metrics": {"softmax_max_abs_error": 0.00256348, "threshold": 0.001}}
+{"test": "test_ddp_gradient_sync_matches_single_gpu", "timestamp": "2026-07-21T07:48:16Z", "metrics": {"grad_max_rel_error": 0.0, "tolerance": 0.001}}
+{"test": "test_multi_gpu_parameter_consistency_after_allreduce", "timestamp": "2026-07-21T07:48:16Z", "metrics": {"n_gpu": 2, "max_diff": 0.0}}
+{"test": "test_compile_output_matches_eager", "timestamp": "2026-07-21T07:48:19Z", "metrics": {"max_abs_error": 0.0, "tolerance": 0.01}}
+{"test": "test_compile_speedup_over_eager", "timestamp": "2026-07-21T07:48:19Z", "metrics": {"eager_time_s": 0.0068, "compiled_time_s": 0.0082, "speedup_ratio": 0.8239, "floor_ratio": 1.05}}
+{"test": "test_event_wait_enforces_ordering", "timestamp": "2026-07-21T07:48:19Z", "metrics": {"expected_sum": 16777216.0, "actual_sum": 16777216.0, "correct": true}}
+{"test": "test_multi_stream_no_race_on_shared_tensor", "timestamp": "2026-07-21T07:48:19Z", "metrics": {"initial_val": 1.0, "final_val": 4.0, "expected": 4.0}}
+{"test": "test_cuda_event_elapsed_time_positive", "timestamp": "2026-07-21T07:48:19Z", "metrics": {"gemm_elapsed_ms": 0.2968}}
+{"test": "test_concurrent_stream_throughput_vs_sequential", "timestamp": "2026-07-21T07:48:20Z", "metrics": {"sequential_time_s": 0.0014, "concurrent_time_s": 0.0014, "concurrent_vs_sequential_ratio": 1.0122, "max_allowed_ratio": 1.5}}

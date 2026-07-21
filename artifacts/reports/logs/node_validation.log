@@ -1,11 +1,9 @@
-02:21:30 INFO     ai_headnode_tests System config captured: /root/workloads/AIHeadNode/system_config_report.json
-02:21:32 INFO     tests.test_node_validation GPU enumeration: 4 GPU(s) found
-02:21:32 INFO     tests.test_node_validation   GPU 0: NVIDIA H100 PCIe (00000000:61:00.0)
-02:21:32 INFO     tests.test_node_validation   GPU 1: NVIDIA H100 PCIe (00000000:B1:00.0)
-02:21:32 INFO     tests.test_node_validation   GPU 2: NVIDIA H100 NVL (00000001:61:00.0)
-02:21:32 INFO     tests.test_node_validation   GPU 3: NVIDIA H100 PCIe (00000001:B1:00.0)
-02:21:32 INFO     tests.test_node_validation KPI test_gpu_enumeration: {"gpu_count": 4, "gpus": [{"driver_version": "595.71.05", "index": 0, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000000:61:00.0"}, {"driver_version": "595.71.05", "index": 1, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000000:B1:00.0"}, {"driver_version": "595.71.05", "index": 2, "name": "NVIDIA H100 NVL", "pci_bus_id": "00000001:61:00.0"}, {"driver_version": "595.71.05", "index": 3, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000001:B1:00.0"}]}
-02:21:33 INFO     tests.test_node_validation 
+07:12:06 INFO     ai_headnode_tests System config captured: /root/workloads/AIHeadNode/system_config_report.json
+07:12:08 INFO     tests.test_node_validation GPU enumeration: 2 GPU(s) found
+07:12:08 INFO     tests.test_node_validation   GPU 0: NVIDIA H100 PCIe (00000000:61:00.0)
+07:12:08 INFO     tests.test_node_validation   GPU 1: NVIDIA H100 PCIe (00000000:B1:00.0)
+07:12:08 INFO     tests.test_node_validation KPI test_gpu_enumeration: {"gpu_count": 2, "gpus": [{"driver_version": "595.71.05", "index": 0, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000000:61:00.0"}, {"driver_version": "595.71.05", "index": 1, "name": "NVIDIA H100 PCIe", "pci_bus_id": "00000000:B1:00.0"}]}
+07:12:08 INFO     tests.test_node_validation 
 
 ================================================================================
   PCIe NEGOTIATED LINK SPEED / WIDTH PER GPU
@@ -14,17 +12,13 @@
   ----------------------------------------------------------------------------
   GPU0   00000000:61:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
   GPU1   00000000:B1:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
-  GPU2   00000001:61:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
-  GPU3   00000001:B1:00.0 Gen5 / Gen5         x16 / x16            ~  63 GB/s   OK
 ================================================================================
-02:21:33 INFO     tests.test_node_validation 
+07:12:09 INFO     tests.test_node_validation 
 
 nvidia-smi topo -m output:
-	[4mGPU0	GPU1	GPU2	GPU3	CPU Affinity	NUMA Affinity	GPU NUMA ID[0m
-GPU0	 X 	NODE	NODE	NODE	0-223	0		N/A
-GPU1	NODE	 X 	NODE	NODE	0-223	0		N/A
-GPU2	NODE	NODE	 X 	NODE	0-223	0		N/A
-GPU3	NODE	NODE	NODE	 X 	0-223	0		N/A
+	[4mGPU0	GPU1	CPU Affinity	NUMA Affinity	GPU NUMA ID[0m
+GPU0	 X 	NV12	0-223	0-1		N/A
+GPU1	NV12	 X 	0-223	0-1		N/A
 
 Legend:
 
@@ -36,29 +30,23 @@ Legend:
   PIX  = Connection traversing at most a single PCIe bridge
   NV#  = Connection traversing a bonded set of # NVLinks
 
-02:21:33 INFO     tests.test_node_validation 
+07:12:09 INFO     tests.test_node_validation 
 
   GPU INTERCONNECT SUMMARY (from topo -m)
   --------------------------------------------------
-02:21:33 INFO     tests.test_node_validation KPI test_pcie_topology_discovery: {"downgraded_gpu_count": 0, "downgraded_gpus": [], "gpu_entries": 4, "matrix_error": null, "nvlink_pair_count": 0, "pcie_pair_count": 0}
-02:21:34 INFO     tests.test_node_validation KPI test_topology_consistency: {"gpu_count": 4, "topology_count": 4, "valid": true}
-02:21:34 INFO     tests.test_node_validation Found 4 GPU(s) with valid PCIe topology:
+07:12:09 INFO     tests.test_node_validation KPI test_pcie_topology_discovery: {"downgraded_gpu_count": 0, "downgraded_gpus": [], "gpu_entries": 2, "matrix_error": null, "nvlink_pair_count": 0, "pcie_pair_count": 0}
+07:12:09 INFO     tests.test_node_validation KPI test_topology_consistency: {"gpu_count": 2, "topology_count": 2, "valid": true}
+07:12:09 INFO     tests.test_node_validation Found 2 GPU(s) with valid PCIe topology:
   GPU 0: NVIDIA H100 PCIe, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
   GPU 1: NVIDIA H100 PCIe, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
-  GPU 2: NVIDIA H100 NVL, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
-  GPU 3: NVIDIA H100 PCIe, PCIe Gen5x16 (negotiated) [max Gen5x16]  ~63 GB/s
 
-02:21:35 INFO     tests.test_node_validation GPU 0 H2D BW: 56.3 GB/s (89.3% of 63 GB/s)
-02:21:36 INFO     tests.test_node_validation GPU 1 H2D BW: 56.0 GB/s (88.9% of 63 GB/s)
-02:21:37 INFO     tests.test_node_validation GPU 2 H2D BW: 56.2 GB/s (89.3% of 63 GB/s)
-02:21:38 INFO     tests.test_node_validation GPU 3 H2D BW: 56.2 GB/s (89.2% of 63 GB/s)
-02:21:38 INFO     tests.test_node_validation KPI test_h2d_bandwidth_all_gpus: {"borderline_gpus": [], "boundary_gbs": 1.0, "failing_gpus": [], "gpu_count": 4, "mean_gbs": 56.19, "min_gbs": 56.04, "n_bytes": 1073741824, "n_iters": 8, "per_gpu_gbs": [56.28, 56.04, 56.23, 56.21], "threshold_gbs": 40.95}
-02:21:39 INFO     tests.test_node_validation GPU 0 D2H BW: 54.8 GB/s (87.0% of 63 GB/s)
-02:21:39 INFO     tests.test_node_validation GPU 1 D2H BW: 54.9 GB/s (87.1% of 63 GB/s)
-02:21:39 INFO     tests.test_node_validation GPU 2 D2H BW: 56.5 GB/s (89.7% of 63 GB/s)
-02:21:39 INFO     tests.test_node_validation GPU 3 D2H BW: 54.9 GB/s (87.1% of 63 GB/s)
-02:21:39 INFO     tests.test_node_validation KPI test_d2h_bandwidth_all_gpus: {"borderline_gpus": [], "boundary_gbs": 1.0, "failing_gpus": [], "gpu_count": 4, "mean_gbs": 55.27, "min_gbs": 54.8, "n_bytes": 1073741824, "n_iters": 8, "per_gpu_gbs": [54.8, 54.89, 56.5, 54.89], "threshold_gbs": 40.95}
-02:21:47 INFO     tests.test_node_validation 
+07:12:11 INFO     tests.test_node_validation GPU 0 H2D BW: 56.4 GB/s (89.5% of 63 GB/s)
+07:12:12 INFO     tests.test_node_validation GPU 1 H2D BW: 56.4 GB/s (89.5% of 63 GB/s)
+07:12:12 INFO     tests.test_node_validation KPI test_h2d_bandwidth_all_gpus: {"borderline_gpus": [], "boundary_gbs": 1.0, "failing_gpus": [], "gpu_count": 2, "mean_gbs": 56.38, "min_gbs": 56.37, "n_bytes": 1073741824, "n_iters": 8, "per_gpu_gbs": [56.37, 56.38], "threshold_gbs": 40.95}
+07:12:12 INFO     tests.test_node_validation GPU 0 D2H BW: 54.6 GB/s (86.6% of 63 GB/s)
+07:12:12 INFO     tests.test_node_validation GPU 1 D2H BW: 54.7 GB/s (86.8% of 63 GB/s)
+07:12:12 INFO     tests.test_node_validation KPI test_d2h_bandwidth_all_gpus: {"borderline_gpus": [], "boundary_gbs": 1.0, "failing_gpus": [], "gpu_count": 2, "mean_gbs": 54.62, "min_gbs": 54.56, "n_bytes": 1073741824, "n_iters": 8, "per_gpu_gbs": [54.56, 54.69], "threshold_gbs": 40.95}
+07:12:15 INFO     tests.test_node_validation 
 === nvbandwidth: host_to_device_memcpy_ce ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -70,21 +58,19 @@ Driver Version: 595.71.05
 sc00901168s0075
 Device 0: NVIDIA H100 PCIe (00000000:61:00)
 Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running host_to_device_memcpy_ce.
 memcpy CE CPU(row) -> GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     55.91     55.98     55.93     55.81
+           0         1
+ 0     55.98     56.24
 
-SUM host_to_device_memcpy_ce 223.62
+SUM host_to_device_memcpy_ce 112.22
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-02:21:47 INFO     tests.test_node_validation host_to_device_memcpy_ce  min=55.8 GB/s  mean=55.9 GB/s  threshold=40.0 GB/s
-02:21:47 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_memcpy_ce: {"mean_bw_gbs": 55.91, "min_bw_gbs": 55.81, "num_values": 4, "testcase": "host_to_device_memcpy_ce", "threshold_gbs": 40.0}
-02:21:52 INFO     tests.test_node_validation 
+07:12:15 INFO     tests.test_node_validation host_to_device_memcpy_ce  min=56.0 GB/s  mean=56.1 GB/s  threshold=40.0 GB/s
+07:12:15 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_memcpy_ce: {"mean_bw_gbs": 56.11, "min_bw_gbs": 55.98, "num_values": 2, "testcase": "host_to_device_memcpy_ce", "threshold_gbs": 40.0}
+07:12:18 INFO     tests.test_node_validation 
 === nvbandwidth: device_to_host_memcpy_ce ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -96,21 +82,19 @@ Driver Version: 595.71.05
 sc00901168s0075
 Device 0: NVIDIA H100 PCIe (00000000:61:00)
 Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running device_to_host_memcpy_ce.
 memcpy CE CPU(row) <- GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     55.33     55.35     57.12     55.35
+           0         1
+ 0     55.11     55.16
 
-SUM device_to_host_memcpy_ce 223.14
+SUM device_to_host_memcpy_ce 110.27
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-02:21:52 INFO     tests.test_node_validation device_to_host_memcpy_ce  min=55.3 GB/s  mean=55.8 GB/s  threshold=40.0 GB/s
-02:21:52 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_memcpy_ce: {"mean_bw_gbs": 55.79, "min_bw_gbs": 55.33, "num_values": 4, "testcase": "device_to_host_memcpy_ce", "threshold_gbs": 40.0}
-02:22:02 INFO     tests.test_node_validation 
+07:12:18 INFO     tests.test_node_validation device_to_host_memcpy_ce  min=55.1 GB/s  mean=55.1 GB/s  threshold=40.0 GB/s
+07:12:18 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_memcpy_ce: {"mean_bw_gbs": 55.13, "min_bw_gbs": 55.11, "num_values": 2, "testcase": "device_to_host_memcpy_ce", "threshold_gbs": 40.0}
+07:12:23 INFO     tests.test_node_validation 
 === nvbandwidth: host_to_device_bidirectional_memcpy_ce ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -122,21 +106,19 @@ Driver Version: 595.71.05
 sc00901168s0075
 Device 0: NVIDIA H100 PCIe (00000000:61:00)
 Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running host_to_device_bidirectional_memcpy_ce.
 memcpy CE CPU(row) <-> GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     51.34     51.44     51.14     51.45
+           0         1
+ 0     51.62     51.26
 
-SUM host_to_device_bidirectional_memcpy_ce 205.37
+SUM host_to_device_bidirectional_memcpy_ce 102.88
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-02:22:02 INFO     tests.test_node_validation host_to_device_bidirectional_memcpy_ce  min=51.1 GB/s  mean=51.3 GB/s  threshold=40.0 GB/s
-02:22:02 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_bidirectional_memcpy_ce: {"mean_bw_gbs": 51.34, "min_bw_gbs": 51.14, "num_values": 4, "testcase": "host_to_device_bidirectional_memcpy_ce", "threshold_gbs": 40.0}
-02:22:12 INFO     tests.test_node_validation 
+07:12:23 INFO     tests.test_node_validation host_to_device_bidirectional_memcpy_ce  min=51.3 GB/s  mean=51.4 GB/s  threshold=40.0 GB/s
+07:12:23 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_bidirectional_memcpy_ce: {"mean_bw_gbs": 51.44, "min_bw_gbs": 51.26, "num_values": 2, "testcase": "host_to_device_bidirectional_memcpy_ce", "threshold_gbs": 40.0}
+07:12:28 INFO     tests.test_node_validation 
 === nvbandwidth: device_to_host_bidirectional_memcpy_ce ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -148,21 +130,19 @@ Driver Version: 595.71.05
 sc00901168s0075
 Device 0: NVIDIA H100 PCIe (00000000:61:00)
 Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running device_to_host_bidirectional_memcpy_ce.
 memcpy CE CPU(row) <-> GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     49.86     49.85     49.91     49.85
+           0         1
+ 0     49.82     49.73
 
-SUM device_to_host_bidirectional_memcpy_ce 199.47
+SUM device_to_host_bidirectional_memcpy_ce 99.55
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-02:22:12 INFO     tests.test_node_validation device_to_host_bidirectional_memcpy_ce  min=49.9 GB/s  mean=49.9 GB/s  threshold=40.0 GB/s
-02:22:12 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_bidirectional_memcpy_ce: {"mean_bw_gbs": 49.87, "min_bw_gbs": 49.85, "num_values": 4, "testcase": "device_to_host_bidirectional_memcpy_ce", "threshold_gbs": 40.0}
-02:22:23 INFO     tests.test_node_validation 
+07:12:28 INFO     tests.test_node_validation device_to_host_bidirectional_memcpy_ce  min=49.7 GB/s  mean=49.8 GB/s  threshold=40.0 GB/s
+07:12:28 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_bidirectional_memcpy_ce: {"mean_bw_gbs": 49.77, "min_bw_gbs": 49.73, "num_values": 2, "testcase": "device_to_host_bidirectional_memcpy_ce", "threshold_gbs": 40.0}
+07:12:29 INFO     tests.test_node_validation 
 === nvbandwidth: device_to_device_memcpy_read_ce ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -174,24 +154,20 @@ Driver Version: 595.71.05
 sc00901168s0075
 Device 0: NVIDIA H100 PCIe (00000000:61:00)
 Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running device_to_device_memcpy_read_ce.
 memcpy CE GPU(row) -> GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0       N/A     52.11     45.72     44.60
- 1     52.00       N/A     45.68     44.60
- 2     46.27     44.61       N/A     52.01
- 3     34.78     44.61     51.21       N/A
+           0         1
+ 0       N/A    265.24
+ 1    265.31       N/A
 
-SUM device_to_device_memcpy_read_ce 558.18
+SUM device_to_device_memcpy_read_ce 530.55
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-02:22:23 INFO     tests.test_node_validation device_to_device_memcpy_read_ce  min=34.8 GB/s  mean=46.5 GB/s  threshold=30.0 GB/s
-02:22:23 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_device_memcpy_read_ce: {"mean_bw_gbs": 46.52, "min_bw_gbs": 34.78, "num_values": 12, "testcase": "device_to_device_memcpy_read_ce", "threshold_gbs": 30.0}
-02:22:28 INFO     tests.test_node_validation 
+07:12:29 INFO     tests.test_node_validation device_to_device_memcpy_read_ce  min=265.2 GB/s  mean=265.3 GB/s  threshold=30.0 GB/s
+07:12:29 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_device_memcpy_read_ce: {"mean_bw_gbs": 265.27, "min_bw_gbs": 265.24, "num_values": 2, "testcase": "device_to_device_memcpy_read_ce", "threshold_gbs": 30.0}
+07:12:31 INFO     tests.test_node_validation 
 === nvbandwidth: host_to_device_memcpy_sm ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -203,21 +179,19 @@ Driver Version: 595.71.05
 sc00901168s0075
 Device 0: NVIDIA H100 PCIe (00000000:61:00)
 Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running host_to_device_memcpy_sm.
 memcpy SM CPU(row) -> GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     53.39     53.39     53.39     53.39
+           0         1
+ 0     53.39     53.39
 
-SUM host_to_device_memcpy_sm 213.55
+SUM host_to_device_memcpy_sm 106.78
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-02:22:28 INFO     tests.test_node_validation host_to_device_memcpy_sm  min=53.4 GB/s  mean=53.4 GB/s  threshold=30.0 GB/s
-02:22:28 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_memcpy_sm: {"mean_bw_gbs": 53.39, "min_bw_gbs": 53.39, "num_values": 4, "testcase": "host_to_device_memcpy_sm", "threshold_gbs": 30.0}
-02:22:34 INFO     tests.test_node_validation 
+07:12:31 INFO     tests.test_node_validation host_to_device_memcpy_sm  min=53.4 GB/s  mean=53.4 GB/s  threshold=30.0 GB/s
+07:12:31 INFO     tests.test_node_validation KPI test_nvbandwidth_host_to_device_memcpy_sm: {"mean_bw_gbs": 53.39, "min_bw_gbs": 53.39, "num_values": 2, "testcase": "host_to_device_memcpy_sm", "threshold_gbs": 30.0}
+07:12:34 INFO     tests.test_node_validation 
 === nvbandwidth: device_to_host_memcpy_sm ===
 nvbandwidth Version: v0.8
 Built from Git version: v0.8
@@ -229,693 +203,557 @@ Driver Version: 595.71.05
 sc00901168s0075
 Device 0: NVIDIA H100 PCIe (00000000:61:00)
 Device 1: NVIDIA H100 PCIe (00000000:b1:00)
-Device 2: NVIDIA H100 NVL (00000001:61:00)
-Device 3: NVIDIA H100 PCIe (00000001:b1:00)
 
 Running device_to_host_memcpy_sm.
 memcpy SM CPU(row) <- GPU(column) bandwidth (GB/s)
-           0         1         2         3
- 0     52.80     52.80     52.79     52.79
+           0         1
+ 0     52.80     52.80
 
-SUM device_to_host_memcpy_sm 211.18
+SUM device_to_host_memcpy_sm 105.60
 
 NOTE: The reported results may not reflect the full capabilities of the platform.
 Performance can vary with software drivers, hardware clocks, and system topology.
-02:22:34 INFO     tests.test_node_validation device_to_host_memcpy_sm  min=52.8 GB/s  mean=52.8 GB/s  threshold=30.0 GB/s
-02:22:34 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_memcpy_sm: {"mean_bw_gbs": 52.8, "min_bw_gbs": 52.79, "num_values": 4, "testcase": "device_to_host_memcpy_sm", "threshold_gbs": 30.0}
-02:22:34 INFO     tests.test_node_validation 2 MB hugepages: before=16384  active=True
-02:22:39 INFO     tests.test_node_validation nvbandwidth host_to_device_memcpy_ce                    min=55.54 GB/s  (hugepages=True)
-02:22:44 INFO     tests.test_node_validation nvbandwidth device_to_host_memcpy_ce                    min=55.45 GB/s  (hugepages=True)
-02:22:54 INFO     tests.test_node_validation nvbandwidth host_to_device_bidirectional_memcpy_ce      min=50.79 GB/s  (hugepages=True)
-02:22:54 INFO     tests.test_node_validation PyTorch BW (hugepages=True, 512 MB): H2D=24.60 GB/s  D2H=55.08 GB/s
-02:22:57 INFO     tests.test_node_validation 
+07:12:34 INFO     tests.test_node_validation device_to_host_memcpy_sm  min=52.8 GB/s  mean=52.8 GB/s  threshold=30.0 GB/s
+07:12:34 INFO     tests.test_node_validation KPI test_nvbandwidth_device_to_host_memcpy_sm: {"mean_bw_gbs": 52.8, "min_bw_gbs": 52.8, "num_values": 2, "testcase": "device_to_host_memcpy_sm", "threshold_gbs": 30.0}
+07:12:34 INFO     tests.test_node_validation 2 MB hugepages: before=16384  active=True
+07:12:37 INFO     tests.test_node_validation nvbandwidth host_to_device_memcpy_ce                    min=55.93 GB/s  (hugepages=True)
+07:12:39 INFO     tests.test_node_validation nvbandwidth device_to_host_memcpy_ce                    min=55.08 GB/s  (hugepages=True)
+07:12:44 INFO     tests.test_node_validation nvbandwidth host_to_device_bidirectional_memcpy_ce      min=51.61 GB/s  (hugepages=True)
+07:12:44 INFO     tests.test_node_validation PyTorch BW (hugepages=True, 512 MB): H2D=56.13 GB/s  D2H=54.85 GB/s
+07:12:44 INFO     tests.test_node_validation KPI test_pcie_bw_p2p_latency_hugepages_2mb: {"bw_results": {"device_to_host_memcpy_ce": 55.08, "host_to_device_bidirectional_memcpy_ce": 51.61, "host_to_device_memcpy_ce": 55.93, "hugepages_active": true, "torch_D2H_gbs": 54.85, "torch_H2D_gbs": 56.13}, "hugepages_active": true, "hugepages_before": 16384}
+07:12:45 INFO     tests.test_node_validation 
 === p2pBandwidthLatencyTest output ===
 [P2P (Peer-to-Peer) GPU Bandwidth Latency Test]
 Device: 0, NVIDIA H100 PCIe, pciBusID: 61, pciDeviceID: 0, pciDomainID:0
 Device: 1, NVIDIA H100 PCIe, pciBusID: b1, pciDeviceID: 0, pciDomainID:0
-Device: 2, NVIDIA H100 NVL, pciBusID: 61, pciDeviceID: 0, pciDomainID:1
-Device: 3, NVIDIA H100 PCIe, pciBusID: b1, pciDeviceID: 0, pciDomainID:1
 Device=0 CAN Access Peer Device=1
-Device=0 CAN Access Peer Device=2
-Device=0 CAN Access Peer Device=3
 Device=1 CAN Access Peer Device=0
-Device=1 CAN Access Peer Device=2
-Device=1 CAN Access Peer Device=3
-Device=2 CAN Access Peer Device=0
-Device=2 CAN Access Peer Device=1
-Device=2 CAN Access Peer Device=3
-Device=3 CAN Access Peer Device=0
-Device=3 CAN Access Peer Device=1
-Device=3 CAN Access Peer Device=2
 
 ***NOTE: In case a device doesn't have P2P access to other one, it falls back to normal memcopy procedure.
 So you can see lesser Bandwidth (GB/s) and unstable Latency (us) in those cases.
 
 P2P Connectivity Matrix
-     D\D     0     1     2     3
-     0	     1     1     1     1
-     1	     1     1     1     1
-     2	     1     1     1     1
-     3	     1     1     1     1
+     D\D     0     1
+     0	     1     1
+     1	     1     1
 Unidirectional P2P=Disabled Bandwidth Matrix (GB/s)
-   D\D     0      1      2      3 
-     0 1769.47  37.54  37.88  38.42 
-     1  37.94 1786.29  37.40  37.82 
-     2  38.76  38.61 3380.66  38.42 
-     3  38.31  38.57  38.25 1778.03 
+   D\D     0      1 
+     0 1763.36  37.83 
+     1  37.53 1784.95 
 Unidirectional P2P=Enabled Bandwidth (P2P Writes) Matrix (GB/s)
-   D\D     0      1      2      3 
-     0 1772.48  52.41  46.48  46.51 
-     1  53.04 1780.12  44.67  44.67 
-     2  45.92  45.99 3352.33  51.88 
-     3  44.68  44.67  52.81 1770.79 
+   D\D     0      1 
+     0 1763.98 256.74 
+     1 264.19 1802.32 
 Bidirectional P2P=Disabled Bandwidth Matrix (GB/s)
-   D\D     0      1      2      3 
-     0 1812.38  53.80  54.13  54.41 
-     1  53.67 1816.86  53.97  54.29 
-     2  54.01  53.73 3459.25  17.08 
-     3  53.60  54.12  54.16 1814.16 
+   D\D     0      1 
+     0 1810.68  53.67 
+     1  53.23 1814.98 
 Bidirectional P2P=Enabled Bandwidth Matrix (GB/s)
-   D\D     0      1      2      3 
-     0 1810.12 100.12  91.69  37.79 
-     1 100.53 1811.89  89.32  89.10 
-     2  91.87  88.64 3454.11  99.45 
-     3  89.35  89.03  99.65 1807.89 
+   D\D     0      1 
+     0 1812.45 509.42 
+     1 524.86 1809.14 
 P2P=Disabled Latency Matrix (us)
-   GPU     0      1      2      3 
-     0   2.24  16.60  16.03  16.49 
-     1  15.31   2.15  16.79  14.06 
-     2  16.35  15.43   1.92  16.85 
-     3  16.37  16.77  15.36   2.33 
+   GPU     0      1 
+     0   2.21  13.32 
+     1  17.78   2.29 
 
-   CPU     0      1      2      3 
-     0   2.74   9.59   9.82   9.49 
-     1  11.15   2.52   9.72   9.57 
-     2   9.83   9.80   2.62   9.41 
-     3   9.64   9.44   9.73   2.54 
+   CPU     0      1 
+     0   2.87   9.86 
+     1   9.89   2.73 
 P2P=Enabled Latency (P2P Writes) Matrix (us)
-   GPU     0      1      2      3 
-     0   2.23   1.67   1.68   1.66 
-     1   1.59   2.14   1.64   1.64 
-     2   1.76   1.76   1.92   1.70 
-     3   1.63   1.63   1.60   2.40 
+   GPU     0      1 
+     0   2.20   2.15 
+     1   2.05   2.37 
 
-   CPU     0      1      2      3 
-     0   2.66   2.07   2.07   2.03 
-     1   2.13   2.61   2.12   2.12 
-     2   2.20   2.18   2.72   2.22 
-     3   2.74   2.19   2.20   2.65 
+   CPU     0      1 
+     0   2.96   2.20 
+     1   2.18   2.77 
 
 NOTE: The CUDA Samples are not meant for performance measurements. Results may vary when GPU Boost is enabled.
-02:22:57 INFO     tests.test_node_validation Bidirectional P2P BW — min=17.1 GB/s  mean=608.3 GB/s  max=3459.2 GB/s
-02:22:57 INFO     tests.test_node_validation Unidirectional P2P BW — min=37.4 GB/s  mean=575.7 GB/s  max=3380.7 GB/s
-02:22:57 INFO     tests.test_node_validation P2P Latency           — min=1.00 µs  mean=5.13 µs  max=16.85 µs
-02:22:57 INFO     tests.test_node_validation KPI test_p2p_bandwidth_latency_binary: {"bidir_mean_gbs": 608.26, "bidir_min_gbs": 17.08, "latency_mean_us": 5.13, "latency_min_us": 1.0, "min_threshold_gbs": 40.0, "num_offdiag_samples": 32, "timeout_sec": 240, "unidir_mean_gbs": 575.68, "unidir_min_gbs": 37.4}
-02:23:00 INFO     tests.test_node_validation 
+07:12:45 INFO     tests.test_node_validation Bidirectional P2P BW — min=53.2 GB/s  mean=1048.6 GB/s  max=1815.0 GB/s
+07:12:45 INFO     tests.test_node_validation Unidirectional P2P BW — min=37.5 GB/s  mean=963.9 GB/s  max=1802.3 GB/s
+07:12:45 INFO     tests.test_node_validation P2P Latency           — min=1.00 µs  mean=4.19 µs  max=17.78 µs
+07:12:45 INFO     tests.test_node_validation KPI test_p2p_bandwidth_latency_binary: {"bidir_mean_gbs": 1048.55, "bidir_min_gbs": 53.23, "latency_mean_us": 4.19, "latency_min_us": 1.0, "min_threshold_gbs": 40.0, "num_offdiag_samples": 8, "timeout_sec": 240, "unidir_mean_gbs": 963.86, "unidir_min_gbs": 37.53}
+07:12:46 INFO     tests.test_node_validation 
 
 ============================================================
   PyTorch P2P Bandwidth Matrix (GB/s)
 ============================================================
-          GPU0    GPU1    GPU2    GPU3  
-  GPU0     ---     52.1   46.2   46.2
-  GPU1      38.1  ---     33.7   44.6
-  GPU2      45.8   45.8  ---     51.5
-  GPU3      44.6   44.6   52.1  ---  
+          GPU0    GPU1  
+  GPU0     ---    265.5
+  GPU1     265.4  ---  
 ============================================================
-02:23:00 INFO     tests.test_node_validation KPI test_p2p_bandwidth_pytorch_fallback: {"attempted_pairs": 12, "failing_pairs": 2, "gpu_count": 4, "inaccessible_pairs": 0, "mean_gbs": 45.43, "measured_pairs": 12, "min_gbs": 33.75, "min_threshold_gbs": 40.0, "n_bytes": 1073741824, "n_iters": 8}
-02:23:00 INFO     tests.test_node_validation P2P multi-stream: GPU 0 -> GPU 1
-02:23:00 INFO     tests.test_node_validation   4MiB, 1 stream(s): 38.61 GB/s
-02:23:00 INFO     tests.test_node_validation   4MiB, 2 stream(s): 43.29 GB/s
-02:23:00 INFO     tests.test_node_validation   4MiB, 4 stream(s): 45.98 GB/s
-02:23:00 INFO     tests.test_node_validation   4MiB, 8 stream(s): 47.61 GB/s
-02:23:00 INFO     tests.test_node_validation   16MiB, 1 stream(s): 3.73 GB/s
-02:23:00 INFO     tests.test_node_validation   16MiB, 2 stream(s): 51.26 GB/s
-02:23:00 INFO     tests.test_node_validation   16MiB, 4 stream(s): 51.66 GB/s
-02:23:00 INFO     tests.test_node_validation   16MiB, 8 stream(s): 51.72 GB/s
-02:23:00 INFO     tests.test_node_validation   25MiB, 1 stream(s): 50.78 GB/s
-02:23:00 INFO     tests.test_node_validation   25MiB, 2 stream(s): 51.36 GB/s
-02:23:00 INFO     tests.test_node_validation   25MiB, 4 stream(s): 52.44 GB/s
-02:23:00 INFO     tests.test_node_validation   25MiB, 8 stream(s): 52.58 GB/s
-02:23:00 INFO     tests.test_node_validation   64MiB, 1 stream(s): 51.63 GB/s
-02:23:00 INFO     tests.test_node_validation   64MiB, 2 stream(s): 51.67 GB/s
-02:23:00 INFO     tests.test_node_validation   64MiB, 4 stream(s): 52.15 GB/s
-02:23:00 INFO     tests.test_node_validation   64MiB, 8 stream(s): 52.56 GB/s
-02:23:01 INFO     tests.test_node_validation   256MiB, 1 stream(s): 51.80 GB/s
-02:23:01 INFO     tests.test_node_validation   256MiB, 2 stream(s): 51.89 GB/s
-02:23:01 INFO     tests.test_node_validation   256MiB, 4 stream(s): 52.33 GB/s
-02:23:01 INFO     tests.test_node_validation   256MiB, 8 stream(s): 51.98 GB/s
-02:23:01 INFO     tests.test_node_validation   1GiB, 1 stream(s): 51.78 GB/s
-02:23:01 INFO     tests.test_node_validation   1GiB, 2 stream(s): 51.99 GB/s
-02:23:02 INFO     tests.test_node_validation   1GiB, 4 stream(s): 51.85 GB/s
-02:23:03 INFO     tests.test_node_validation   1GiB, 8 stream(s): 48.20 GB/s
-02:23:03 INFO     tests.test_node_validation P2P multi-stream BW (GPU 0->1): {'4MiB': {'1': 38.61, '2': 43.29, '4': 45.98, '8': 47.61}, '16MiB': {'1': 3.73, '2': 51.26, '4': 51.66, '8': 51.72}, '25MiB': {'1': 50.78, '2': 51.36, '4': 52.44, '8': 52.58}, '64MiB': {'1': 51.63, '2': 51.67, '4': 52.15, '8': 52.56}, '256MiB': {'1': 51.8, '2': 51.89, '4': 52.33, '8': 51.98}, '1GiB': {'1': 51.78, '2': 51.99, '4': 51.85, '8': 48.2}}
-02:23:03 INFO     tests.test_node_validation P2P multi-stream: GPU 0 -> GPU 2
-02:23:03 INFO     tests.test_node_validation   4MiB, 1 stream(s): 37.27 GB/s
-02:23:03 INFO     tests.test_node_validation   4MiB, 2 stream(s): 39.49 GB/s
-02:23:03 INFO     tests.test_node_validation   4MiB, 4 stream(s): 42.07 GB/s
-02:23:03 INFO     tests.test_node_validation   4MiB, 8 stream(s): 43.59 GB/s
-02:23:03 INFO     tests.test_node_validation   16MiB, 1 stream(s): 43.87 GB/s
-02:23:03 INFO     tests.test_node_validation   16MiB, 2 stream(s): 44.66 GB/s
-02:23:03 INFO     tests.test_node_validation   16MiB, 4 stream(s): 45.40 GB/s
-02:23:03 INFO     tests.test_node_validation   16MiB, 8 stream(s): 45.87 GB/s
-02:23:03 INFO     tests.test_node_validation   25MiB, 1 stream(s): 44.93 GB/s
-02:23:03 INFO     tests.test_node_validation   25MiB, 2 stream(s): 45.30 GB/s
-02:23:03 INFO     tests.test_node_validation   25MiB, 4 stream(s): 45.85 GB/s
-02:23:03 INFO     tests.test_node_validation   25MiB, 8 stream(s): 46.05 GB/s
-02:23:03 INFO     tests.test_node_validation   64MiB, 1 stream(s): 45.70 GB/s
-02:23:03 INFO     tests.test_node_validation   64MiB, 2 stream(s): 46.00 GB/s
-02:23:03 INFO     tests.test_node_validation   64MiB, 4 stream(s): 46.23 GB/s
-02:23:03 INFO     tests.test_node_validation   64MiB, 8 stream(s): 46.26 GB/s
-02:23:03 INFO     tests.test_node_validation   256MiB, 1 stream(s): 46.09 GB/s
-02:23:03 INFO     tests.test_node_validation   256MiB, 2 stream(s): 46.27 GB/s
-02:23:03 INFO     tests.test_node_validation   256MiB, 4 stream(s): 46.27 GB/s
-02:23:04 INFO     tests.test_node_validation   256MiB, 8 stream(s): 46.23 GB/s
-02:23:04 INFO     tests.test_node_validation   1GiB, 1 stream(s): 46.16 GB/s
-02:23:04 INFO     tests.test_node_validation   1GiB, 2 stream(s): 46.22 GB/s
-02:23:05 INFO     tests.test_node_validation   1GiB, 4 stream(s): 40.83 GB/s
-02:23:06 INFO     tests.test_node_validation   1GiB, 8 stream(s): 46.26 GB/s
-02:23:06 INFO     tests.test_node_validation P2P multi-stream BW (GPU 0->2): {'4MiB': {'1': 37.27, '2': 39.49, '4': 42.07, '8': 43.59}, '16MiB': {'1': 43.87, '2': 44.66, '4': 45.4, '8': 45.87}, '25MiB': {'1': 44.93, '2': 45.3, '4': 45.85, '8': 46.05}, '64MiB': {'1': 45.7, '2': 46.0, '4': 46.23, '8': 46.26}, '256MiB': {'1': 46.09, '2': 46.27, '4': 46.27, '8': 46.23}, '1GiB': {'1': 46.16, '2': 46.22, '4': 40.83, '8': 46.26}}
-02:23:06 INFO     tests.test_node_validation P2P multi-stream: GPU 0 -> GPU 3
-02:23:06 INFO     tests.test_node_validation   4MiB, 1 stream(s): 37.47 GB/s
-02:23:06 INFO     tests.test_node_validation   4MiB, 2 stream(s): 39.68 GB/s
-02:23:06 INFO     tests.test_node_validation   4MiB, 4 stream(s): 42.27 GB/s
-02:23:06 INFO     tests.test_node_validation   4MiB, 8 stream(s): 43.53 GB/s
-02:23:06 INFO     tests.test_node_validation   16MiB, 1 stream(s): 44.01 GB/s
-02:23:06 INFO     tests.test_node_validation   16MiB, 2 stream(s): 44.62 GB/s
-02:23:06 INFO     tests.test_node_validation   16MiB, 4 stream(s): 45.41 GB/s
-02:23:06 INFO     tests.test_node_validation   16MiB, 8 stream(s): 45.80 GB/s
-02:23:06 INFO     tests.test_node_validation   25MiB, 1 stream(s): 45.01 GB/s
-02:23:06 INFO     tests.test_node_validation   25MiB, 2 stream(s): 45.32 GB/s
-02:23:06 INFO     tests.test_node_validation   25MiB, 4 stream(s): 45.39 GB/s
-02:23:06 INFO     tests.test_node_validation   25MiB, 8 stream(s): 46.11 GB/s
-02:23:06 INFO     tests.test_node_validation   64MiB, 1 stream(s): 45.95 GB/s
-02:23:06 INFO     tests.test_node_validation   64MiB, 2 stream(s): 46.10 GB/s
-02:23:06 INFO     tests.test_node_validation   64MiB, 4 stream(s): 46.15 GB/s
-02:23:06 INFO     tests.test_node_validation   64MiB, 8 stream(s): 46.32 GB/s
-02:23:06 INFO     tests.test_node_validation   256MiB, 1 stream(s): 46.01 GB/s
-02:23:06 INFO     tests.test_node_validation   256MiB, 2 stream(s): 22.40 GB/s
-02:23:06 INFO     tests.test_node_validation   256MiB, 4 stream(s): 46.15 GB/s
-02:23:07 INFO     tests.test_node_validation   256MiB, 8 stream(s): 46.21 GB/s
-02:23:07 INFO     tests.test_node_validation   1GiB, 1 stream(s): 46.23 GB/s
-02:23:07 INFO     tests.test_node_validation   1GiB, 2 stream(s): 46.21 GB/s
-02:23:08 INFO     tests.test_node_validation   1GiB, 4 stream(s): 46.22 GB/s
-02:23:09 INFO     tests.test_node_validation   1GiB, 8 stream(s): 40.76 GB/s
-02:23:09 INFO     tests.test_node_validation P2P multi-stream BW (GPU 0->3): {'4MiB': {'1': 37.47, '2': 39.68, '4': 42.27, '8': 43.53}, '16MiB': {'1': 44.01, '2': 44.62, '4': 45.41, '8': 45.8}, '25MiB': {'1': 45.01, '2': 45.32, '4': 45.39, '8': 46.11}, '64MiB': {'1': 45.95, '2': 46.1, '4': 46.15, '8': 46.32}, '256MiB': {'1': 46.01, '2': 22.4, '4': 46.15, '8': 46.21}, '1GiB': {'1': 46.23, '2': 46.21, '4': 46.22, '8': 40.76}}
-02:23:09 INFO     tests.test_node_validation P2P multi-stream: GPU 1 -> GPU 0
-02:23:09 INFO     tests.test_node_validation   4MiB, 1 stream(s): 41.22 GB/s
-02:23:09 INFO     tests.test_node_validation   4MiB, 2 stream(s): 44.79 GB/s
-02:23:09 INFO     tests.test_node_validation   4MiB, 4 stream(s): 47.16 GB/s
-02:23:09 INFO     tests.test_node_validation   4MiB, 8 stream(s): 47.87 GB/s
-02:23:09 INFO     tests.test_node_validation   16MiB, 1 stream(s): 50.18 GB/s
-02:23:09 INFO     tests.test_node_validation   16MiB, 2 stream(s): 50.19 GB/s
-02:23:09 INFO     tests.test_node_validation   16MiB, 4 stream(s): 51.65 GB/s
-02:23:09 INFO     tests.test_node_validation   16MiB, 8 stream(s): 52.10 GB/s
-02:23:09 INFO     tests.test_node_validation   25MiB, 1 stream(s): 50.66 GB/s
-02:23:09 INFO     tests.test_node_validation   25MiB, 2 stream(s): 51.60 GB/s
-02:23:09 INFO     tests.test_node_validation   25MiB, 4 stream(s): 52.12 GB/s
-02:23:09 INFO     tests.test_node_validation   25MiB, 8 stream(s): 52.48 GB/s
-02:23:09 INFO     tests.test_node_validation   64MiB, 1 stream(s): 51.70 GB/s
-02:23:09 INFO     tests.test_node_validation   64MiB, 2 stream(s): 52.50 GB/s
-02:23:09 INFO     tests.test_node_validation   64MiB, 4 stream(s): 52.41 GB/s
-02:23:09 INFO     tests.test_node_validation   64MiB, 8 stream(s): 52.40 GB/s
-02:23:09 INFO     tests.test_node_validation   256MiB, 1 stream(s): 52.20 GB/s
-02:23:09 INFO     tests.test_node_validation   256MiB, 2 stream(s): 51.96 GB/s
-02:23:09 INFO     tests.test_node_validation   256MiB, 4 stream(s): 52.36 GB/s
-02:23:10 INFO     tests.test_node_validation   256MiB, 8 stream(s): 52.08 GB/s
-02:23:10 INFO     tests.test_node_validation   1GiB, 1 stream(s): 52.20 GB/s
-02:23:10 INFO     tests.test_node_validation   1GiB, 2 stream(s): 52.09 GB/s
-02:23:11 INFO     tests.test_node_validation   1GiB, 4 stream(s): 45.18 GB/s
-02:23:12 INFO     tests.test_node_validation   1GiB, 8 stream(s): 52.01 GB/s
-02:23:12 INFO     tests.test_node_validation P2P multi-stream BW (GPU 1->0): {'4MiB': {'1': 41.22, '2': 44.79, '4': 47.16, '8': 47.87}, '16MiB': {'1': 50.18, '2': 50.19, '4': 51.65, '8': 52.1}, '25MiB': {'1': 50.66, '2': 51.6, '4': 52.12, '8': 52.48}, '64MiB': {'1': 51.7, '2': 52.5, '4': 52.41, '8': 52.4}, '256MiB': {'1': 52.2, '2': 51.96, '4': 52.36, '8': 52.08}, '1GiB': {'1': 52.2, '2': 52.09, '4': 45.18, '8': 52.01}}
-02:23:12 INFO     tests.test_node_validation P2P multi-stream: GPU 1 -> GPU 2
-02:23:12 INFO     tests.test_node_validation   4MiB, 1 stream(s): 34.94 GB/s
-02:23:12 INFO     tests.test_node_validation   4MiB, 2 stream(s): 38.19 GB/s
-02:23:12 INFO     tests.test_node_validation   4MiB, 4 stream(s): 40.11 GB/s
-02:23:12 INFO     tests.test_node_validation   4MiB, 8 stream(s): 41.66 GB/s
-02:23:12 INFO     tests.test_node_validation   16MiB, 1 stream(s): 42.10 GB/s
-02:23:12 INFO     tests.test_node_validation   16MiB, 2 stream(s): 42.77 GB/s
-02:23:12 INFO     tests.test_node_validation   16MiB, 4 stream(s): 43.41 GB/s
-02:23:12 INFO     tests.test_node_validation   16MiB, 8 stream(s): 43.78 GB/s
-02:23:12 INFO     tests.test_node_validation   25MiB, 1 stream(s): 43.06 GB/s
-02:23:12 INFO     tests.test_node_validation   25MiB, 2 stream(s): 43.34 GB/s
-02:23:12 INFO     tests.test_node_validation   25MiB, 4 stream(s): 43.68 GB/s
-02:23:12 INFO     tests.test_node_validation   25MiB, 8 stream(s): 44.10 GB/s
-02:23:12 INFO     tests.test_node_validation   64MiB, 1 stream(s): 43.90 GB/s
-02:23:12 INFO     tests.test_node_validation   64MiB, 2 stream(s): 44.19 GB/s
-02:23:12 INFO     tests.test_node_validation   64MiB, 4 stream(s): 44.19 GB/s
-02:23:12 INFO     tests.test_node_validation   64MiB, 8 stream(s): 44.45 GB/s
-02:23:12 INFO     tests.test_node_validation   256MiB, 1 stream(s): 44.32 GB/s
-02:23:12 INFO     tests.test_node_validation   256MiB, 2 stream(s): 44.56 GB/s
-02:23:12 INFO     tests.test_node_validation   256MiB, 4 stream(s): 44.53 GB/s
-02:23:12 INFO     tests.test_node_validation   256MiB, 8 stream(s): 44.53 GB/s
-02:23:13 INFO     tests.test_node_validation   1GiB, 1 stream(s): 36.74 GB/s
-02:23:13 INFO     tests.test_node_validation   1GiB, 2 stream(s): 35.60 GB/s
-02:23:13 INFO     tests.test_node_validation   1GiB, 4 stream(s): 44.60 GB/s
-02:23:15 INFO     tests.test_node_validation   1GiB, 8 stream(s): 39.47 GB/s
-02:23:15 INFO     tests.test_node_validation P2P multi-stream BW (GPU 1->2): {'4MiB': {'1': 34.94, '2': 38.19, '4': 40.11, '8': 41.66}, '16MiB': {'1': 42.1, '2': 42.77, '4': 43.41, '8': 43.78}, '25MiB': {'1': 43.06, '2': 43.34, '4': 43.68, '8': 44.1}, '64MiB': {'1': 43.9, '2': 44.19, '4': 44.19, '8': 44.45}, '256MiB': {'1': 44.32, '2': 44.56, '4': 44.53, '8': 44.53}, '1GiB': {'1': 36.74, '2': 35.6, '4': 44.6, '8': 39.47}}
-02:23:15 INFO     tests.test_node_validation P2P multi-stream: GPU 1 -> GPU 3
-02:23:15 INFO     tests.test_node_validation   4MiB, 1 stream(s): 34.15 GB/s
-02:23:15 INFO     tests.test_node_validation   4MiB, 2 stream(s): 37.82 GB/s
-02:23:15 INFO     tests.test_node_validation   4MiB, 4 stream(s): 40.24 GB/s
-02:23:15 INFO     tests.test_node_validation   4MiB, 8 stream(s): 41.33 GB/s
-02:23:15 INFO     tests.test_node_validation   16MiB, 1 stream(s): 42.09 GB/s
-02:23:15 INFO     tests.test_node_validation   16MiB, 2 stream(s): 42.64 GB/s
-02:23:15 INFO     tests.test_node_validation   16MiB, 4 stream(s): 43.37 GB/s
-02:23:15 INFO     tests.test_node_validation   16MiB, 8 stream(s): 43.79 GB/s
-02:23:15 INFO     tests.test_node_validation   25MiB, 1 stream(s): 43.05 GB/s
-02:23:15 INFO     tests.test_node_validation   25MiB, 2 stream(s): 43.36 GB/s
-02:23:15 INFO     tests.test_node_validation   25MiB, 4 stream(s): 43.90 GB/s
-02:23:15 INFO     tests.test_node_validation   25MiB, 8 stream(s): 43.86 GB/s
-02:23:15 INFO     tests.test_node_validation   64MiB, 1 stream(s): 43.89 GB/s
-02:23:15 INFO     tests.test_node_validation   64MiB, 2 stream(s): 44.21 GB/s
-02:23:15 INFO     tests.test_node_validation   64MiB, 4 stream(s): 44.34 GB/s
-02:23:15 INFO     tests.test_node_validation   64MiB, 8 stream(s): 44.36 GB/s
-02:23:15 INFO     tests.test_node_validation   256MiB, 1 stream(s): 44.51 GB/s
-02:23:15 INFO     tests.test_node_validation   256MiB, 2 stream(s): 44.46 GB/s
-02:23:15 INFO     tests.test_node_validation   256MiB, 4 stream(s): 44.54 GB/s
-02:23:16 INFO     tests.test_node_validation   256MiB, 8 stream(s): 44.55 GB/s
-02:23:16 INFO     tests.test_node_validation   1GiB, 1 stream(s): 44.57 GB/s
-02:23:16 INFO     tests.test_node_validation   1GiB, 2 stream(s): 44.57 GB/s
-02:23:17 INFO     tests.test_node_validation   1GiB, 4 stream(s): 39.63 GB/s
-02:23:18 INFO     tests.test_node_validation   1GiB, 8 stream(s): 44.59 GB/s
-02:23:18 INFO     tests.test_node_validation P2P multi-stream BW (GPU 1->3): {'4MiB': {'1': 34.15, '2': 37.82, '4': 40.24, '8': 41.33}, '16MiB': {'1': 42.09, '2': 42.64, '4': 43.37, '8': 43.79}, '25MiB': {'1': 43.05, '2': 43.36, '4': 43.9, '8': 43.86}, '64MiB': {'1': 43.89, '2': 44.21, '4': 44.34, '8': 44.36}, '256MiB': {'1': 44.51, '2': 44.46, '4': 44.54, '8': 44.55}, '1GiB': {'1': 44.57, '2': 44.57, '4': 39.63, '8': 44.59}}
-02:23:18 INFO     tests.test_node_validation P2P multi-stream: GPU 2 -> GPU 0
-02:23:18 INFO     tests.test_node_validation   4MiB, 1 stream(s): 37.17 GB/s
-02:23:18 INFO     tests.test_node_validation   4MiB, 2 stream(s): 38.91 GB/s
-02:23:18 INFO     tests.test_node_validation   4MiB, 4 stream(s): 41.77 GB/s
-02:23:18 INFO     tests.test_node_validation   4MiB, 8 stream(s): 43.17 GB/s
-02:23:18 INFO     tests.test_node_validation   16MiB, 1 stream(s): 43.24 GB/s
-02:23:18 INFO     tests.test_node_validation   16MiB, 2 stream(s): 44.23 GB/s
-02:23:18 INFO     tests.test_node_validation   16MiB, 4 stream(s): 45.07 GB/s
-02:23:18 INFO     tests.test_node_validation   16MiB, 8 stream(s): 45.26 GB/s
-02:23:18 INFO     tests.test_node_validation   25MiB, 1 stream(s): 44.49 GB/s
-02:23:18 INFO     tests.test_node_validation   25MiB, 2 stream(s): 44.92 GB/s
-02:23:18 INFO     tests.test_node_validation   25MiB, 4 stream(s): 45.40 GB/s
-02:23:18 INFO     tests.test_node_validation   25MiB, 8 stream(s): 45.31 GB/s
-02:23:18 INFO     tests.test_node_validation   64MiB, 1 stream(s): 45.42 GB/s
-02:23:18 INFO     tests.test_node_validation   64MiB, 2 stream(s): 45.37 GB/s
-02:23:18 INFO     tests.test_node_validation   64MiB, 4 stream(s): 45.74 GB/s
-02:23:18 INFO     tests.test_node_validation   64MiB, 8 stream(s): 45.72 GB/s
-02:23:18 INFO     tests.test_node_validation   256MiB, 1 stream(s): 45.74 GB/s
-02:23:18 INFO     tests.test_node_validation   256MiB, 2 stream(s): 45.64 GB/s
-02:23:18 INFO     tests.test_node_validation   256MiB, 4 stream(s): 45.75 GB/s
-02:23:19 INFO     tests.test_node_validation   256MiB, 8 stream(s): 36.36 GB/s
-02:23:19 INFO     tests.test_node_validation   1GiB, 1 stream(s): 45.72 GB/s
-02:23:19 INFO     tests.test_node_validation   1GiB, 2 stream(s): 45.75 GB/s
-02:23:20 INFO     tests.test_node_validation   1GiB, 4 stream(s): 45.80 GB/s
-02:23:21 INFO     tests.test_node_validation   1GiB, 8 stream(s): 40.42 GB/s
-02:23:21 INFO     tests.test_node_validation P2P multi-stream BW (GPU 2->0): {'4MiB': {'1': 37.17, '2': 38.91, '4': 41.77, '8': 43.17}, '16MiB': {'1': 43.24, '2': 44.23, '4': 45.07, '8': 45.26}, '25MiB': {'1': 44.49, '2': 44.92, '4': 45.4, '8': 45.31}, '64MiB': {'1': 45.42, '2': 45.37, '4': 45.74, '8': 45.72}, '256MiB': {'1': 45.74, '2': 45.64, '4': 45.75, '8': 36.36}, '1GiB': {'1': 45.72, '2': 45.75, '4': 45.8, '8': 40.42}}
-02:23:21 INFO     tests.test_node_validation P2P multi-stream: GPU 2 -> GPU 1
-02:23:21 INFO     tests.test_node_validation   4MiB, 1 stream(s): 35.10 GB/s
-02:23:21 INFO     tests.test_node_validation   4MiB, 2 stream(s): 37.62 GB/s
-02:23:21 INFO     tests.test_node_validation   4MiB, 4 stream(s): 40.97 GB/s
-02:23:21 INFO     tests.test_node_validation   4MiB, 8 stream(s): 41.72 GB/s
-02:23:21 INFO     tests.test_node_validation   16MiB, 1 stream(s): 42.86 GB/s
-02:23:21 INFO     tests.test_node_validation   16MiB, 2 stream(s): 43.70 GB/s
-02:23:21 INFO     tests.test_node_validation   16MiB, 4 stream(s): 45.09 GB/s
-02:23:21 INFO     tests.test_node_validation   16MiB, 8 stream(s): 45.33 GB/s
-02:23:21 INFO     tests.test_node_validation   25MiB, 1 stream(s): 44.38 GB/s
-02:23:21 INFO     tests.test_node_validation   25MiB, 2 stream(s): 44.95 GB/s
-02:23:21 INFO     tests.test_node_validation   25MiB, 4 stream(s): 45.52 GB/s
-02:23:21 INFO     tests.test_node_validation   25MiB, 8 stream(s): 45.62 GB/s
-02:23:21 INFO     tests.test_node_validation   64MiB, 1 stream(s): 45.31 GB/s
-02:23:21 INFO     tests.test_node_validation   64MiB, 2 stream(s): 45.42 GB/s
-02:23:21 INFO     tests.test_node_validation   64MiB, 4 stream(s): 45.64 GB/s
-02:23:21 INFO     tests.test_node_validation   64MiB, 8 stream(s): 45.73 GB/s
-02:23:21 INFO     tests.test_node_validation   256MiB, 1 stream(s): 45.71 GB/s
-02:23:21 INFO     tests.test_node_validation   256MiB, 2 stream(s): 45.53 GB/s
-02:23:21 INFO     tests.test_node_validation   256MiB, 4 stream(s): 45.79 GB/s
-02:23:22 INFO     tests.test_node_validation   256MiB, 8 stream(s): 45.68 GB/s
-02:23:22 INFO     tests.test_node_validation   1GiB, 1 stream(s): 45.68 GB/s
-02:23:22 INFO     tests.test_node_validation   1GiB, 2 stream(s): 45.76 GB/s
-02:23:23 INFO     tests.test_node_validation   1GiB, 4 stream(s): 45.74 GB/s
-02:23:24 INFO     tests.test_node_validation   1GiB, 8 stream(s): 42.97 GB/s
-02:23:24 INFO     tests.test_node_validation P2P multi-stream BW (GPU 2->1): {'4MiB': {'1': 35.1, '2': 37.62, '4': 40.97, '8': 41.72}, '16MiB': {'1': 42.86, '2': 43.7, '4': 45.09, '8': 45.33}, '25MiB': {'1': 44.38, '2': 44.95, '4': 45.52, '8': 45.62}, '64MiB': {'1': 45.31, '2': 45.42, '4': 45.64, '8': 45.73}, '256MiB': {'1': 45.71, '2': 45.53, '4': 45.79, '8': 45.68}, '1GiB': {'1': 45.68, '2': 45.76, '4': 45.74, '8': 42.97}}
-02:23:24 INFO     tests.test_node_validation P2P multi-stream: GPU 2 -> GPU 3
-02:23:24 INFO     tests.test_node_validation   4MiB, 1 stream(s): 39.05 GB/s
-02:23:24 INFO     tests.test_node_validation   4MiB, 2 stream(s): 44.54 GB/s
-02:23:24 INFO     tests.test_node_validation   4MiB, 4 stream(s): 45.63 GB/s
-02:23:24 INFO     tests.test_node_validation   4MiB, 8 stream(s): 46.39 GB/s
-02:23:24 INFO     tests.test_node_validation   16MiB, 1 stream(s): 48.82 GB/s
-02:23:24 INFO     tests.test_node_validation   16MiB, 2 stream(s): 50.02 GB/s
-02:23:24 INFO     tests.test_node_validation   16MiB, 4 stream(s): 51.37 GB/s
-02:23:24 INFO     tests.test_node_validation   16MiB, 8 stream(s): 51.57 GB/s
-02:23:24 INFO     tests.test_node_validation   25MiB, 1 stream(s): 50.74 GB/s
-02:23:24 INFO     tests.test_node_validation   25MiB, 2 stream(s): 50.77 GB/s
-02:23:24 INFO     tests.test_node_validation   25MiB, 4 stream(s): 51.85 GB/s
-02:23:24 INFO     tests.test_node_validation   25MiB, 8 stream(s): 51.96 GB/s
-02:23:24 INFO     tests.test_node_validation   64MiB, 1 stream(s): 51.78 GB/s
-02:23:24 INFO     tests.test_node_validation   64MiB, 2 stream(s): 51.13 GB/s
-02:23:24 INFO     tests.test_node_validation   64MiB, 4 stream(s): 51.62 GB/s
-02:23:24 INFO     tests.test_node_validation   64MiB, 8 stream(s): 51.83 GB/s
-02:23:24 INFO     tests.test_node_validation   256MiB, 1 stream(s): 51.37 GB/s
-02:23:24 INFO     tests.test_node_validation   256MiB, 2 stream(s): 51.34 GB/s
-02:23:24 INFO     tests.test_node_validation   256MiB, 4 stream(s): 51.48 GB/s
-02:23:25 INFO     tests.test_node_validation   256MiB, 8 stream(s): 51.44 GB/s
-02:23:25 INFO     tests.test_node_validation   1GiB, 1 stream(s): 51.35 GB/s
-02:23:25 INFO     tests.test_node_validation   1GiB, 2 stream(s): 34.58 GB/s
-02:23:26 INFO     tests.test_node_validation   1GiB, 4 stream(s): 51.43 GB/s
-02:23:27 INFO     tests.test_node_validation   1GiB, 8 stream(s): 51.43 GB/s
-02:23:27 INFO     tests.test_node_validation P2P multi-stream BW (GPU 2->3): {'4MiB': {'1': 39.05, '2': 44.54, '4': 45.63, '8': 46.39}, '16MiB': {'1': 48.82, '2': 50.02, '4': 51.37, '8': 51.57}, '25MiB': {'1': 50.74, '2': 50.77, '4': 51.85, '8': 51.96}, '64MiB': {'1': 51.78, '2': 51.13, '4': 51.62, '8': 51.83}, '256MiB': {'1': 51.37, '2': 51.34, '4': 51.48, '8': 51.44}, '1GiB': {'1': 51.35, '2': 34.58, '4': 51.43, '8': 51.43}}
-02:23:27 INFO     tests.test_node_validation P2P multi-stream: GPU 3 -> GPU 0
-02:23:27 INFO     tests.test_node_validation   4MiB, 1 stream(s): 35.34 GB/s
-02:23:27 INFO     tests.test_node_validation   4MiB, 2 stream(s): 38.29 GB/s
-02:23:27 INFO     tests.test_node_validation   4MiB, 4 stream(s): 40.39 GB/s
-02:23:27 INFO     tests.test_node_validation   4MiB, 8 stream(s): 41.74 GB/s
-02:23:27 INFO     tests.test_node_validation   16MiB, 1 stream(s): 42.33 GB/s
-02:23:27 INFO     tests.test_node_validation   16MiB, 2 stream(s): 42.80 GB/s
-02:23:27 INFO     tests.test_node_validation   16MiB, 4 stream(s): 43.47 GB/s
-02:23:27 INFO     tests.test_node_validation   16MiB, 8 stream(s): 43.75 GB/s
-02:23:27 INFO     tests.test_node_validation   25MiB, 1 stream(s): 43.16 GB/s
-02:23:27 INFO     tests.test_node_validation   25MiB, 2 stream(s): 43.37 GB/s
-02:23:27 INFO     tests.test_node_validation   25MiB, 4 stream(s): 43.59 GB/s
-02:23:27 INFO     tests.test_node_validation   25MiB, 8 stream(s): 44.11 GB/s
-02:23:27 INFO     tests.test_node_validation   64MiB, 1 stream(s): 43.91 GB/s
-02:23:27 INFO     tests.test_node_validation   64MiB, 2 stream(s): 44.21 GB/s
-02:23:27 INFO     tests.test_node_validation   64MiB, 4 stream(s): 44.28 GB/s
-02:23:27 INFO     tests.test_node_validation   64MiB, 8 stream(s): 22.34 GB/s
-02:23:27 INFO     tests.test_node_validation   256MiB, 1 stream(s): 44.50 GB/s
-02:23:27 INFO     tests.test_node_validation   256MiB, 2 stream(s): 44.46 GB/s
-02:23:27 INFO     tests.test_node_validation   256MiB, 4 stream(s): 29.78 GB/s
-02:23:27 INFO     tests.test_node_validation   256MiB, 8 stream(s): 44.55 GB/s
-02:23:28 INFO     tests.test_node_validation   1GiB, 1 stream(s): 44.56 GB/s
-02:23:28 INFO     tests.test_node_validation   1GiB, 2 stream(s): 44.60 GB/s
-02:23:28 INFO     tests.test_node_validation   1GiB, 4 stream(s): 44.60 GB/s
-02:23:30 INFO     tests.test_node_validation   1GiB, 8 stream(s): 39.51 GB/s
-02:23:30 INFO     tests.test_node_validation P2P multi-stream BW (GPU 3->0): {'4MiB': {'1': 35.34, '2': 38.29, '4': 40.39, '8': 41.74}, '16MiB': {'1': 42.33, '2': 42.8, '4': 43.47, '8': 43.75}, '25MiB': {'1': 43.16, '2': 43.37, '4': 43.59, '8': 44.11}, '64MiB': {'1': 43.91, '2': 44.21, '4': 44.28, '8': 22.34}, '256MiB': {'1': 44.5, '2': 44.46, '4': 29.78, '8': 44.55}, '1GiB': {'1': 44.56, '2': 44.6, '4': 44.6, '8': 39.51}}
-02:23:30 INFO     tests.test_node_validation P2P multi-stream: GPU 3 -> GPU 1
-02:23:30 INFO     tests.test_node_validation   4MiB, 1 stream(s): 35.20 GB/s
-02:23:30 INFO     tests.test_node_validation   4MiB, 2 stream(s): 38.20 GB/s
-02:23:30 INFO     tests.test_node_validation   4MiB, 4 stream(s): 40.28 GB/s
-02:23:30 INFO     tests.test_node_validation   4MiB, 8 stream(s): 41.59 GB/s
-02:23:30 INFO     tests.test_node_validation   16MiB, 1 stream(s): 42.31 GB/s
-02:23:30 INFO     tests.test_node_validation   16MiB, 2 stream(s): 42.77 GB/s
-02:23:30 INFO     tests.test_node_validation   16MiB, 4 stream(s): 43.44 GB/s
-02:23:30 INFO     tests.test_node_validation   16MiB, 8 stream(s): 43.80 GB/s
-02:23:30 INFO     tests.test_node_validation   25MiB, 1 stream(s): 43.04 GB/s
-02:23:30 INFO     tests.test_node_validation   25MiB, 2 stream(s): 43.35 GB/s
-02:23:30 INFO     tests.test_node_validation   25MiB, 4 stream(s): 43.91 GB/s
-02:23:30 INFO     tests.test_node_validation   25MiB, 8 stream(s): 43.96 GB/s
-02:23:30 INFO     tests.test_node_validation   64MiB, 1 stream(s): 43.91 GB/s
-02:23:30 INFO     tests.test_node_validation   64MiB, 2 stream(s): 44.19 GB/s
-02:23:30 INFO     tests.test_node_validation   64MiB, 4 stream(s): 44.37 GB/s
-02:23:30 INFO     tests.test_node_validation   64MiB, 8 stream(s): 44.38 GB/s
-02:23:30 INFO     tests.test_node_validation   256MiB, 1 stream(s): 44.50 GB/s
-02:23:30 INFO     tests.test_node_validation   256MiB, 2 stream(s): 44.55 GB/s
-02:23:30 INFO     tests.test_node_validation   256MiB, 4 stream(s): 44.50 GB/s
-02:23:31 INFO     tests.test_node_validation   256MiB, 8 stream(s): 44.56 GB/s
-02:23:31 INFO     tests.test_node_validation   1GiB, 1 stream(s): 44.59 GB/s
-02:23:31 INFO     tests.test_node_validation   1GiB, 2 stream(s): 35.58 GB/s
-02:23:32 INFO     tests.test_node_validation   1GiB, 4 stream(s): 39.65 GB/s
-02:23:33 INFO     tests.test_node_validation   1GiB, 8 stream(s): 44.60 GB/s
-02:23:33 INFO     tests.test_node_validation P2P multi-stream BW (GPU 3->1): {'4MiB': {'1': 35.2, '2': 38.2, '4': 40.28, '8': 41.59}, '16MiB': {'1': 42.31, '2': 42.77, '4': 43.44, '8': 43.8}, '25MiB': {'1': 43.04, '2': 43.35, '4': 43.91, '8': 43.96}, '64MiB': {'1': 43.91, '2': 44.19, '4': 44.37, '8': 44.38}, '256MiB': {'1': 44.5, '2': 44.55, '4': 44.5, '8': 44.56}, '1GiB': {'1': 44.59, '2': 35.58, '4': 39.65, '8': 44.6}}
-02:23:33 INFO     tests.test_node_validation P2P multi-stream: GPU 3 -> GPU 2
-02:23:33 INFO     tests.test_node_validation   4MiB, 1 stream(s): 41.44 GB/s
-02:23:33 INFO     tests.test_node_validation   4MiB, 2 stream(s): 44.93 GB/s
-02:23:33 INFO     tests.test_node_validation   4MiB, 4 stream(s): 46.78 GB/s
-02:23:33 INFO     tests.test_node_validation   4MiB, 8 stream(s): 47.28 GB/s
-02:23:33 INFO     tests.test_node_validation   16MiB, 1 stream(s): 49.41 GB/s
-02:23:33 INFO     tests.test_node_validation   16MiB, 2 stream(s): 50.24 GB/s
-02:23:33 INFO     tests.test_node_validation   16MiB, 4 stream(s): 51.40 GB/s
-02:23:33 INFO     tests.test_node_validation   16MiB, 8 stream(s): 52.04 GB/s
-02:23:33 INFO     tests.test_node_validation   25MiB, 1 stream(s): 50.88 GB/s
-02:23:33 INFO     tests.test_node_validation   25MiB, 2 stream(s): 51.41 GB/s
-02:23:33 INFO     tests.test_node_validation   25MiB, 4 stream(s): 52.12 GB/s
-02:23:33 INFO     tests.test_node_validation   25MiB, 8 stream(s): 52.54 GB/s
-02:23:33 INFO     tests.test_node_validation   64MiB, 1 stream(s): 51.32 GB/s
-02:23:33 INFO     tests.test_node_validation   64MiB, 2 stream(s): 52.01 GB/s
-02:23:33 INFO     tests.test_node_validation   64MiB, 4 stream(s): 52.32 GB/s
-02:23:33 INFO     tests.test_node_validation   64MiB, 8 stream(s): 25.15 GB/s
-02:23:33 INFO     tests.test_node_validation   256MiB, 1 stream(s): 51.93 GB/s
-02:23:33 INFO     tests.test_node_validation   256MiB, 2 stream(s): 52.20 GB/s
-02:23:33 INFO     tests.test_node_validation   256MiB, 4 stream(s): 32.19 GB/s
-02:23:34 INFO     tests.test_node_validation   256MiB, 8 stream(s): 52.07 GB/s
-02:23:34 INFO     tests.test_node_validation   1GiB, 1 stream(s): 51.96 GB/s
-02:23:34 INFO     tests.test_node_validation   1GiB, 2 stream(s): 52.18 GB/s
-02:23:34 INFO     tests.test_node_validation   1GiB, 4 stream(s): 52.02 GB/s
-02:23:36 INFO     tests.test_node_validation   1GiB, 8 stream(s): 47.66 GB/s
-02:23:36 INFO     tests.test_node_validation P2P multi-stream BW (GPU 3->2): {'4MiB': {'1': 41.44, '2': 44.93, '4': 46.78, '8': 47.28}, '16MiB': {'1': 49.41, '2': 50.24, '4': 51.4, '8': 52.04}, '25MiB': {'1': 50.88, '2': 51.41, '4': 52.12, '8': 52.54}, '64MiB': {'1': 51.32, '2': 52.01, '4': 52.32, '8': 25.15}, '256MiB': {'1': 51.93, '2': 52.2, '4': 32.19, '8': 52.07}, '1GiB': {'1': 51.96, '2': 52.18, '4': 52.02, '8': 47.66}}
-02:23:36 INFO     tests.test_node_validation KPI test_p2p_multi_stream_bandwidth: {"assertion_size_bytes": 1073741824, "assertion_size_label": "1GiB", "directional_symmetry_stream_count": 4, "failing_pair_count": 0, "n_iters": 5, "observed_avg_scaling_ratio": 0.979, "observed_min_directional_symmetry": 0.871, "observed_min_scaling_ratio": 0.866, "required_min_directional_symmetry": 0.75, "required_min_stability_ratio": 0.85, "stream_counts": [1, 2, 4, 8], "tested_pair_count": 12, "transfer_sizes_bytes": [4194304, 16777216, 26214400, 67108864, 268435456, 1073741824], "transfer_sizes_labels": ["4MiB", "16MiB", "25MiB", "64MiB", "256MiB", "1GiB"], "worst_directional_pairs": [{"directional_symmetry_ratio": 0.871, "forward_pair": "0->1", "reverse_pair": "1->0"}, {"directional_symmetry_ratio": 0.891, "forward_pair": "0->2", "reverse_pair": "2->0"}, {"directional_symmetry_ratio": 0.965, "forward_pair": "0->3", "reverse_pair": "3->0"}], "worst_pairs": [{"bw_1_stream_gbs": 52.2, "bw_4_stream_gbs": 45.18, "pair": "1->0", "ratio_4_over_1": 0.866}, {"bw_1_stream_gbs": 46.16, "bw_4_stream_gbs": 40.83, "pair": "0->2", "ratio_4_over_1": 0.885}, {"bw_1_stream_gbs": 44.57, "bw_4_stream_gbs": 39.63, "pair": "1->3", "ratio_4_over_1": 0.889}]}
-02:23:37 INFO     tests.test_node_validation Kernel launch latency (microseconds):
-02:23:37 INFO     tests.test_node_validation   min  :    18.94 µs
-02:23:37 INFO     tests.test_node_validation   p50  :    20.42 µs
-02:23:37 INFO     tests.test_node_validation   mean :    20.76 µs
-02:23:37 INFO     tests.test_node_validation   p95  :    22.69 µs
-02:23:37 INFO     tests.test_node_validation   p99  :    25.55 µs
-02:23:37 INFO     tests.test_node_validation   max  :    34.43 µs
-02:23:37 INFO     tests.test_node_validation KPI test_kernel_launch_latency_stats: {"max_us": 34.425, "mean_us": 20.757, "min_us": 18.943, "p50_us": 20.417, "p95_us": 22.695, "p99_us": 25.555, "samples": 200}
-02:23:37 INFO     tests.test_node_validation 
+07:12:46 INFO     tests.test_node_validation KPI test_p2p_bandwidth_pytorch_fallback: {"attempted_pairs": 2, "failing_pairs": 0, "gpu_count": 2, "inaccessible_pairs": 0, "mean_gbs": 265.49, "measured_pairs": 2, "min_gbs": 265.45, "min_threshold_gbs": 40.0, "n_bytes": 1073741824, "n_iters": 8}
+07:12:46 INFO     tests.test_node_validation P2P multi-stream: GPU 0 -> GPU 1
+07:12:46 INFO     tests.test_node_validation   4MiB, 1 stream(s): 82.86 GB/s
+07:12:46 INFO     tests.test_node_validation   4MiB, 2 stream(s): 120.43 GB/s
+07:12:46 INFO     tests.test_node_validation   4MiB, 4 stream(s): 143.32 GB/s
+07:12:46 INFO     tests.test_node_validation   4MiB, 8 stream(s): 158.77 GB/s
+07:12:46 INFO     tests.test_node_validation   16MiB, 1 stream(s): 181.43 GB/s
+07:12:46 INFO     tests.test_node_validation   16MiB, 2 stream(s): 202.46 GB/s
+07:12:46 INFO     tests.test_node_validation   16MiB, 4 stream(s): 219.16 GB/s
+07:12:46 INFO     tests.test_node_validation   16MiB, 8 stream(s): 227.52 GB/s
+07:12:46 INFO     tests.test_node_validation   25MiB, 1 stream(s): 202.47 GB/s
+07:12:46 INFO     tests.test_node_validation   25MiB, 2 stream(s): 221.14 GB/s
+07:12:46 INFO     tests.test_node_validation   25MiB, 4 stream(s): 231.19 GB/s
+07:12:46 INFO     tests.test_node_validation   25MiB, 8 stream(s): 238.10 GB/s
+07:12:46 INFO     tests.test_node_validation   64MiB, 1 stream(s): 236.13 GB/s
+07:12:46 INFO     tests.test_node_validation   64MiB, 2 stream(s): 247.67 GB/s
+07:12:46 INFO     tests.test_node_validation   64MiB, 4 stream(s): 252.09 GB/s
+07:12:46 INFO     tests.test_node_validation   64MiB, 8 stream(s): 253.83 GB/s
+07:12:46 INFO     tests.test_node_validation   256MiB, 1 stream(s): 258.18 GB/s
+07:12:46 INFO     tests.test_node_validation   256MiB, 2 stream(s): 260.99 GB/s
+07:12:46 INFO     tests.test_node_validation   256MiB, 4 stream(s): 262.58 GB/s
+07:12:46 INFO     tests.test_node_validation   256MiB, 8 stream(s): 263.23 GB/s
+07:12:46 INFO     tests.test_node_validation   1GiB, 1 stream(s): 264.79 GB/s
+07:12:46 INFO     tests.test_node_validation   1GiB, 2 stream(s): 265.39 GB/s
+07:12:46 INFO     tests.test_node_validation   1GiB, 4 stream(s): 265.66 GB/s
+07:12:46 INFO     tests.test_node_validation   1GiB, 8 stream(s): 265.76 GB/s
+07:12:46 INFO     tests.test_node_validation P2P multi-stream BW (GPU 0->1): {'4MiB': {'1': 82.86, '2': 120.43, '4': 143.32, '8': 158.77}, '16MiB': {'1': 181.43, '2': 202.46, '4': 219.16, '8': 227.52}, '25MiB': {'1': 202.47, '2': 221.14, '4': 231.19, '8': 238.1}, '64MiB': {'1': 236.13, '2': 247.67, '4': 252.09, '8': 253.83}, '256MiB': {'1': 258.18, '2': 260.99, '4': 262.58, '8': 263.23}, '1GiB': {'1': 264.79, '2': 265.39, '4': 265.66, '8': 265.76}}
+07:12:46 INFO     tests.test_node_validation P2P multi-stream: GPU 1 -> GPU 0
+07:12:46 INFO     tests.test_node_validation   4MiB, 1 stream(s): 91.48 GB/s
+07:12:46 INFO     tests.test_node_validation   4MiB, 2 stream(s): 125.24 GB/s
+07:12:46 INFO     tests.test_node_validation   4MiB, 4 stream(s): 152.26 GB/s
+07:12:46 INFO     tests.test_node_validation   4MiB, 8 stream(s): 173.46 GB/s
+07:12:46 INFO     tests.test_node_validation   16MiB, 1 stream(s): 185.88 GB/s
+07:12:46 INFO     tests.test_node_validation   16MiB, 2 stream(s): 207.76 GB/s
+07:12:46 INFO     tests.test_node_validation   16MiB, 4 stream(s): 217.13 GB/s
+07:12:46 INFO     tests.test_node_validation   16MiB, 8 stream(s): 224.81 GB/s
+07:12:46 INFO     tests.test_node_validation   25MiB, 1 stream(s): 206.91 GB/s
+07:12:46 INFO     tests.test_node_validation   25MiB, 2 stream(s): 225.22 GB/s
+07:12:46 INFO     tests.test_node_validation   25MiB, 4 stream(s): 232.73 GB/s
+07:12:46 INFO     tests.test_node_validation   25MiB, 8 stream(s): 237.04 GB/s
+07:12:46 INFO     tests.test_node_validation   64MiB, 1 stream(s): 235.96 GB/s
+07:12:46 INFO     tests.test_node_validation   64MiB, 2 stream(s): 247.44 GB/s
+07:12:46 INFO     tests.test_node_validation   64MiB, 4 stream(s): 251.61 GB/s
+07:12:46 INFO     tests.test_node_validation   64MiB, 8 stream(s): 254.00 GB/s
+07:12:46 INFO     tests.test_node_validation   256MiB, 1 stream(s): 258.10 GB/s
+07:12:46 INFO     tests.test_node_validation   256MiB, 2 stream(s): 261.07 GB/s
+07:12:46 INFO     tests.test_node_validation   256MiB, 4 stream(s): 262.50 GB/s
+07:12:46 INFO     tests.test_node_validation   256MiB, 8 stream(s): 263.20 GB/s
+07:12:47 INFO     tests.test_node_validation   1GiB, 1 stream(s): 264.87 GB/s
+07:12:47 INFO     tests.test_node_validation   1GiB, 2 stream(s): 265.39 GB/s
+07:12:47 INFO     tests.test_node_validation   1GiB, 4 stream(s): 265.64 GB/s
+07:12:47 INFO     tests.test_node_validation   1GiB, 8 stream(s): 265.79 GB/s
+07:12:47 INFO     tests.test_node_validation P2P multi-stream BW (GPU 1->0): {'4MiB': {'1': 91.48, '2': 125.24, '4': 152.26, '8': 173.46}, '16MiB': {'1': 185.88, '2': 207.76, '4': 217.13, '8': 224.81}, '25MiB': {'1': 206.91, '2': 225.22, '4': 232.73, '8': 237.04}, '64MiB': {'1': 235.96, '2': 247.44, '4': 251.61, '8': 254.0}, '256MiB': {'1': 258.1, '2': 261.07, '4': 262.5, '8': 263.2}, '1GiB': {'1': 264.87, '2': 265.39, '4': 265.64, '8': 265.79}}
+07:12:47 INFO     tests.test_node_validation KPI test_p2p_multi_stream_bandwidth: {"assertion_size_bytes": 1073741824, "assertion_size_label": "1GiB", "directional_symmetry_stream_count": 4, "failing_pair_count": 0, "n_iters": 5, "observed_avg_scaling_ratio": 1.003, "observed_min_directional_symmetry": 1.0, "observed_min_scaling_ratio": 1.003, "required_min_directional_symmetry": 0.75, "required_min_stability_ratio": 0.85, "stream_counts": [1, 2, 4, 8], "tested_pair_count": 2, "transfer_sizes_bytes": [4194304, 16777216, 26214400, 67108864, 268435456, 1073741824], "transfer_sizes_labels": ["4MiB", "16MiB", "25MiB", "64MiB", "256MiB", "1GiB"], "worst_directional_pairs": [{"directional_symmetry_ratio": 1.0, "forward_pair": "0->1", "reverse_pair": "1->0"}], "worst_pairs": [{"bw_1_stream_gbs": 264.87, "bw_4_stream_gbs": 265.64, "pair": "1->0", "ratio_4_over_1": 1.003}, {"bw_1_stream_gbs": 264.79, "bw_4_stream_gbs": 265.66, "pair": "0->1", "ratio_4_over_1": 1.003}]}
+07:12:51 INFO     tests.test_node_validation Kernel launch latency (microseconds):
+07:12:51 INFO     tests.test_node_validation   min  :    18.94 µs
+07:12:51 INFO     tests.test_node_validation   p50  :    20.36 µs
+07:12:51 INFO     tests.test_node_validation   mean :    20.56 µs
+07:12:51 INFO     tests.test_node_validation   p95  :    22.25 µs
+07:12:51 INFO     tests.test_node_validation   p99  :    24.57 µs
+07:12:51 INFO     tests.test_node_validation   max  :    28.99 µs
+07:12:51 INFO     tests.test_node_validation KPI test_kernel_launch_latency_stats: {"max_us": 28.992, "mean_us": 20.561, "min_us": 18.936, "p50_us": 20.359, "p95_us": 22.245, "p99_us": 24.566, "samples": 200}
+07:12:51 INFO     tests.test_node_validation 
 ================================================================================
-02:23:37 INFO     tests.test_node_validation Additional Data Movement and Compute Metrics
-02:23:37 INFO     tests.test_node_validation ================================================================================
-02:23:37 INFO     tests.test_node_validation 
+07:12:51 INFO     tests.test_node_validation Additional Data Movement and Compute Metrics
+07:12:51 INFO     tests.test_node_validation ================================================================================
+07:12:51 INFO     tests.test_node_validation 
 Host-to-Device (RAM→GPU) Transfer Times:
-02:23:56 INFO     tests.test_node_validation   h2d_100kb_bw_gbs: 5.36 GB/s
-02:23:56 INFO     tests.test_node_validation   h2d_100kb_us: 19.32 µs
-02:23:56 INFO     tests.test_node_validation   h2d_100mb_bw_gbs: 55.77 GB/s
-02:23:56 INFO     tests.test_node_validation   h2d_100mb_us: 2046.45 µs
-02:23:56 INFO     tests.test_node_validation   h2d_10gb_bw_gbs: 55.57 GB/s
-02:23:56 INFO     tests.test_node_validation   h2d_10gb_us: 193248.31 µs
-02:23:56 INFO     tests.test_node_validation   h2d_10kb_bw_gbs: 0.59 GB/s
-02:23:56 INFO     tests.test_node_validation   h2d_10kb_us: 17.60 µs
-02:23:56 INFO     tests.test_node_validation   h2d_10mb_bw_gbs: 40.35 GB/s
-02:23:56 INFO     tests.test_node_validation   h2d_10mb_us: 270.97 µs
-02:23:56 INFO     tests.test_node_validation   h2d_1gb_bw_gbs: 56.31 GB/s
-02:23:56 INFO     tests.test_node_validation   h2d_1gb_us: 19091.11 µs
-02:23:56 INFO     tests.test_node_validation   h2d_1mb_bw_gbs: 23.15 GB/s
-02:23:56 INFO     tests.test_node_validation   h2d_1mb_us: 46.34 µs
-02:23:56 INFO     tests.test_node_validation 
+07:13:06 INFO     tests.test_node_validation   h2d_100kb_bw_gbs: 5.42 GB/s
+07:13:06 INFO     tests.test_node_validation   h2d_100kb_us: 19.72 µs
+07:13:06 INFO     tests.test_node_validation   h2d_100mb_bw_gbs: 55.71 GB/s
+07:13:06 INFO     tests.test_node_validation   h2d_100mb_us: 1913.49 µs
+07:13:06 INFO     tests.test_node_validation   h2d_10gb_bw_gbs: 55.57 GB/s
+07:13:06 INFO     tests.test_node_validation   h2d_10gb_us: 194046.42 µs
+07:13:06 INFO     tests.test_node_validation   h2d_10kb_bw_gbs: 0.65 GB/s
+07:13:06 INFO     tests.test_node_validation   h2d_10kb_us: 16.68 µs
+07:13:06 INFO     tests.test_node_validation   h2d_10mb_bw_gbs: 40.64 GB/s
+07:13:06 INFO     tests.test_node_validation   h2d_10mb_us: 259.77 µs
+07:13:06 INFO     tests.test_node_validation   h2d_1gb_bw_gbs: 56.40 GB/s
+07:13:06 INFO     tests.test_node_validation   h2d_1gb_us: 19071.61 µs
+07:13:06 INFO     tests.test_node_validation   h2d_1mb_bw_gbs: 25.34 GB/s
+07:13:06 INFO     tests.test_node_validation   h2d_1mb_us: 42.74 µs
+07:13:06 INFO     tests.test_node_validation 
 Device-to-Host (GPU→RAM) Transfer Times:
-02:23:57 INFO     tests.test_node_validation   d2h_100kb_bw_gbs: 6.78 GB/s
-02:23:57 INFO     tests.test_node_validation   d2h_100kb_us: 15.31 µs
-02:23:57 INFO     tests.test_node_validation   d2h_100mb_bw_gbs: 54.76 GB/s
-02:23:57 INFO     tests.test_node_validation   d2h_100mb_us: 1915.33 µs
-02:23:57 INFO     tests.test_node_validation   d2h_10gb_bw_gbs: 55.03 GB/s
-02:23:57 INFO     tests.test_node_validation   d2h_10gb_us: 195197.12 µs
-02:23:57 INFO     tests.test_node_validation   d2h_10kb_bw_gbs: 0.79 GB/s
-02:23:57 INFO     tests.test_node_validation   d2h_10kb_us: 13.21 µs
-02:23:57 INFO     tests.test_node_validation   d2h_10mb_bw_gbs: 50.25 GB/s
-02:23:57 INFO     tests.test_node_validation   d2h_10mb_us: 209.10 µs
-02:23:57 INFO     tests.test_node_validation   d2h_1gb_bw_gbs: 54.78 GB/s
-02:23:57 INFO     tests.test_node_validation   d2h_1gb_us: 19601.71 µs
-02:23:57 INFO     tests.test_node_validation   d2h_1mb_bw_gbs: 30.00 GB/s
-02:23:57 INFO     tests.test_node_validation   d2h_1mb_us: 35.04 µs
-02:23:57 INFO     tests.test_node_validation 
+07:13:07 INFO     tests.test_node_validation   d2h_100kb_bw_gbs: 6.73 GB/s
+07:13:07 INFO     tests.test_node_validation   d2h_100kb_us: 15.49 µs
+07:13:07 INFO     tests.test_node_validation   d2h_100mb_bw_gbs: 55.00 GB/s
+07:13:07 INFO     tests.test_node_validation   d2h_100mb_us: 1906.49 µs
+07:13:07 INFO     tests.test_node_validation   d2h_10gb_bw_gbs: 55.20 GB/s
+07:13:07 INFO     tests.test_node_validation   d2h_10gb_us: 194617.47 µs
+07:13:07 INFO     tests.test_node_validation   d2h_10kb_bw_gbs: 0.76 GB/s
+07:13:07 INFO     tests.test_node_validation   d2h_10kb_us: 13.62 µs
+07:13:07 INFO     tests.test_node_validation   d2h_10mb_bw_gbs: 50.88 GB/s
+07:13:07 INFO     tests.test_node_validation   d2h_10mb_us: 206.31 µs
+07:13:07 INFO     tests.test_node_validation   d2h_1gb_bw_gbs: 54.54 GB/s
+07:13:07 INFO     tests.test_node_validation   d2h_1gb_us: 19689.55 µs
+07:13:07 INFO     tests.test_node_validation   d2h_1mb_bw_gbs: 29.99 GB/s
+07:13:07 INFO     tests.test_node_validation   d2h_1mb_us: 35.26 µs
+07:13:07 INFO     tests.test_node_validation 
 CPU Compute Time (512×512 matrix multiply):
-02:23:57 INFO     tests.test_node_validation   avg per iteration: 381.78 µs
-02:23:57 INFO     tests.test_node_validation 
+07:13:07 INFO     tests.test_node_validation   avg per iteration: 342.04 µs
+07:13:07 INFO     tests.test_node_validation 
 GPU Compute Time (512×512 matrix multiply):
-02:23:57 INFO     tests.test_node_validation   avg per iteration: 18.86 µs
-02:23:57 INFO     tests.test_node_validation 
+07:13:07 INFO     tests.test_node_validation   avg per iteration: 18.81 µs
+07:13:07 INFO     tests.test_node_validation 
 CPU↔GPU Round-Trip Latency (1 MB, H2D→D2H):
-02:23:57 INFO     tests.test_node_validation   cpu_gpu_roundtrip_max_us: 96.73 µs
-02:23:57 INFO     tests.test_node_validation   cpu_gpu_roundtrip_min_us: 73.42 µs
-02:23:57 INFO     tests.test_node_validation   cpu_gpu_roundtrip_p50_us: 75.12 µs
-02:23:57 INFO     tests.test_node_validation   cpu_gpu_roundtrip_p95_us: 78.09 µs
-02:23:57 INFO     tests.test_node_validation KPI test_kernel_launch_latency_stats_extended: {"cpu_compute_us": 381.77826998435194, "cpu_gpu_roundtrip_max_us": 96.72500164015219, "cpu_gpu_roundtrip_min_us": 73.4229979570955, "cpu_gpu_roundtrip_p50_us": 75.11549847549759, "cpu_gpu_roundtrip_p95_us": 78.09410053596366, "d2h_100kb_bw_gbs": 6.7792118293590775, "d2h_100kb_us": 15.30800000182353, "d2h_100mb_bw_gbs": 54.76115995839186, "d2h_100mb_us": 1915.3300017933361, "d2h_10gb_bw_gbs": 55.03187711474402, "d2h_10gb_us": 195197.12499823072, "d2h_10kb_bw_gbs": 0.7870869815722951, "d2h_10kb_us": 13.212997146183625, "d2h_10mb_bw_gbs": 50.247072244434534, "d2h_10mb_us": 209.09500017296523, "d2h_1gb_bw_gbs": 54.78140732806754, "d2h_1gb_us": 19601.707001129398, "d2h_1mb_bw_gbs": 29.996166697389384, "d2h_1mb_us": 35.03799962345511, "gpu_compute_us": 18.86403999378672, "h2d_100kb_bw_gbs": 5.364907653643096, "h2d_100kb_us": 19.31999941007234, "h2d_100mb_bw_gbs": 55.77395451439024, "h2d_100mb_us": 2046.4510016608983, "h2d_10gb_bw_gbs": 55.567419033514945, "h2d_10gb_us": 193248.3089985908, "h2d_10kb_bw_gbs": 0.5861476859282188, "h2d_10kb_us": 17.5989989656955, "h2d_10mb_bw_gbs": 40.34505300584065, "h2d_10mb_us": 270.96899793832563, "h2d_1gb_bw_gbs": 56.306450385388096, "h2d_1gb_us": 19091.114998445846, "h2d_1mb_bw_gbs": 23.151461926743366, "h2d_1mb_us": 46.340002882061526}
-02:23:58 INFO     tests.test_node_validation cudaDeviceSynchronize() overhead (microseconds):
-02:23:58 INFO     tests.test_node_validation   min  :     3.28 µs
-02:23:58 INFO     tests.test_node_validation   p50  :     3.77 µs
-02:23:58 INFO     tests.test_node_validation   mean :     4.39 µs
-02:23:58 INFO     tests.test_node_validation   p95  :     4.01 µs
-02:23:58 INFO     tests.test_node_validation   p99  :     4.21 µs
-02:23:58 INFO     tests.test_node_validation   max  :   137.39 µs
-02:23:58 INFO     tests.test_node_validation KPI test_synchronize_overhead_stats: {"max_us": 137.389, "mean_us": 4.39, "min_us": 3.28, "p50_us": 3.771, "p95_us": 4.013, "p99_us": 4.209, "samples": 200}
-02:24:29 INFO     tests.test_node_validation GPU Power profile (sustained workload, 120 samples):
-02:24:29 INFO     tests.test_node_validation   Min:   88.7 W
-02:24:29 INFO     tests.test_node_validation   Mean:  346.2 W
-02:24:29 INFO     tests.test_node_validation   Max:   410.9 W
-02:24:29 INFO     tests.test_node_validation   Std:   54.7 W
-02:24:29 INFO     tests.test_node_validation KPI test_sustained_gpu_power_stability: {"duration_sec": 30, "max_w": 410.94, "mean_w": 346.23, "min_w": 88.7, "samples": 120, "std_w": 54.67}
-02:24:30 INFO     tests.test_node_validation Write BW  4KB      :      0.7 GB/s
-02:24:30 INFO     tests.test_node_validation Write BW  64KB     :     12.3 GB/s
-02:24:30 INFO     tests.test_node_validation Write BW  1MB      :    188.9 GB/s
-02:24:30 INFO     tests.test_node_validation Write BW  16MB     :   2036.6 GB/s
-02:24:30 INFO     tests.test_node_validation Write BW  256MB    :   1981.9 GB/s
-02:24:30 INFO     tests.test_node_validation Write BW  512MB    :   2011.9 GB/s
-02:24:30 INFO     tests.test_node_validation GPU write BW summary: peak=2036.6 GB/s  small(4KB)=0.7  large(256MB)=1981.9  ratio=2831.3x
-02:24:30 INFO     tests.test_node_validation KPI test_gpu_write_performance_limiters: {"bw_by_size_gbs": {"16MB": 2036.59, "1MB": 188.87, "256MB": 1981.94, "4KB": 0.7, "512MB": 2011.88, "64KB": 12.31}, "device": "NVIDIA H100 PCIe", "n_iters": 10, "peak_write_bw_gbs": 2036.59}
-02:24:30 INFO     tests.test_node_validation 
+07:13:07 INFO     tests.test_node_validation   cpu_gpu_roundtrip_max_us: 90.64 µs
+07:13:07 INFO     tests.test_node_validation   cpu_gpu_roundtrip_min_us: 70.94 µs
+07:13:07 INFO     tests.test_node_validation   cpu_gpu_roundtrip_p50_us: 73.21 µs
+07:13:07 INFO     tests.test_node_validation   cpu_gpu_roundtrip_p95_us: 75.57 µs
+07:13:07 INFO     tests.test_node_validation KPI test_kernel_launch_latency_stats_extended: {"cpu_compute_us": 342.03577000880614, "cpu_gpu_roundtrip_max_us": 90.64199912245385, "cpu_gpu_roundtrip_min_us": 70.93699969118461, "cpu_gpu_roundtrip_p50_us": 73.20550048461882, "cpu_gpu_roundtrip_p95_us": 75.57480048490106, "d2h_100kb_bw_gbs": 6.7257801812622935, "d2h_100kb_us": 15.490000805584714, "d2h_100mb_bw_gbs": 55.00484179124675, "d2h_100mb_us": 1906.4850002905587, "d2h_10gb_bw_gbs": 55.19709494358245, "d2h_10gb_us": 194617.47000059404, "d2h_10kb_bw_gbs": 0.7568366757494855, "d2h_10kb_us": 13.619999663205817, "d2h_10mb_bw_gbs": 50.878284494394244, "d2h_10mb_us": 206.31199913623277, "d2h_1gb_bw_gbs": 54.54030611119619, "d2h_1gb_us": 19689.54800031497, "d2h_1mb_bw_gbs": 29.991878088862514, "d2h_1mb_us": 35.258999560028315, "gpu_compute_us": 18.812129983416526, "h2d_100kb_bw_gbs": 5.423441305261032, "h2d_100kb_us": 19.71700112335384, "h2d_100mb_bw_gbs": 55.71128077861213, "h2d_100mb_us": 1913.4920003125444, "h2d_10gb_bw_gbs": 55.569767125466896, "h2d_10gb_us": 194046.4189992781, "h2d_10kb_bw_gbs": 0.6476913657151568, "h2d_10kb_us": 16.680000044289045, "h2d_10mb_bw_gbs": 40.63586540114443, "h2d_10mb_us": 259.7719994810177, "h2d_1gb_bw_gbs": 56.39500744885178, "h2d_1gb_us": 19071.609000093304, "h2d_1mb_bw_gbs": 25.34016497519653, "h2d_1mb_us": 42.74499951861799}
+07:13:08 INFO     tests.test_node_validation cudaDeviceSynchronize() overhead (microseconds):
+07:13:08 INFO     tests.test_node_validation   min  :     3.61 µs
+07:13:08 INFO     tests.test_node_validation   p50  :     3.81 µs
+07:13:08 INFO     tests.test_node_validation   mean :     3.86 µs
+07:13:08 INFO     tests.test_node_validation   p95  :     4.08 µs
+07:13:08 INFO     tests.test_node_validation   p99  :     4.41 µs
+07:13:08 INFO     tests.test_node_validation   max  :    10.87 µs
+07:13:08 INFO     tests.test_node_validation KPI test_synchronize_overhead_stats: {"max_us": 10.868, "mean_us": 3.862, "min_us": 3.608, "p50_us": 3.81, "p95_us": 4.076, "p99_us": 4.406, "samples": 200}
+07:13:39 INFO     tests.test_node_validation GPU Power profile (sustained workload, 60 samples):
+07:13:39 INFO     tests.test_node_validation   Min:   98.5 W
+07:13:39 INFO     tests.test_node_validation   Mean:  339.1 W
+07:13:39 INFO     tests.test_node_validation   Max:   369.5 W
+07:13:39 INFO     tests.test_node_validation   Std:   46.1 W
+07:13:39 INFO     tests.test_node_validation KPI test_sustained_gpu_power_stability: {"duration_sec": 30, "max_w": 369.49, "mean_w": 339.09, "min_w": 98.52, "samples": 60, "std_w": 46.1}
+07:13:39 INFO     tests.test_node_validation Write BW  4KB      :      0.7 GB/s
+07:13:39 INFO     tests.test_node_validation Write BW  64KB     :     12.9 GB/s
+07:13:39 INFO     tests.test_node_validation Write BW  1MB      :    219.2 GB/s
+07:13:39 INFO     tests.test_node_validation Write BW  16MB     :   2189.4 GB/s
+07:13:39 INFO     tests.test_node_validation Write BW  256MB    :   1983.6 GB/s
+07:13:39 INFO     tests.test_node_validation Write BW  512MB    :   2009.9 GB/s
+07:13:39 INFO     tests.test_node_validation GPU write BW summary: peak=2189.4 GB/s  small(4KB)=0.7  large(256MB)=1983.6  ratio=2874.7x
+07:13:39 INFO     tests.test_node_validation KPI test_gpu_write_performance_limiters: {"bw_by_size_gbs": {"16MB": 2189.38, "1MB": 219.16, "256MB": 1983.56, "4KB": 0.69, "512MB": 2009.93, "64KB": 12.88}, "device": "NVIDIA H100 PCIe", "n_iters": 10, "peak_write_bw_gbs": 2189.38}
+07:13:40 INFO     tests.test_node_validation 
 NVLink status:
 GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)
-Device does not have or support Nvlink
+	 Link 0: 26.562 GB/s
+	 Link 1: 26.562 GB/s
+	 Link 2: 26.562 GB/s
+	 Link 3: 26.562 GB/s
+	 Link 4: <inactive>
+	 Link 5: <inactive>
+	 Link 6: 26.562 GB/s
+	 Link 7: 26.562 GB/s
+	 Link 8: 26.562 GB/s
+	 Link 9: 26.562 GB/s
+	 Link 10: <inactive>
+	 Link 11: <inactive>
+	 Link 12: 26.562 GB/s
+	 Link 13: 26.562 GB/s
+	 Link 14: 26.562 GB/s
+	 Link 15: 26.562 GB/s
+	 Link 16: <inactive>
+	 Link 17: <inactive>
 GPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)
-Device does not have or support Nvlink
-GPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)
-Device does not have or support Nvlink
-GPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)
-Device does not have or support Nvlink
-02:24:30 INFO     tests.test_node_validation 
+	 Link 0: 26.562 GB/s
+	 Link 1: 26.562 GB/s
+	 Link 2: 26.562 GB/s
+	 Link 3: 26.562 GB/s
+	 Link 4: <inactive>
+	 Link 5: <inactive>
+	 Link 6: 26.562 GB/s
+	 Link 7: 26.562 GB/s
+	 Link 8: 26.562 GB/s
+	 Link 9: 26.562 GB/s
+	 Link 10: <inactive>
+	 Link 11: <inactive>
+	 Link 12: 26.562 GB/s
+	 Link 13: 26.562 GB/s
+	 Link 14: 26.562 GB/s
+	 Link 15: 26.562 GB/s
+	 Link 16: <inactive>
+	 Link 17: <inactive>
+07:13:40 INFO     tests.test_node_validation 
 NVLink capabilities:
 GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)
-Device does not have or support Nvlink
+	 Link 0, P2P is supported: true
+	 Link 0, Access to system memory supported: true
+	 Link 0, P2P atomics supported: true
+	 Link 0, System memory atomics supported: true
+	 Link 0, SLI is supported: true
+	 Link 0, Link is supported: true
+	 Link 1, P2P is supported: true
+	 Link 1, Access to system memory supported: true
+	 Link 1, P2P atomics supported: true
+	 Link 1, System memory atomics supported: true
+	 Link 1, SLI is supported: true
+	 Link 1, Link is supported: true
+	 Link 2, P2P is supported: true
+	 Link 2, Access to system memory supported: true
+	 Link 2, P2P atomics supported: true
+	 Link 2, System memory atomics supported: true
+	 Link 2, SLI is supported: true
+	 Link 2, Link is supported: true
+	 Link 3, P2P is supported: true
+	 Link 3, Access to system memory supported: true
+	 Link 3, P2P atomics supported: true
+	 Link 3, System memory atomics supported: true
+	 Link 3, SLI is supported: true
+	 Link 3, Link is supported: true
+	 Link 6, P2P is supported: true
+	 Link 6, Access to system memory supported: true
+	 Link 6, P2P atomics supported: true
+	 Link 6, System memory atomics supported: true
+	 Link 6, SLI is supported: true
+	 Link 6, Link is supported: true
+	 Link 7, P2P is supported: true
+	 Link 7, Access to system memory supported: true
+	 Link 7, P2P atomics supported: true
+	 Link 7, System memory atomics supported: true
+	 Link 7, SLI is supported: true
+	 Link 7, Link is supported: true
+	 Link 8, P2P is supported: true
+	 Link 8, Access to system memory supported: true
+	 Link 8, P2P atomics supported: true
+	 Link 8, System memory atomics supported: true
+	 Link 8, SLI is supported: true
+	 Link 8, Link is supported: true
+	 Link 9, P2P is supported: true
+	 Link 9, Access to system memory supported: true
+	 Link 9, P2P atomics supported: true
+	 Link 9, System memory atomics supported: true
+	 Link 9, SLI is supported: true
+	 Link 9, Link is supported: true
+	 Link 12, P2P is supported: true
+	 Link 12, Access to system memory supported: true
+	 Link 12, P2P atomics supported: true
+	 Link 12, System memory atomics supported: true
+	 Link 12, SLI is supported: true
+	 Link 12, Link is supported: true
+	 Link 13, P2P is supported: true
+	 Link 13, Access to system memory supported: true
+	 Link 13, P2P atomics supported: true
+	 Link 13, System memory atomics supported: true
+	 Link 13, SLI is supported: true
+	 Link 13, Link is supported: true
+	 Link 14, P2P is supported: true
+	 Link 14, Access to system memory supported: true
+	 Link 14, P2P atomics supported: true
+	 Link 14, System memory atomics supported: true
+	 Link 14, SLI is supported: true
+	 Link 14, Link is supported: true
+	 Link 15, P2P is supported: true
+	 Link 15, Access to system memory supported: true
+	 Link 15, P2P atomics supported: true
+	 Link 15, System memory atomics supported: true
+	 Link 15, SLI is supported: true
+	 Link 15, Link is supported: true
 GPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)
-Device does not have or support Nvlink
-GPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)
-Device does not have or support Nvlink
-GPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)
-Device does not have or support Nvlink
-02:24:30 INFO     tests.test_node_validation KPI test_nvlink_status: {"available": false, "status_excerpt": "GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)\nDevice does not have or support Nvlink\nGPU 1: NVIDIA H100 PCIe (UUID: GPU-653794cb-4686-6a91-d134-1f69c450e72d)\nDevice does not have or support Nvlink\nGPU 2: NVIDIA H100 NVL (UUID: GPU-ef5f7d30-9759-8de7-661d-a659f8cafd1c)\nDevice does not have or support Nvlink\nGPU 3: NVIDIA H100 PCIe (UUID: GPU-79d3bce3-cbf4-fe07-3ac4-34d27bf961f2)\nDevice does not have or support Nvlink"}
-02:24:30 WARNING  tests.test_node_validation NVLink not detected — system may be PCIe-only interconnect
-02:24:30 INFO     tests.test_node_validation NCCL availability: NCCL available via torch.cuda.nccl (version tuple: (2, 28, 9))
-02:24:30 INFO     tests.test_node_validation KPI test_nccl_availability: {"available": true, "message": "NCCL available via torch.cuda.nccl (version tuple: (2, 28, 9))"}
-02:24:38 INFO     tests.test_node_validation 
+	 Link 0, P2P is supported: true
+	 Link 0, Access to system memory supported: true
+	 Link 0, P2P atomics supported: true
+	 Link 0, System memory atomics supported: true
+	 Link 0, SLI is supported: true
+	 Link 0, Link is supported: true
+	 Link 1, P2P is supported: true
+	 Link 1, Access to system memory supported: true
+	 Link 1, P2P atomics supported: true
+	 Link 1, System memory atomics supported: true
+	 Link 1, SLI is supported: true
+	 Link 1, Link is supported: true
+	 Link 2, P2P is supported: true
+	 Link 2, Access to system memory supported: true
+	 Link 2, P2P atomics supported: true
+	 Link 2, System memory atomics supported: true
+	 Link 2, SLI is supported: true
+	 Link 2, Link is supported: true
+	 Link 3, P2P is supported: true
+	 Link 3, Access to system memory supported: true
+	 Link 3, P2P atomics supported: true
+	 Link 3, System memory atomics supported: true
+	 Link 3, SLI is supported: true
+	 Link 3, Link is supported: true
+	 Link 6, P2P is supported: true
+	 Link 6, Access to system memory supported: true
+	 Link 6, P2P atomics supported: true
+	 Link 6, System memory atomics supported: true
+	 Link 6, SLI is supported: true
+	 Link 6, Link is supported: true
+	 Link 7, P2P is supported: true
+	 Link 7, Access to system memory supported: true
+	 Link 7, P2P atomics supported: true
+	 Link 7, System memory atomics supported: true
+	 Link 7, SLI is supported: true
+	 Link 7, Link is supported: true
+	 Link 8, P2P is supported: true
+	 Link 8, Access to system memory supported: true
+	 Link 8, P2P atomics supported: true
+	 Link 8, System memory atomics supported: true
+	 Link 8, SLI is supported: true
+	 Link 8, Link is supported: true
+	 Link 9, P2P is supported: true
+	 Link 9, Access to system memory supported: true
+	 Link 9, P2P atomics supported: true
+	 Link 9, System memory atomics supported: true
+	 Link 9, SLI is supported: true
+	 Link 9, Link is supported: true
+	 Link 12, P2P is supported: true
+	 Link 12, Access to system memory supported: true
+	 Link 12, P2P atomics supported: true
+	 Link 12, System memory atomics supported: true
+	 Link 12, SLI is supported: true
+	 Link 12, Link is supported: true
+	 Link 13, P2P is supported: true
+	 Link 13, Access to system memory supported: true
+	 Link 13, P2P atomics supported: true
+	 Link 13, System memory atomics supported: true
+	 Link 13, SLI is supported: true
+	 Link 13, Link is supported: true
+	 Link 14, P2P is supported: true
+	 Link 14, Access to system memory supported: true
+	 Link 14, P2P atomics supported: true
+	 Link 14, System memory atomics supported: true
+	 Link 14, SLI is supported: true
+	 Link 14, Link is supported: true
+	 Link 15, P2P is supported: true
+	 Link 15, Access to system memory supported: true
+	 Link 15, P2P atomics supported: true
+	 Link 15, System memory atomics supported: true
+	 Link 15, SLI is supported: true
+	 Link 15, Link is supported: true
+07:13:40 INFO     tests.test_node_validation KPI test_nvlink_status: {"available": true, "status_excerpt": "GPU 0: NVIDIA H100 PCIe (UUID: GPU-144b9d63-d3e3-4136-fa67-d221f9b4f065)\n\t Link 0: 26.562 GB/s\n\t Link 1: 26.562 GB/s\n\t Link 2: 26.562 GB/s\n\t Link 3: 26.562 GB/s\n\t Link 4: <inactive>\n\t Link 5: <inactive>\n\t Link 6: 26.562 GB/s\n\t Link 7: 26.562 GB/s\n\t Link 8: 26.562 GB/s\n\t Link 9: 26.562 GB/s\n\t Link 10: <inactive>\n\t Link 11: <inactive>\n\t Link 12: 26.562 GB/s\n\t Link 13: 26.562 GB/s\n\t Link 14: 26.562 GB/s\n\t Link 15: 26.562 GB/s\n\t Link 16: <inactive>\n\t Link 17: <inactive>\nGPU 1: NVIDIA H100 PCIe (UUID"}
+07:13:40 INFO     tests.test_node_validation NCCL availability: NCCL available via torch.cuda.nccl (version tuple: (2, 28, 9))
+07:13:40 INFO     tests.test_node_validation KPI test_nccl_availability: {"available": true, "message": "NCCL available via torch.cuda.nccl (version tuple: (2, 28, 9))"}
+07:13:44 INFO     tests.test_node_validation 
 === NCCL all_reduce_perf ===
-# nccl-tests version 2.18.2 nccl-headers=23004 nccl-library=23004
+# nccl-tests version 2.19.1 nccl-headers=23007 nccl-library=23004
 # Collective test starting: all_reduce_perf
-# nThread 1 nGpus 4 minBytes 1048576 maxBytes 1073741824 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
+# nThread 1 nGpus 2 minBytes 1048576 maxBytes 1073741824 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
 #
 # Using devices
-#  Rank  0 Group  0 Pid 104884 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
-#  Rank  1 Group  0 Pid 104884 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
-#  Rank  2 Group  0 Pid 104884 on sc00901168s0075 device  2 [0001:61:00] NVIDIA H100 NVL
-#  Rank  3 Group  0 Pid 104884 on sc00901168s0075 device  3 [0001:b1:00] NVIDIA H100 PCIe
+#  Rank  0 Group  0 Pid 117208 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
+#  Rank  1 Group  0 Pid 117208 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
 #
 #                                                              out-of-place                       in-place          
 #       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong 
 #        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)         
-     1048576        262144     float     sum      -1    94.67   11.08   16.61       0    94.73   11.07   16.60       0
-     4194304       1048576     float     sum      -1   223.23   18.79   28.18       0   220.87   18.99   28.49       0
-    16777216       4194304     float     sum      -1   732.71   22.90   34.35       0   732.24   22.91   34.37       0
-    67108864      16777216     float     sum      -1  4657.86   14.41   21.61       0  2873.70   23.35   35.03       0
-   268435456      67108864     float     sum      -1  11222.6   23.92   35.88       0  11218.7   23.93   35.89       0
-  1073741824     268435456     float     sum      -1  48956.6   21.93   32.90       0  48939.5   21.94   32.91       0
+     1048576        262144     float     sum      -1    20.40   51.40   51.40       0    20.20   51.91   51.91       0
+     4194304       1048576     float     sum      -1    43.05   97.42   97.42       0    42.88   97.81   97.81       0
+    16777216       4194304     float     sum      -1   112.19  149.55  149.55       0   109.14  153.73  153.73       0
+    67108864      16777216     float     sum      -1   370.12  181.32  181.32       0   369.86  181.44  181.44       0
+   268435456      67108864     float     sum      -1  1328.24  202.10  202.10       0  1327.53  202.21  202.21       0
+  1073741824     268435456     float     sum      -1  4956.75  216.62  216.62       0  4904.43  218.93  218.93       0
 # Out of bounds values : 0 OK
-# Avg bus bandwidth    : 29.4019 
+# Avg bus bandwidth    : 150.37 
 #
 # Collective test concluded: all_reduce_perf
 #
-02:24:38 INFO     tests.test_node_validation AllReduce busbw — peak=35.9 GB/s  mean=28.3 GB/s  threshold=30.0 GB/s
-02:24:38 INFO     tests.test_node_validation KPI test_nccl_all_reduce_perf: {"gpu_count": 4, "iters": 30, "mean_busbw_gbs": 28.25, "peak_busbw_gbs": 35.88, "samples": 6, "threshold_gbs": 30.0}
-02:24:42 INFO     tests.test_node_validation 
+07:13:44 INFO     tests.test_node_validation AllReduce busbw — peak=216.6 GB/s  mean=149.7 GB/s  threshold=30.0 GB/s
+07:13:44 INFO     tests.test_node_validation KPI test_nccl_all_reduce_perf: {"gpu_count": 2, "iters": 30, "mean_busbw_gbs": 149.73, "peak_busbw_gbs": 216.62, "samples": 6, "threshold_gbs": 30.0}
+07:13:47 INFO     tests.test_node_validation 
 === NCCL all_gather_perf ===
-# nccl-tests version 2.18.2 nccl-headers=23004 nccl-library=23004
+# nccl-tests version 2.19.1 nccl-headers=23007 nccl-library=23004
 # Collective test starting: all_gather_perf
-# nThread 1 nGpus 4 minBytes 1048576 maxBytes 268435456 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
+# nThread 1 nGpus 2 minBytes 1048576 maxBytes 268435456 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
 #
 # Using devices
-#  Rank  0 Group  0 Pid 104922 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
-#  Rank  1 Group  0 Pid 104922 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
-#  Rank  2 Group  0 Pid 104922 on sc00901168s0075 device  2 [0001:61:00] NVIDIA H100 NVL
-#  Rank  3 Group  0 Pid 104922 on sc00901168s0075 device  3 [0001:b1:00] NVIDIA H100 PCIe
+#  Rank  0 Group  0 Pid 117242 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
+#  Rank  1 Group  0 Pid 117242 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
 #
 #                                                              out-of-place                       in-place          
 #       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong 
 #        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)         
-     1048576         65536     float    none      -1    57.63   18.20   13.65       0    57.34   18.29   13.71       0
-     4194304        262144     float    none      -1   126.20   33.24   24.93       0   127.05   33.01   24.76       0
-    16777216       1048576     float    none      -1   404.41   41.49   31.11       0   402.50   41.68   31.26       0
-    67108864       4194304     float    none      -1  1507.85   44.51   33.38       0  1505.94   44.56   33.42       0
-   268435456      16777216     float    none      -1  5981.88   44.87   33.66       0  5968.17   44.98   33.73       0
+     1048576        131072     float    none      -1    15.57   67.34   33.67       0    14.38   72.92   36.46       0
+     4194304        524288     float    none      -1    34.94  120.04   60.02       0    32.38  129.54   64.77       0
+    16777216       2097152     float    none      -1    75.46  222.35  111.17       0    72.30  232.07  116.03       0
+    67108864       8388608     float    none      -1   230.75  290.82  145.41       0   221.10  303.52  151.76       0
+   268435456      33554432     float    none      -1   819.28  327.65  163.82       0   771.53  347.93  173.96       0
 # Out of bounds values : 0 OK
-# Avg bus bandwidth    : 27.3617 
+# Avg bus bandwidth    : 105.709 
 #
 # Collective test concluded: all_gather_perf
 #
-02:24:42 INFO     tests.test_node_validation AllGather peak busbw: 33.7 GB/s
-02:24:42 INFO     tests.test_node_validation KPI test_nccl_all_gather_perf: {"gpu_count": 4, "iters": 30, "mean_busbw_gbs": 27.35, "peak_busbw_gbs": 33.66, "samples": 5}
-02:24:46 INFO     tests.test_node_validation 
+07:13:47 INFO     tests.test_node_validation AllGather peak busbw: 163.8 GB/s
+07:13:47 INFO     tests.test_node_validation KPI test_nccl_all_gather_perf: {"gpu_count": 2, "iters": 30, "mean_busbw_gbs": 102.82, "peak_busbw_gbs": 163.82, "samples": 5}
+07:13:49 INFO     tests.test_node_validation 
 === NCCL reduce_scatter_perf ===
-# nccl-tests version 2.18.2 nccl-headers=23004 nccl-library=23004
+# nccl-tests version 2.19.1 nccl-headers=23007 nccl-library=23004
 # Collective test starting: reduce_scatter_perf
-# nThread 1 nGpus 4 minBytes 1048576 maxBytes 268435456 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
+# nThread 1 nGpus 2 minBytes 1048576 maxBytes 268435456 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
 #
 # Using devices
-#  Rank  0 Group  0 Pid 104958 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
-#  Rank  1 Group  0 Pid 104958 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
-#  Rank  2 Group  0 Pid 104958 on sc00901168s0075 device  2 [0001:61:00] NVIDIA H100 NVL
-#  Rank  3 Group  0 Pid 104958 on sc00901168s0075 device  3 [0001:b1:00] NVIDIA H100 PCIe
+#  Rank  0 Group  0 Pid 117277 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
+#  Rank  1 Group  0 Pid 117277 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
 #
 #                                                              out-of-place                       in-place          
 #       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong 
 #        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)         
-     1048576         65536     float     sum      -1    55.34   18.95   14.21       0    55.17   19.01   14.25       0
-     4194304        262144     float     sum      -1   127.99   32.77   24.58       0   127.46   32.91   24.68       0
-    16777216       1048576     float     sum      -1   402.16   41.72   31.29       0   402.51   41.68   31.26       0
-    67108864       4194304     float     sum      -1  1532.96   43.78   32.83       0  1531.50   43.82   32.86       0
-   268435456      16777216     float     sum      -1  6046.16   44.40   33.30       0  6041.01   44.44   33.33       0
+     1048576        131072     float     sum      -1    15.06   69.65   34.82       0    14.41   72.78   36.39       0
+     4194304        524288     float     sum      -1    31.35  133.80   66.90       0    31.25  134.20   67.10       0
+    16777216       2097152     float     sum      -1    72.70  230.78  115.39       0    71.52  234.58  117.29       0
+    67108864       8388608     float     sum      -1   236.93  283.24  141.62       0   234.23  286.50  143.25       0
+   268435456      33554432     float     sum      -1   832.68  322.37  161.19       0   818.78  327.85  163.92       0
 # Out of bounds values : 0 OK
-# Avg bus bandwidth    : 27.2595 
+# Avg bus bandwidth    : 104.788 
 #
 # Collective test concluded: reduce_scatter_perf
 #
-02:24:46 INFO     tests.test_node_validation ReduceScatter peak busbw: 33.3 GB/s
-02:24:46 INFO     tests.test_node_validation KPI test_nccl_reduce_scatter_perf: {"gpu_count": 4, "iters": 30, "mean_busbw_gbs": 27.24, "peak_busbw_gbs": 33.3, "samples": 5}
-02:24:50 INFO     tests.test_node_validation 
+07:13:49 INFO     tests.test_node_validation ReduceScatter peak busbw: 161.2 GB/s
+07:13:49 INFO     tests.test_node_validation KPI test_nccl_reduce_scatter_perf: {"gpu_count": 2, "iters": 30, "mean_busbw_gbs": 103.98, "peak_busbw_gbs": 161.19, "samples": 5}
+07:13:52 INFO     tests.test_node_validation 
 === NCCL sendrecv_perf ===
 # nccl-tests version 2.18.2 nccl-headers=23004 nccl-library=23004
 # Collective test starting: sendrecv_perf
-# nThread 1 nGpus 4 minBytes 1048576 maxBytes 268435456 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
+# nThread 1 nGpus 2 minBytes 1048576 maxBytes 268435456 step: 4(factor) warmup iters: 5 iters: 30 agg iters: 1 validation: 1 graph: 0 unalign: 0
 #
 # Using devices
-#  Rank  0 Group  0 Pid 104994 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
-#  Rank  1 Group  0 Pid 104994 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
-#  Rank  2 Group  0 Pid 104994 on sc00901168s0075 device  2 [0001:61:00] NVIDIA H100 NVL
-#  Rank  3 Group  0 Pid 104994 on sc00901168s0075 device  3 [0001:b1:00] NVIDIA H100 PCIe
+#  Rank  0 Group  0 Pid 117311 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
+#  Rank  1 Group  0 Pid 117311 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
 #
 #                                                              out-of-place                       in-place          
 #       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong 
 #        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)         
-     1048576        262144     float     sum      -1    91.55   11.45   11.45       0    91.22   11.50   11.50    N/A
-     4194304       1048576     float     sum      -1   325.88   12.87   12.87       0   325.19   12.90   12.90    N/A
-    16777216       4194304     float     sum      -1   713.63   23.51   23.51       0   712.83   23.54   23.54    N/A
-    67108864      16777216     float     sum      -1  2808.79   23.89   23.89       0  2794.33   24.02   24.02    N/A
-   268435456      67108864     float     sum      -1  11091.8   24.20   24.20       0  11049.7   24.29   24.29    N/A
+     1048576        262144     float     sum      -1    22.16   47.32   47.32       0    21.45   48.88   48.88    N/A
+     4194304       1048576     float     sum      -1    46.14   90.90   90.90       0    45.27   92.64   92.64    N/A
+    16777216       4194304     float     sum      -1   141.78  118.33  118.33       0   139.24  120.49  120.49    N/A
+    67108864      16777216     float     sum      -1   488.52  137.37  137.37       0   485.13  138.33  138.33    N/A
+   268435456      67108864     float     sum      -1  1170.56  229.32  229.32       0  1172.98  228.85  228.85    N/A
 # Out of bounds values : 0 OK
-# Avg bus bandwidth    : 19.2166 
+# Avg bus bandwidth    : 125.244 
 #
 # Collective test concluded: sendrecv_perf
 #
-02:24:50 INFO     tests.test_node_validation SendRecv peak busbw: 24.2 GB/s
-02:24:50 INFO     tests.test_node_validation KPI test_nccl_p2p_perf: {"gpu_count": 4, "iters": 30, "mean_busbw_gbs": 19.18, "peak_busbw_gbs": 24.2, "samples": 5}
-02:24:53 INFO     tests.test_node_validation NCCL 8-byte AllReduce (50 iters): algbw mean=0.000 GB/s
-02:24:53 INFO     tests.test_node_validation KPI test_nccl_deterministic_init_variance: {"gpu_count": 4, "iterations": 50, "mean_algbw_gbs": 0.0, "samples": 1}
-02:24:53 INFO     tests.test_node_validation Full output:
-# nccl-tests version 2.18.2 nccl-headers=23004 nccl-library=23004
+07:13:52 INFO     tests.test_node_validation SendRecv peak busbw: 229.3 GB/s
+07:13:52 INFO     tests.test_node_validation KPI test_nccl_p2p_perf: {"gpu_count": 2, "iters": 30, "mean_busbw_gbs": 124.65, "peak_busbw_gbs": 229.32, "samples": 5}
+07:13:54 INFO     tests.test_node_validation NCCL 8-byte AllReduce (50 iters): algbw mean=0.000 GB/s
+07:13:54 INFO     tests.test_node_validation KPI test_nccl_deterministic_init_variance: {"gpu_count": 2, "iterations": 50, "mean_algbw_gbs": 0.0, "samples": 1}
+07:13:54 INFO     tests.test_node_validation Full output:
+# nccl-tests version 2.19.1 nccl-headers=23007 nccl-library=23004
 # Collective test starting: all_reduce_perf
-# nThread 1 nGpus 4 minBytes 8 maxBytes 8 step: 2(factor) warmup iters: 5 iters: 50 agg iters: 1 validation: 1 graph: 0 unalign: 0
+# nThread 1 nGpus 2 minBytes 8 maxBytes 8 step: 2(factor) warmup iters: 5 iters: 50 agg iters: 1 validation: 1 graph: 0 unalign: 0
 #
 # Using devices
-#  Rank  0 Group  0 Pid 105039 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
-#  Rank  1 Group  0 Pid 105039 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
-#  Rank  2 Group  0 Pid 105039 on sc00901168s0075 device  2 [0001:61:00] NVIDIA H100 NVL
-#  Rank  3 Group  0 Pid 105039 on sc00901168s0075 device  3 [0001:b1:00] NVIDIA H100 PCIe
+#  Rank  0 Group  0 Pid 117339 on sc00901168s0075 device  0 [0000:61:00] NVIDIA H100 PCIe
+#  Rank  1 Group  0 Pid 117339 on sc00901168s0075 device  1 [0000:b1:00] NVIDIA H100 PCIe
 #
 #                                                              out-of-place                       in-place          
 #       size         count      type   redop    root     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong 
 #        (B)    (elements)                               (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)         
-           8             2     float     sum      -1    22.32    0.00    0.00       0    21.91    0.00    0.00       0
+           8             2     float     sum      -1    12.71    0.00    0.00       0    12.29    0.00    0.00       0
 # Out of bounds values : 0 OK
-# Avg bus bandwidth    : 0.000542601 
+# Avg bus bandwidth    : 0.000640062 
 #
 # Collective test concluded: all_reduce_perf
 #
-02:24:53 INFO     tests.test_node_validation Workload preflight: strict=False, large_models=True
-02:24:53 INFO     tests.test_node_validation Workload preflight blockers: none
-02:24:55 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-8B-Instruct for causal-LM inference …
-02:30:37 INFO     tests.test_node_validation HF Causal-LM (meta-llama/Meta-Llama-3.1-8B-Instruct) inference: mean=504.7 ms  p95=582.2 ms  tokens/sec=63 (batch=1, new_tokens=32, runtime=300.3s, completion=344.0s, samples=595)
-02:30:37 INFO     tests.test_node_validation HF latency acceptance thresholds: mean<1200.0 ms, p95<1500.0 ms
-02:30:37 INFO     tests.test_node_validation KPI test_hf_causal_lm_inference_latency: {"completion_time_sec": 343.98, "max_new_tokens": 32, "mean_latency_ms": 504.72, "model": "meta-llama/Meta-Llama-3.1-8B-Instruct", "p95_latency_ms": 582.16, "runtime_sec": 300.31, "samples": 595, "throughput_tokens_per_sec": 63.4}
-02:30:37 INFO     tests.test_node_validation Running workload=deepseek_r1_quantized model=deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
-02:30:37 INFO     tests.test_node_validation Loading deepseek-ai/DeepSeek-R1-Distill-Qwen-7B for causal-LM latency workload …
-02:30:38 INFO     tests.test_node_validation Tokenizer load completed in 0.3s
-02:30:38 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1,2,3; memory before load: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2GiB; gpu2: free=92.4GiB used=0.7GiB total=93.1GiB; gpu3: free=78.5GiB used=0.6GiB total=79.2GiB
-02:30:38 INFO     tests.test_node_validation Running workload=llama_7b model=meta-llama/Meta-Llama-3.1-8B-Instruct
-02:30:38 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-8B-Instruct for causal-LM latency workload …
-02:30:39 INFO     tests.test_node_validation Tokenizer load completed in 0.7s
-02:31:00 INFO     tests.test_node_validation Model load completed in 21.6s
-02:36:04 INFO     tests.test_node_validation HF Causal-LM (meta-llama/Meta-Llama-3.1-8B-Instruct) inference: mean=516.9 ms  p95=618.3 ms  tokens/sec=62 (batch=1, new_tokens=32, runtime=300.3s, completion=326.1s, samples=581)
-02:36:04 INFO     tests.test_node_validation KPI test_hf_causal_lm_inference_latency_enterprise_workloads_llama_7b: {"completion_time_sec": 326.06, "max_new_tokens": 32, "mean_latency_ms": 516.94, "model": "meta-llama/Meta-Llama-3.1-8B-Instruct", "p95_latency_ms": 618.33, "runtime_sec": 300.35, "samples": 581, "throughput_tokens_per_sec": 61.9, "used_4bit_quant": false}
-02:36:04 INFO     tests.test_node_validation Workload llama_7b completed in 326.1s
-02:36:04 INFO     tests.test_node_validation Running workload=llama_70b model=meta-llama/Meta-Llama-3.1-70B-Instruct
-02:36:04 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-70B-Instruct for causal-LM latency workload …
-02:36:04 INFO     tests.test_node_validation Large model local-cache mode enabled for meta-llama/Meta-Llama-3.1-70B-Instruct. Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to allow remote download.
-02:36:05 INFO     tests.test_node_validation Tokenizer load completed in 0.7s
-02:36:05 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1,2,3; memory before load: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2GiB; gpu2: free=92.4GiB used=0.7GiB total=93.1GiB; gpu3: free=78.5GiB used=0.6GiB total=79.2GiB
-02:36:05 WARNING  tests.test_node_validation Large model meta-llama/Meta-Llama-3.1-70B-Instruct weights not available locally (Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`). Falling back to remote download.
-02:36:05 INFO     tests.test_node_validation Running workload=qwen_70b model=Qwen/Qwen2.5-72B-Instruct
-02:36:05 INFO     tests.test_node_validation Loading Qwen/Qwen2.5-72B-Instruct for causal-LM latency workload …
-02:36:06 INFO     tests.test_node_validation Tokenizer load completed in 0.2s
-02:36:06 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1,2,3; memory before load: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2GiB; gpu2: free=92.4GiB used=0.7GiB total=93.1GiB; gpu3: free=78.5GiB used=0.6GiB total=79.2GiB
-02:36:54 INFO     tests.test_node_validation HF Causal-LM (meta-llama/Meta-Llama-3.1-8B-Instruct) batch throughput: 520 tokens/sec (batch=8, max_new_tokens=64, iters=5, completion=47.9s)
-02:36:54 INFO     tests.test_node_validation KPI test_hf_causal_lm_batch_throughput: {"batch_size": 8, "completion_time_sec": 47.95, "elapsed_sec": 4.92, "iterations": 5, "max_new_tokens": 64, "model": "meta-llama/Meta-Llama-3.1-8B-Instruct", "throughput_tokens_per_sec": 520.24}
+07:13:55 INFO     tests.test_node_validation Workload preflight: strict=False, large_models=True
+07:13:55 INFO     tests.test_node_validation Workload preflight blockers: none
+07:13:57 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-8B-Instruct for causal-LM inference …
+07:19:11 INFO     tests.test_node_validation HF Causal-LM (meta-llama/Meta-Llama-3.1-8B-Instruct) inference: mean=499.8 ms  p95=527.7 ms  tokens/sec=64 (batch=1, new_tokens=32, runtime=300.4s, completion=316.3s, samples=601)
+07:19:11 INFO     tests.test_node_validation HF latency acceptance thresholds: mean<1200.0 ms, p95<1500.0 ms
+07:19:11 INFO     tests.test_node_validation KPI test_hf_causal_lm_inference_latency: {"completion_time_sec": 316.34, "max_new_tokens": 32, "mean_latency_ms": 499.84, "model": "meta-llama/Meta-Llama-3.1-8B-Instruct", "p95_latency_ms": 527.73, "runtime_sec": 300.41, "samples": 601, "throughput_tokens_per_sec": 64.02}
+07:19:11 INFO     tests.test_node_validation Running workload=deepseek_r1_quantized model=deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+07:19:11 INFO     tests.test_node_validation Loading deepseek-ai/DeepSeek-R1-Distill-Qwen-7B for causal-LM latency workload …
+07:19:12 INFO     tests.test_node_validation Tokenizer load completed in 0.3s
+07:19:12 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1; memory before load: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2GiB
+07:19:12 INFO     tests.test_node_validation Running workload=llama_7b model=meta-llama/Meta-Llama-3.1-8B-Instruct
+07:19:12 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-8B-Instruct for causal-LM latency workload …
+07:19:13 INFO     tests.test_node_validation Tokenizer load completed in 0.7s
+07:19:13 INFO     tests.test_node_validation Model load completed in 0.5s
+07:24:17 INFO     tests.test_node_validation HF Causal-LM (meta-llama/Meta-Llama-3.1-8B-Instruct) inference: mean=475.4 ms  p95=521.4 ms  tokens/sec=67 (batch=1, new_tokens=32, runtime=300.4s, completion=304.8s, samples=632)
+07:24:17 INFO     tests.test_node_validation KPI test_hf_causal_lm_inference_latency_enterprise_workloads_llama_7b: {"completion_time_sec": 304.82, "max_new_tokens": 32, "mean_latency_ms": 475.35, "model": "meta-llama/Meta-Llama-3.1-8B-Instruct", "p95_latency_ms": 521.37, "runtime_sec": 300.43, "samples": 632, "throughput_tokens_per_sec": 67.32, "used_4bit_quant": false}
+07:24:17 INFO     tests.test_node_validation Workload llama_7b completed in 304.8s
+07:24:17 INFO     tests.test_node_validation Running workload=llama_70b model=meta-llama/Meta-Llama-3.1-70B-Instruct
+07:24:17 INFO     tests.test_node_validation Loading meta-llama/Meta-Llama-3.1-70B-Instruct for causal-LM latency workload …
+07:24:17 INFO     tests.test_node_validation Large model local-cache mode enabled for meta-llama/Meta-Llama-3.1-70B-Instruct. Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to allow remote download.
+07:24:18 INFO     tests.test_node_validation Tokenizer load completed in 0.7s
+07:24:18 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1; memory before load: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2GiB
+07:24:18 INFO     tests.test_node_validation Running workload=qwen_70b model=Qwen/Qwen2.5-72B-Instruct
+07:24:18 INFO     tests.test_node_validation Loading Qwen/Qwen2.5-72B-Instruct for causal-LM latency workload …
+07:24:18 INFO     tests.test_node_validation Large model local-cache mode enabled for Qwen/Qwen2.5-72B-Instruct. Set HF_ALLOW_REMOTE_LARGE_MODEL_DOWNLOAD=1 to allow remote download.
+07:24:18 INFO     tests.test_node_validation Tokenizer load completed in 0.2s
+07:24:18 INFO     tests.test_node_validation HF quantized workload visible CUDA devices=0,1; memory before load: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2GiB
+07:24:46 INFO     tests.test_node_validation HF Causal-LM (meta-llama/Meta-Llama-3.1-8B-Instruct) batch throughput: 490 tokens/sec (batch=8, max_new_tokens=64, iters=5, completion=27.4s)
+07:24:46 INFO     tests.test_node_validation KPI test_hf_causal_lm_batch_throughput: {"batch_size": 8, "completion_time_sec": 27.38, "elapsed_sec": 5.22, "iterations": 5, "max_new_tokens": 64, "model": "meta-llama/Meta-Llama-3.1-8B-Instruct", "throughput_tokens_per_sec": 490.45}

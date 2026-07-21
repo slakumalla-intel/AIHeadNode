@@ -1,55 +1,38 @@
-02:49:36 INFO     ai_headnode_tests System config captured: /root/workloads/AIHeadNode/system_config_report.json
-02:49:38 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_temperature_within_safe_limits[0] -> {'device_idx': 0, 'temperature_c': 37, 'threshold_c': 83}
-02:49:38 INFO     tests.test_system_health_and_reliability GPU 0 temperature: 37 °C (limit 83 °C)
-02:49:38 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_temperature_within_safe_limits[1] -> {'device_idx': 1, 'temperature_c': 37, 'threshold_c': 83}
-02:49:38 INFO     tests.test_system_health_and_reliability GPU 1 temperature: 37 °C (limit 83 °C)
-02:49:38 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_temperature_within_safe_limits[2] -> {'device_idx': 2, 'temperature_c': 37, 'threshold_c': 83}
-02:49:38 INFO     tests.test_system_health_and_reliability GPU 2 temperature: 37 °C (limit 83 °C)
-02:49:38 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_temperature_within_safe_limits[3] -> {'device_idx': 3, 'temperature_c': 34, 'threshold_c': 83}
-02:49:38 INFO     tests.test_system_health_and_reliability GPU 3 temperature: 34 °C (limit 83 °C)
-02:49:39 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_clock_boost_ratio[0] -> {'device_idx': 0, 'current_clock_mhz': 345, 'max_clock_mhz': 1755, 'clock_ratio': 0.1966}
-02:49:39 INFO     tests.test_system_health_and_reliability GPU 0 clock: 345 / 1755 MHz = 19.66%
-02:49:39 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_clock_boost_ratio[1] -> {'device_idx': 1, 'current_clock_mhz': 345, 'max_clock_mhz': 1755, 'clock_ratio': 0.1966}
-02:49:39 INFO     tests.test_system_health_and_reliability GPU 1 clock: 345 / 1755 MHz = 19.66%
-02:49:39 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_clock_boost_ratio[2] -> {'device_idx': 2, 'current_clock_mhz': 345, 'max_clock_mhz': 1785, 'clock_ratio': 0.1933}
-02:49:39 INFO     tests.test_system_health_and_reliability GPU 2 clock: 345 / 1785 MHz = 19.33%
-02:49:39 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_clock_boost_ratio[3] -> {'device_idx': 3, 'current_clock_mhz': 345, 'max_clock_mhz': 1755, 'clock_ratio': 0.1966}
-02:49:39 INFO     tests.test_system_health_and_reliability GPU 3 clock: 345 / 1755 MHz = 19.66%
-02:50:11 INFO     tests.test_system_health_and_reliability [KPI] test_sustained_compute_no_thermal_throttle -> {'initial_clock_mhz': 1755, 'min_clock_mhz': 930, 'clock_drop_ratio': 0.4701, 'max_temp_c': 59, 'duration_sec': 30}
-02:50:11 INFO     tests.test_system_health_and_reliability Thermal test: init_clock=1755 min_clock=930 drop=47.01% max_temp=59°C
-02:50:11 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_power_limit_headroom -> {'gpu0_power_w': 306.407, 'gpu1_power_w': 52.603, 'gpu2_power_w': 62.498, 'gpu3_power_w': 49.064, 'gpu0_limit_w': 350.0, 'gpu1_limit_w': 350.0, 'gpu2_limit_w': 400.0, 'gpu3_limit_w': 350.0, 'gpu0_ratio': 0.8754, 'gpu1_ratio': 0.1503, 'gpu2_ratio': 0.1562, 'gpu3_ratio': 0.1402}
-02:50:12 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_uncorrected_errors_zero[0] -> {'device_idx': 0, 'uncorrected_ecc_errors': 0}
-02:50:12 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_uncorrected_errors_zero[1] -> {'device_idx': 1, 'uncorrected_ecc_errors': 0}
-02:50:12 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_uncorrected_errors_zero[2] -> {'device_idx': 2, 'uncorrected_ecc_errors': 0}
-02:50:12 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_uncorrected_errors_zero[3] -> {'device_idx': 3, 'uncorrected_ecc_errors': 0}
-02:50:12 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_corrected_errors_below_threshold[0] -> {'device_idx': 0, 'corrected_ecc_errors': 0, 'threshold': 100}
-02:50:13 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_corrected_errors_below_threshold[1] -> {'device_idx': 1, 'corrected_ecc_errors': 0, 'threshold': 100}
-02:50:13 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_corrected_errors_below_threshold[2] -> {'device_idx': 2, 'corrected_ecc_errors': 0, 'threshold': 100}
-02:50:13 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_corrected_errors_below_threshold[3] -> {'device_idx': 3, 'corrected_ecc_errors': 0, 'threshold': 100}
-02:50:13 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_nvml_health_flags_clean -> {'gpu0_retired_pages_dbe': 0, 'gpu1_retired_pages_dbe': 0, 'gpu2_retired_pages_dbe': 0, 'gpu3_retired_pages_dbe': 0}
-02:50:14 INFO     tests.test_system_health_and_reliability [KPI] test_fp16_gflops_per_watt[0] -> {'device_idx': 0, 'fp16_tflops': 466.23, 'mean_power_w': 95.8, 'tflops_per_watt': 4.868, 'min_tflops_per_watt': 1.0}
-02:50:14 INFO     tests.test_system_health_and_reliability GPU 0: 466.2 TFLOPS @ 96 W = 4.868 TFLOPS/W
-02:50:14 INFO     tests.test_system_health_and_reliability [KPI] test_fp16_gflops_per_watt[1] -> {'device_idx': 1, 'fp16_tflops': 475.72, 'mean_power_w': 56.4, 'tflops_per_watt': 8.431, 'min_tflops_per_watt': 1.0}
-02:50:14 INFO     tests.test_system_health_and_reliability GPU 1: 475.7 TFLOPS @ 56 W = 8.431 TFLOPS/W
-02:50:14 INFO     tests.test_system_health_and_reliability [KPI] test_fp16_gflops_per_watt[2] -> {'device_idx': 2, 'fp16_tflops': 439.18, 'mean_power_w': 65.7, 'tflops_per_watt': 6.684, 'min_tflops_per_watt': 1.0}
-02:50:14 INFO     tests.test_system_health_and_reliability GPU 2: 439.2 TFLOPS @ 66 W = 6.684 TFLOPS/W
-02:50:15 INFO     tests.test_system_health_and_reliability [KPI] test_fp16_gflops_per_watt[3] -> {'device_idx': 3, 'fp16_tflops': 480.13, 'mean_power_w': 51.0, 'tflops_per_watt': 9.41, 'min_tflops_per_watt': 1.0}
-02:50:15 INFO     tests.test_system_health_and_reliability GPU 3: 480.1 TFLOPS @ 51 W = 9.410 TFLOPS/W
-02:50:15 INFO     tests.test_system_health_and_reliability [KPI] test_aggregate_4gpu_fp16_tflops_per_watt -> {'total_fp16_tflops': 1735.84, 'total_power_w': 350.1, 'tflops_per_watt': 4.958, 'min_tflops_per_watt': 1.0}
-02:50:15 INFO     tests.test_system_health_and_reliability [KPI] test_int8_matmul_error_vs_fp16 -> {'int8_vs_fp16_mean_rel_error': 0.015343, 'threshold_rel_error': 0.05}
-02:50:15 INFO     tests.test_system_health_and_reliability INT8 vs FP16 GEMM relative error: 1.5343%
-02:50:16 INFO     tests.test_system_health_and_reliability [KPI] test_fp8_e4m3_matmul_error_vs_fp16 -> {'fp8_vs_fp16_mean_rel_error': 0.037445, 'threshold_rel_error': 0.15000000000000002}
-02:50:16 INFO     tests.test_system_health_and_reliability [KPI] test_bf16_vs_fp16_matmul_equivalence -> {'bf16_vs_fp16_mean_rel_error': 0.002869, 'threshold_rel_error': 0.1}
-02:50:16 INFO     tests.test_system_health_and_reliability [KPI] test_quantised_softmax_output_matches_fp16 -> {'softmax_max_abs_error': 0.00256348, 'threshold': 0.001}
-02:50:17 INFO     tests.test_system_health_and_reliability [KPI] test_ddp_gradient_sync_matches_single_gpu -> {'grad_max_rel_error': 0.0, 'tolerance': 0.001}
-02:50:17 INFO     tests.test_system_health_and_reliability [KPI] test_multi_gpu_parameter_consistency_after_allreduce -> {'n_gpu': 4, 'max_diff': 0.0}
-02:50:20 INFO     tests.test_system_health_and_reliability [KPI] test_compile_output_matches_eager -> {'max_abs_error': 0.0, 'tolerance': 0.01}
-02:50:21 INFO     tests.test_system_health_and_reliability [KPI] test_compile_speedup_over_eager -> {'eager_time_s': 0.0066, 'compiled_time_s': 0.0082, 'speedup_ratio': 0.8043, 'floor_ratio': 1.05}
-02:50:21 INFO     tests.test_system_health_and_reliability torch.compile speedup: 0.804× (eager 0.0066s, compiled 0.0082s)
-02:50:21 INFO     tests.test_system_health_and_reliability [KPI] test_event_wait_enforces_ordering -> {'expected_sum': 16777216.0, 'actual_sum': 16777216.0, 'correct': True}
-02:50:21 INFO     tests.test_system_health_and_reliability [KPI] test_multi_stream_no_race_on_shared_tensor -> {'initial_val': 1.0, 'final_val': 4.0, 'expected': 4.0}
-02:50:21 INFO     tests.test_system_health_and_reliability [KPI] test_cuda_event_elapsed_time_positive -> {'gemm_elapsed_ms': 0.2941}
-02:50:22 INFO     tests.test_system_health_and_reliability [KPI] test_concurrent_stream_throughput_vs_sequential -> {'sequential_time_s': 0.0066, 'concurrent_time_s': 0.007, 'concurrent_vs_sequential_ratio': 1.0617, 'max_allowed_ratio': 1.5}
-02:50:22 INFO     tests.test_system_health_and_reliability Stream concurrency: sequential 0.0066s, concurrent 0.0070s, ratio 1.062
-02:50:22 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
-02:50:22 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/NODE_VALIDATION_REPORT.md
+07:47:38 INFO     ai_headnode_tests System config captured: /root/workloads/AIHeadNode/system_config_report.json
+07:47:39 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_temperature_within_safe_limits[0] -> {'device_idx': 0, 'temperature_c': 36, 'threshold_c': 83}
+07:47:39 INFO     tests.test_system_health_and_reliability GPU 0 temperature: 36 °C (limit 83 °C)
+07:47:39 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_temperature_within_safe_limits[1] -> {'device_idx': 1, 'temperature_c': 36, 'threshold_c': 83}
+07:47:39 INFO     tests.test_system_health_and_reliability GPU 1 temperature: 36 °C (limit 83 °C)
+07:47:40 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_clock_boost_ratio[0] -> {'device_idx': 0, 'current_clock_mhz': 345, 'max_clock_mhz': 1755, 'clock_ratio': 0.1966}
+07:47:40 INFO     tests.test_system_health_and_reliability GPU 0 clock: 345 / 1755 MHz = 19.66%
+07:47:40 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_clock_boost_ratio[1] -> {'device_idx': 1, 'current_clock_mhz': 345, 'max_clock_mhz': 1755, 'clock_ratio': 0.1966}
+07:47:40 INFO     tests.test_system_health_and_reliability GPU 1 clock: 345 / 1755 MHz = 19.66%
+07:48:11 INFO     tests.test_system_health_and_reliability [KPI] test_sustained_compute_no_thermal_throttle -> {'initial_clock_mhz': 1755, 'min_clock_mhz': 945, 'clock_drop_ratio': 0.4615, 'max_temp_c': 59, 'duration_sec': 30}
+07:48:11 INFO     tests.test_system_health_and_reliability Thermal test: init_clock=1755 min_clock=945 drop=46.15% max_temp=59°C
+07:48:12 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_power_limit_headroom -> {'gpu0_power_w': 296.958, 'gpu1_power_w': 53.47, 'gpu0_limit_w': 350.0, 'gpu1_limit_w': 350.0, 'gpu0_ratio': 0.8485, 'gpu1_ratio': 0.1528}
+07:48:12 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_uncorrected_errors_zero[0] -> {'device_idx': 0, 'uncorrected_ecc_errors': 0}
+07:48:12 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_uncorrected_errors_zero[1] -> {'device_idx': 1, 'uncorrected_ecc_errors': 0}
+07:48:13 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_corrected_errors_below_threshold[0] -> {'device_idx': 0, 'corrected_ecc_errors': 0, 'threshold': 100}
+07:48:13 INFO     tests.test_system_health_and_reliability [KPI] test_hbm_ecc_corrected_errors_below_threshold[1] -> {'device_idx': 1, 'corrected_ecc_errors': 0, 'threshold': 100}
+07:48:14 INFO     tests.test_system_health_and_reliability [KPI] test_gpu_nvml_health_flags_clean -> {'gpu0_retired_pages_dbe': 0, 'gpu1_retired_pages_dbe': 0}
+07:48:14 INFO     tests.test_system_health_and_reliability [KPI] test_fp16_gflops_per_watt[0] -> {'device_idx': 0, 'fp16_tflops': 456.28, 'mean_power_w': 97.9, 'tflops_per_watt': 4.659, 'min_tflops_per_watt': 1.0}
+07:48:14 INFO     tests.test_system_health_and_reliability GPU 0: 456.3 TFLOPS @ 98 W = 4.659 TFLOPS/W
+07:48:14 INFO     tests.test_system_health_and_reliability [KPI] test_fp16_gflops_per_watt[1] -> {'device_idx': 1, 'fp16_tflops': 469.13, 'mean_power_w': 56.6, 'tflops_per_watt': 8.287, 'min_tflops_per_watt': 1.0}
+07:48:14 INFO     tests.test_system_health_and_reliability GPU 1: 469.1 TFLOPS @ 57 W = 8.287 TFLOPS/W
+07:48:15 INFO     tests.test_system_health_and_reliability [KPI] test_int8_matmul_error_vs_fp16 -> {'int8_vs_fp16_mean_rel_error': 0.015343, 'threshold_rel_error': 0.05}
+07:48:15 INFO     tests.test_system_health_and_reliability INT8 vs FP16 GEMM relative error: 1.5343%
+07:48:15 INFO     tests.test_system_health_and_reliability [KPI] test_fp8_e4m3_matmul_error_vs_fp16 -> {'fp8_vs_fp16_mean_rel_error': 0.037445, 'threshold_rel_error': 0.15000000000000002}
+07:48:15 INFO     tests.test_system_health_and_reliability [KPI] test_bf16_vs_fp16_matmul_equivalence -> {'bf16_vs_fp16_mean_rel_error': 0.002869, 'threshold_rel_error': 0.1}
+07:48:16 INFO     tests.test_system_health_and_reliability [KPI] test_quantised_softmax_output_matches_fp16 -> {'softmax_max_abs_error': 0.00256348, 'threshold': 0.001}
+07:48:16 INFO     tests.test_system_health_and_reliability [KPI] test_ddp_gradient_sync_matches_single_gpu -> {'grad_max_rel_error': 0.0, 'tolerance': 0.001}
+07:48:16 INFO     tests.test_system_health_and_reliability [KPI] test_multi_gpu_parameter_consistency_after_allreduce -> {'n_gpu': 2, 'max_diff': 0.0}
+07:48:19 INFO     tests.test_system_health_and_reliability [KPI] test_compile_output_matches_eager -> {'max_abs_error': 0.0, 'tolerance': 0.01}
+07:48:19 INFO     tests.test_system_health_and_reliability [KPI] test_compile_speedup_over_eager -> {'eager_time_s': 0.0068, 'compiled_time_s': 0.0082, 'speedup_ratio': 0.8239, 'floor_ratio': 1.05}
+07:48:19 INFO     tests.test_system_health_and_reliability torch.compile speedup: 0.824× (eager 0.0068s, compiled 0.0082s)
+07:48:19 INFO     tests.test_system_health_and_reliability [KPI] test_event_wait_enforces_ordering -> {'expected_sum': 16777216.0, 'actual_sum': 16777216.0, 'correct': True}
+07:48:19 INFO     tests.test_system_health_and_reliability [KPI] test_multi_stream_no_race_on_shared_tensor -> {'initial_val': 1.0, 'final_val': 4.0, 'expected': 4.0}
+07:48:19 INFO     tests.test_system_health_and_reliability [KPI] test_cuda_event_elapsed_time_positive -> {'gemm_elapsed_ms': 0.2968}
+07:48:20 INFO     tests.test_system_health_and_reliability [KPI] test_concurrent_stream_throughput_vs_sequential -> {'sequential_time_s': 0.0014, 'concurrent_time_s': 0.0014, 'concurrent_vs_sequential_ratio': 1.0122, 'max_allowed_ratio': 1.5}
+07:48:20 INFO     tests.test_system_health_and_reliability Stream concurrency: sequential 0.0014s, concurrent 0.0014s, ratio 1.012
+07:48:20 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+07:48:20 INFO     ai_headnode_tests Wrote testcase report: /root/workloads/AIHeadNode/NODE_VALIDATION_REPORT.md

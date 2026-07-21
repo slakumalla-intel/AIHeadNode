@@ -1,0 +1,249 @@
+{
+  "request_throughput": {
+    "unit": "requests/sec",
+    "avg": 4.153403538207913
+  },
+  "request_latency": {
+    "unit": "ms",
+    "avg": 29754.6614752675,
+    "p1": 7737.480374739999,
+    "p5": 30029.117448599998,
+    "p10": 30289.979716499998,
+    "p25": 30714.775368749997,
+    "p50": 30910.7056165,
+    "p75": 30927.299548,
+    "p90": 30937.9106202,
+    "p95": 30975.713027499998,
+    "p99": 31000.982895849997,
+    "min": 4049.4735069999997,
+    "max": 31016.841146,
+    "std": 4795.547833006812
+  },
+  "request_count": {
+    "unit": "count",
+    "avg": 800.0
+  },
+  "time_to_first_token": {
+    "unit": "ms",
+    "avg": 505.91901467124995,
+    "p1": 136.11951451,
+    "p5": 277.5199618,
+    "p10": 391.6619723,
+    "p25": 452.81340324999996,
+    "p50": 459.6669645,
+    "p75": 604.47941225,
+    "p90": 679.4653099,
+    "p95": 701.85846265,
+    "p99": 704.4922669299999,
+    "min": 127.620424,
+    "max": 706.791427,
+    "std": 119.50107737288566
+  },
+  "time_to_second_token": {
+    "unit": "ms",
+    "avg": 185.23440994125,
+    "p1": 23.758120679999998,
+    "p5": 80.37732309999998,
+    "p10": 132.5205022,
+    "p25": 175.01370025,
+    "p50": 185.4924285,
+    "p75": 228.55457525,
+    "p90": 234.2814999,
+    "p95": 241.45522609999998,
+    "p99": 244.86014609999998,
+    "min": 23.591110999999998,
+    "max": 245.79743599999998,
+    "std": 46.657309776367946
+  },
+  "inter_token_latency": {
+    "unit": "ms",
+    "avg": 231.78381846874998,
+    "p1": 59.684388299999995,
+    "p5": 233.3774738,
+    "p10": 234.4662073,
+    "p25": 237.95446049999998,
+    "p50": 239.03556749999998,
+    "p75": 239.7783235,
+    "p90": 239.927404,
+    "p95": 240.00829334999997,
+    "p99": 240.01636743,
+    "min": 58.010358,
+    "max": 241.81416399999998,
+    "std": 33.47851782964467
+  },
+  "output_token_throughput": {
+    "unit": "tokens/sec",
+    "avg": 528.1987114627458
+  },
+  "output_token_throughput_per_user": {
+    "unit": "tokens/sec/user",
+    "avg": 4.652246048775221,
+    "p1": 4.166382529273371,
+    "p5": 4.166522689871049,
+    "p10": 4.167927395238323,
+    "p25": 4.170518775021871,
+    "p50": 4.183477841641868,
+    "p75": 4.202484785973082,
+    "p90": 4.265006934348942,
+    "p95": 4.284903695791095,
+    "p99": 16.754835687754934,
+    "min": 4.13540705580836,
+    "max": 17.23830078759383,
+    "std": 2.3440437312357107
+  },
+  "output_sequence_length": {
+    "unit": "tokens",
+    "avg": 127.1725,
+    "p1": 128.0,
+    "p5": 128.0,
+    "p10": 128.0,
+    "p25": 128.0,
+    "p50": 128.0,
+    "p75": 128.0,
+    "p90": 128.0,
+    "p95": 128.0,
+    "p99": 128.0,
+    "min": 17.0,
+    "max": 129.0,
+    "std": 9.519729184698482
+  },
+  "input_sequence_length": {
+    "unit": "tokens",
+    "avg": 1024.03,
+    "p1": 1024.0,
+    "p5": 1024.0,
+    "p10": 1024.0,
+    "p25": 1024.0,
+    "p50": 1024.0,
+    "p75": 1024.0,
+    "p90": 1024.0,
+    "p95": 1024.0,
+    "p99": 1025.0,
+    "min": 1024.0,
+    "max": 1025.0,
+    "std": 0.1705872210923198
+  },
+  "input_config": {
+    "model_names": [
+      "meta-llama/Meta-Llama-3.1-8B-Instruct"
+    ],
+    "subcommand": "profile",
+    "verbose": false,
+    "template_filename": "genai_perf_config.yaml",
+    "analyze": {
+      "sweep_parameters": {
+        "concurrency": {
+          "min": 1,
+          "max": 1024
+        }
+      }
+    },
+    "endpoint": {
+      "model_selection_strategy": "round_robin",
+      "backend": "tensorrtllm",
+      "custom": "v1/chat/completions",
+      "type": "chat",
+      "streaming": true,
+      "server_metrics_urls": [
+        "http://localhost:9400/metrics"
+      ],
+      "url": "http://127.0.0.1:8000",
+      "grpc_method": "",
+      "service_kind": "openai",
+      "output_format": "openai_chat_completions"
+    },
+    "perf_analyzer": {
+      "path": "perf_analyzer",
+      "verbose": false,
+      "stimulus": {
+        "concurrency": 128
+      },
+      "stability_percentage": 999,
+      "measurement": {
+        "mode": "request_count",
+        "num": 800
+      },
+      "warmup_request_count": 0
+    },
+    "input": {
+      "batch_size": 1,
+      "extra": "",
+      "goodput": "",
+      "header": "",
+      "file": "",
+      "num_dataset_entries": 100,
+      "random_seed": 0,
+      "audio": {
+        "batch_size": 1,
+        "length": {
+          "mean": 0,
+          "stddev": 0
+        },
+        "format": "wav",
+        "depths": [
+          16
+        ],
+        "sample_rates": [
+          16
+        ],
+        "num_channels": 1
+      },
+      "image": {
+        "width": {
+          "mean": 0,
+          "stddev": 0
+        },
+        "height": {
+          "mean": 0,
+          "stddev": 0
+        },
+        "batch_size": 1,
+        "format": "png"
+      },
+      "output_tokens": {
+        "mean": 128,
+        "deterministic": false,
+        "stddev": 0
+      },
+      "synthetic_tokens": {
+        "mean": 1024,
+        "stddev": 0
+      },
+      "prefix_prompt": {
+        "num": 0,
+        "length": 100
+      },
+      "sessions": {
+        "num": 0,
+        "turns": {
+          "mean": 1,
+          "stddev": 0
+        },
+        "turn_delay": {
+          "mean": 0,
+          "ratio": 1.0,
+          "stddev": 0
+        }
+      },
+      "prompt_source": "synthetic",
+      "synthetic_files": [],
+      "payload_file": ""
+    },
+    "output": {
+      "artifact_directory": "artifacts/genai_perf_parallel_users/c128",
+      "checkpoint_directory": "checkpoint",
+      "profile_export_file": "profile_export.json",
+      "generate_plots": false,
+      "enable_checkpointing": false
+    },
+    "tokenizer": {
+      "name": "/mnt/datasets/huggingface/hub/models--meta-llama--Meta-Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659",
+      "revision": "main",
+      "trust_remote_code": false,
+      "_enable_debug_logging": true
+    },
+    "process": {
+      "input_path": "aggregated"
+    }
+  }
+}

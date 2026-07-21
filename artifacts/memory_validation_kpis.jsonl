@@ -6,3 +6,5 @@
 {"timestamp": "2026-05-20T22:48:35", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 614.37, "theoretical_gbs": 307.2}}
 {"timestamp": "2026-05-20T23:29:41", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 512.55, "theoretical_gbs": 307.2}}
 {"timestamp": "2026-05-21T02:19:16", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 611.84, "theoretical_gbs": 307.2}}
+{"timestamp": "2026-07-21T06:20:57", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 702.82, "theoretical_gbs": 614.4}}
+{"timestamp": "2026-07-21T07:10:37", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 885.64, "theoretical_gbs": 614.4}}

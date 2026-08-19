@@ -412,6 +412,8 @@ _DETECTED_GPU_TEMP   = _detect_gpu_max_temp_c()
 
 H100_SPECS = GPUSpecs(
     has_high_bw_fabric=_NVLINK_AVAILABLE,
+    # Per-pair NVLink BW observed ~265 GB/s on this system; 6 links × 50 GB/s = 300 GB/s theoretical.
+    fabric_links_per_gpu=6,
     memory_capacity_gb=_DETECTED_GPU_MEM_GB if _DETECTED_GPU_MEM_GB > 0 else 80.0,
     memory_bandwidth_tbs=_DETECTED_GPU_BW_TBS if _DETECTED_GPU_BW_TBS > 0 else 2.0,
     fp16_tflops=(

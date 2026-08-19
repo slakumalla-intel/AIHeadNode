@@ -1,29 +1,43 @@
 {
-  "timestamp": "2026-07-21T08:59:53.646563Z",
-  "platform": "Linux-6.18.0-dmr.bkc.6.18.3.8.3.x86_64-x86_64-with-glibc2.39",
+  "timestamp": "2026-08-17T02:46:01.379781Z",
+  "platform": "Linux-6.18.0-dmr.bkc.6.18.5.2.5.x86_64-x86_64-with-glibc2.39",
   "python_version": "3.12.13 (main, Apr 16 2026, 00:00:00) [GCC 14.3.1 20251022 (Red Hat 14.3.1-4)]",
   "cpu_count_logical": 224,
-  "cuda_visible_devices": "0,1",
+  "cuda_visible_devices": "0,1,2,3",
   "cuda_device_order": "PCI_BUS_ID",
   "datasets_root": "/mnt/datasets",
   "workloads_root": "/root/workloads",
   "cpu_count_physical": 224,
-  "total_ram_gb": 1766.87,
+  "total_ram_gb": 3022.62,
   "gpus": [
     {
       "index": "0",
       "name": "NVIDIA H100 PCIe",
       "pci_bus_id": "00000000:61:00.0",
       "memory_mib": "81559",
-      "driver_version": "595.71.05"
+      "driver_version": "595.45.04"
     },
     {
       "index": "1",
       "name": "NVIDIA H100 PCIe",
       "pci_bus_id": "00000000:B1:00.0",
       "memory_mib": "81559",
-      "driver_version": "595.71.05"
+      "driver_version": "595.45.04"
+    },
+    {
+      "index": "2",
+      "name": "NVIDIA H100 PCIe",
+      "pci_bus_id": "00000001:61:00.0",
+      "memory_mib": "81559",
+      "driver_version": "595.45.04"
+    },
+    {
+      "index": "3",
+      "name": "NVIDIA H100 PCIe",
+      "pci_bus_id": "00000001:B1:00.0",
+      "memory_mib": "81559",
+      "driver_version": "595.45.04"
     }
   ],
-  "gpu_count": 2
+  "gpu_count": 4
 }

@@ -581,7 +581,19 @@ def _configure_default_env() -> None:
     os.environ.setdefault("GPU_COST_PER_HOUR_USD", "0")
     os.environ.setdefault("NODE_COST_PER_HOUR_USD", "0")
     _workloads_root = os.environ.get("WORKLOADS_ROOT", "/root/workloads")
-    os.environ.setdefault("NVBANDWIDTH_BIN", os.path.join(_workloads_root, "nvbandwidth"))
+    # Prefer the datasets copy of nvbandwidth, falling back to the workloads tree.
+    # Newer versions first: v0.7 fails device_to_device_memcpy_read_ce pattern checks on multi-domain PCIe nodes.
+    _nvbandwidth_versions = ("nvbandwidth-0.9", "nvbandwidth-0.8", "nvbandwidth-0.7", "nvbandwidth")
+    _nvbandwidth_candidates = [
+        os.path.join(root, name)
+        for name in _nvbandwidth_versions
+        for root in (_datasets_root, _workloads_root)
+    ]
+    _nvbandwidth_default = next(
+        (p for p in _nvbandwidth_candidates if os.path.isdir(p)),
+        _nvbandwidth_candidates[0],
+    )
+    os.environ.setdefault("NVBANDWIDTH_BIN", _nvbandwidth_default)
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
     os.environ.setdefault("PYTEST_TIMEOUT", "1800")
     os.environ.setdefault("NODE_WORKLOAD_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
@@ -593,9 +605,10 @@ def _configure_default_env() -> None:
     os.environ.setdefault("PERF_CMD_TIMEOUT_SEC", "1800")
     os.environ.setdefault("PERF_SUITE_KPI_FILE", "artifacts/performance_suite_kpis.jsonl")
     os.environ.setdefault("VLLM_PREFILL_KPI_FILE", "artifacts/vllm_prefill_kpis.jsonl")
-    os.environ.setdefault("PERF_NVBANDWIDTH_BIN", os.environ.get("NVBANDWIDTH_BIN", os.path.join(_workloads_root, "nvbandwidth")))
+    os.environ.setdefault("PERF_NVBANDWIDTH_BIN", os.environ.get("NVBANDWIDTH_BIN", _nvbandwidth_default))
     os.environ.setdefault("PERF_NCCL_TESTS_DIR", os.path.join(_workloads_root, "nccl-tests", "build"))
     os.environ.setdefault("PERF_VLLM_GPU_MEMORY_UTILIZATION", "0.70")
+    os.environ.setdefault("PERF_VLLM_ENFORCE_EAGER", "1")
     os.environ.setdefault("PERF_VLLM_FP8_DTYPE_FALLBACK", "bfloat16")
     os.environ.setdefault("PERF_VLLM_BENCHMARK_MODULE", "vllm.benchmarks.benchmark_serving")
     os.environ.setdefault("PERF_AUTO_INSTALL", "1" if sys.platform.startswith("linux") else "0")
@@ -1444,6 +1457,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "ddp_correctness: DDP/NCCL gradient synchronisation correctness")
     config.addinivalue_line("markers", "compile_correctness: torch.compile correctness and speedup validation")
     config.addinivalue_line("markers", "stream_correctness: CUDA stream ordering and event synchronisation correctness")
+    config.addinivalue_line("markers", "vllm_prefill: vLLM prefill validation tests")
     setattr(config, "_overall_report_rows", {})
     setattr(config, "_testcase_id_map", _load_testcase_id_map())
 

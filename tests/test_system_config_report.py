@@ -23,6 +23,7 @@ repository root when TC-REPORT-04 runs.
 """
 
 import json
+import logging
 import os
 import platform
 import shutil
@@ -34,6 +35,8 @@ from typing import Any, Dict, List, Optional
 import pytest
 
 from tests.theoretical_specs import CPU_SPECS, H100_SPECS, SYSTEM_SPECS
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Optional imports
@@ -246,7 +249,20 @@ def _sep(char: str = "─", width: int = 72) -> str:
     return char * width
 
 
-def _print_cpu_section(cpu: Dict[str, Any]) -> None:
+def _emit_report(text: str, request: Optional[pytest.FixtureRequest] = None) -> None:
+    """Emit report text to both logger and terminal, even when stdout is captured."""
+    logger.info("\n%s", text)
+    if request is None:
+        return
+    tr = request.config.pluginmanager.get_plugin("terminalreporter")
+    if tr is None:
+        return
+    tr.write_line("")
+    for line in text.splitlines():
+        tr.write_line(line)
+
+
+def _print_cpu_section(cpu: Dict[str, Any], request: Optional[pytest.FixtureRequest] = None) -> None:
     spec = cpu["spec"]
     lines = [
         "",
@@ -284,10 +300,10 @@ def _print_cpu_section(cpu: Dict[str, Any]) -> None:
         f"    FP32 @ max turbo   : {spec['peak_fp32_tflops_turbo']} TFLOPS",
         _sep("═"),
     ]
-    print("\n".join(lines))
+    _emit_report("\n".join(lines), request)
 
 
-def _print_gpu_section(gpus: List[Dict[str, Any]]) -> None:
+def _print_gpu_section(gpus: List[Dict[str, Any]], request: Optional[pytest.FixtureRequest] = None) -> None:
     lines = [
         "",
         _sep("═"),
@@ -373,7 +389,7 @@ def _print_gpu_section(gpus: List[Dict[str, Any]]) -> None:
         f"    FP8   : {SYSTEM_SPECS.total_fp8_tflops_gpu:.0f} TFLOPS",
         _sep("═"),
     ]
-    print("\n".join(lines))
+    _emit_report("\n".join(lines), request)
 
 
 def _add_if(lines: List[str], g: Dict[str, Any], key: str,
@@ -389,10 +405,10 @@ def _add_if(lines: List[str], g: Dict[str, Any], key: str,
 @pytest.mark.cpu
 class TestCPUConfigReport:
 
-    def test_collect_and_print_cpu_config(self):
+    def test_collect_and_print_cpu_config(self, request: pytest.FixtureRequest):
         """TC-REPORT-01: Collect full CPU topology and print to test output."""
         cpu_info = _collect_cpu_info()
-        _print_cpu_section(cpu_info)
+        _print_cpu_section(cpu_info, request)
 
         # Basic sanity: report must contain required keys
         assert "os_platform"   in cpu_info
@@ -421,12 +437,12 @@ class TestCPUConfigReport:
 @pytest.mark.gpu
 class TestGPUConfigReport:
 
-    def test_collect_and_print_gpu_config(self):
+    def test_collect_and_print_gpu_config(self, request: pytest.FixtureRequest):
         """TC-REPORT-02: Collect full GPU configuration and print to test output."""
         if not _HAS_TORCH:
             pytest.skip("PyTorch / CUDA not available")
         gpu_info = _collect_gpu_info()
-        _print_gpu_section(gpu_info)
+        _print_gpu_section(gpu_info, request)
 
         assert len(gpu_info) > 0, "No GPUs detected"
         for g in gpu_info:
@@ -439,11 +455,18 @@ class TestGPUConfigReport:
         if not _HAS_TORCH:
             pytest.skip("PyTorch / CUDA not available")
         gpu_info = _collect_gpu_info()
+        model_lines = [
+            "GPU MODEL NAME CHECK",
+            _sep(),
+        ]
         for g in gpu_info:
             name = g["name"]
+            model_lines.append(f"  GPU {g['gpu_index']}: {name}")
             assert any(kw in name for kw in ("H100", "H200")), (
                 f"GPU {g['gpu_index']} name '{name}' is not H100/H200"
             )
+        model_lines.append(_sep("═"))
+        _emit_report("\n".join(model_lines))
 
     def test_total_gpu_memory_in_report(self):
         """TC-REPORT-02c: Total HBM must scale with detected GPU count."""
@@ -452,6 +475,16 @@ class TestGPUConfigReport:
         gpu_info = _collect_gpu_info()
         total_gb = sum(g.get("total_memory_gb", 0) for g in gpu_info)
         expected_total_gb = len(gpu_info) * H100_SPECS.hbm3_capacity_gb * 0.9875
+        _emit_report(
+            "\n".join([
+                "GPU TOTAL MEMORY CHECK",
+                _sep(),
+                f"  GPUs counted        : {len(gpu_info)}",
+                f"  Detected total HBM  : {total_gb:.2f} GB",
+                f"  Minimum expected    : {expected_total_gb:.2f} GB",
+                _sep("═"),
+            ])
+        )
         assert total_gb >= expected_total_gb, (
             f"Total GPU memory {total_gb:.1f} GB < {expected_total_gb:.1f} GB"
         )
@@ -469,30 +502,51 @@ class TestPCIeTopologyReport:
         if not _HAS_NVML:
             pytest.skip("pynvml not installed")
         gpu_info = _collect_gpu_info()
+        topo_lines = [
+            "PCIE TOPOLOGY CHECK",
+            _sep(),
+        ]
         for g in gpu_info:
+            topo_lines.append(
+                f"  GPU {g['gpu_index']}: bus={g.get('pci_bus_id', 'n/a')} gen={g.get('pcie_curr_gen', 'n/a')} x{g.get('pcie_curr_width', 'n/a')}"
+            )
             assert "pci_bus_id" in g, (
                 f"GPU {g['gpu_index']}: PCIe bus ID missing from report"
             )
             assert "pcie_max_gen" in g, (
                 f"GPU {g['gpu_index']}: PCIe gen info missing from report"
             )
+        topo_lines.append(_sep("═"))
+        _emit_report("\n".join(topo_lines))
 
     def test_pcie_links_healthy_in_report(self):
         """TC-REPORT-03b: No PCIe gen or width downgrade must appear in the report."""
         if not _HAS_NVML:
             pytest.skip("pynvml not installed")
         gpu_info = _collect_gpu_info()
+        health_lines = [
+            "PCIE LINK HEALTH CHECK",
+            _sep(),
+        ]
         for g in gpu_info:
             if "pcie_gen_healthy" in g:
+                health_lines.append(
+                    f"  GPU {g['gpu_index']} gen: curr={g.get('pcie_curr_gen', 'n/a')} max={g.get('pcie_max_gen', 'n/a')} status={'OK' if g['pcie_gen_healthy'] else 'DEGRADED'}"
+                )
                 assert g["pcie_gen_healthy"], (
                     f"GPU {g['gpu_index']}: PCIe gen degraded "
                     f"(curr Gen {g.get('pcie_curr_gen')} < max Gen {g.get('pcie_max_gen')})"
                 )
             if "pcie_width_healthy" in g:
+                health_lines.append(
+                    f"  GPU {g['gpu_index']} width: curr=x{g.get('pcie_curr_width', 'n/a')} max=x{g.get('pcie_max_width', 'n/a')} status={'OK' if g['pcie_width_healthy'] else 'DEGRADED'}"
+                )
                 assert g["pcie_width_healthy"], (
                     f"GPU {g['gpu_index']}: PCIe width degraded "
                     f"(curr ×{g.get('pcie_curr_width')} < max ×{g.get('pcie_max_width')})"
                 )
+        health_lines.append(_sep("═"))
+        _emit_report("\n".join(health_lines))
 
 
 # ---------------------------------------------------------------------------
@@ -520,7 +574,18 @@ class TestCombinedConfigReport:
         }
 
         _REPORT_PATH.write_text(json.dumps(report, indent=2, default=str))
-        print(f"\nReport saved → {_REPORT_PATH}")
+        logger.info("Report saved -> %s", _REPORT_PATH)
+        _emit_report(
+            "\n".join([
+                "COMBINED REPORT SUMMARY",
+                _sep(),
+                f"  Output path          : {_REPORT_PATH}",
+                f"  CPU logical cores    : {report['cpu'].get('logical_cpus', 'n/a')}",
+                f"  GPU entries          : {len(report['gpus'])}",
+                f"  Spec total HBM (GB)  : {report['system_spec_totals']['total_gpu_memory_gb']}",
+                _sep("═"),
+            ])
+        )
 
         # Verify the file round-trips correctly
         loaded = json.loads(_REPORT_PATH.read_text())

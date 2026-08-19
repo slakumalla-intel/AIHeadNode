@@ -219,6 +219,12 @@ class TestVLLMPrefillValidation:
         env.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
         env.setdefault("TOKENIZERS_PARALLELISM", "true")
         
+        # Fix NCCL device mapping and increase broadcast timeout
+        env.setdefault("NCCL_DEBUG", "INFO")
+        env.setdefault("NCCL_LAUNCH_MODE", "PARALLEL")
+        env.setdefault("VLLM_BROADCAST_TIMEOUT", "180")  # 3x default for weight quantization
+        env.setdefault("OMP_NUM_THREADS", "32")  # Reduce CPU contention
+        
         # Set OMPI variables for containerized environments
         env.setdefault("OMPI_ALLOW_RUN_AS_ROOT", "1")
         env.setdefault("OMPI_ALLOW_RUN_AS_ROOT_CONFIRM", "1")
@@ -302,6 +308,13 @@ class TestVLLMPrefillValidation:
         env.setdefault("CUDA_VISIBLE_DEVICES", "0,1,2,3")
         env.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
         env.setdefault("TOKENIZERS_PARALLELISM", "true")
+        
+        # Fix NCCL device mapping and increase broadcast timeout
+        env.setdefault("NCCL_DEBUG", "INFO")
+        env.setdefault("NCCL_LAUNCH_MODE", "PARALLEL")
+        env.setdefault("VLLM_BROADCAST_TIMEOUT", "180")  # 3x default for weight quantization
+        env.setdefault("OMP_NUM_THREADS", "32")  # Reduce CPU contention
+        
         env.setdefault("OMPI_ALLOW_RUN_AS_ROOT", "1")
         env.setdefault("OMPI_ALLOW_RUN_AS_ROOT_CONFIRM", "1")
         

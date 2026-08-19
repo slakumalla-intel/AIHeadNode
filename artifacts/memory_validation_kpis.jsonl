@@ -8,3 +8,59 @@
 {"timestamp": "2026-05-21T02:19:16", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 611.84, "theoretical_gbs": 307.2}}
 {"timestamp": "2026-07-21T06:20:57", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 702.82, "theoretical_gbs": 614.4}}
 {"timestamp": "2026-07-21T07:10:37", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 885.64, "theoretical_gbs": 614.4}}
+{"timestamp": "2026-08-16T15:52:02", "test": "TC-MEM-01a_total_ram_min", "metrics": {"total_gb": 3022.62, "threshold_gb": 1024.0}}
+{"timestamp": "2026-08-16T15:52:02", "test": "TC-MEM-01b_total_ram_baseline", "metrics": {"total_gb": 3022.62, "baseline_gb": 3022.62, "deviation_pct": 0.0, "threshold_deviation_pct": 5.0}}
+{"timestamp": "2026-08-16T15:52:02", "test": "TC-MEM-01c_available_ram", "metrics": {"available_gb": 3005.53, "total_gb": 3022.62, "available_fraction": 0.9943, "threshold_fraction": 0.5}}
+{"timestamp": "2026-08-16T15:52:03", "test": "TC-MEM-02a_meminfo_exists", "metrics": {"path": "/proc/meminfo", "exists": true}}
+{"timestamp": "2026-08-16T15:52:03", "test": "TC-MEM-02b_hugepages_entry", "metrics": {"has_hugepages_total_entry": true}}
+{"timestamp": "2026-08-16T15:52:04", "test": "TC-MEM-02c_thp_mode", "metrics": {"mode": "[always] madvise never", "acceptable_modes": ["always", "madvise"]}}
+{"timestamp": "2026-08-16T15:52:04", "test": "TC-MEM-13_storage_capacity", "metrics": {"total_gb": 1675.69, "baseline_gb": 1675.69, "deviation_pct": 0.0, "threshold_deviation_pct": 5.0}}
+{"timestamp": "2026-08-16T15:52:05", "test": "TC-MEM-03a_copy_bw", "metrics": {"bandwidth_gbs": 39.455, "threshold_gbs": 30.0}}
+{"timestamp": "2026-08-16T15:52:06", "test": "TC-MEM-03b_scale_bw", "metrics": {"scale_bandwidth_gbs": 26.503, "copy_bandwidth_gbs": 12.324, "threshold_gbs": 12.0}}
+{"timestamp": "2026-08-16T15:52:07", "test": "TC-MEM-03c_triad_bw", "metrics": {"triad_bandwidth_gbs": 11.37, "copy_bandwidth_gbs": 40.167, "threshold_gbs": 16.067}}
+{"timestamp": "2026-08-16T15:52:10", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 607.07, "theoretical_gbs": 307.2}}
+{"timestamp": "2026-08-16T15:52:10", "test": "TC-MEM-05_read_write_asymmetry", "metrics": {"read_bandwidth_gbs": 11.587, "write_bandwidth_gbs": 16.087, "read_to_write_ratio": 0.72}}
+{"timestamp": "2026-08-16T15:52:11", "test": "TC-MEM-06_latency_ws32kb", "metrics": {"latency_ns": 0.95, "max_latency_ns": 4.0, "ws_kb": 32}}
+{"timestamp": "2026-08-16T15:52:11", "test": "TC-MEM-06_latency_ws512kb", "metrics": {"latency_ns": 0.96, "max_latency_ns": 8.0, "ws_kb": 512}}
+{"timestamp": "2026-08-16T15:52:12", "test": "TC-MEM-06_latency_ws16384kb", "metrics": {"latency_ns": 1.79, "max_latency_ns": 30.0, "ws_kb": 16384}}
+{"timestamp": "2026-08-16T15:52:12", "test": "TC-MEM-06_latency_ws524288kb", "metrics": {"latency_ns": 6.16, "max_latency_ns": 120.0, "ws_kb": 524288}}
+{"timestamp": "2026-08-16T15:52:13", "test": "TC-MEM-07_cache_bw_L1-cache", "metrics": {"working_set_mb": 0.03125, "bandwidth_gbs": 31.474, "threshold_gbs": 5.0}}
+{"timestamp": "2026-08-16T15:52:13", "test": "TC-MEM-07_cache_bw_L2-cache", "metrics": {"working_set_mb": 0.5, "bandwidth_gbs": 39.414, "threshold_gbs": 30.0}}
+{"timestamp": "2026-08-16T15:52:13", "test": "TC-MEM-07_cache_bw_L3-cache", "metrics": {"working_set_mb": 8.0, "bandwidth_gbs": 25.688, "threshold_gbs": 20.0}}
+{"timestamp": "2026-08-16T15:52:14", "test": "TC-MEM-07_cache_bw_DRAM", "metrics": {"working_set_mb": 512.0, "bandwidth_gbs": 40.35, "threshold_gbs": 15.0}}
+{"timestamp": "2026-08-16T15:52:14", "test": "TC-MEM-08_numa_nodes_visible", "metrics": {"expected_nodes": 1, "visible_nodes": 1}}
+{"timestamp": "2026-08-16T15:52:15", "test": "TC-MEM-08b_numa_node0_meminfo", "metrics": {"path": "/sys/devices/system/node/node0/meminfo", "has_memtotal": true}}
+{"timestamp": "2026-08-16T15:52:15", "test": "TC-MEM-09_hugepages", "metrics": {"thp_active": true, "explicit_hugepages_configured": false}}
+{"timestamp": "2026-08-16T15:52:16", "test": "TC-MEM-10_ecc_sysfs_present", "metrics": {"edac_path_exists": false, "mc_path_exists": true}}
+{"timestamp": "2026-08-16T15:52:16", "test": "TC-MEM-10b_uncorrected_errors", "metrics": {"controllers_checked": 16, "max_ue_count": 0}}
+{"timestamp": "2026-08-16T15:52:18", "test": "TC-MEM-11_large_alloc_free", "metrics": {"allocated_gb": 8.0, "elapsed_sec": 1.832, "threshold_sec": 30.0}}
+{"timestamp": "2026-08-16T15:52:21", "test": "TC-MEM-11b_repeated_alloc_free", "metrics": {"cycles": 20, "alloc_size_gb": 1.0}}
+{"timestamp": "2026-08-16T15:52:25", "test": "TC-MEM-12_sustained_bandwidth", "metrics": {"readings_gbs": [43.8, 40.953, 42.258, 41.883, 41.282], "max_degradation": 0.065, "threshold_degradation": 0.15}}
+{"timestamp": "2026-08-17T01:27:49", "test": "TC-MEM-01a_total_ram_min", "metrics": {"total_gb": 3022.62, "threshold_gb": 1024.0}}
+{"timestamp": "2026-08-17T01:27:50", "test": "TC-MEM-01b_total_ram_baseline", "metrics": {"total_gb": 3022.62, "baseline_gb": 3022.62, "deviation_pct": 0.0, "threshold_deviation_pct": 5.0}}
+{"timestamp": "2026-08-17T01:27:50", "test": "TC-MEM-01c_available_ram", "metrics": {"available_gb": 3005.82, "total_gb": 3022.62, "available_fraction": 0.9944, "threshold_fraction": 0.5}}
+{"timestamp": "2026-08-17T01:27:51", "test": "TC-MEM-02a_meminfo_exists", "metrics": {"path": "/proc/meminfo", "exists": true}}
+{"timestamp": "2026-08-17T01:27:51", "test": "TC-MEM-02b_hugepages_entry", "metrics": {"has_hugepages_total_entry": true}}
+{"timestamp": "2026-08-17T01:27:51", "test": "TC-MEM-02c_thp_mode", "metrics": {"mode": "[always] madvise never", "acceptable_modes": ["always", "madvise"]}}
+{"timestamp": "2026-08-17T01:27:52", "test": "TC-MEM-13_storage_capacity", "metrics": {"total_gb": 1675.69, "baseline_gb": 1675.69, "deviation_pct": 0.0, "threshold_deviation_pct": 5.0}}
+{"timestamp": "2026-08-17T01:27:52", "test": "TC-MEM-03a_copy_bw", "metrics": {"bandwidth_gbs": 40.368, "threshold_gbs": 30.0}}
+{"timestamp": "2026-08-17T01:27:53", "test": "TC-MEM-03b_scale_bw", "metrics": {"scale_bandwidth_gbs": 27.63, "copy_bandwidth_gbs": 44.847, "threshold_gbs": 17.939}}
+{"timestamp": "2026-08-17T01:27:55", "test": "TC-MEM-03c_triad_bw", "metrics": {"triad_bandwidth_gbs": 11.301, "copy_bandwidth_gbs": 40.53, "threshold_gbs": 16.212}}
+{"timestamp": "2026-08-17T01:27:59", "test": "TC-MEM-04_aggregate_stream_triad", "metrics": {"bandwidth_gbs": 596.33, "theoretical_gbs": 307.2}}
+{"timestamp": "2026-08-17T01:28:00", "test": "TC-MEM-05_read_write_asymmetry", "metrics": {"read_bandwidth_gbs": 11.668, "write_bandwidth_gbs": 16.367, "read_to_write_ratio": 0.713}}
+{"timestamp": "2026-08-17T01:28:00", "test": "TC-MEM-06_latency_ws32kb", "metrics": {"latency_ns": 0.94, "max_latency_ns": 4.0, "ws_kb": 32}}
+{"timestamp": "2026-08-17T01:28:00", "test": "TC-MEM-06_latency_ws512kb", "metrics": {"latency_ns": 0.95, "max_latency_ns": 8.0, "ws_kb": 512}}
+{"timestamp": "2026-08-17T01:28:01", "test": "TC-MEM-06_latency_ws16384kb", "metrics": {"latency_ns": 6.12, "max_latency_ns": 30.0, "ws_kb": 16384}}
+{"timestamp": "2026-08-17T01:28:01", "test": "TC-MEM-06_latency_ws524288kb", "metrics": {"latency_ns": 7.24, "max_latency_ns": 120.0, "ws_kb": 524288}}
+{"timestamp": "2026-08-17T01:28:02", "test": "TC-MEM-07_cache_bw_L1-cache", "metrics": {"working_set_mb": 0.03125, "bandwidth_gbs": 33.552, "threshold_gbs": 5.0}}
+{"timestamp": "2026-08-17T01:28:02", "test": "TC-MEM-07_cache_bw_L2-cache", "metrics": {"working_set_mb": 0.5, "bandwidth_gbs": 38.881, "threshold_gbs": 30.0}}
+{"timestamp": "2026-08-17T01:28:03", "test": "TC-MEM-07_cache_bw_L3-cache", "metrics": {"working_set_mb": 8.0, "bandwidth_gbs": 20.788, "threshold_gbs": 20.0}}
+{"timestamp": "2026-08-17T01:28:03", "test": "TC-MEM-07_cache_bw_DRAM", "metrics": {"working_set_mb": 512.0, "bandwidth_gbs": 39.189, "threshold_gbs": 15.0}}
+{"timestamp": "2026-08-17T01:28:03", "test": "TC-MEM-08_numa_nodes_visible", "metrics": {"expected_nodes": 1, "visible_nodes": 1}}
+{"timestamp": "2026-08-17T01:28:04", "test": "TC-MEM-08b_numa_node0_meminfo", "metrics": {"path": "/sys/devices/system/node/node0/meminfo", "has_memtotal": true}}
+{"timestamp": "2026-08-17T01:28:04", "test": "TC-MEM-09_hugepages", "metrics": {"thp_active": true, "explicit_hugepages_configured": false}}
+{"timestamp": "2026-08-17T01:28:05", "test": "TC-MEM-10_ecc_sysfs_present", "metrics": {"edac_path_exists": false, "mc_path_exists": true}}
+{"timestamp": "2026-08-17T01:28:05", "test": "TC-MEM-10b_uncorrected_errors", "metrics": {"controllers_checked": 16, "max_ue_count": 0}}
+{"timestamp": "2026-08-17T01:28:07", "test": "TC-MEM-11_large_alloc_free", "metrics": {"allocated_gb": 8.0, "elapsed_sec": 1.888, "threshold_sec": 30.0}}
+{"timestamp": "2026-08-17T01:28:10", "test": "TC-MEM-11b_repeated_alloc_free", "metrics": {"cycles": 20, "alloc_size_gb": 1.0}}
+{"timestamp": "2026-08-17T01:28:14", "test": "TC-MEM-12_sustained_bandwidth", "metrics": {"readings_gbs": [44.263, 44.658, 45.367, 44.399, 43.591], "max_degradation": 0.0152, "threshold_degradation": 0.15}}

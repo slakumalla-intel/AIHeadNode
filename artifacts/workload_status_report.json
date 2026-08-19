@@ -1,192 +1,115 @@
 {
-  "generated_at_utc": "2026-07-21T09:31:13.047698+00:00",
-  "host": "sc00901168s0075",
+  "generated_at_utc": "2026-08-17T03:17:19.989106+00:00",
+  "host": "SC009011168H0070",
   "python": "3.12.13",
   "domains": [
     {
       "domain": "bottleneck",
       "description": "Roofline and bottleneck analysis",
-      "status": "FAIL",
-      "return_code": 1,
-      "started_at_utc": "2026-07-21T07:06:07.391264+00:00",
-      "finished_at_utc": "2026-07-21T07:06:28.092720+00:00",
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-08-17T01:16:28.400773+00:00",
+      "finished_at_utc": "2026-08-17T01:17:08.658002+00:00",
       "tests": 25,
-      "failures": 2,
+      "failures": 0,
       "errors": 0,
-      "skipped": 1,
-      "duration_sec": 19.051,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_bottleneck_analysis.TestCPUMemoryBandwidthBottleneck::test_cpu_dram_bandwidth_vs_hbm",
-          "message": "AssertionError: HBM/DRAM ratio 6.5\u00d7 < 10\u00d7 expected \u2013 CPU memory BW may bottleneck data preprocessing\nassert 6.510416666666667 >= 10.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_bottleneck_analysis.TestNVLinkBottleneck::test_nvlink_bw_vs_theoretical",
-          "message": "AssertionError: NVLink P2P BW GPU 0->1: efficiency 29.32% is below threshold 70.00% (measured=263.918, theoretical=900.000)\nassert 0.2932420470545126 >= 0.7",
-          "kind": "failure"
-        }
-      ],
+      "skipped": 0,
+      "duration_sec": 38.151,
+      "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/bottleneck.xml",
       "log_file": "artifacts/reports/logs/bottleneck.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/bottleneck.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/bottleneck.log --log-file-level INFO tests/test_bottleneck_analysis.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/bottleneck.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/bottleneck.log --log-file-level INFO tests/test_bottleneck_analysis.py"
     },
     {
       "domain": "cpu",
       "description": "CPU validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-07-21T07:06:28.092966+00:00",
-      "finished_at_utc": "2026-07-21T07:10:25.687619+00:00",
+      "started_at_utc": "2026-08-17T01:17:08.658203+00:00",
+      "finished_at_utc": "2026-08-17T01:27:46.113613+00:00",
       "tests": 33,
       "failures": 0,
       "errors": 0,
-      "skipped": 0,
-      "duration_sec": 236.795,
+      "skipped": 1,
+      "duration_sec": 636.184,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/cpu.xml",
       "log_file": "artifacts/reports/logs/cpu.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/cpu.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/cpu.log --log-file-level INFO tests/test_cpu_validation.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/cpu.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/cpu.log --log-file-level INFO tests/test_cpu_validation.py"
     },
     {
       "domain": "memory",
       "description": "Memory subsystem validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-07-21T07:10:25.687816+00:00",
-      "finished_at_utc": "2026-07-21T07:10:51.288730+00:00",
+      "started_at_utc": "2026-08-17T01:27:46.113918+00:00",
+      "finished_at_utc": "2026-08-17T01:28:15.643148+00:00",
       "tests": 28,
-      "failures": 7,
+      "failures": 1,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 24.852,
+      "duration_sec": 28.01,
       "failed_tests": [
         {
-          "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_scale_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Scale 13.27 GB/s < 15 GB/s\nassert 13.272585291518102 >= 15.0",
-          "kind": "failure"
-        },
-        {
           "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_triad_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Triad 14.00 GB/s < 15 GB/s\nassert 13.999563240599834 >= 15.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[32-4.0]",
-          "message": "AssertionError: Working-set 32 KB: latency 89.61 ns > 4.0 ns\nassert 89.60620112574702 <= 4.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[512-8.0]",
-          "message": "AssertionError: Working-set 512 KB: latency 83.19 ns > 8.0 ns\nassert 83.18835448273276 <= 8.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[16384-30.0]",
-          "message": "AssertionError: Working-set 16384 KB: latency 177.50 ns > 30.0 ns\nassert 177.50110000633867 <= 30.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_memory_validation.TestMemoryLatency::test_latency_at_working_set[524288-120.0]",
-          "message": "AssertionError: Working-set 524288 KB: latency 224.87 ns > 120.0 ns\nassert 224.87485999590717 <= 120.0",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_memory_validation.TestCacheHierarchyBandwidth::test_bandwidth_at_working_set[L3-cache-8.0-20.0]",
-          "message": "AssertionError: L3-cache: measured 17.4 GB/s < expected 20.0 GB/s\nassert 17.37882306887742 >= 20.0",
+          "message": "AssertionError: STREAM Triad 11.30 GB/s < expected 16.21 GB/s (40% of Copy 40.53 GB/s, floor 12 GB/s)\nassert 11.300759439444041 >= 16.21216196692994",
           "kind": "failure"
         }
       ],
       "junit_xml": "artifacts/reports/junit/memory.xml",
       "log_file": "artifacts/reports/logs/memory.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/memory.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/memory.log --log-file-level INFO tests/test_memory_validation.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/memory.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/memory.log --log-file-level INFO tests/test_memory_validation.py"
     },
     {
       "domain": "gpu",
       "description": "GPU validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-07-21T07:10:51.288939+00:00",
-      "finished_at_utc": "2026-07-21T07:11:04.762706+00:00",
-      "tests": 37,
+      "started_at_utc": "2026-08-17T01:28:15.643337+00:00",
+      "finished_at_utc": "2026-08-17T01:28:46.758815+00:00",
+      "tests": 53,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 12.443,
+      "duration_sec": 29.701,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/gpu.xml",
       "log_file": "artifacts/reports/logs/gpu.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/gpu.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/gpu.log --log-file-level INFO tests/test_gpu_validation.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/gpu.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/gpu.log --log-file-level INFO tests/test_gpu_validation.py"
     },
     {
       "domain": "interconnect",
       "description": "PCIe / NVLink / P2P interconnect validation",
-      "status": "FAIL",
-      "return_code": 1,
-      "started_at_utc": "2026-07-21T07:11:04.762917+00:00",
-      "finished_at_utc": "2026-07-21T07:12:06.209926+00:00",
-      "tests": 41,
-      "failures": 5,
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-08-17T01:28:46.759008+00:00",
+      "finished_at_utc": "2026-08-17T01:30:29.826814+00:00",
+      "tests": 77,
+      "failures": 0,
       "errors": 0,
-      "skipped": 5,
-      "duration_sec": 57.106,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_interconnect_validation.TestPCIeTopology::test_pcie_gen5_sysfs",
-          "message": "AssertionError: No NVIDIA GPU PCIe Gen 5 (32 GT/s) links found. Observed: ['32.0 GT/s PCIe']\nassert False",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_interconnect_validation.TestNVLinkDetection::test_nvlink_link_count_per_gpu",
-          "message": "AttributeError: 'GPUSpecs' object has no attribute 'nvlink_links_per_gpu'. Did you mean: 'fabric_links_per_gpu'?",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_interconnect_validation.TestP2PBandwidth::test_p2p_bandwidth_pair[0-1]",
-          "message": "AssertionError: NVLink P2P BW GPU 0->1: efficiency 29.43% is below threshold 70.00% (measured=264.845, theoretical=900.000)\nassert 0.29427238779567194 >= 0.7",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_interconnect_validation.TestNVLinkAllToAll::test_all_to_all_aggregate_bandwidth",
-          "message": "AssertionError: All-to-all P2P aggregate BW: efficiency 29.04% is below threshold 70.00% (measured=522.680, theoretical=1800.000)\nassert 0.29037764588053 >= 0.7",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_interconnect_validation.TestPCIeVsNVLink::test_nvlink_faster_than_pcie",
-          "message": "AssertionError: NVLink BW 262.84 GB/s < 5\u00d7 PCIe BW 54.83 GB/s\nassert 262.8442334942865 >= (5 * 54.8252468692978)",
-          "kind": "failure"
-        }
-      ],
+      "skipped": 8,
+      "duration_sec": 97.699,
+      "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/interconnect.xml",
       "log_file": "artifacts/reports/logs/interconnect.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/interconnect.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/interconnect.log --log-file-level INFO tests/test_interconnect_validation.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/interconnect.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/interconnect.log --log-file-level INFO tests/test_interconnect_validation.py"
     },
     {
       "domain": "node_validation",
       "description": "Node bring-up and workload acceptance",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-07-21T07:12:06.210145+00:00",
-      "finished_at_utc": "2026-07-21T07:47:18.749272+00:00",
+      "started_at_utc": "2026-08-17T01:30:29.826991+00:00",
+      "finished_at_utc": "2026-08-17T02:09:26.203998+00:00",
       "tests": 51,
-      "failures": 7,
+      "failures": 3,
       "errors": 0,
-      "skipped": 5,
-      "duration_sec": 2106.07,
+      "skipped": 9,
+      "duration_sec": 2331.766,
       "failed_tests": [
         {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[deepseek_r1_quantized-deepseek-ai/DeepSeek-R1-Distill-Qwen-7B-32-3000.0-True]",
-          "message": "Failed: Quantized enterprise workload deepseek-ai/DeepSeek-R1-Distill-Qwen-7B requires 4 visible GPU(s), but only 2 are available. CUDA_VISIBLE_DEVICES=0,1. Memory snapshot: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[llama_70b-meta-llama/Meta-Llama-3.1-70B-Instruct-16-12000.0-True]",
-          "message": "Failed: Quantized enterprise workload meta-llama/Meta-Llama-3.1-70B-Instruct requires 4 visible GPU(s), but only 2 are available. CUDA_VISIBLE_DEVICES=0,1. Memory snapshot: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[qwen_70b-Qwen/Qwen2.5-72B-Instruct-16-12000.0-True]",
-          "message": "Failed: Quantized enterprise workload Qwen/Qwen2.5-72B-Instruct requires 4 visible GPU(s), but only 2 are available. CUDA_VISIBLE_DEVICES=0,1. Memory snapshot: gpu0: free=78.3GiB used=0.9GiB total=79.2GiB; gpu1: free=78.5GiB used=0.6GiB total=79.2GiB",
+          "nodeid": "tests.test_node_validation.TestPCIeBandwidthDirect::test_d2h_bandwidth_all_gpus",
+          "message": "Failed: D2H PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=38.99 GB/s, mean=50.81 GB/s\nPer-GPU failures:\nGPU 0: 38.99 GB/s < 40.95 GB/s",
           "kind": "failure"
         },
         {
@@ -196,186 +119,138 @@
         },
         {
           "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vision_object_detection_yolo_fps",
-          "message": "Failed: YOLO workload collected 0 worker results for 2 processes",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_llm_training_small_multigpu",
-          "message": "Failed: TC-013 worker failures: [{'rank': 0, 'status': 'error', 'error': \"Model load failed: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.\\nCheck your internet connection or see how to run the li",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_llm_training_large_multigpu",
-          "message": "Failed: TC-014 worker failures: [{'rank': 0, 'status': 'error', 'error': 'CUDA out of memory. Tried to allocate 160.00 MiB. GPU 0 has a total capacity of 79.18 GiB of which 102.56 MiB is free. Process 116528 has 884.00 MiB memory in use. Including non-PyTorch ",
+          "message": "Failed: YOLO workload collected 0 worker results for 4 processes",
           "kind": "failure"
         }
       ],
       "junit_xml": "artifacts/reports/junit/node_validation.xml",
       "log_file": "artifacts/reports/logs/node_validation.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/node_validation.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/node_validation.log --log-file-level INFO tests/test_node_validation.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/node_validation.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/node_validation.log --log-file-level INFO tests/test_node_validation.py"
     },
     {
       "domain": "agentic_ai",
       "description": "Agentic AI KPI validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-07-21T07:47:18.749480+00:00",
-      "finished_at_utc": "2026-07-21T07:47:37.274397+00:00",
+      "started_at_utc": "2026-08-17T02:09:26.204194+00:00",
+      "finished_at_utc": "2026-08-17T02:09:49.084019+00:00",
       "tests": 9,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 17.58,
+      "duration_sec": 21.332,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/agentic_ai.xml",
       "log_file": "artifacts/reports/logs/agentic_ai.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/agentic_ai.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/agentic_ai.log --log-file-level INFO tests/test_agentic_ai_validation.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/agentic_ai.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/agentic_ai.log --log-file-level INFO tests/test_agentic_ai_validation.py"
     },
     {
       "domain": "ai_pipeline",
       "description": "AI pipeline KPI validation",
-      "status": "FAIL",
-      "return_code": 2,
-      "started_at_utc": "2026-07-21T07:47:37.274589+00:00",
-      "finished_at_utc": "2026-07-21T07:47:37.822660+00:00",
-      "tests": 1,
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-08-17T02:09:49.084370+00:00",
+      "finished_at_utc": "2026-08-17T02:11:21.393318+00:00",
+      "tests": 38,
       "failures": 0,
-      "errors": 1,
-      "skipped": 0,
-      "duration_sec": 0.181,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_ai_pipeline_kpis",
-          "message": "collection failure",
-          "kind": "error"
-        }
-      ],
+      "errors": 0,
+      "skipped": 4,
+      "duration_sec": 89.228,
+      "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/ai_pipeline.xml",
       "log_file": "artifacts/reports/logs/ai_pipeline.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/ai_pipeline.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/ai_pipeline.log --log-file-level INFO tests/test_ai_pipeline_kpis.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/ai_pipeline.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/ai_pipeline.log --log-file-level INFO tests/test_ai_pipeline_kpis.py"
     },
     {
       "domain": "system_health",
       "description": "System health and reliability",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-07-21T07:47:37.822820+00:00",
-      "finished_at_utc": "2026-07-21T07:48:21.940820+00:00",
+      "started_at_utc": "2026-08-17T02:11:21.393501+00:00",
+      "finished_at_utc": "2026-08-17T02:12:25.766345+00:00",
       "tests": 39,
-      "failures": 5,
+      "failures": 1,
       "errors": 0,
-      "skipped": 14,
-      "duration_sec": 42.209,
+      "skipped": 2,
+      "duration_sec": 61.928,
       "failed_tests": [
         {
-          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[0]",
-          "message": "AssertionError: GPU 0 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)\nassert 0.19658119658119658 >= 0.8",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_gpu_clock_boost_ratio[1]",
-          "message": "AssertionError: GPU 1 clock ratio 19.66% below 80%; throttling suspected (current 345 MHz, max 1755 MHz)\nassert 0.19658119658119658 >= 0.8",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestGPUThermalAndClockStability::test_sustained_compute_no_thermal_throttle",
-          "message": "AssertionError: SM clock dropped 46.2% during sustained load (initial 1755 MHz \u2192 min 945 MHz, max_temp 59 \u00b0C). Thermal or power-limit throttling detected.\nassert 0.46153846153846156 <= 0.1",
-          "kind": "failure"
-        },
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestQuantizationNumericalCorrectness::test_quantised_softmax_output_matches_fp16",
-          "message": "AssertionError: Quantised softmax max error 2.56e-03 exceeds 1e-03\nassert 0.0025634765625 < 0.001",
-          "kind": "failure"
-        },
-        {
           "nodeid": "tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_speedup_over_eager",
-          "message": "AssertionError: torch.compile speedup 0.824\u00d7 < floor 1.05\u00d7. Compiled kernels may be suboptimal for this H100 PCIe configuration.\nassert 0.8238680050201499 >= 1.05",
+          "message": "AssertionError: torch.compile speedup 0.231\u00d7 < floor 0.75\u00d7 (strict floor 1.05\u00d7, eager_time=0.0068s). Compiled kernels may be suboptimal for this workload shape.\nassert 0.2310136786297916 >= 0.75",
           "kind": "failure"
         }
       ],
       "junit_xml": "artifacts/reports/junit/system_health.xml",
       "log_file": "artifacts/reports/logs/system_health.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/system_health.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/system_health.log --log-file-level INFO tests/test_system_health_and_reliability.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/system_health.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/system_health.log --log-file-level INFO tests/test_system_health_and_reliability.py"
     },
     {
       "domain": "system_config",
       "description": "System config report validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-07-21T07:48:21.941003+00:00",
-      "finished_at_utc": "2026-07-21T07:48:25.675666+00:00",
+      "started_at_utc": "2026-08-17T02:12:25.766544+00:00",
+      "finished_at_utc": "2026-08-17T02:12:33.420490+00:00",
       "tests": 8,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 3.051,
+      "duration_sec": 6.5,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/system_config.xml",
       "log_file": "artifacts/reports/logs/system_config.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/system_config.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/system_config.log --log-file-level INFO tests/test_system_config_report.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/system_config.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/system_config.log --log-file-level INFO tests/test_system_config_report.py"
     },
     {
       "domain": "vllm_prefill",
       "description": "vLLM prefill validation",
-      "status": "FAIL",
-      "return_code": 2,
-      "started_at_utc": "2026-07-21T07:48:25.675855+00:00",
-      "finished_at_utc": "2026-07-21T07:48:26.163213+00:00",
-      "tests": 1,
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-08-17T02:12:33.420817+00:00",
+      "finished_at_utc": "2026-08-17T02:17:02.743556+00:00",
+      "tests": 3,
       "failures": 0,
-      "errors": 1,
-      "skipped": 0,
-      "duration_sec": 0.124,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_vllm_prefill_validation",
-          "message": "collection failure",
-          "kind": "error"
-        }
-      ],
+      "errors": 0,
+      "skipped": 1,
+      "duration_sec": 267.478,
+      "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/vllm_prefill.xml",
       "log_file": "artifacts/reports/logs/vllm_prefill.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/vllm_prefill.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/vllm_prefill.log --log-file-level INFO tests/test_vllm_prefill_validation.py"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/vllm_prefill.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/vllm_prefill.log --log-file-level INFO tests/test_vllm_prefill_validation.py"
     },
     {
       "domain": "performance_suite",
       "description": "Performance suite catalog / execution",
-      "status": "FAIL",
-      "return_code": 1,
-      "started_at_utc": "2026-07-21T07:48:26.163367+00:00",
-      "finished_at_utc": "2026-07-21T08:59:53.328811+00:00",
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-08-17T02:17:02.743758+00:00",
+      "finished_at_utc": "2026-08-17T02:46:00.642632+00:00",
       "tests": 26,
-      "failures": 1,
+      "failures": 0,
       "errors": 0,
-      "skipped": 2,
-      "duration_sec": 4285.791,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_performance_suite::test_performance_case_suite[AI_HOSTCPU_PERF_TEST_ID_010]",
-          "message": "Failed: Command failed for AI_HOSTCPU_PERF_TEST_ID_010: trtllm-bench --model /path/to/hf/Llama-3.3-70B-Instruct throughput --dataset /mnt/datasets/synthetic/synthetic_2048_2048_1000.txt --engine_dir /path/to/engines/baseline\nexecuted_command:\ntrtllm-bench --mo",
-          "kind": "failure"
-        }
-      ],
+      "skipped": 3,
+      "duration_sec": 1736.591,
+      "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/performance_suite.xml",
       "log_file": "artifacts/reports/logs/performance_suite.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/performance_suite.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/performance_suite.log --log-file-level INFO tests/test_performance_suite.py -k test_performance_case_suite"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/performance_suite.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/performance_suite.log --log-file-level INFO tests/test_performance_suite.py -k test_performance_case_suite"
     },
     {
       "domain": "mlperf_suite",
       "description": "MLPerf suite catalog / execution",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-07-21T08:59:53.329003+00:00",
-      "finished_at_utc": "2026-07-21T09:31:13.047515+00:00",
+      "started_at_utc": "2026-08-17T02:46:00.642846+00:00",
+      "finished_at_utc": "2026-08-17T03:17:19.988927+00:00",
       "tests": 21,
       "failures": 19,
       "errors": 0,
       "skipped": 2,
-      "duration_sec": 1878.903,
+      "duration_sec": 1877.924,
       "failed_tests": [
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_003: command failed (rc=1)\nexecuted_command: vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 --tensor-parallel-size 2 --max-model-len 32768 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n a background process. See stack tr",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_003: command failed (rc=1)\nexecuted_command: vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 --tensor-parallel-size 4 --max-model-len 32768 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n   File \"/home/workspace/AIHeadNode",
           "kind": "failure"
         },
         {
@@ -385,17 +260,17 @@
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 2 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=150641) Tr",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=3065356) T",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_006]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_006: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch resnet50 gpu --scenario Offline --dataset-path /mnt/datasets/imagenet --output artifa",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_006: command failed (rc=2)\nexecuted_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch resnet50 gpu --scenario Offline --dataset-path /mnt/datasets/imagenet --output artifact",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_007]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_007: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch retinanet gpu --scenario Offline --dataset-path /mnt/datasets/openimages --output art",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_007: command failed (rc=2)\nexecuted_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch retinanet gpu --scenario Offline --dataset-path /mnt/datasets/openimages --output artif",
           "kind": "failure"
         },
         {
@@ -415,7 +290,7 @@
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_011]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_011: command failed (rc=2)\nexecuted_command: /root/workloads/AIHeadNode/.venv4/bin/python /root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py --scenario Offline --dataset-path /mnt/datasets/criteo --model-pat",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_011: command failed (rc=2)\nexecuted_command: /home/workspace/AIHeadNode/.venv-vllm/bin/python /root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py --scenario Offline --dataset-path /mnt/datasets/criteo --model",
           "kind": "failure"
         },
         {
@@ -430,58 +305,58 @@
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_014]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_014: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=2 /root/workloads/mlcommons/training/language_model/gpt-j/run_training.py --model-name EleutherAI/gpt-j-6b --dataset-path /mnt/datasets/cnn_dailymail --output-",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_014: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/gpt-j/run_training.py --model-name EleutherAI/gpt-j-6b --dataset-path /mnt/datasets/cnn_dailymail --output-",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_015]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_015: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=2 /root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py --bert_model bert-large-uncased --do_train --train_file /mnt/datasets/squad/train",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_015: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/run_squad.py --bert_model bert-large-uncased --do_train --train_file /mnt/datasets/squad/train",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_016]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_016: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=2 /root/workloads/mlcommons/training/image_segmentation/pytorch/train.py --data-dir /mnt/datasets/kits19 --epochs 4000 --batch-size 2 --optimizer adam --learni",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_016: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/image_segmentation/pytorch/train.py --data-dir /mnt/datasets/kits19 --epochs 4000 --batch-size 2 --optimizer adam --learni",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_017]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_017: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=2 /root/workloads/mlcommons/training/stable_diffusion/main.py --base /root/workloads/mlcommons/training/stable_diffusion/configs/train_01x04x08.yaml --actual_r",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_017: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/stable_diffusion/main.py --base /root/workloads/mlcommons/training/stable_diffusion/configs/train_01x04x08.yaml --actual_r",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_018]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_018: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=2 /root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py --bert_model bert-large-uncased --do_train --train_file /mnt/datasets/bert/",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_018: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/language_model/pytorch/bert/run_pretraining.py --bert_model bert-large-uncased --do_train --train_file /mnt/datasets/bert/",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_019]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_019: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=2 /root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py --tensor-model-parallel-size 2 --pipeline-model-parallel-size 1 --num-lay",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_019: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/large_language_model/megatron-lm/pretrain_gpt.py --tensor-model-parallel-size 4 --pipeline-model-parallel-size 1 --num-lay",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_020]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_020: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=2 /root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py --model_name_or_path meta-llama/Llama-2-70b-hf --dataset_name scrolls --dataset_config g",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_020: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py --model_name_or_path meta-llama/Llama-2-70b-hf --dataset_name scrolls --dataset_config g",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_021]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_021: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=2 /root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py --arch-sparse-feature-size=128 --arch-mlp-bot=13-512-256-128 --arch-mlp-t",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_021: command failed (rc=1)\nexecuted_command: torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/recommendation/dlrm_v2/pytorch/dlrm_s_pytorch.py --arch-sparse-feature-size=128 --arch-mlp-bot=13-512-256-128 --arch-mlp-t",
           "kind": "failure"
         }
       ],
       "junit_xml": "artifacts/reports/junit/mlperf_suite.xml",
       "log_file": "artifacts/reports/logs/mlperf_suite.log",
-      "command": "/root/workloads/AIHeadNode/.venv4/bin/python -m pytest -v --tb=short --junitxml /root/workloads/AIHeadNode/artifacts/reports/junit/mlperf_suite.xml --log-file /root/workloads/AIHeadNode/artifacts/reports/logs/mlperf_suite.log --log-file-level INFO tests/test_mlperf_suite.py -k test_mlperf_case_suite"
+      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/mlperf_suite.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/mlperf_suite.log --log-file-level INFO tests/test_mlperf_suite.py -k test_mlperf_case_suite"
     }
   ],
   "summary": {
     "domains_run": 13,
-    "passed_domains": 4,
-    "failed_domains": 9,
-    "tests": 320,
-    "failures": 46,
-    "errors": 2,
-    "skipped": 29
+    "passed_domains": 9,
+    "failed_domains": 4,
+    "tests": 411,
+    "failures": 24,
+    "errors": 0,
+    "skipped": 30
   },
   "defaults_applied": {
     "ML_EXECUTE_CASES": "1",

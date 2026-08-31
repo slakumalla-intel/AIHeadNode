@@ -1109,6 +1109,11 @@ class TestTorchCompileCorrectnessAndSpeedup:
         than the eager path. The default floor is 1.05× (5 % speedup).
         A ratio < 1.0 indicates the inductor/triton backend is generating
         suboptimal kernels for this GPU and warrants investigation.
+
+        The workload is a matmul followed by a fusible pointwise chain
+        (gelu → sigmoid-gate → tanh-residual → layer_norm). Inductor fuses the
+        elementwise ops into a single kernel, which is where torch.compile wins;
+        a GEMM-only shape leaves nothing to fuse and cannot show a speedup.
         """
         if not _HAS_TORCH:
             pytest.skip("torch not available")
@@ -1122,35 +1127,39 @@ class TestTorchCompileCorrectnessAndSpeedup:
         device = torch.device("cuda:0")
         torch.manual_seed(5)
 
-        def _gemm_block(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
-            c = torch.mm(a, b)
-            return torch.relu(c)
+        def _fusible_block(x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
+            y = x @ w
+            y = torch.nn.functional.gelu(y)
+            y = y * torch.sigmoid(y)
+            y = y + torch.tanh(y)
+            y = torch.nn.functional.layer_norm(y, (y.shape[-1],))
+            return y
 
-        M = 4096
-        a = torch.randn(M, M, dtype=torch.float16, device=device)
-        b = torch.randn(M, M, dtype=torch.float16, device=device)
+        H = 2048
+        x = torch.randn(8192, H, dtype=torch.float16, device=device)
+        w = torch.randn(H, H, dtype=torch.float16, device=device)
 
         # Eager warm-up and timing
-        for _ in range(3):
-            _gemm_block(a, b)
+        for _ in range(20):
+            _fusible_block(x, w)
         torch.cuda.synchronize(device)
 
-        N = 20
+        N = 50
         t0 = time.perf_counter()
         for _ in range(N):
-            _gemm_block(a, b)
+            _fusible_block(x, w)
         torch.cuda.synchronize(device)
         eager_time = time.perf_counter() - t0
 
         # Compiled warm-up and timing
-        compiled_fn = torch.compile(_gemm_block, mode="reduce-overhead", fullgraph=True)
-        for _ in range(5):  # triton compilation warm-up
-            compiled_fn(a, b)
+        compiled_fn = torch.compile(_fusible_block, mode="reduce-overhead", fullgraph=True)
+        for _ in range(20):  # triton compilation warm-up
+            compiled_fn(x, w)
         torch.cuda.synchronize(device)
 
         t0 = time.perf_counter()
         for _ in range(N):
-            compiled_fn(a, b)
+            compiled_fn(x, w)
         torch.cuda.synchronize(device)
         compiled_time = time.perf_counter() - t0
 

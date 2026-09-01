@@ -1,0 +1,35 @@
+01:27:46 INFO     ai_headnode_tests System config captured: /home/workspace/AIHeadNode1/AIHeadNode/system_config_report.json
+01:27:46 INFO     ai_headnode_tests System config captured: /home/workspace/AIHeadNode1/system_config_report.json
+01:27:49 INFO     memory_validation MEM KPI [TC-MEM-01a_total_ram_min]: {"threshold_gb": 1024.0, "total_gb": 3022.62}
+01:27:50 INFO     memory_validation MEM KPI [TC-MEM-01b_total_ram_baseline]: {"baseline_gb": 3022.62, "deviation_pct": 0.0, "threshold_deviation_pct": 5.0, "total_gb": 3022.62}
+01:27:50 INFO     memory_validation MEM KPI [TC-MEM-01c_available_ram]: {"available_fraction": 0.9944, "available_gb": 3005.82, "threshold_fraction": 0.5, "total_gb": 3022.62}
+01:27:51 INFO     memory_validation MEM KPI [TC-MEM-02a_meminfo_exists]: {"exists": true, "path": "/proc/meminfo"}
+01:27:51 INFO     memory_validation MEM KPI [TC-MEM-02b_hugepages_entry]: {"has_hugepages_total_entry": true}
+01:27:51 INFO     memory_validation MEM KPI [TC-MEM-02c_thp_mode]: {"acceptable_modes": ["always", "madvise"], "mode": "[always] madvise never"}
+01:27:52 INFO     memory_validation MEM KPI [TC-MEM-13_storage_capacity]: {"baseline_gb": 1675.69, "deviation_pct": 0.0, "threshold_deviation_pct": 5.0, "total_gb": 1675.69}
+01:27:52 INFO     memory_validation MEM KPI [TC-MEM-03a_copy_bw]: {"bandwidth_gbs": 40.368, "threshold_gbs": 30.0}
+01:27:53 INFO     memory_validation MEM KPI [TC-MEM-03b_scale_bw]: {"copy_bandwidth_gbs": 44.847, "scale_bandwidth_gbs": 27.63, "threshold_gbs": 17.939}
+01:27:55 INFO     memory_validation MEM KPI [TC-MEM-03c_triad_bw]: {"copy_bandwidth_gbs": 40.53, "threshold_gbs": 16.212, "triad_bandwidth_gbs": 11.301}
+01:27:59 INFO     ai_headnode_tests Aggregate STREAM Triad BW                           measured=   596.330  theoretical=   307.200  efficiency=194.12%  threshold=    75%
+01:27:59 INFO     memory_validation MEM KPI [TC-MEM-04_aggregate_stream_triad]: {"bandwidth_gbs": 596.33, "theoretical_gbs": 307.2}
+01:28:00 INFO     memory_validation MEM KPI [TC-MEM-05_read_write_asymmetry]: {"read_bandwidth_gbs": 11.668, "read_to_write_ratio": 0.713, "write_bandwidth_gbs": 16.367}
+01:28:00 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws32kb]: {"latency_ns": 0.94, "max_latency_ns": 4.0, "ws_kb": 32}
+01:28:00 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws512kb]: {"latency_ns": 0.95, "max_latency_ns": 8.0, "ws_kb": 512}
+01:28:01 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws16384kb]: {"latency_ns": 6.12, "max_latency_ns": 30.0, "ws_kb": 16384}
+01:28:01 INFO     memory_validation MEM KPI [TC-MEM-06_latency_ws524288kb]: {"latency_ns": 7.24, "max_latency_ns": 120.0, "ws_kb": 524288}
+01:28:02 INFO     memory_validation MEM KPI [TC-MEM-07_cache_bw_L1-cache]: {"bandwidth_gbs": 33.552, "threshold_gbs": 5.0, "working_set_mb": 0.03125}
+01:28:02 INFO     memory_validation MEM KPI [TC-MEM-07_cache_bw_L2-cache]: {"bandwidth_gbs": 38.881, "threshold_gbs": 30.0, "working_set_mb": 0.5}
+01:28:03 INFO     memory_validation MEM KPI [TC-MEM-07_cache_bw_L3-cache]: {"bandwidth_gbs": 20.788, "threshold_gbs": 20.0, "working_set_mb": 8.0}
+01:28:03 INFO     memory_validation MEM KPI [TC-MEM-07_cache_bw_DRAM]: {"bandwidth_gbs": 39.189, "threshold_gbs": 15.0, "working_set_mb": 512.0}
+01:28:03 INFO     memory_validation MEM KPI [TC-MEM-08_numa_nodes_visible]: {"expected_nodes": 1, "visible_nodes": 1}
+01:28:04 INFO     memory_validation MEM KPI [TC-MEM-08b_numa_node0_meminfo]: {"has_memtotal": true, "path": "/sys/devices/system/node/node0/meminfo"}
+01:28:04 INFO     memory_validation MEM KPI [TC-MEM-09_hugepages]: {"explicit_hugepages_configured": false, "thp_active": true}
+01:28:05 INFO     memory_validation MEM KPI [TC-MEM-10_ecc_sysfs_present]: {"edac_path_exists": false, "mc_path_exists": true}
+01:28:05 INFO     memory_validation MEM KPI [TC-MEM-10b_uncorrected_errors]: {"controllers_checked": 16, "max_ue_count": 0}
+01:28:07 INFO     memory_validation MEM KPI [TC-MEM-11_large_alloc_free]: {"allocated_gb": 8.0, "elapsed_sec": 1.888, "threshold_sec": 30.0}
+01:28:10 INFO     memory_validation MEM KPI [TC-MEM-11b_repeated_alloc_free]: {"alloc_size_gb": 1.0, "cycles": 20}
+01:28:14 INFO     memory_validation MEM KPI [TC-MEM-12_sustained_bandwidth]: {"max_degradation": 0.0152, "readings_gbs": [44.263, 44.658, 45.367, 44.399, 43.591], "threshold_degradation": 0.15}
+01:28:14 INFO     ai_headnode_tests Wrote testcase report: /home/workspace/AIHeadNode1/AIHeadNode/TESTCASE_EXECUTION_FINAL_REPORT.md
+01:28:14 INFO     ai_headnode_tests Wrote testcase report: /home/workspace/AIHeadNode1/AIHeadNode/NODE_VALIDATION_REPORT.md
+01:28:14 INFO     ai_headnode_tests Wrote testcase report: /home/workspace/AIHeadNode1/TESTCASE_EXECUTION_FINAL_REPORT.md
+01:28:14 INFO     ai_headnode_tests Wrote testcase report: /home/workspace/AIHeadNode1/NODE_VALIDATION_REPORT.md

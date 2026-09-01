@@ -1,6 +1,6 @@
 # llama-70B run - Markdown View
 
-Generated: 2026-08-31 14:47:04
+Generated: 2026-09-01 12:12:05
 
 ## Workbook Summary
 
@@ -93,20 +93,21 @@ Source object: xl/charts/chart2.xml
 
 | Category | Tokens/s QAT ON FP8 | Tokens/s QAT OFF FP8 |
 |---|---|---|
-| 8 | 317 | 309 |
-| 16 | 1045 | 992 |
-| 64 | 1975 | 1965 |
-| 128 | 3358 | 3305 |
-| 256 | 4172 | 4970 |
-| 512 | 5080 | 6087 |
+| 8 | 157 | 169 |
+| 16 | 317 | 309 |
+| 64 | 1045 | 992 |
+| 128 | 1975 | 1965 |
+| 256 | 3358 | 3305 |
+| 512 | 4172 | 4970 |
+| 1024 | 5080 | 6087 |
 
 ```mermaid
 xychart-beta
     title "QAT"
-    x-axis [8, 16, 64, 128, 256, 512]
+    x-axis [8, 16, 64, 128, 256, 512, 1024]
     y-axis "Value" 0 --> 7000
-    line "Tokens/s QAT ON FP8" [317, 1045, 1975, 3358, 4172, 5080]
-    line "Tokens/s QAT OFF FP8" [309, 992, 1965, 3305, 4970, 6087]
+    line "Tokens/s QAT ON FP8" [157, 317, 1045, 1975, 3358, 4172, 5080]
+    line "Tokens/s QAT OFF FP8" [169, 309, 992, 1965, 3305, 4970, 6087]
 ```
 
 ### Chart 3: QAT On Vs OFF - BF16

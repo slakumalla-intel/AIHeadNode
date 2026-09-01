@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Head Node Validation Report - 4x NVIDIA H100 PCIe</title>
+  <style>
+    :root {
+      --ink: #18212b;
+      --muted: #5f6b76;
+      --line: #d9e0e6;
+      --panel: #f6f8fa;
+      --navy: #17324d;
+      --cyan: #007f8b;
+      --green: #177245;
+      --green-bg: #e9f6ef;
+      --red: #b42318;
+      --red-bg: #fff0ee;
+      --amber: #9a6700;
+      --amber-bg: #fff7db;
+      --blue: #1f5da8;
+      --blue-bg: #edf5ff;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #eef2f5;
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.5;
+    }
+    .shell { width: 100%; max-width: 1500px; margin: 0 auto; background: #fff; min-height: 100vh; overflow-x: hidden; }
+    header { background: var(--navy); color: #fff; padding: 34px 44px 30px; border-bottom: 6px solid #24a3ad; }
+    header h1 { margin: 0 0 8px; font-size: 31px; letter-spacing: 0; }
+    header p { margin: 3px 0; color: #dce8f2; }
+    .header-meta { display: flex; flex-wrap: wrap; gap: 12px 28px; margin-top: 18px; font-size: 13px; }
+    .header-meta strong { color: #fff; }
+    nav { position: sticky; top: 0; z-index: 5; display: flex; width: 100%; min-width: 0; gap: 4px; overflow-x: auto; padding: 9px 24px; background: #fff; border-bottom: 1px solid var(--line); }
+    nav a { color: var(--navy); text-decoration: none; padding: 7px 10px; white-space: nowrap; font-size: 13px; font-weight: 600; }
+    nav a:hover { background: var(--blue-bg); }
+    main { padding: 30px 40px 56px; }
+    section { margin: 0 0 46px; scroll-margin-top: 62px; }
+    h2 { margin: 0 0 18px; padding-bottom: 9px; border-bottom: 3px solid var(--cyan); font-size: 24px; }
+    h3 { margin: 23px 0 11px; font-size: 18px; color: var(--navy); }
+    p { margin: 8px 0; }
+    .lead { max-width: 1080px; color: #344454; font-size: 16px; }
+    .grid { display: grid; gap: 14px; }
+    .summary-grid { grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); }
+    .two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card { border: 1px solid var(--line); border-radius: 6px; padding: 16px; background: #fff; }
+    .metric { border-top: 4px solid var(--cyan); min-height: 108px; }
+    .metric .label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .metric .value { margin-top: 6px; font-size: 29px; font-weight: 750; color: var(--navy); }
+    .metric .note { color: var(--muted); font-size: 12px; }
+    .callout { border-left: 5px solid var(--blue); background: var(--blue-bg); padding: 14px 17px; margin: 16px 0; }
+    .callout.fail { border-color: var(--red); background: var(--red-bg); }
+    .callout.warn { border-color: var(--amber); background: var(--amber-bg); }
+    .callout.pass { border-color: var(--green); background: var(--green-bg); }
+    .badge { display: inline-block; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 750; white-space: nowrap; }
+    .pass { color: var(--green); background: var(--green-bg); }
+    .fail { color: var(--red); background: var(--red-bg); }
+    .skip, .warn { color: var(--amber); background: var(--amber-bg); }
+    .info { color: var(--blue); background: var(--blue-bg); }
+    .table-wrap { width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { position: sticky; top: 0; z-index: 1; padding: 10px 11px; text-align: left; background: #edf2f6; color: #293846; border-bottom: 2px solid #c9d3dc; white-space: nowrap; }
+    td { padding: 9px 11px; border-bottom: 1px solid #e4e9ed; vertical-align: top; }
+    tbody tr:nth-child(even) { background: #fafbfc; }
+    tbody tr:hover { background: #eef8f8; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .mono { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+    .small { font-size: 12px; color: var(--muted); }
+    .chart { border: 1px solid var(--line); border-radius: 6px; padding: 16px; background: #fff; }
+    .chart-title { margin: 0 0 12px; font-weight: 700; color: var(--navy); }
+    .bar-row { display: grid; grid-template-columns: 170px 1fr 70px; gap: 10px; align-items: center; margin: 8px 0; font-size: 12px; }
+    .bar-track { position: relative; height: 17px; background: #e8edf1; overflow: hidden; }
+    .bar { height: 100%; background: var(--cyan); }
+    .bar.red { background: #cc4a3d; }
+    .bar.green { background: #2d8c61; }
+    .bar.amber { background: #d39b22; }
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; margin: 8px 0 14px; }
+    .dot { display: inline-block; width: 10px; height: 10px; margin-right: 5px; }
+    .architecture { padding: 8px; background: #f8fafb; border: 1px solid var(--line); border-radius: 6px; }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
+    button { border: 1px solid #b8c4ce; background: #fff; color: var(--navy); padding: 7px 11px; font-weight: 600; cursor: pointer; border-radius: 4px; }
+    button.active, button:hover { background: var(--navy); color: #fff; }
+    details { border: 1px solid var(--line); border-radius: 5px; margin: 8px 0; }
+    summary { padding: 10px 13px; cursor: pointer; font-weight: 650; background: var(--panel); }
+    details > div { padding: 10px 13px; }
+    ul { margin: 7px 0; padding-left: 22px; }
+    footer { background: var(--navy); color: #dce8f2; padding: 20px 40px; font-size: 12px; }
+    @media (max-width: 900px) {
+      main { padding: 24px 18px; }
+      header { padding: 28px 20px; }
+      .two-col, .three-col { grid-template-columns: 1fr; }
+      .bar-row { grid-template-columns: 120px 1fr 55px; }
+    }
+    @media print {
+      body { background: #fff; }
+      nav, .filter-row { display: none; }
+      .shell { max-width: none; }
+      main { padding: 18px; }
+      section { break-inside: avoid-page; }
+      .table-wrap { overflow: visible; }
+      th { position: static; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <h1>AI Head Node Validation Report</h1>
+    <p>Comprehensive functional, performance, reliability, workload, and AI pipeline assessment</p>
+    <div class="header-meta">
+      <span><strong>System:</strong> SC009011168H0070</span>
+      <span><strong>Run:</strong> 17 Aug 2026, 01:16-03:17 UTC</span>
+      <span><strong>Platform:</strong> 4x NVIDIA H100 PCIe, 224 CPU cores, 3.02 TB RAM</span>
+      <span><strong>Source:</strong> supplied pytest live log + AIHeadNode test definitions</span>
+    </div>
+  </header>
+  <nav>
+    <a href="#executive">Executive</a><a href="#platform">Platform</a><a href="#coverage">Coverage</a>
+    <a href="#compute">Compute</a><a href="#memory">Memory</a><a href="#fabric">Fabric</a>
+    <a href="#workloads">AI Workloads</a><a href="#pipeline">Pipeline</a><a href="#health">Health</a>
+    <a href="#performance">Performance Suite</a><a href="#failures">Actions</a>
+  </nav>
+  <main>
+    <section id="executive">
+      <h2>Executive Summary</h2>
+      <p class="lead">The report covers the complete selected validation list. The node demonstrates strong core hardware health and usable AI performance: GPU compute, HBM, PCIe, NVLink, NCCL, CPU scaling, agentic AI, AI pipeline, vLLM prefill, and the 26-case performance suite are operational. Five individual tests require follow-up, but every reported subcategory passes the acceptance rule because at least 90% of its executed tests passed.</p>
+      <div class="grid summary-grid">
+        <div class="card metric"><div class="label">Total tests</div><div class="value">390</div><div class="note">12 reported test domains</div></div>
+        <div class="card metric"><div class="label">Passed</div><div class="value" style="color:var(--green)">357</div><div class="note">91.5% of all collected tests</div></div>
+        <div class="card metric"><div class="label">Failed</div><div class="value" style="color:var(--red)">5</div><div class="note">Five individual follow-up items</div></div>
+        <div class="card metric"><div class="label">Skipped</div><div class="value" style="color:var(--amber)">28</div><div class="note">Unsupported or unavailable prerequisites</div></div>
+        <div class="card metric"><div class="label">Subcategory status</div><div class="value">12 / 12</div><div class="note">PASS when executed pass rate is &ge;90%</div></div>
+        <div class="card metric"><div class="label">Executed pass rate</div><div class="value">98.6%</div><div class="note">357 / 362 non-skipped outcomes</div></div>
+      </div>
+      <div class="grid two-col" style="margin-top:16px">
+        <div class="callout pass"><strong>Hardware confidence: high.</strong> All four GPUs delivered 92.7-92.8% HBM efficiency, 85-89% PCIe bandwidth in repeatable suites, 55-68% practical dense GEMM efficiency, zero uncorrected ECC errors, healthy Gen5 x16 links, and up to 265 GB/s on NVLink-connected pairs.</div>
+        <div class="callout warn"><strong>Release verdict: subcategories pass with follow-up actions.</strong> All 12 subcategories meet or exceed the 90% executed-test pass threshold. Resolve the single-thread STREAM Triad result, intermittent GPU 0 D2H result, torch.compile regression, vLLM utilization telemetry, and YOLO worker crash to achieve a clean test run.</div>
+      </div>
+      <div class="grid two-col">
+        <div class="chart">
+          <div class="chart-title">Test outcome distribution</div>
+          <svg viewBox="0 0 600 120" width="100%" role="img" aria-label="357 passed, 5 failed, 28 skipped">
+            <rect x="20" y="35" width="510" height="34" fill="#e8edf1"/>
+            <rect x="20" y="35" width="467" height="34" fill="#2d8c61"/>
+            <rect x="487" y="35" width="7" height="34" fill="#cc4a3d"/>
+            <rect x="494" y="35" width="36" height="34" fill="#d39b22"/>
+            <text x="20" y="26" font-size="13" fill="#18212b">390 collected tests</text>
+            <text x="20" y="91" font-size="12" fill="#177245">Pass 357</text>
+            <text x="190" y="91" font-size="12" fill="#b42318">Fail 5</text>
+            <text x="330" y="91" font-size="12" fill="#9a6700">Skip 28</text>
+          </svg>
+        </div>
+        <div class="chart">
+          <div class="chart-title">Five individual failures by subcategory</div>
+          <div class="bar-row"><span>Node workloads</span><div class="bar-track"><div class="bar red" style="width:60%"></div></div><strong>3</strong></div>
+          <div class="bar-row"><span>Memory</span><div class="bar-track"><div class="bar amber" style="width:20%"></div></div><strong>1</strong></div>
+          <div class="bar-row"><span>System health</span><div class="bar-track"><div class="bar amber" style="width:20%"></div></div><strong>1</strong></div>
+          <p class="small">Failures remain visible even though each subcategory exceeds the 90% acceptance threshold.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="platform">
+      <h2>Platform Under Test</h2>
+      <div class="grid two-col">
+        <div class="table-wrap"><table><tbody>
+          <tr><th>Host</th><td>SC009011168H0070</td></tr><tr><th>OS</th><td>Linux 6.18.0, glibc 2.39</td></tr>
+          <tr><th>Python / pytest</th><td>3.12.13 / 9.1.1</td></tr><tr><th>CPU</th><td>224 physical cores, 224 logical threads, 1 NUMA node</td></tr>
+          <tr><th>Memory</th><td>3,022.62 GB RAM; 3,005.82 GB available at memory test</td></tr><tr><th>Storage</th><td>1,675.69 GB detected</td></tr>
+          <tr><th>GPU</th><td>4x NVIDIA H100 PCIe, compute capability 9.0</td></tr><tr><th>GPU memory</th><td>79.18 GB each; 316.72 GB aggregate</td></tr>
+          <tr><th>Driver / CUDA runtime</th><td>595.45.04 / 13.2 runtime reported by nvbandwidth</td></tr><tr><th>PCIe</th><td>Gen5 x16 negotiated on all GPUs; 63 GB/s theoretical per direction</td></tr>
+          <tr><th>GPU fabric</th><td>NV12 pairs 0-1 and 2-3; NODE path across pairs</td></tr><tr><th>Offline mode</th><td>HF_HUB_OFFLINE=1; remote large-model download disabled</td></tr>
+        </tbody></table></div>
+        <div class="architecture">
+          <svg viewBox="0 0 720 380" width="100%" role="img" aria-label="AI head node topology diagram">
+            <rect x="245" y="20" width="230" height="58" rx="4" fill="#17324d"/><text x="360" y="45" text-anchor="middle" fill="white" font-size="16" font-weight="700">224-core CPU + 3.02 TB DRAM</text><text x="360" y="65" text-anchor="middle" fill="#cfe2f1" font-size="12">307.2 GB/s reference DRAM bandwidth</text>
+            <line x1="360" y1="78" x2="360" y2="125" stroke="#63788b" stroke-width="3"/><text x="372" y="108" fill="#5f6b76" font-size="11">PCIe Gen5</text>
+            <rect x="35" y="130" width="145" height="88" rx="4" fill="#edf5ff" stroke="#1f5da8"/><rect x="205" y="130" width="145" height="88" rx="4" fill="#edf5ff" stroke="#1f5da8"/><rect x="370" y="130" width="145" height="88" rx="4" fill="#edf5ff" stroke="#1f5da8"/><rect x="540" y="130" width="145" height="88" rx="4" fill="#edf5ff" stroke="#1f5da8"/>
+            <g fill="#17324d" font-size="14" font-weight="700"><text x="107" y="158" text-anchor="middle">GPU 0</text><text x="277" y="158" text-anchor="middle">GPU 1</text><text x="442" y="158" text-anchor="middle">GPU 2</text><text x="612" y="158" text-anchor="middle">GPU 3</text></g>
+            <g fill="#344454" font-size="11"><text x="107" y="179" text-anchor="middle">H100 PCIe, 79.18 GB</text><text x="107" y="197" text-anchor="middle">61:00.0</text><text x="277" y="179" text-anchor="middle">H100 PCIe, 79.18 GB</text><text x="277" y="197" text-anchor="middle">B1:00.0</text><text x="442" y="179" text-anchor="middle">H100 PCIe, 79.18 GB</text><text x="442" y="197" text-anchor="middle">0001:61:00.0</text><text x="612" y="179" text-anchor="middle">H100 PCIe, 79.18 GB</text><text x="612" y="197" text-anchor="middle">0001:B1:00.0</text></g>
+            <line x1="180" y1="174" x2="205" y2="174" stroke="#007f8b" stroke-width="8"/><line x1="515" y1="174" x2="540" y2="174" stroke="#007f8b" stroke-width="8"/><text x="193" y="162" text-anchor="middle" fill="#007f8b" font-size="10">NV12</text><text x="527" y="162" text-anchor="middle" fill="#007f8b" font-size="10">NV12</text>
+            <line x1="350" y1="174" x2="370" y2="174" stroke="#9a6700" stroke-width="4" stroke-dasharray="5 4"/><text x="360" y="160" text-anchor="middle" fill="#9a6700" font-size="10">NODE</text>
+            <rect x="110" y="270" width="500" height="70" rx="4" fill="#e9f6ef" stroke="#177245"/><text x="360" y="296" text-anchor="middle" fill="#177245" font-size="15" font-weight="700">Measured aggregate capability</text><text x="360" y="320" text-anchor="middle" fill="#344454" font-size="12">1,904.8 FP16 TFLOPS | 8.0 TB/s HBM reference | 205.2 GB/s concurrent H2D</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section id="coverage">
+      <h2>Test Coverage and Domain Results</h2>
+      <div class="filter-row" aria-label="Suite result filters"><button class="active" onclick="filterSuites('all',this)">All</button><button onclick="filterSuites('PASS',this)">Passed domains</button><button onclick="filterSuites('FAIL',this)">Below 90%</button></div>
+      <div class="table-wrap"><table id="suiteTable"><thead><tr><th>Domain</th><th>Description</th><th>Status</th><th class="num">Tests</th><th class="num">Pass</th><th class="num">Fail</th><th class="num">Skip</th><th class="num">Executed pass rate</th><th class="num">Duration</th></tr></thead><tbody>
+        <tr data-status="PASS"><td>Bottleneck</td><td>Roofline and resource bottleneck analysis</td><td><span class="badge pass">PASS</span></td><td class="num">25</td><td class="num">25</td><td class="num">0</td><td class="num">0</td><td class="num">100.0%</td><td class="num">38.2 s</td></tr>
+        <tr data-status="PASS"><td>CPU</td><td>Topology, compute, bandwidth, scaling, scheduling</td><td><span class="badge pass">PASS</span></td><td class="num">33</td><td class="num">32</td><td class="num">0</td><td class="num">1</td><td class="num">100.0%</td><td class="num">10m 36s</td></tr>
+        <tr data-status="PASS"><td>Memory</td><td>Capacity, STREAM, latency, cache, ECC, pressure</td><td><span class="badge pass">PASS</span></td><td class="num">28</td><td class="num">27</td><td class="num">1</td><td class="num">0</td><td class="num">96.4%</td><td class="num">28.0 s</td></tr>
+        <tr data-status="PASS"><td>GPU</td><td>Discovery, compute, HBM, PCIe, ECC, health</td><td><span class="badge pass">PASS</span></td><td class="num">53</td><td class="num">53</td><td class="num">0</td><td class="num">0</td><td class="num">100.0%</td><td class="num">29.7 s</td></tr>
+        <tr data-status="PASS"><td>Interconnect</td><td>PCIe, NVLink, P2P, multistream, latency</td><td><span class="badge pass">PASS</span></td><td class="num">77</td><td class="num">69</td><td class="num">0</td><td class="num">8</td><td class="num">100.0%</td><td class="num">1m 38s</td></tr>
+        <tr data-status="PASS"><td>Node validation</td><td>Bring-up, workload acceptance, inference, RDMA</td><td><span class="badge pass">PASS</span></td><td class="num">51</td><td class="num">39</td><td class="num">3</td><td class="num">9</td><td class="num">92.9%</td><td class="num">38m 52s</td></tr>
+        <tr data-status="PASS"><td>Agentic AI</td><td>Tool dispatch, sync, parallelism, state, latency</td><td><span class="badge pass">PASS</span></td><td class="num">9</td><td class="num">9</td><td class="num">0</td><td class="num">0</td><td class="num">100.0%</td><td class="num">21.3 s</td></tr>
+        <tr data-status="PASS"><td>AI pipeline</td><td>Tokenization, I/O, orchestration, inference KPIs</td><td><span class="badge pass">PASS</span></td><td class="num">38</td><td class="num">34</td><td class="num">0</td><td class="num">4</td><td class="num">100.0%</td><td class="num">1m 29s</td></tr>
+        <tr data-status="PASS"><td>System health</td><td>Thermals, clocks, ECC, numerical correctness</td><td><span class="badge pass">PASS</span></td><td class="num">39</td><td class="num">36</td><td class="num">1</td><td class="num">2</td><td class="num">97.3%</td><td class="num">1m 2s</td></tr>
+        <tr data-status="PASS"><td>System config</td><td>Captured hardware and software conformance</td><td><span class="badge pass">PASS</span></td><td class="num">8</td><td class="num">8</td><td class="num">0</td><td class="num">0</td><td class="num">100.0%</td><td class="num">6.5 s</td></tr>
+        <tr data-status="PASS"><td>vLLM prefill</td><td>4-H100 prefill and quick validation</td><td><span class="badge pass">PASS</span></td><td class="num">3</td><td class="num">2</td><td class="num">0</td><td class="num">1</td><td class="num">100.0%</td><td class="num">4m 27s</td></tr>
+        <tr data-status="PASS"><td>Performance suite</td><td>LLM serving, GenAI-Perf, NCCL catalog</td><td><span class="badge pass">PASS</span></td><td class="num">26</td><td class="num">23</td><td class="num">0</td><td class="num">3</td><td class="num">100.0%</td><td class="num">28m 57s</td></tr>
+      </tbody></table></div>
+      <p class="small">Pass counts are tests minus failures, errors, and skips. Subcategory status is PASS when passed / (passed + failed + errors) is at least 90%; skipped tests are excluded from that percentage. Individual failures remain reported in the detailed KPI and action tables.</p>
+    </section>
+
+    <section id="compute">
+      <h2>CPU and GPU Compute KPIs</h2>
+      <div class="grid two-col">
+        <div class="chart"><div class="chart-title">GPU practical efficiency vs theoretical peak</div>
+          <div class="bar-row"><span>FP16 GPU 0</span><div class="bar-track"><div class="bar" style="width:62.4%"></div></div><strong>62.4%</strong></div>
+          <div class="bar-row"><span>FP16 GPU 1</span><div class="bar-track"><div class="bar" style="width:63.2%"></div></div><strong>63.2%</strong></div>
+          <div class="bar-row"><span>FP16 GPU 2</span><div class="bar-track"><div class="bar" style="width:65.9%"></div></div><strong>65.9%</strong></div>
+          <div class="bar-row"><span>FP16 GPU 3</span><div class="bar-track"><div class="bar" style="width:67.8%"></div></div><strong>67.8%</strong></div>
+          <div class="bar-row"><span>HBM average</span><div class="bar-track"><div class="bar green" style="width:92.8%"></div></div><strong>92.8%</strong></div>
+        </div>
+        <div class="chart"><div class="chart-title">CPU scaling efficiency</div>
+          <div class="bar-row"><span>1 core</span><div class="bar-track"><div class="bar" style="width:99.43%"></div></div><strong>99.4%</strong></div>
+          <div class="bar-row"><span>2 cores</span><div class="bar-track"><div class="bar" style="width:89.54%"></div></div><strong>89.5%</strong></div>
+          <div class="bar-row"><span>4 cores</span><div class="bar-track"><div class="bar" style="width:99.15%"></div></div><strong>99.2%</strong></div>
+          <div class="bar-row"><span>8 cores</span><div class="bar-track"><div class="bar" style="width:94.01%"></div></div><strong>94.0%</strong></div>
+          <div class="bar-row"><span>16 / 32 / 64</span><div class="bar-track"><div class="bar green" style="width:96.2%"></div></div><strong>94-99%</strong></div>
+        </div>
+      </div>
+      <h3>Compute result table</h3>
+      <div class="table-wrap"><table><thead><tr><th>Test / KPI</th><th class="num">Measured</th><th class="num">Reference</th><th class="num">Efficiency</th><th>Threshold</th><th>Status</th><th>Threshold justification</th></tr></thead><tbody>
+        <tr><td>CPU FP32 GEMM, 1x32</td><td class="num">5.125 TFLOPS</td><td class="num">27.238</td><td class="num">18.82%</td><td>&ge;5%</td><td><span class="badge pass">PASS</span></td><td>Low floor validates vectorized compute without treating Python/BLAS process topology as vendor-peak parity.</td></tr>
+        <tr><td>CPU FP32 GEMM, 4x52</td><td class="num">7.013 TFLOPS</td><td class="num">27.238</td><td class="num">25.75%</td><td>&ge;5%</td><td><span class="badge pass">PASS</span></td><td>Same practical smoke threshold; higher process count improves utilization.</td></tr>
+        <tr><td>CPU all-core extrapolated FP32</td><td class="num">28.536 TFLOPS</td><td class="num">27.238</td><td class="num">104.76%</td><td>&ge;20%</td><td><span class="badge pass">PASS</span></td><td>Sampled 16-core BLAS throughput is extrapolated; values over 100% indicate turbo/library effects and are not literal sustained whole-socket proof.</td></tr>
+        <tr><td>CPU 8-core scaling</td><td class="num">941.742 GFLOPS</td><td class="num">940.503</td><td class="num">100.13%</td><td>&ge;85%</td><td><span class="badge pass">PASS</span></td><td>85% allows scheduling and synchronization overhead while requiring useful parallel scaling.</td></tr>
+        <tr><td>GPU 0 FP32</td><td class="num">37.122 TFLOPS</td><td class="num">67.0</td><td class="num">55.41%</td><td>&ge;52%</td><td><span class="badge pass">PASS</span></td><td>PCIe H100 practical eager-GEMM floor accounts for framework and launch overhead.</td></tr>
+        <tr><td>GPU 1 / 2 / 3 FP32</td><td class="num">37.405 / 37.047 / 37.103</td><td class="num">67.0 each</td><td class="num">55.83 / 55.29 / 55.38%</td><td>&ge;52%</td><td><span class="badge pass">PASS</span></td><td>Cross-GPU spread is under 1%, indicating balanced devices.</td></tr>
+        <tr><td>GPU 0 / 1 FP16</td><td class="num">471.80 / 477.71 TFLOPS</td><td class="num">756 each</td><td class="num">62.41 / 63.19%</td><td>&ge;40%</td><td><span class="badge pass">PASS</span></td><td>PyTorch eager matrix multiplication under-represents vendor peak due to runtime and kernel overhead.</td></tr>
+        <tr><td>GPU 2 / 3 FP16</td><td class="num">498.21 / 512.69 TFLOPS</td><td class="num">756 each</td><td class="num">65.90 / 67.82%</td><td>&ge;40%</td><td><span class="badge pass">PASS</span></td><td>Healthy margin; GPU 3 is the best FP16 result.</td></tr>
+        <tr><td>4-GPU concurrent FP16</td><td class="num">1,881.10 TFLOPS</td><td class="num">1,849.09 measured baseline sum</td><td class="num">101.73%</td><td>&ge;80%</td><td><span class="badge pass">PASS</span></td><td>Validates concurrent execution against observed single-GPU baselines, not 3,024 TFLOPS vendor peak.</td></tr>
+        <tr><td>4-GPU aggregate bottleneck test</td><td class="num">1,904.81 TFLOPS</td><td class="num">3,024</td><td class="num">62.99%</td><td>&ge;60%</td><td><span class="badge pass">PASS</span></td><td>60% selected for 2.0 TB/s PCIe H100 runtime path; separates practical GEMM from ideal tensor-core peak.</td></tr>
+        <tr><td>BF16 GPU 0-3</td><td class="num">500.56-533.23 TFLOPS</td><td class="num">756 test reference</td><td class="num">66.2-70.5%</td><td>&ge;40%</td><td><span class="badge pass">PASS</span></td><td>Matches FP16 practical eager-GEMM threshold.</td></tr>
+        <tr><td>INT8 proxy GPU 0-3</td><td class="num">552.29-562.78 TOPS</td><td class="num">756 proxy ref.</td><td class="num">73.1-74.4%</td><td>&ge;40%</td><td><span class="badge pass">PASS</span></td><td>Proxy test uses FP16-derived reference; it is not a direct claim against 3,958 TOPS vendor INT8 peak.</td></tr>
+        <tr><td>FP64 GPU 0-3</td><td class="num">35.80-37.89 TFLOPS</td><td class="num">34 each</td><td class="num">105.3-111.4%</td><td>&ge;50%</td><td><span class="badge pass">PASS</span></td><td>Above-reference results reflect clock and implementation differences; all devices pass comfortably.</td></tr>
+      </tbody></table></div>
+      <div class="callout warn"><strong>Interpretation guardrail:</strong> several metrics exceed 100% because the tests compare sampled, extrapolated, proxy, or conservative reference values. They demonstrate threshold compliance, not a violation of physical peak limits.</div>
+    </section>
+
+    <section id="memory">
+      <h2>Memory Hierarchy and Bandwidth KPIs</h2>
+      <div class="table-wrap"><table><thead><tr><th>KPI</th><th class="num">Measured</th><th>Acceptance threshold</th><th>Status</th><th>Description / justification</th></tr></thead><tbody>
+        <tr><td>Total RAM</td><td class="num">3,022.62 GB</td><td>&ge;1,024 GB; within 5% detected baseline</td><td><span class="badge pass">PASS</span></td><td>Capacity and stable baseline validation.</td></tr>
+        <tr><td>Available RAM</td><td class="num">3,005.82 GB (99.44%)</td><td>&ge;50% available</td><td><span class="badge pass">PASS</span></td><td>Ensures performance tests are not distorted by memory pressure.</td></tr>
+        <tr><td>Single-thread Copy</td><td class="num">40.37-40.50 GB/s</td><td>&ge;30 GB/s</td><td><span class="badge pass">PASS</span></td><td>Baseline single-thread memory-path floor.</td></tr>
+        <tr><td>Single-thread Scale</td><td class="num">27.63 GB/s</td><td>&ge;17.94 GB/s (40% Copy, 12 GB/s floor)</td><td><span class="badge pass">PASS</span></td><td>Scale has an additional arithmetic operation and three memory references; 40% of observed Copy adapts to the active platform.</td></tr>
+        <tr><td>Single-thread Triad</td><td class="num">11.30 GB/s</td><td>&ge;16.21 GB/s (40% Copy; floor 12)</td><td><span class="badge fail">FAIL</span></td><td>Measured 30.3% below adaptive threshold and 5.8% below absolute floor. Re-run pinned to a quiet core and verify vectorization.</td></tr>
+        <tr><td>Aggregate STREAM Triad</td><td class="num">596.33 GB/s</td><td>&ge;75% of 307.2 GB/s</td><td><span class="badge pass">PASS</span></td><td>Full-chip floor allows NUMA and synchronization overhead; result above reference likely includes cache effects.</td></tr>
+        <tr><td>Aggregate DRAM Copy</td><td class="num">1,812.60 GB/s</td><td>&ge;75% of 307.2 GB/s</td><td><span class="badge pass">PASS</span></td><td>590% efficiency is not credible as sustained DRAM-only traffic; treat as cache-assisted benchmark throughput.</td></tr>
+        <tr><td>L3 aggregate bandwidth</td><td class="num">1,365.65 GB/s</td><td>&ge;200 GB/s scaled floor</td><td><span class="badge pass">PASS</span></td><td>224-thread cache bandwidth aggregate.</td></tr>
+        <tr><td>Latency 32 KB / 512 KB</td><td class="num">0.94 / 0.95 ns</td><td>&le;4 / 8 ns</td><td><span class="badge pass">PASS</span></td><td>L1/L2-size working-set checks.</td></tr>
+        <tr><td>Latency 16 MB / 512 MB</td><td class="num">6.12 / 7.24 ns</td><td>&le;30 / 120 ns</td><td><span class="badge pass">PASS</span></td><td>L3/DRAM-size working-set checks; very low 512 MB result warrants methodology review but passes configured test.</td></tr>
+        <tr><td>Cache BW L1 / L2 / L3 / DRAM</td><td class="num">33.55 / 38.88 / 20.79 / 39.19 GB/s</td><td>&ge;5 / 30 / 20 / 15</td><td><span class="badge pass">PASS</span></td><td>Per-working-set floors detect collapsed hierarchy performance.</td></tr>
+        <tr><td>Sustained bandwidth</td><td class="num">43.59-45.37 GB/s</td><td>&le;15% degradation</td><td><span class="badge pass">PASS</span></td><td>Observed maximum degradation 1.52%.</td></tr>
+        <tr><td>Large allocation</td><td class="num">8 GB in 1.888 s</td><td>&le;30 s</td><td><span class="badge pass">PASS</span></td><td>Allocation/free pressure check.</td></tr>
+        <tr><td>HBM3 GPU 0-3</td><td class="num">1.8548-1.8565 TB/s</td><td>&ge;80% of 2.0 TB/s</td><td><span class="badge pass">PASS</span></td><td>80% allows memory-controller, driver, ECC, and kernel overhead; measured 92.7-92.8%.</td></tr>
+      </tbody></table></div>
+      <div class="callout warn"><strong>Memory conclusion:</strong> aggregate and sustained tests are healthy, while one single-thread Triad sample fails. Because the aggregate Triad passes strongly, the immediate hypothesis is a local benchmark/vectorization/affinity issue rather than a node-wide DRAM fault; this must be confirmed by a controlled rerun.</div>
+    </section>
+
+    <section id="fabric">
+      <h2>PCIe, NVLink, P2P, and NCCL KPIs</h2>
+      <div class="grid two-col">
+        <div class="chart"><div class="chart-title">PCIe efficiency by GPU</div>
+          <div class="bar-row"><span>H2D GPU 0-3</span><div class="bar-track"><div class="bar" style="width:89.4%"></div></div><strong>89.3-89.4%</strong></div>
+          <div class="bar-row"><span>D2H GPU 0-3</span><div class="bar-track"><div class="bar" style="width:87.1%"></div></div><strong>86.8-87.1%</strong></div>
+          <div class="bar-row"><span>Bidirectional</span><div class="bar-track"><div class="bar green" style="width:79.2%"></div></div><strong>79.0-79.2%</strong></div>
+          <div class="bar-row"><span>All-GPU H2D</span><div class="bar-track"><div class="bar" style="width:81.4%"></div></div><strong>81.4%</strong></div>
+        </div>
+        <div class="chart"><div class="chart-title">NCCL peak bus bandwidth</div>
+          <div class="bar-row"><span>AllReduce sweep</span><div class="bar-track"><div class="bar" style="width:96.2%"></div></div><strong>96.17</strong></div>
+          <div class="bar-row"><span>AllGather</span><div class="bar-track"><div class="bar" style="width:83.3%"></div></div><strong>83.26</strong></div>
+          <div class="bar-row"><span>ReduceScatter</span><div class="bar-track"><div class="bar" style="width:78.6%"></div></div><strong>78.57</strong></div>
+          <div class="bar-row"><span>AllToAll</span><div class="bar-track"><div class="bar amber" style="width:62.0%"></div></div><strong>62.03</strong></div>
+        </div>
+      </div>
+      <div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>KPI</th><th class="num">Measured</th><th class="num">Reference</th><th>Threshold</th><th>Status</th><th>Interpretation</th></tr></thead><tbody>
+        <tr><td>PCIe H2D GPU 0-3</td><td class="num">56.26-56.33 GB/s</td><td class="num">63 GB/s</td><td>&ge;65%</td><td><span class="badge pass">PASS</span></td><td>89.3-89.4%; strong Gen5 x16 utilization.</td></tr>
+        <tr><td>PCIe D2H GPU 0-3</td><td class="num">54.66-54.89 GB/s</td><td class="num">63 GB/s</td><td>&ge;65%</td><td><span class="badge pass">PASS</span></td><td>86.8-87.1%; repeatable interconnect suite result.</td></tr>
+        <tr><td>Node direct D2H GPU 0</td><td class="num">38.99 GB/s</td><td class="num">63 GB/s</td><td>&ge;40.95 GB/s</td><td><span class="badge fail">FAIL</span></td><td>Isolated low sample; later nvbandwidth D2H measured 55.36 GB/s. Treat as intermittent until reproduced.</td></tr>
+        <tr><td>Bidirectional per GPU</td><td class="num">99.54-99.83 GB/s combined</td><td class="num">126 GB/s</td><td>configured suite pass</td><td><span class="badge pass">PASS</span></td><td>79% of sum-of-directions reference with simultaneous streams.</td></tr>
+        <tr><td>Concurrent H2D, 4 GPUs</td><td class="num">205.21 GB/s</td><td class="num">252 GB/s</td><td>&ge;65%</td><td><span class="badge pass">PASS</span></td><td>81.43% aggregate host-to-device efficiency.</td></tr>
+        <tr><td>NVLink pair 0-1 / 2-3</td><td class="num">265.01 / 265.20 GB/s</td><td class="num">300 GB/s</td><td>&ge;70%</td><td><span class="badge pass">PASS</span></td><td>88.3-88.4% of configured pair reference.</td></tr>
+        <tr><td>NODE-path P2P pairs</td><td class="num">69.97-71.56 GB/s</td><td class="num">63 GB/s PCIe ref.</td><td>&ge;50%</td><td><span class="badge pass">PASS</span></td><td>Non-NVLink pairs route through PCIe/NODE topology.</td></tr>
+        <tr><td>All-to-all P2P aggregate</td><td class="num">526.0 GB/s</td><td class="num">1,704 GB/s mixed-path theoretical</td><td>&ge;20%</td><td><span class="badge pass">PASS</span></td><td>30.87%; topology contains both NVLink and NODE paths.</td></tr>
+        <tr><td>NCCL AllReduce benchmark</td><td class="num">peak 96.17, mean 36.80 GB/s</td><td class="num">size-dependent</td><td>successful, no wrong values</td><td><span class="badge pass">PASS</span></td><td>Peak occurs at large payloads; small-message averages reduce overall mean.</td></tr>
+        <tr><td>NCCL P2P disabled</td><td class="num">peak 36.71 GB/s</td><td class="num">P2P baseline 89.33</td><td>expected degradation</td><td><span class="badge pass">PASS</span></td><td>59% peak reduction confirms benefit of direct P2P paths.</td></tr>
+        <tr><td>Kernel launch / sync</td><td class="num">p50 18.89 us / 3.09 us</td><td class="num">observational</td><td>suite acceptance</td><td><span class="badge pass">PASS</span></td><td>Launch and cudaDeviceSynchronize overhead characterization.</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="workloads">
+      <h2>AI Workload Acceptance KPIs</h2>
+      <div class="grid two-col">
+        <div class="chart"><div class="chart-title">Hugging Face batch-1 latency and throughput</div>
+          <div class="bar-row"><span>Llama 8B</span><div class="bar-track"><div class="bar green" style="width:69%"></div></div><strong>69 tok/s</strong></div>
+          <div class="bar-row"><span>DeepSeek 7B 4-bit</span><div class="bar-track"><div class="bar" style="width:39.3%"></div></div><strong>39.3 tok/s</strong></div>
+          <div class="bar-row"><span>Llama 70B 4-bit</span><div class="bar-track"><div class="bar amber" style="width:13.4%"></div></div><strong>13.4 tok/s</strong></div>
+          <div class="bar-row"><span>Qwen 72B 4-bit</span><div class="bar-track"><div class="bar amber" style="width:13.4%"></div></div><strong>13.4 tok/s</strong></div>
+        </div>
+        <div class="chart"><div class="chart-title">GenAI-Perf parallel-user scaling (TP4)</div>
+          <div class="bar-row"><span>Concurrency 16</span><div class="bar-track"><div class="bar" style="width:11%"></div></div><strong>1,239 tok/s</strong></div>
+          <div class="bar-row"><span>Concurrency 32</span><div class="bar-track"><div class="bar" style="width:23.6%"></div></div><strong>2,652 tok/s</strong></div>
+          <div class="bar-row"><span>Concurrency 64</span><div class="bar-track"><div class="bar green" style="width:46.4%"></div></div><strong>5,217 tok/s</strong></div>
+          <div class="bar-row"><span>Concurrency 128</span><div class="bar-track"><div class="bar green" style="width:71.0%"></div></div><strong>7,990 tok/s</strong></div>
+          <div class="bar-row"><span>Concurrency 256</span><div class="bar-track"><div class="bar amber" style="width:100%"></div></div><strong>11,251 tok/s</strong></div>
+        </div>
+      </div>
+      <div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Workload</th><th>Configuration</th><th class="num">Mean / p95 latency</th><th class="num">Throughput</th><th>Threshold / expectation</th><th>Status</th></tr></thead><tbody>
+        <tr><td>Llama 3.1 8B HF inference</td><td>batch 1, 32 new tokens</td><td class="num">465.2 / 558.7 ms</td><td class="num">68.79 tok/s</td><td>mean &lt;1,200 ms; p95 &lt;1,500 ms</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>DeepSeek R1 Distill Qwen 7B</td><td>4-bit, batch 1, 32 tokens</td><td class="num">813.9 / 920.8 ms</td><td class="num">39.32 tok/s</td><td>&lt;3,000 ms configured</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>Llama 3.1 70B</td><td>4-bit, batch 1, 16 tokens</td><td class="num">1,191.7 / 1,290.7 ms</td><td class="num">13.43 tok/s</td><td>&lt;12,000 ms configured</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>Qwen 2.5 72B</td><td>4-bit, batch 1, 16 tokens</td><td class="num">1,192.4 / 1,278.1 ms</td><td class="num">13.42 tok/s</td><td>&lt;12,000 ms configured</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>Llama 8B HF batch</td><td>batch 8, 64 tokens, 5 iterations</td><td class="num">4.91 s measured generation window</td><td class="num">521.16 tok/s</td><td>workload acceptance</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>vLLM engine inference</td><td>4 prompts, 64 tokens</td><td class="num">0.673 s</td><td class="num">380.38 tok/s</td><td>successful runtime</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>KV cache CPU offload</td><td>TP4, context 8,192, batch 4</td><td class="num">6,771.7 ms offload vs 6,831.5 baseline</td><td class="num">252.0 vs 249.8 tok/s</td><td>controlled degradation</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>Diffusers SD-Turbo</td><td>4 GPUs, 128 images, 512x512</td><td class="num">2.445 s makespan</td><td class="num">52.36 img/s</td><td>&ge;10 img/s</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>BERT encoder training</td><td>batch 16, seq 128, 10 steps</td><td class="num">0.563 s training window</td><td class="num">284.27 samples/s</td><td>successful throughput test</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>vLLM prefill saturation</td><td>1,000 prompts, 1,024/128 tokens</td><td class="num">240.2 s runtime</td><td class="num">GPU mean 0%</td><td>GPU &ge;90% for &ge;50% samples</td><td><span class="badge fail">FAIL</span></td></tr>
+        <tr><td>YOLOv8x object detection</td><td>4 workers, batch 128</td><td class="num">no worker KPI</td><td class="num">0 results</td><td>4 worker results required</td><td><span class="badge fail">FAIL</span></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="pipeline">
+      <h2>Agentic AI and AI Pipeline KPIs</h2>
+      <div class="grid two-col">
+        <div><h3>Agentic AI</h3><div class="table-wrap"><table><thead><tr><th>KPI</th><th class="num">Result</th><th>Meaning</th></tr></thead><tbody>
+          <tr><td>Single tool dispatch</td><td class="num">0.00094 ms avg</td><td>In-process dispatch overhead is negligible.</td></tr>
+          <tr><td>16-tool dispatch</td><td class="num">0.00760 ms</td><td>6.44x time for 16x dispatch count.</td></tr>
+          <tr><td>Reasoning latency</td><td class="num">1.35-10.19 ms</td><td>64-512 token synthetic reasoning path.</td></tr>
+          <tr><td>CPU-GPU sync</td><td class="num">36.97 us avg</td><td>Synchronization overhead.</td></tr>
+          <tr><td>Parallel tool speedup</td><td class="num">1.97x</td><td>8 tools: 4.08 s sequential vs 2.07 s parallel.</td></tr>
+          <tr><td>Five-turn session</td><td class="num">1,028.09 ms</td><td>205-207 ms per turn.</td></tr>
+          <tr><td>State serialization</td><td class="num">7.91 ms</td><td>448.46 KB at 56.72 MB/s.</td></tr>
+          <tr><td>Agent latency p50/p95/p99</td><td class="num">55.19 / 107.46 / 107.46 ms</td><td>20-sample latency distribution.</td></tr>
+        </tbody></table></div></div>
+        <div><h3>Pipeline highlights</h3><div class="table-wrap"><table><thead><tr><th>KPI</th><th class="num">Result</th><th>Threshold</th></tr></thead><tbody>
+          <tr><td>Tokenizer, seq 32 / 128</td><td class="num">430k / 841k tok/s</td><td>&ge;50k</td></tr>
+          <tr><td>Tokenizer, seq 512 / 2,048</td><td class="num">1.46M / 1.73M tok/s</td><td>&ge;50k / 20k</td></tr>
+          <tr><td>Tokenizer 4-thread scaling</td><td class="num">1.835x</td><td>&ge;1.03x</td></tr>
+          <tr><td>Async prefetch overlap</td><td class="num">99.5%</td><td>&ge;60%</td></tr>
+          <tr><td>CPU preprocessing</td><td class="num">746,252 tok/s</td><td>&ge;200,000</td></tr>
+          <tr><td>Storage read / write</td><td class="num">1.401 / 1.171 GB/s</td><td>&ge;1.0 / 0.5</td></tr>
+          <tr><td>Random 4K read</td><td class="num">10,723 IOPS</td><td>&ge;5,000</td></tr>
+          <tr><td>TCP loopback</td><td class="num">99.80 Gbps</td><td>&ge;5</td></tr>
+          <tr><td>Model weight pipeline</td><td class="num">4.456 GB/s</td><td>&ge;1.0</td></tr>
+          <tr><td>TTFT p95, 32-512 input</td><td class="num">4.74-5.06 ms</td><td>&le;200-500</td></tr>
+          <tr><td>ITL p95</td><td class="num">57.60 ms</td><td>&le;100</td></tr>
+          <tr><td>Continuous batching</td><td class="num">28,128 tok/s</td><td>&ge;200</td></tr>
+        </tbody></table></div></div>
+      </div>
+      <h3>Batched inference curve</h3>
+      <div class="chart">
+        <div class="bar-row"><span>Batch 1</span><div class="bar-track"><div class="bar" style="width:6.5%"></div></div><strong>250.5 tok/s</strong></div>
+        <div class="bar-row"><span>Batch 4</span><div class="bar-track"><div class="bar" style="width:25.7%"></div></div><strong>986.7 tok/s</strong></div>
+        <div class="bar-row"><span>Batch 8</span><div class="bar-track"><div class="bar" style="width:52.3%"></div></div><strong>2,009 tok/s</strong></div>
+        <div class="bar-row"><span>Batch 16</span><div class="bar-track"><div class="bar green" style="width:100%"></div></div><strong>3,838 tok/s</strong></div>
+        <p class="small">Median latency remains approximately 127-133 ms while throughput scales 15.3x from batch 1 to 16.</p>
+      </div>
+    </section>
+
+    <section id="health">
+      <h2>System Health, Reliability, and Numerical Correctness</h2>
+      <div class="table-wrap"><table><thead><tr><th>KPI</th><th class="num">Measured</th><th>Threshold</th><th>Status</th><th>Assessment</th></tr></thead><tbody>
+        <tr><td>Idle GPU temperature 0-3</td><td class="num">38 / 35 / 34 / 33 C</td><td>&lt;83 C</td><td><span class="badge pass">PASS</span></td><td>Large thermal margin.</td></tr>
+        <tr><td>Peak observed clock ratio</td><td class="num">100 / 100 / 94.9 / 91.5%</td><td>&ge;70%</td><td><span class="badge pass">PASS</span></td><td>All devices boost adequately.</td></tr>
+        <tr><td>Sustained thermal test</td><td class="num">59 C max; 47.9% clock drop</td><td>drop &le;55%</td><td><span class="badge pass">PASS</span></td><td>Configured throttle criterion met.</td></tr>
+        <tr><td>Power headroom</td><td class="num">85.8-252.8 W / 350 W</td><td>&le;limit</td><td><span class="badge pass">PASS</span></td><td>No power-limit violation.</td></tr>
+        <tr><td>Uncorrected / corrected HBM ECC</td><td class="num">0 / 0 all GPUs</td><td>0 / &lt;100</td><td><span class="badge pass">PASS</span></td><td>No logged memory errors.</td></tr>
+        <tr><td>PCIe replay counters</td><td class="num">0 all GPUs</td><td>0</td><td><span class="badge pass">PASS</span></td><td>Clean PCIe link health.</td></tr>
+        <tr><td>FP16 energy efficiency</td><td class="num">5.00-5.59 TFLOPS/W</td><td>&ge;1.0</td><td><span class="badge pass">PASS</span></td><td>Power sample appears near idle for some GPUs; useful for test compliance, not audited energy benchmarking.</td></tr>
+        <tr><td>INT8 vs FP16 error</td><td class="num">1.534%</td><td>&le;5%</td><td><span class="badge pass">PASS</span></td><td>Quantized matrix result within tolerance.</td></tr>
+        <tr><td>FP8 vs FP16 error</td><td class="num">3.745%</td><td>&le;15%</td><td><span class="badge pass">PASS</span></td><td>Within configured E4M3 tolerance.</td></tr>
+        <tr><td>BF16 vs FP16 error</td><td class="num">0.287%</td><td>&le;10%</td><td><span class="badge pass">PASS</span></td><td>Strong numerical agreement.</td></tr>
+        <tr><td>Softmax max absolute error</td><td class="num">0.002563</td><td>&le;0.003</td><td><span class="badge pass">PASS</span></td><td>Pass with 14.6% margin.</td></tr>
+        <tr><td>torch.compile speedup</td><td class="num">0.231x</td><td>&ge;0.75x effective floor</td><td><span class="badge fail">FAIL</span></td><td>Compiled path is 4.33x slower for this workload shape; investigate compilation mode, warmup, and graph breaks.</td></tr>
+        <tr><td>Stream concurrency ratio</td><td class="num">1.050x</td><td>&le;1.5x</td><td><span class="badge pass">PASS</span></td><td>Concurrent execution not materially worse than sequential.</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="performance">
+      <h2>Performance Suite Results</h2>
+      <p>The dedicated 26-case suite completed with <strong>23 passed and 3 skipped</strong>. This is the strongest evidence that the available LLM serving and collective-communication toolchain is usable.</p>
+      <h3>LLM serving benchmark table</h3>
+      <div class="table-wrap"><table><thead><tr><th>Case</th><th>Model / mode</th><th class="num">Output tok/s</th><th class="num">P50 / P99 TTFT</th><th class="num">P50 / P99 ITL</th><th class="num">P99 E2E</th><th>Status</th></tr></thead><tbody>
+        <tr><td>003</td><td>Llama 3.1 70B BF16, TP4, random 2K/256</td><td class="num">520.2</td><td class="num">4,793 / 17,734 ms</td><td class="num">45.3 / 1,137 ms</td><td class="num">39,483 ms</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>004</td><td>Llama 3.1 8B BF16, TP4, ShareGPT</td><td class="num">2,307.2</td><td class="num">453 / 593 ms</td><td class="num">10.2 / 73.9 ms</td><td class="num">9,003 ms</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>005</td><td>Llama 3.1 70B FP8, TP4, ShareGPT</td><td class="num">723.5</td><td class="num">2,023 / 2,792 ms</td><td class="num">28.1 / 94.2 ms</td><td class="num">25,586 ms</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>006</td><td>Llama 3.1 8B BF16, TP2</td><td class="num">2,336.4</td><td class="num">506 / 696 ms</td><td class="num">10.1 / 73.2 ms</td><td class="num">8,789 ms</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>007</td><td>Llama 3.1 8B BF16, TP1, mixed prompt</td><td class="num">2,073.6</td><td class="num">939 / 1,007 ms</td><td class="num">11.5 / 71.3 ms</td><td class="num">10,034 ms</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>008</td><td>Mixtral 8x7B FP8, TP2</td><td class="num">1,080.5</td><td class="num">717 / 1,026 ms</td><td class="num">21.2 / 85.6 ms</td><td class="num">22,160 ms</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>009</td><td>Llama 8B burst, 200 RPS configured</td><td class="num">2,109.8</td><td class="num">500 / 697 ms</td><td class="num">11.5 / 51.9 ms</td><td class="num">9,668 ms</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>016</td><td>DeepSeek R1 Distill Llama 70B FP8</td><td class="num">761.8</td><td class="num">1,657 / 2,844 ms</td><td class="num">29.6 / 97.7 ms</td><td class="num">26,104 ms</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>017</td><td>DeepSeek R1 70B FP8, alternate profile</td><td class="num">762.6</td><td class="num">1,957 / 2,811 ms</td><td class="num">28.8 / 98.3 ms</td><td class="num">26,482 ms</td><td><span class="badge pass">PASS</span></td></tr>
+        <tr><td>026</td><td>Llama 3.1 70B FP8 stress</td><td class="num">735.7</td><td class="num">2,039 / 2,633 ms</td><td class="num">27.5 / 101.3 ms</td><td class="num">24,121 ms</td><td><span class="badge pass">PASS</span></td></tr>
+      </tbody></table></div>
+      <h3>GenAI-Perf scenarios</h3>
+      <div class="table-wrap"><table><thead><tr><th>Scenario</th><th>Concurrency</th><th class="num">Output tok/s</th><th class="num">Average TTFT</th><th class="num">P99 TTFT</th><th class="num">Average ITL</th></tr></thead><tbody>
+        <tr><td>TP scaling: TP1</td><td>16</td><td class="num">1,038.2</td><td class="num">258.8 ms</td><td class="num">731.6 ms</td><td class="num">12.88 ms</td></tr>
+        <tr><td>TP scaling: TP4</td><td>16</td><td class="num">1,221.1</td><td class="num">188.7 ms</td><td class="num">486.8 ms</td><td class="num">11.25 ms</td></tr>
+        <tr><td>Parallel users</td><td>16 / 32 / 64 / 128 / 256</td><td class="num">1,239 / 2,652 / 5,217 / 7,990 / 11,251</td><td class="num">183 / 68 / 101 / 142 / 322 ms</td><td class="num">483 / 159 / 177 / 281 / 770 ms</td><td class="num">11.1 / 10.8 / 11.0 / 13.2 / 18.3 ms</td></tr>
+        <tr><td>Heavy output, 512 tokens</td><td>16 / 32 / 64</td><td class="num">1,039 / 2,355 / 4,110</td><td class="num">73.7 / 43.8 / 53.2 ms</td><td class="num">274 / 119 / 158 ms</td><td class="num">10.96 / 10.80 / 11.17 ms</td></tr>
+        <tr><td>Long context, 4K input</td><td>8 / 16 / 32</td><td class="num">526 / 930 / 2,421</td><td class="num">353 / 177 / 124 ms</td><td class="num">833 / 527 / 278 ms</td><td class="num">13.05 / 13.75 / 10.90 ms</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="failures">
+      <h2>Failure Analysis and Recommended Actions</h2>
+      <div class="table-wrap"><table><thead><tr><th>Priority</th><th>Finding</th><th>Evidence</th><th>Likely cause / justification</th><th>Recommended action</th></tr></thead><tbody>
+        <tr><td><span class="badge fail">P1</span></td><td>vLLM prefill utilization telemetry invalid</td><td>GPU mean 0%, no latency percentiles, stale EngineCore cleanup</td><td>Benchmark/server monitoring did not observe the active process or the benchmark failed to produce metrics.</td><td>Capture server and bench exit codes/output; bind NVML sampling to serving GPU PID; fail fast if p50/p95/p99 are null.</td></tr>
+        <tr><td><span class="badge fail">P1</span></td><td>YOLO multiprocessing produced no results</td><td>0 worker results for 4 processes</td><td>Worker exception was not propagated; deprecated half option may be related but is not sufficient evidence.</td><td>Capture worker tracebacks through the result queue, lower batch from 128, and validate one GPU before four-GPU spawn.</td></tr>
+        <tr><td><span class="badge warn">P1</span></td><td>Intermittent GPU 0 D2H dip</td><td>38.99 GB/s vs 40.95 threshold; later 54-55 GB/s</td><td>Transient contention, first-iteration state, affinity, or pinned-memory variability.</td><td>Run 10 repeated D2H trials per GPU, report median/p05, and correlate CPU NUMA affinity; alert only on reproducible p05 failure.</td></tr>
+        <tr><td><span class="badge warn">P1</span></td><td>Single-thread STREAM Triad below floor</td><td>11.30 vs 16.21 GB/s adaptive threshold</td><td>Possible vectorization, CPU affinity, frequency, or allocation alignment issue; aggregate bandwidth is healthy.</td><td>Pin to a physical core, inspect compiler/NumPy SIMD path, increase warmup, and compare Copy/Scale/Triad under identical allocation.</td></tr>
+        <tr><td><span class="badge warn">P2</span></td><td>torch.compile regression</td><td>0.231x vs 0.75x effective floor</td><td>Workload too small, insufficient steady-state iterations, graph breaks, or unsuitable compile mode.</td><td>Separate compile cost from steady-state timing; inspect graph-break logs; test reduce-overhead and max-autotune modes.</td></tr>
+        <tr><td><span class="badge info">P2</span></td><td>Misleading over-100% efficiencies</td><td>DRAM 590%, CPU 653%, scaling 271%</td><td>Cache effects, extrapolation, or reference mismatch.</td><td>Label each denominator explicitly; add cache-flush/working-set controls; cap visualization at 100% while preserving raw values.</td></tr>
+        <tr><td><span class="badge info">P3</span></td><td>Fork deprecation warnings</td><td>15 bottleneck warnings on multi-threaded fork</td><td>Python 3.12 warns that fork from multithreaded process can deadlock.</td><td>Use spawn/forkserver multiprocessing context for benchmark workers.</td></tr>
+      </tbody></table></div>
+      <h3>Acceptance gates for the next run</h3>
+      <div class="grid three-col">
+        <div class="card"><strong>Hardware gate</strong><ul><li>All 4 GPUs Gen5 x16</li><li>HBM &ge;80%</li><li>PCIe median &ge;65%</li><li>Zero uncorrected ECC</li></ul></div>
+        <div class="card"><strong>Runtime gate</strong><ul><li>No stale vLLM processes</li><li>Non-null latency percentiles</li><li>YOLO workers return metrics</li><li>torch.compile &ge;0.75x</li></ul></div>
+        <div class="card"><strong>Clean-run gate</strong><ul><li>All five failed tests rerun</li><li>No stale service processes</li><li>No null workload metrics</li><li>390-test counts reconciled</li></ul></div>
+      </div>
+      <details><summary>Methodology and interpretation notes</summary><div>
+        <ul>
+          <li>Results are transcribed from the supplied live pytest log and cross-checked against <span class="mono">workload_status_report.json</span> and test descriptions in the AIHeadNode workspace.</li>
+          <li>The run used Python 3.12.13, pytest 9.1.1, a 1,800-second pytest timeout, offline Hugging Face mode, and remote large-model downloads disabled.</li>
+          <li>Theoretical values are suite-configured references, not independently audited vendor specifications. HBM is treated as 2.0 TB/s per GPU and PCIe as 63 GB/s per direction.</li>
+          <li>Thresholds are acceptance floors designed to catch regressions under framework overhead. They are not equivalent to vendor benchmark targets unless explicitly stated.</li>
+          <li>Skipped tests are excluded from the 90% subcategory pass calculation and do not establish compliance for the skipped behavior.</li>
+        </ul>
+      </div></details>
+    </section>
+  </main>
+  <footer>AI Head Node Validation Report | 390 selected tests from the 17 Aug 2026 run log | Self-contained HTML; no external scripts, fonts, or images</footer>
+</div>
+<script>
+  function filterSuites(status, button) {
+    document.querySelectorAll('#suiteTable tbody tr').forEach(function(row) {
+      row.style.display = status === 'all' || row.dataset.status === status ? '' : 'none';
+    });
+    document.querySelectorAll('.filter-row button').forEach(function(b) { b.classList.remove('active'); });
+    button.classList.add('active');
+  }
+</script>
+</body>
+</html>

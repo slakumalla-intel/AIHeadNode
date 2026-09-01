@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-Node Llama Performance Summary</title>
+  <style>
+    :root {
+      --ink: #17212b;
+      --muted: #607080;
+      --line: #d8e0e7;
+      --paper: #f5f7f8;
+      --white: #ffffff;
+      --teal: #007f82;
+      --coral: #d45b45;
+      --gold: #c28a18;
+      --navy: #12344d;
+      --green: #2f855a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    .sheet {
+      width: min(1180px, calc(100% - 32px));
+      margin: 32px auto;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 36px rgba(18, 52, 77, .10);
+    }
+    header {
+      padding: 32px 40px 26px;
+      border-bottom: 5px solid var(--teal);
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+    }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 48px); line-height: 1.02; font-weight: 700; }
+    .kicker { color: var(--teal); font: 700 12px/1.2 Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
+    .date { color: var(--muted); font: 13px Arial, sans-serif; white-space: nowrap; }
+    main { padding: 28px 40px 34px; }
+    .headline { display: grid; grid-template-columns: 1.4fr .6fr; gap: 24px; align-items: stretch; margin-bottom: 28px; }
+    .headline p { margin: 0; font-size: 19px; line-height: 1.4; }
+    .stat { border-left: 4px solid var(--coral); padding: 12px 18px; background: #fff8f5; }
+    .stat strong { display: block; color: var(--coral); font: 700 38px/1 Arial, sans-serif; }
+    .stat span { display: block; margin-top: 6px; color: var(--muted); font: 13px/1.35 Arial, sans-serif; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .panel { border: 1px solid var(--line); padding: 18px 18px 14px; }
+    .panel h2 { margin: 0 0 4px; font-size: 20px; }
+    .panel p { margin: 0 0 14px; color: var(--muted); font: 12px Arial, sans-serif; }
+    svg { width: 100%; height: auto; display: block; }
+    .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; font: 12px Arial, sans-serif; color: var(--muted); }
+    .legend i { display: inline-block; width: 11px; height: 11px; margin-right: 5px; vertical-align: -1px; }
+    .callout { margin-top: 22px; padding: 18px 20px; background: var(--navy); color: white; display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; }
+    .callout b { color: #ffd37a; font: 700 32px/1 Arial, sans-serif; }
+    .callout p { margin: 0; font: 14px/1.45 Arial, sans-serif; }
+    .table-wrap { margin-top: 22px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font: 13px Arial, sans-serif; }
+    th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; background: #f1f5f6; }
+    .pass { color: var(--green); font-weight: 700; }
+    footer { padding: 16px 40px 22px; color: var(--muted); border-top: 1px solid var(--line); font: 11px/1.45 Arial, sans-serif; }
+    @media (max-width: 760px) {
+      header, main, footer { padding-left: 20px; padding-right: 20px; }
+      header, .headline { display: block; }
+      .date { margin-top: 16px; }
+      .stat { margin-top: 20px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; }
+      .sheet { width: 100%; margin: 0; box-shadow: none; border: 0; }
+      .panel, .callout { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <article class="sheet">
+    <header>
+      <div>
+        <div class="kicker">Weekly executive performance summary</div>
+        <h1>Multi-node Llama serving<br>performance</h1>
+      </div>
+      <div class="date">25 Aug 2026<br>Two-node / six-GPU cluster</div>
+    </header>
+    <main>
+      <section class="headline">
+        <p><strong>Six-GPU distributed serving is validated.</strong> The Llama 3.1 70B workload achieved 86.57 requests/s with 100% request success using <strong>TP=2 x PP=3</strong> across four H100 and two H200 GPUs.</p>
+        <div class="stat"><strong>2.14x</strong><span>70B throughput improvement versus TP=1, with the same 10,240-request workload</span></div>
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <h2>Throughput</h2>
+          <p>Measured output-token throughput and request throughput for the Llama 70B scaling comparison. Each metric uses its own scale; labels show measured values.</p>
+          <svg viewBox="0 0 520 320" role="img" aria-label="Throughput comparison bar chart">
+            <line x1="66" y1="30" x2="66" y2="270" stroke="#607080"/>
+            <line x1="66" y1="270" x2="500" y2="270" stroke="#607080"/>
+            <g font-family="Arial" font-size="11" fill="#607080">
+              <text x="24" y="274">0</text><text x="16" y="214">5k</text><text x="10" y="154">10k</text><text x="10" y="94">15k</text><text x="10" y="34">20k</text>
+              <text x="112" y="294">70B TP1</text><text x="252" y="294">70B TP2/PP3</text>
+              <text transform="translate(13,210) rotate(-90)">metric-specific scale</text>
+            </g>
+            <g stroke="#d8e0e7" stroke-dasharray="3 4">
+              <line x1="66" y1="210" x2="500" y2="210"/><line x1="66" y1="150" x2="500" y2="150"/><line x1="66" y1="90" x2="500" y2="90"/><line x1="66" y1="30" x2="500" y2="30"/>
+            </g>
+            <rect x="171" y="174" width="34" height="96" fill="#007f82"/><rect x="213" y="174" width="34" height="96" fill="#d45b45"/>
+            <rect x="331" y="65" width="34" height="205" fill="#007f82"/><rect x="373" y="65" width="34" height="205" fill="#d45b45"/>
+            <g font-family="Arial" font-size="11" font-weight="700" fill="#17212b" text-anchor="middle">
+              <text x="188" y="166">40.46</text><text x="230" y="166">8,0k</text>
+              <text x="348" y="57">86.57</text><text x="390" y="57">17.1k</text>
+            </g>
+          </svg>
+          <div class="legend"><span><i style="background:#007f82"></i>requests/s</span><span><i style="background:#d45b45"></i>output tokens/s</span></div>
+        </div>
+
+        <div class="panel">
+          <h2>Latency profile</h2>
+          <p>P50 and P99 TTFT for the 70B high-concurrency benchmark.</p>
+          <svg viewBox="0 0 520 320" role="img" aria-label="Latency comparison bar chart">
+            <line x1="66" y1="30" x2="66" y2="270" stroke="#607080"/>
+            <line x1="66" y1="270" x2="500" y2="270" stroke="#607080"/>
+            <g font-family="Arial" font-size="11" fill="#607080">
+              <text x="22" y="274">0</text><text x="10" y="214">60s</text><text x="10" y="154">120s</text><text x="10" y="94">180s</text><text x="10" y="34">240s</text>
+              <text x="112" y="294">P50 TTFT</text><text x="327" y="294">P99 TTFT</text>
+              <text transform="translate(13,210) rotate(-90)">seconds</text>
+            </g>
+            <g stroke="#d8e0e7" stroke-dasharray="3 4"><line x1="66" y1="210" x2="500" y2="210"/><line x1="66" y1="150" x2="500" y2="150"/><line x1="66" y1="90" x2="500" y2="90"/><line x1="66" y1="30" x2="500" y2="30"/></g>
+            <rect x="111" y="164" width="48" height="106" fill="#c28a18"/><rect x="171" y="225" width="48" height="45" fill="#007f82"/>
+            <rect x="326" y="48" width="48" height="222" fill="#c28a18"/><rect x="386" y="186" width="48" height="84" fill="#007f82"/>
+            <g font-family="Arial" font-size="11" font-weight="700" fill="#17212b" text-anchor="middle">
+              <text x="135" y="156">106.2s</text><text x="195" y="217">45.3s</text>
+              <text x="350" y="40">221.9s</text><text x="410" y="178">84.3s</text>
+            </g>
+          </svg>
+          <div class="legend"><span><i style="background:#c28a18"></i>TP=1</span><span><i style="background:#007f82"></i>TP=2 x PP=3</span></div>
+        </div>
+      </section>
+
+      <div class="callout"><b>100%</b><p><strong>Request reliability:</strong> every recorded run completed without failures. The 70B TP=2 x PP=3 run completed 10,240 / 10,240 requests in 118.29 seconds.</p></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Configuration</th><th>Requests</th><th>Success</th><th>Duration</th><th>Req/s</th><th>Output tok/s</th></tr></thead>
+          <tbody>
+            <tr><td>Llama 3.1 70B, TP=1</td><td>10,240</td><td class="pass">10,240 / 10,240</td><td>253.08 s</td><td>40.46</td><td>7,997.93</td></tr>
+            <tr><td>Llama 3.1 70B, TP=2 x PP=3</td><td>10,240</td><td class="pass">10,240 / 10,240</td><td>118.29 s</td><td>86.57</td><td>17,116.38</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+    <footer>Source: vLLM serving benchmarks captured 24 Aug 2026. 70B scaling uses identical 10,240-request workloads; latency includes queueing from the full burst. NCCL socket validation also passed across all six GPUs with zero validation errors.</footer>
+  </article>
+</body>
+</html>

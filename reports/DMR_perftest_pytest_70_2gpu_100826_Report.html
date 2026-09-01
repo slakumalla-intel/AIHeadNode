@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>AI Head-Node Performance Validation Report — 2026-08-10</title>
+<style>
+:root {
+  --navy: #0a2540;
+  --navy2: #123a63;
+  --blue: #1a56db;
+  --accent: #2563eb;
+  --sky: #38bdf8;
+  --ink: #1f2933;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --bg-soft: #f8fafc;
+  --bg-row: #f1f5f9;
+  --ok: #15803d;
+  --ok-bg: #dcfce7;
+  --skip: #b45309;
+  --skip-bg: #fef3c7;
+  --fail: #b91c1c;
+  --fail-bg: #fee2e2;
+}
+* { box-sizing: border-box; }
+html {
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  background: #e7ebf1;
+}
+body {
+  font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, Arial, sans-serif;
+  font-size: 13.5px; line-height: 1.65; color: var(--ink);
+  max-width: 960px; margin: 32px auto; padding: 0 40px 56px;
+  background: #ffffff; border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(10, 37, 64, 0.12);
+}
+h1 {
+  font-size: 30px; font-weight: 800; letter-spacing: -0.5px;
+  color: var(--navy); margin: 6px 0 10px; line-height: 1.2;
+}
+h2 {
+  font-size: 19px; font-weight: 700; color: var(--navy);
+  margin: 40px 0 14px; padding: 8px 0 8px 14px;
+  border-left: 4px solid var(--accent);
+  background: linear-gradient(90deg, var(--bg-soft), transparent);
+}
+h3 {
+  font-size: 15px; font-weight: 700; color: var(--blue);
+  margin: 26px 0 10px; letter-spacing: 0.2px;
+}
+p { margin: 10px 0; }
+strong { color: var(--navy); font-weight: 700; }
+code {
+  background: #eef2f7; color: #b91c4b; padding: 2px 6px;
+  font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 12px;
+  border-radius: 5px;
+}
+blockquote {
+  border-left: 4px solid var(--accent);
+  margin: 14px 0; padding: 12px 18px;
+  background: linear-gradient(90deg, #eef4ff, #f8fafc);
+  border-radius: 0 10px 10px 0;
+  color: #334155;
+  box-shadow: 0 1px 3px rgba(15, 37, 64, 0.05);
+}
+blockquote p { margin: 4px 0; }
+table {
+  border-collapse: separate; border-spacing: 0; width: 100%;
+  margin: 18px 0; font-size: 12.5px;
+  border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 37, 64, 0.06);
+}
+thead th {
+  background: linear-gradient(180deg, #12365f, var(--navy));
+  color: #fff; padding: 10px 12px; text-align: left;
+  font-weight: 600; font-size: 12px; letter-spacing: 0.3px;
+}
+tbody td { padding: 8px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+tbody tr:nth-child(even) { background: var(--bg-row); }
+hr { border: none; border-top: 1px solid var(--line); margin: 22px 0; }
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 20px auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(15, 37, 64, 0.10);
+}
+div[align="center"] { text-align: center; }
+div[align="center"]:first-of-type {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 55%, var(--accent) 140%);
+  color: #eaf2ff; border-radius: 16px 16px 18px 18px;
+  margin: 0 -40px 30px; padding: 46px 40px 34px;
+  box-shadow: 0 10px 30px rgba(10, 37, 64, 0.28);
+}
+div[align="center"]:first-of-type h1 { color: #ffffff; }
+div[align="center"]:first-of-type h3 { color: #bcd4f5; }
+div[align="center"]:first-of-type strong { color: #ffffff; }
+div[align="center"]:first-of-type hr { border-top: 1px solid rgba(255,255,255,0.25); max-width: 220px; margin: 16px auto; }
+div[align="center"]:first-of-type table { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); box-shadow: none; width: 100%; font-size: 11px; }
+div[align="center"]:first-of-type thead th { background: rgba(255,255,255,0.10); color: #eaf2ff; }
+div[align="center"]:first-of-type tbody td { color: #eaf2ff; border-top: 1px solid rgba(255,255,255,0.12); }
+div[align="center"]:first-of-type tbody tr:nth-child(even) { background: rgba(255,255,255,0.04); }
+tbody td.status-pass { color: var(--ok); background: var(--ok-bg); font-weight: 700; text-align: center; }
+tbody td.status-skip { color: var(--skip); background: var(--skip-bg); font-weight: 700; text-align: center; }
+tbody td.status-fail { color: var(--fail); background: var(--fail-bg); font-weight: 700; text-align: center; }
+body > p:last-child {
+  color: var(--muted); font-size: 12px; margin-top: 34px;
+  padding-top: 14px; border-top: 1px solid var(--line);
+}
+@media print {
+  body { margin: 0; padding: 0 24px 24px; font-size: 11px; box-shadow: none; border-radius: 0; max-width: 100%; }
+  html { background: #fff; }
+  div[align="center"]:first-of-type { margin: 0 -24px 20px; border-radius: 0; }
+}
+</style>
+</head>
+<body>
+<div align="center">
+<h1>AI Head-Node Performance Validation Report</h1>
+<h3>sc00901168s0075 &nbsp;&bull;&nbsp; 2× NVIDIA H200 NVL &nbsp;&bull;&nbsp; 2026-08-10</h3>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Suite</th>
+<th>Evidence Date</th>
+<th>Baseline Runtime</th>
+<th>Targeted Reruns</th>
+<th>Python</th>
+<th>Driver</th>
+<th>CUDA RT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tests/test_performance_suite.py</code></td>
+<td>2026-08-10</td>
+<td>46 m 48 s</td>
+<td>54 m 30 s across 3 sessions</td>
+<td>3.12.13</td>
+<td>595.45.04</td>
+<td>13.0.2</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Models exercised:</strong> Llama-3.1-8B-Instruct &nbsp;·&nbsp; Llama-3.1-70B-Instruct &nbsp;·&nbsp; Mixtral-8x22B-Instruct-v0.1 &nbsp;·&nbsp; DeepSeek-R1-Distill-Llama-70B</p>
+</div>
+
+<blockquote>
+<p><strong>Scope note.</strong> This report is built from <code>onlyperflogs.log</code>, which contains one full 26-case 2-GPU suite, one failed retry for <code>T003</code>, one successful targeted rerun for <code>T003</code>, and one enforce-eager rerun covering the previously skipped large-model cases. The <strong>effective final status</strong> below combines those sessions by testcase.</p>
+</blockquote>
+
+<h2>1. Executive Summary</h2>
+<div align="center">
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">✅ PASSED</th>
+<th style="text-align: center;">⏭️ SKIPPED</th>
+<th style="text-align: center;">❌ FAILED</th>
+<th style="text-align: center;">Baseline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>24</strong></td>
+<td style="text-align: center;"><strong>1</strong></td>
+<td style="text-align: center;"><strong>1</strong></td>
+<td style="text-align: center;"><strong>14 pass / 11 skip / 1 fail</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<blockquote>
+<p><strong>Effective outcome:</strong> the 2-GPU evidence set closes <strong>24/26</strong> cases after targeted reruns. The baseline full suite initially completed <strong>14 passed</strong>, <strong>11 skipped</strong>, <strong>1 failed</strong>.</p>
+<p><strong>Recovered by rerun:</strong> <code>T003</code>, <code>T005</code>, <code>T006</code>, <code>T008</code>, <code>T013</code>, <code>T014</code>, <code>T015</code>, <code>T016</code>, <code>T017</code>, and <code>T026</code> all passed once rerun with <code>--enforce-eager</code>.</p>
+<p><strong>Outstanding fail:</strong> <code>T010</code> remains failed due to a <code>flashinfer-cubin 0.6.12</code> versus <code>flashinfer 0.5.2</code> version mismatch inside <code>trtllm-bench</code>, not due to GPU capacity or model execution.</p>
+<p><strong>Outstanding skip:</strong> <code>T012</code> remained skipped because the TP2 vLLM server still failed engine-core initialization in the target-TP leg even after retry logic.</p>
+<p><strong>Performance shape:</strong> 8B single-GPU serving peaked near <strong>474 tok/s</strong> mean output throughput, while 70B / Mixtral / DeepSeek 2-GPU TP2 reruns settled around <strong>270-301 tok/s</strong> mean output throughput with FP8 and BF16 variants landing in a narrow band.</p>
+</blockquote>
+
+<h3>KPIs at a Glance</h3>
+<table>
+<thead>
+<tr>
+<th>Domain</th>
+<th>KPI</th>
+<th style="text-align: right;">Best Observed</th>
+<th style="text-align: center;">Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU preprocessing</td>
+<td>Tokenizer throughput</td>
+<td style="text-align: right;"><strong>1.15 M tok/s</strong></td>
+<td style="text-align: center;"><code>T001</code></td>
+</tr>
+<tr>
+<td>Serving (8B BF16)</td>
+<td>Mean output token throughput</td>
+<td style="text-align: right;"><strong>473.75 tok/s</strong></td>
+<td style="text-align: center;"><code>T009</code></td>
+</tr>
+<tr>
+<td>Serving (DeepSeek TP2)</td>
+<td>Mean output token throughput</td>
+<td style="text-align: right;"><strong>300.73 tok/s</strong></td>
+<td style="text-align: center;"><code>T017</code></td>
+</tr>
+<tr>
+<td>Serving (70B FP8)</td>
+<td>Mean output token throughput</td>
+<td style="text-align: right;"><strong>292.46 tok/s</strong></td>
+<td style="text-align: center;"><code>T005</code></td>
+</tr>
+<tr>
+<td>Host↔GPU</td>
+<td>H2D CE aggregate bandwidth</td>
+<td style="text-align: right;"><strong>112.27 GB/s</strong></td>
+<td style="text-align: center;"><code>T002</code></td>
+</tr>
+<tr>
+<td>Host↔GPU</td>
+<td>D2H CE aggregate bandwidth</td>
+<td style="text-align: right;"><strong>112.81 GB/s</strong></td>
+<td style="text-align: center;"><code>T002</code></td>
+</tr>
+<tr>
+<td>Interconnect</td>
+<td>Peak NCCL AllReduce busbw</td>
+<td style="text-align: right;"><strong>29.61 GB/s</strong></td>
+<td style="text-align: center;"><code>T018</code></td>
+</tr>
+<tr>
+<td>Interconnect</td>
+<td>Peak NCCL AllToAll busbw</td>
+<td style="text-align: right;"><strong>51.57 GB/s</strong></td>
+<td style="text-align: center;"><code>T023</code></td>
+</tr>
+</tbody>
+</table>
+
+<h2>2. Session Consolidation</h2>
+<table>
+<thead>
+<tr>
+<th>Session</th>
+<th>Runtime</th>
+<th>Outcome</th>
+<th>Use in Final Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full baseline 26-case suite</td>
+<td>46 m 48 s</td>
+<td>14 passed / 11 skipped / 1 failed</td>
+<td>Source of all CPU, transfer, NCCL, 8B, and synthetic GenAI baseline passes</td>
+</tr>
+<tr>
+<td>Single-case retry for <code>T003</code></td>
+<td>2 m 01 s failed attempt + 6 m 29 s successful rerun</td>
+<td><code>T003</code> converted from skip to pass</td>
+<td>Used to close the 70B BF16 baseline case</td>
+</tr>
+<tr>
+<td>Enforce-eager targeted rerun</td>
+<td>46 m 00 s</td>
+<td>9 passed / 16 skipped / 1 failed</td>
+<td>Used only for cases rerun in that session: <code>T005</code>, <code>T006</code>, <code>T008</code>, <code>T012</code>, <code>T013</code>, <code>T014</code>, <code>T015</code>, <code>T016</code>, <code>T017</code>, <code>T026</code>, <code>T010</code></td>
+</tr>
+</tbody>
+</table>
+
+<h2>3. Effective Final Status Matrix</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Test ID</th>
+<th>Title</th>
+<th>Subsystem</th>
+<th>Effective Status</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="text-align: right;">1</td><td><code>T001</code></td><td>Tokenizer Throughput and CPU Cycles per Token</td><td>CPU Tokenization and Preprocessing</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">2</td><td><code>T002</code></td><td>Host-GPU and GPU-GPU memcpy bandwidth (CE/SM, bidirectional, P2P)</td><td>CPU to GPU Transfer Performance</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">3</td><td><code>T003</code></td><td>vLLM Serve + Load (BF16 baseline) - 70B</td><td>Inference (BF16)</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">4</td><td><code>T004</code></td><td>vLLM Serve + Load (BF16/FP16) - 8B</td><td>Inference (BF16)</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">5</td><td><code>T005</code></td><td>Llama 70B FP8 long-context inference</td><td>Inference FP8</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">6</td><td><code>T006</code></td><td>vLLM Serve + Load (BF16) - 70B</td><td>Inference (BF16)</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">7</td><td><code>T007</code></td><td>Random prompt lengths 128-8192 + varied decode</td><td>Inference MixedPrompt</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">8</td><td><code>T008</code></td><td>Mixtral 8x22B FP8 vs Llama Dense</td><td>Inference MoE vs dense</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">9</td><td><code>T009</code></td><td>Tail latency under burst traffic</td><td>Inference burst</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">10</td><td><code>T010</code></td><td>trtllm-bench offline throughput</td><td>TRT-LLM offline</td><td class="status-fail">FAIL</td></tr>
+<tr><td style="text-align: right;">11</td><td><code>T011</code></td><td>Server + load generator, real HTTP (GenAI-Perf)</td><td>Gen-AI end-to-end benchmarking</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">12</td><td><code>T012</code></td><td>GenAI-Perf tensor-parallel scaling</td><td>Gen-AI multi-GPU end-to-end benchmarking</td><td class="status-skip">SKIP</td></tr>
+<tr><td style="text-align: right;">13</td><td><code>T013</code></td><td>GenAI-Perf parallel users scalability - target TP</td><td>Gen-AI concurrent user load</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">14</td><td><code>T014</code></td><td>GenAI-Perf heavy token load (long output) - target TP</td><td>Gen-AI token throughput</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">15</td><td><code>T015</code></td><td>GenAI-Perf long-context scenarios (KV cache stress) - target TP</td><td>Gen-AI context handling</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">16</td><td><code>T016</code></td><td>DeepSeek-R1 KV cache effectiveness with SATA offload</td><td>DeepSeek BF16 + SATA KV</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">17</td><td><code>T017</code></td><td>DeepSeek R1 KV cache effectiveness with CXL offload</td><td>DeepSeek + CXL</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">18</td><td><code>T018</code></td><td>NCCL AllReduce bandwidth sweep</td><td>AllReduce</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">19</td><td><code>T019</code></td><td>NCCL tiny-message latency profile</td><td>AllReduce latency</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">20</td><td><code>T020</code></td><td>NCCL medium-size steady-state</td><td>AllReduce steady-state</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">21</td><td><code>T021</code></td><td>NCCL ReduceScatter efficiency</td><td>ReduceScatter</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">22</td><td><code>T022</code></td><td>NCCL AllGather path health</td><td>AllGather</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">23</td><td><code>T023</code></td><td>NCCL AllToAll topology sensitivity</td><td>AllToAll</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">24</td><td><code>T024</code></td><td>NCCL AllReduce with P2P disabled</td><td>PCIe vs NVLink sanity</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">25</td><td><code>T025</code></td><td>NCCL AllReduce baseline with P2P enabled</td><td>PCIe vs NVLink baseline</td><td class="status-pass">PASS</td></tr>
+<tr><td style="text-align: right;">26</td><td><code>T026</code></td><td>vLLM Serve + Load (FP8 stress) - 70B</td><td>Inference (FP8)</td><td class="status-pass">PASS</td></tr>
+</tbody>
+</table>
+
+<h2>4. Results Overview</h2>
+<h3>4.1 Cross-Test Latency Summary</h3>
+<blockquote>
+<p><strong>Serving latency bands.</strong> The low-latency 8B TP1 cases (<code>T004</code>, <code>T007</code>, <code>T009</code>) cluster around <strong>1.9-2.4 s P50 TTFT</strong> and <strong>44 s P99 E2EL</strong> under aggressive open-loop submission. The rerun TP2 large-model cases (<code>T005</code>, <code>T006</code>, <code>T008</code>, <code>T016</code>, <code>T017</code>, <code>T026</code>) form a second band around <strong>4.9-6.2 s P50 TTFT</strong> and <strong>63-77 s P99 E2EL</strong>. <code>T003</code> is the clear outlier because it uses a random 2k/256 workload at concurrency 64 and spends most of its time in prefill queueing, driving <strong>78.6 s P99 TTFT</strong> and <strong>253.8 s P99 E2EL</strong>.</p>
+</blockquote>
+
+<h3>4.2 Serving Metrics Snapshot</h3>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Configuration</th>
+<th style="text-align: right;">Output tok/s</th>
+<th style="text-align: right;">Peak tok/s</th>
+<th style="text-align: right;">P50 TTFT</th>
+<th style="text-align: right;">P99 TTFT</th>
+<th style="text-align: right;">P99 E2EL</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><code>T004</code></td><td>8B BF16 / TP1 / ShareGPT</td><td style="text-align: right;">473.42</td><td style="text-align: right;">767.00</td><td style="text-align: right;">2.36 s</td><td style="text-align: right;">2.37 s</td><td style="text-align: right;">44.23 s</td></tr>
+<tr><td><code>T007</code></td><td>8B BF16 / TP1 / mixed prompt lengths</td><td style="text-align: right;">472.97</td><td style="text-align: right;">759.00</td><td style="text-align: right;">2.41 s</td><td style="text-align: right;">2.42 s</td><td style="text-align: right;">44.39 s</td></tr>
+<tr><td><code>T009</code></td><td>8B BF16 / TP1 / burst traffic</td><td style="text-align: right;">473.75</td><td style="text-align: right;">713.00</td><td style="text-align: right;">1.90 s</td><td style="text-align: right;">2.15 s</td><td style="text-align: right;">44.05 s</td></tr>
+<tr><td><code>T003</code></td><td>70B BF16 / TP2 / random 2k-in 256-out</td><td style="text-align: right;">77.68</td><td style="text-align: right;">144.00</td><td style="text-align: right;">20.35 s</td><td style="text-align: right;">78.56 s</td><td style="text-align: right;">253.82 s</td></tr>
+<tr><td><code>T005</code></td><td>70B FP8 / TP2 / ShareGPT rerun</td><td style="text-align: right;">292.46</td><td style="text-align: right;">520.00</td><td style="text-align: right;">5.12 s</td><td style="text-align: right;">7.77 s</td><td style="text-align: right;">64.76 s</td></tr>
+<tr><td><code>T006</code></td><td>70B BF16 / TP2 / ShareGPT rerun</td><td style="text-align: right;">270.45</td><td style="text-align: right;">515.00</td><td style="text-align: right;">6.17 s</td><td style="text-align: right;">8.51 s</td><td style="text-align: right;">69.96 s</td></tr>
+<tr><td><code>T008</code></td><td>Mixtral 8x22B FP8 / TP2 / ShareGPT rerun</td><td style="text-align: right;">286.75</td><td style="text-align: right;">625.00</td><td style="text-align: right;">5.01 s</td><td style="text-align: right;">7.64 s</td><td style="text-align: right;">77.01 s</td></tr>
+<tr><td><code>T016</code></td><td>DeepSeek-R1 / SATA offload rerun</td><td style="text-align: right;">298.59</td><td style="text-align: right;">536.00</td><td style="text-align: right;">5.52 s</td><td style="text-align: right;">7.81 s</td><td style="text-align: right;">72.68 s</td></tr>
+<tr><td><code>T017</code></td><td>DeepSeek-R1 / CXL offload rerun</td><td style="text-align: right;">300.73</td><td style="text-align: right;">515.00</td><td style="text-align: right;">4.86 s</td><td style="text-align: right;">7.95 s</td><td style="text-align: right;">72.35 s</td></tr>
+<tr><td><code>T026</code></td><td>70B FP8 stress / TP2 / ShareGPT rerun</td><td style="text-align: right;">291.28</td><td style="text-align: right;">562.00</td><td style="text-align: right;">5.41 s</td><td style="text-align: right;">7.80 s</td><td style="text-align: right;">62.81 s</td></tr>
+</tbody>
+</table>
+<p><img alt="2-GPU serving output-token throughput by test" src="serving_output_throughput_2gpu.png"/></p>
+
+<h3>4.3 GenAI-Perf Highlights</h3>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Scenario</th>
+<th style="text-align: right;">Representative P99 TTFT</th>
+<th style="text-align: right;">Representative P99 Request Latency</th>
+<th>Observation</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><code>T011</code></td><td>Synthetic dual-endpoint profile</td><td style="text-align: right;">143.53 ms</td><td style="text-align: right;">1.19 s</td><td>Standalone synthetic fallback completed with 100% success on both endpoints.</td></tr>
+<tr><td><code>T013</code></td><td>Parallel users, TP2, concurrency 32</td><td style="text-align: right;">222.67 ms</td><td style="text-align: right;">15.77 s</td><td>Moderate concurrency stayed well controlled before tails expanded at higher fan-out.</td></tr>
+<tr><td><code>T013</code></td><td>Parallel users, TP2, concurrency 256</td><td style="text-align: right;">1.43 s</td><td style="text-align: right;">61.15 s</td><td>The endpoint stayed up at the highest profiled user fan-out.</td></tr>
+<tr><td><code>T014</code></td><td>Heavy output tokens, TP2, concurrency 64</td><td style="text-align: right;">288.81 ms</td><td style="text-align: right;">47.31 s</td><td>Long output length is the dominant driver of request-completion time.</td></tr>
+<tr><td><code>T015</code></td><td>Long context, TP2, concurrency 32</td><td style="text-align: right;">558.96 ms</td><td style="text-align: right;">47.83 s</td><td>Long-context serving passed after rerun, but remains materially slower than the short-context cases.</td></tr>
+</tbody>
+</table>
+<p><img alt="2-GPU TTFT across serving tests" src="serving_ttft_2gpu.png"/></p>
+<p><img alt="2-GPU end-to-end latency across serving tests" src="serving_e2el_2gpu.png"/></p>
+
+<hr>
+<h2>5. Detailed Test Breakdown</h2>
+<hr>
+
+<h3>Test 001 — Tokenizer Throughput and CPU Cycles per Token</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>CPU Tokenization and Preprocessing</em></p>
+<ul>
+<li><strong>Workload:</strong> High-QPS prompt ingestion with 128 to 8192 token prompt lengths.</li>
+<li><strong>Expected:</strong> Tokens/sec scales with threads until core limits; cycles/token remains stable.</li>
+<li><strong>Commands:</strong> <code>python3 bench_tokenizer.py ...</code> and <code>perf stat -d -r 5 python3 bench_tokenizer.py ...</code></li>
+</ul>
+<table>
+<thead>
+<tr><th>Prompt length</th><th style="text-align: right;">1 thread</th><th style="text-align: right;">2 threads</th><th style="text-align: right;">4 threads</th><th style="text-align: right;">8 threads</th><th style="text-align: right;">16 threads</th></tr>
+</thead>
+<tbody>
+<tr><td>128</td><td style="text-align: right;">996,302</td><td style="text-align: right;">1,007,864</td><td style="text-align: right;">1,005,383</td><td style="text-align: right;">1,008,373</td><td style="text-align: right;">1,005,740</td></tr>
+<tr><td>512</td><td style="text-align: right;">1,123,848</td><td style="text-align: right;">1,127,861</td><td style="text-align: right;">1,118,394</td><td style="text-align: right;">1,138,113</td><td style="text-align: right;">1,133,401</td></tr>
+<tr><td>2048</td><td style="text-align: right;">1,129,517</td><td style="text-align: right;">1,147,338</td><td style="text-align: right;">1,152,522</td><td style="text-align: right;">1,151,815</td><td style="text-align: right;">1,153,986</td></tr>
+<tr><td>8192</td><td style="text-align: right;">1,042,132</td><td style="text-align: right;">1,042,500</td><td style="text-align: right;">1,039,183</td><td style="text-align: right;">1,039,992</td><td style="text-align: right;">1,040,129</td></tr>
+</tbody>
+</table>
+<p><img alt="Tokenizer throughput vs threads" src="tokenizer_threads_2gpu.png"/></p>
+<p><strong>Analysis.</strong> The tokenizer front-end is effectively flat once prompts reach a few hundred tokens. Best observed throughput was <strong>1.154 M tok/s</strong>, so CPU preprocessing is not limiting any downstream GPU-serving test in this evidence set.</p>
+
+<hr>
+<h3>Test 002 — Host-GPU and GPU-GPU memcpy bandwidth (CE/SM, bidirectional, P2P)</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>CPU to GPU Transfer Performance</em></p>
+<ul>
+<li><strong>Workload:</strong> Sustained H2D/D2H, bidirectional CE copies, and GPU peer copies on the 2-GPU target.</li>
+<li><strong>Expected:</strong> CE paths outperform SM and the peer-copy path remains stable.</li>
+</ul>
+<table>
+<thead>
+<tr><th>Transfer</th><th>Engine</th><th style="text-align: right;">Aggregate bandwidth (GB/s)</th></tr>
+</thead>
+<tbody>
+<tr><td>host_to_device</td><td>CE</td><td style="text-align: right;">112.27</td></tr>
+<tr><td>device_to_host</td><td>CE</td><td style="text-align: right;">112.81</td></tr>
+<tr><td>host_to_device bidirectional</td><td>CE</td><td style="text-align: right;">102.40</td></tr>
+<tr><td>device_to_host bidirectional</td><td>CE</td><td style="text-align: right;">99.33</td></tr>
+<tr><td>device_to_device read</td><td>CE</td><td style="text-align: right;">103.84</td></tr>
+<tr><td>host_to_device</td><td>SM</td><td style="text-align: right;">106.92</td></tr>
+<tr><td>device_to_host</td><td>SM</td><td style="text-align: right;">105.59</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> CE remains slightly ahead of SM in both directions, and the roughly <strong>56 GB/s per device</strong> H2D and D2H result is consistent with a healthy dual-H200 NVL path. Peer read bandwidth stays stable just above <strong>103 GB/s</strong> aggregate.</p>
+
+<hr>
+<h3>Test 003 — vLLM Serve + Load (BF16 baseline) - 70B</h3>
+<p><strong>Status:</strong> <code>PASS after targeted rerun</code> &nbsp; <strong>Subsystem:</strong> <em>Inference (BF16)</em></p>
+<ul>
+<li><strong>Workload:</strong> Synthetic 2048-input / 256-output prompts with TP2.</li>
+<li><strong>Expected:</strong> Stable serving endpoint and successful benchmark completion without connection refusal.</li>
+<li><strong>Rerun note:</strong> The first full-suite attempt skipped due to engine-core startup failure. A dedicated rerun with <code>--enforce-eager</code> completed successfully.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Request throughput</td><td style="text-align: right;">0.30 req/s</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">77.68 tok/s</td></tr>
+<tr><td>Peak output throughput</td><td style="text-align: right;">144.00 tok/s</td></tr>
+<tr><td>P50 / P99 TTFT</td><td style="text-align: right;">20.35 s / 78.56 s</td></tr>
+<tr><td>P50 / P99 E2EL</td><td style="text-align: right;">211.17 s / 253.82 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> This is the most latency-heavy successful case in the report. The model does run, but the random 2k/256 workload at concurrency 64 creates severe prefill queuing on 2 GPUs, so this case should be treated as a functional baseline rather than a practical steady-state serving profile.</p>
+
+<hr>
+<h3>Test 004 — vLLM Serve + Load (BF16/FP16) - 8B</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>Inference (BF16)</em></p>
+<ul>
+<li><strong>Workload:</strong> ShareGPT slice, TP1, 100 prompts in this evidence log.</li>
+<li><strong>Expected:</strong> Stable utilization profile and bounded latency tails.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Request throughput</td><td style="text-align: right;">2.26 req/s</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">473.42 tok/s</td></tr>
+<tr><td>Peak output throughput</td><td style="text-align: right;">767.00 tok/s</td></tr>
+<tr><td>P50 / P99 TTFT</td><td style="text-align: right;">2.36 s / 2.37 s</td></tr>
+<tr><td>P50 / P99 E2EL</td><td style="text-align: right;">17.41 s / 44.23 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> The 8B TP1 baseline is the cleanest serving profile in the suite. Throughput lands just above <strong>473 tok/s</strong> and TTFT is tightly bounded, with long tails showing up only in total request completion time once the open-loop benchmark queues up work.</p>
+
+<hr>
+<h3>Test 005 — Llama 70B FP8 long-context inference</h3>
+<p><strong>Status:</strong> <code>PASS after rerun</code> &nbsp; <strong>Subsystem:</strong> <em>Inference FP8</em></p>
+<ul>
+<li><strong>Workload:</strong> ShareGPT distribution, TP2, FP8, large context budget.</li>
+<li><strong>Expected:</strong> No crash or OOM, with bounded tail latency.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Request throughput</td><td style="text-align: right;">1.54 req/s</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">292.46 tok/s</td></tr>
+<tr><td>Peak output throughput</td><td style="text-align: right;">520.00 tok/s</td></tr>
+<tr><td>P50 / P99 TTFT</td><td style="text-align: right;">5.12 s / 7.77 s</td></tr>
+<tr><td>P50 / P99 E2EL</td><td style="text-align: right;">23.31 s / 64.76 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> FP8 materially improves throughput relative to the BF16 70B rerun while keeping TTFT in the same single-digit-second band. This is the strongest 70B serving result in the 2-GPU evidence set.</p>
+
+<hr>
+<h3>Test 006 — vLLM Serve + Load (BF16) - 70B</h3>
+<p><strong>Status:</strong> <code>PASS after rerun</code> &nbsp; <strong>Subsystem:</strong> <em>Inference (BF16)</em></p>
+<ul>
+<li><strong>Workload:</strong> Llama-3.1-70B unquantized TP2 baseline on ShareGPT.</li>
+<li><strong>Expected:</strong> Stable baseline with lower throughput than FP8.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Request throughput</td><td style="text-align: right;">1.43 req/s</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">270.45 tok/s</td></tr>
+<tr><td>Peak output throughput</td><td style="text-align: right;">515.00 tok/s</td></tr>
+<tr><td>P50 / P99 TTFT</td><td style="text-align: right;">6.17 s / 8.51 s</td></tr>
+<tr><td>P50 / P99 E2EL</td><td style="text-align: right;">25.16 s / 69.96 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> BF16 is predictably slower than the FP8 variant, but not catastrophically so. The gap is roughly <strong>8%</strong> in mean output throughput with slightly heavier tail latency.</p>
+
+<hr>
+<h3>Test 007 — Random prompt lengths 128-8192 + varied decode</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>Inference MixedPrompt</em></p>
+<ul>
+<li><strong>Workload:</strong> Mixed prompt sizes and decode lengths using TP1 8B serving.</li>
+<li><strong>Expected:</strong> Scenario-specific P50/P99 SLO remains bounded.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Request throughput</td><td style="text-align: right;">2.25 req/s</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">472.97 tok/s</td></tr>
+<tr><td>Peak output throughput</td><td style="text-align: right;">759.00 tok/s</td></tr>
+<tr><td>P50 / P99 TTFT</td><td style="text-align: right;">2.41 s / 2.42 s</td></tr>
+<tr><td>P50 / P99 E2EL</td><td style="text-align: right;">17.48 s / 44.39 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> Mixed prompt length did not materially degrade TP1 8B behavior versus the simpler ShareGPT slice. The system absorbed prompt variability with essentially the same throughput and tail profile as <code>T004</code>.</p>
+
+<hr>
+<h3>Test 008 — Mixtral 8x22B FP8 vs Llama Dense</h3>
+<p><strong>Status:</strong> <code>PASS after rerun</code> &nbsp; <strong>Subsystem:</strong> <em>Inference MoE vs dense</em></p>
+<ul>
+<li><strong>Workload:</strong> Mixtral 8x22B in FP8 at TP2 on the ShareGPT slice.</li>
+<li><strong>Expected:</strong> Stable run suitable for dense-vs-MoE comparison.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Request throughput</td><td style="text-align: right;">1.27 req/s</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">286.75 tok/s</td></tr>
+<tr><td>Peak output throughput</td><td style="text-align: right;">625.00 tok/s</td></tr>
+<tr><td>P50 / P99 TTFT</td><td style="text-align: right;">5.01 s / 7.64 s</td></tr>
+<tr><td>P50 / P99 E2EL</td><td style="text-align: right;">27.49 s / 77.01 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> Mixtral lands near the 70B FP8 dense model in throughput, but with a somewhat worse end-to-end tail. The run is good enough for comparison, and it does not show instability after <code>--enforce-eager</code> was added.</p>
+
+<hr>
+<h3>Test 009 — Tail latency under burst traffic</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>Inference burst</em></p>
+<ul>
+<li><strong>Workload:</strong> 8B TP1 burst-style request profile with max concurrency 512.</li>
+<li><strong>Expected:</strong> Server recovers cleanly after burst with acceptable P99.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Request throughput</td><td style="text-align: right;">2.26 req/s</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">473.75 tok/s</td></tr>
+<tr><td>Peak output throughput</td><td style="text-align: right;">713.00 tok/s</td></tr>
+<tr><td>P50 / P99 TTFT</td><td style="text-align: right;">1.90 s / 2.15 s</td></tr>
+<tr><td>P50 / P99 E2EL</td><td style="text-align: right;">17.15 s / 44.05 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> Burst traffic did not materially break the 8B TP1 path. In fact, TTFT is slightly better than in <code>T004</code> and <code>T007</code>, indicating the server handles the tested burstiness cleanly once the model is warm.</p>
+
+<hr>
+<h3>Test 010 — trtllm-bench offline throughput</h3>
+<p><strong>Status:</strong> <code>FAIL</code> &nbsp; <strong>Subsystem:</strong> <em>Text Generation Benchmarking (TRT-LLM offline)</em></p>
+<ul>
+<li><strong>Workload:</strong> Fixed synthetic dataset throughput run via <code>trtllm-bench</code>.</li>
+<li><strong>Expected:</strong> Stable tokens/sec and no runtime errors.</li>
+</ul>
+<blockquote>
+<p><strong>Failure reason.</strong> The benchmark did not reach model execution. The tool aborts during import because <code>flashinfer-cubin</code> version <code>0.6.12</code> does not match <code>flashinfer</code> version <code>0.5.2</code>.</p>
+</blockquote>
+<p><strong>Analysis.</strong> This is a packaging defect in the TRT-LLM environment rather than a measured performance regression. No throughput number is valid for this case until the dependency mismatch is resolved.</p>
+
+<hr>
+<h3>Test 011 — Server + load generator, real HTTP (GenAI-Perf)</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>Gen-AI end-to-end benchmarking</em></p>
+<ul>
+<li><strong>Workload:</strong> Dual-endpoint GenAI benchmark at concurrency 8 and 16.</li>
+<li><strong>Expected:</strong> Both server instances satisfy the profile without cross-GPU contention.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Success rate</td><td style="text-align: right;">100%</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">192.0 tok/s</td></tr>
+<tr><td>TTFT P50 / P99</td><td style="text-align: right;">92.6 ms / 143.53 ms</td></tr>
+<tr><td>ITL P50</td><td style="text-align: right;">8.14 ms</td></tr>
+<tr><td>E2E P99</td><td style="text-align: right;">1.185 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> This case used the harness fallback mode and executed as a synthetic standalone GenAI profile rather than a live external dependency chain. Within that scope it passed cleanly and produced stable numbers on both endpoints.</p>
+
+<hr>
+<h3>Test 012 — GenAI-Perf tensor-parallel scaling</h3>
+<p><strong>Status:</strong> <code>SKIP</code> &nbsp; <strong>Subsystem:</strong> <em>Gen-AI multi-GPU end-to-end benchmarking</em></p>
+<ul>
+<li><strong>Workload:</strong> Fixed-load comparison between TP1 and the target TP2 endpoint.</li>
+<li><strong>Expected:</strong> Both TP1 and TP2 start successfully and complete a matching GenAI-Perf profile.</li>
+</ul>
+<blockquote>
+<p><strong>Observed behavior.</strong> The TP1 leg launched and profiled, but the TP2 leg still failed vLLM engine-core initialization even during the enforce-eager rerun, so the scaling comparison is incomplete.</p>
+</blockquote>
+<p><strong>Analysis.</strong> This is the only remaining skipped functional gap after reruns. It blocks a clean statement about TP1 to TP2 scaling efficiency on the 2-GPU target.</p>
+
+<hr>
+<h3>Test 013 — GenAI-Perf parallel users scalability - target TP</h3>
+<p><strong>Status:</strong> <code>PASS after rerun</code> &nbsp; <strong>Subsystem:</strong> <em>Gen-AI concurrent user load</em></p>
+<ul>
+<li><strong>Workload:</strong> TP2 endpoint profiled at concurrency 16, 32, 64, 128, and 256.</li>
+<li><strong>Expected:</strong> Stable scaling under rising concurrent-user pressure.</li>
+</ul>
+<table>
+<thead><tr><th>Representative point</th><th style="text-align: right;">P99 TTFT</th><th style="text-align: right;">P99 request latency</th><th style="text-align: right;">Output tok/s per user</th></tr></thead>
+<tbody>
+<tr><td>Concurrency 16</td><td style="text-align: right;">1.479 s</td><td style="text-align: right;">15.77 s</td><td style="text-align: right;">10.68</td></tr>
+<tr><td>Concurrency 128</td><td style="text-align: right;">734.40 ms</td><td style="text-align: right;">30.89 s</td><td style="text-align: right;">4.70</td></tr>
+<tr><td>Concurrency 256</td><td style="text-align: right;">1.427 s</td><td style="text-align: right;">61.15 s</td><td style="text-align: right;">2.28</td></tr>
+</tbody>
+</table>
+<p><img alt="GenAI-Perf T013 throughput and latency vs concurrency" src="genaiperf_t013_2gpu.png"/></p>
+<p><strong>Analysis.</strong> The TP2 endpoint remains stable across the full concurrency sweep. Per-user throughput falls predictably as concurrency rises, but the important point is that the service does not collapse or start failing requests.</p>
+
+<hr>
+<h3>Test 014 — GenAI-Perf heavy token load (long output) - target TP</h3>
+<p><strong>Status:</strong> <code>PASS after rerun</code> &nbsp; <strong>Subsystem:</strong> <em>Gen-AI token throughput</em></p>
+<ul>
+<li><strong>Workload:</strong> Output length fixed at 512 tokens across concurrency 16, 32, and 64.</li>
+<li><strong>Expected:</strong> Token throughput scales predictably without failures.</li>
+</ul>
+<table>
+<thead><tr><th>Representative point</th><th style="text-align: right;">P99 TTFT</th><th style="text-align: right;">P99 request latency</th><th style="text-align: right;">Output tok/s per user</th></tr></thead>
+<tbody>
+<tr><td>Concurrency 16</td><td style="text-align: right;">688.86 ms</td><td style="text-align: right;">14.50 s</td><td style="text-align: right;">39.37</td></tr>
+<tr><td>Concurrency 32</td><td style="text-align: right;">170.67 ms</td><td style="text-align: right;">24.80 s</td><td style="text-align: right;">24.04</td></tr>
+<tr><td>Concurrency 64</td><td style="text-align: right;">288.81 ms</td><td style="text-align: right;">47.31 s</td><td style="text-align: right;">13.15</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> Longer decode dominates end-to-end latency much more than prompt ingestion here. The server stays functional, but request-completion time grows rapidly as output length and concurrency combine.</p>
+
+<hr>
+<h3>Test 015 — GenAI-Perf long-context scenarios (KV cache stress) - target TP</h3>
+<p><strong>Status:</strong> <code>PASS after rerun</code> &nbsp; <strong>Subsystem:</strong> <em>Gen-AI context handling</em></p>
+<ul>
+<li><strong>Workload:</strong> 4096 input tokens with concurrency 8, 16, and 32.</li>
+<li><strong>Expected:</strong> TTFT and throughput remain acceptable under large-context pressure.</li>
+</ul>
+<table>
+<thead><tr><th>Representative point</th><th style="text-align: right;">P99 TTFT</th><th style="text-align: right;">P99 request latency</th><th style="text-align: right;">Output tok/s per user</th></tr></thead>
+<tbody>
+<tr><td>Concurrency 8</td><td style="text-align: right;">5.352 s</td><td style="text-align: right;">19.92 s</td><td style="text-align: right;">18.12</td></tr>
+<tr><td>Concurrency 16</td><td style="text-align: right;">5.618 s</td><td style="text-align: right;">37.71 s</td><td style="text-align: right;">10.27</td></tr>
+<tr><td>Concurrency 32</td><td style="text-align: right;">558.96 ms</td><td style="text-align: right;">47.83 s</td><td style="text-align: right;">6.20</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> Long-context performance is viable but expensive. The interesting shape here is that queueing dominates request completion time well before the service becomes unstable.</p>
+
+<hr>
+<h3>Test 016 — DeepSeek-R1 KV cache effectiveness with SATA offload</h3>
+<p><strong>Status:</strong> <code>PASS after rerun</code> &nbsp; <strong>Subsystem:</strong> <em>DeepSeek BF16 + SATA KV</em></p>
+<ul>
+<li><strong>Workload:</strong> DeepSeek-R1-Distill-Llama-70B with offload-oriented serving configuration.</li>
+<li><strong>Expected:</strong> Latency remains controlled with no runaway tail or OOM.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Request throughput</td><td style="text-align: right;">1.38 req/s</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">298.59 tok/s</td></tr>
+<tr><td>Peak output throughput</td><td style="text-align: right;">536.00 tok/s</td></tr>
+<tr><td>P50 / P99 TTFT</td><td style="text-align: right;">5.52 s / 7.81 s</td></tr>
+<tr><td>P50 / P99 E2EL</td><td style="text-align: right;">30.47 s / 72.68 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> The SATA-offload configuration runs in the same general performance band as the other large-model TP2 reruns. It is slower than the 70B FP8 path in E2E terms, but not dramatically so.</p>
+
+<hr>
+<h3>Test 017 — DeepSeek R1 KV cache effectiveness with CXL offload</h3>
+<p><strong>Status:</strong> <code>PASS after rerun</code> &nbsp; <strong>Subsystem:</strong> <em>DeepSeek + CXL</em></p>
+<ul>
+<li><strong>Workload:</strong> Same DeepSeek slice as <code>T016</code>, but on the CXL-oriented path.</li>
+<li><strong>Expected:</strong> Stable execution with comparable or improved host-memory expansion behavior.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Request throughput</td><td style="text-align: right;">1.38 req/s</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">300.73 tok/s</td></tr>
+<tr><td>Peak output throughput</td><td style="text-align: right;">515.00 tok/s</td></tr>
+<tr><td>P50 / P99 TTFT</td><td style="text-align: right;">4.86 s / 7.95 s</td></tr>
+<tr><td>P50 / P99 E2EL</td><td style="text-align: right;">30.52 s / 72.35 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> The CXL-flavored run is marginally better than the SATA-flavored run in mean output throughput and median TTFT, but the difference is small. Both demonstrate that the DeepSeek path can be made functional on 2 GPUs after rerun.</p>
+
+<hr>
+<h3>Test 018 — NCCL AllReduce bandwidth sweep</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>AllReduce</em></p>
+<p><strong>Key metrics:</strong> mean busbw <strong>17.223 GB/s</strong>, peak busbw <strong>29.61 GB/s</strong>, 23 sampled sizes from 1 KB through 4 GB.</p>
+<p><strong>Analysis.</strong> This is the main two-GPU collective baseline. Bus bandwidth rises smoothly with payload size and plateaus just below 30 GB/s on larger transfers, with no obvious instability.</p>
+
+<hr>
+<h3>Test 019 — NCCL tiny-message latency profile</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>AllReduce latency</em></p>
+<p><strong>Key metrics:</strong> mean busbw <strong>1.702 GB/s</strong>, peak busbw <strong>9.03 GB/s</strong>, 16 sampled sizes from 8 B through 256 KB.</p>
+<p><strong>Analysis.</strong> Small-message efficiency is naturally limited, but the latency profile is smooth and free of pathological jumps. This result is good enough for control-path and optimizer-metadata style collectives.</p>
+
+<hr>
+<h3>Test 020 — NCCL medium-size steady-state</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>AllReduce steady-state</em></p>
+<p><strong>Key metrics:</strong> mean busbw <strong>23.688 GB/s</strong>, peak busbw <strong>29.56 GB/s</strong>, 11 sampled sizes from 256 KB through 256 MB.</p>
+<p><strong>Analysis.</strong> Mid-size transfers retain most of the platform peak, which is what you want for gradient buckets and similar steady-state training traffic.</p>
+
+<hr>
+<h3>Test 021 — NCCL ReduceScatter efficiency</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>ReduceScatter</em></p>
+<p><strong>Key metrics:</strong> mean busbw <strong>28.737 GB/s</strong>, peak busbw <strong>51.22 GB/s</strong>.</p>
+<p><strong>Analysis.</strong> ReduceScatter is one of the strongest collective paths in the evidence set, which is encouraging for ZeRO and FSDP-style sharded training patterns.</p>
+
+<hr>
+<h3>Test 022 — NCCL AllGather path health</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>AllGather</em></p>
+<p><strong>Key metrics:</strong> mean busbw <strong>28.372 GB/s</strong>, peak busbw <strong>50.83 GB/s</strong>.</p>
+<p><strong>Analysis.</strong> AllGather stays in the same performance band as ReduceScatter, which is what you want if the fabric is balanced and the topology is not favoring only one direction of traffic.</p>
+
+<hr>
+<h3>Test 023 — NCCL AllToAll topology sensitivity</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>AllToAll</em></p>
+<p><strong>Key metrics:</strong> mean busbw <strong>29.16 GB/s</strong>, peak busbw <strong>51.57 GB/s</strong>.</p>
+<p><strong>Analysis.</strong> Despite being a topology-sensitive collective, AllToAll does not collapse on this 2-GPU path. That is a strong signal that peer movement between the two visible devices is healthy.</p>
+
+<hr>
+<h3>Test 024 — NCCL AllReduce with P2P disabled</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>PCIe vs NVLink sanity</em></p>
+<p><strong>Key metrics:</strong> mean busbw <strong>29.238 GB/s</strong>, peak busbw <strong>29.64 GB/s</strong>.</p>
+<p><strong>Analysis.</strong> For this specific 8 MB to 2 GB slice, disabling P2P did not create a large measurable separation from the enabled baseline. On the 2-GPU target, that means this test is more of a sanity check than a dramatic diagnostic discriminator.</p>
+
+<hr>
+<h3>Test 025 — NCCL AllReduce baseline with P2P enabled</h3>
+<p><strong>Status:</strong> <code>PASS</code> &nbsp; <strong>Subsystem:</strong> <em>PCIe vs NVLink baseline</em></p>
+<p><strong>Key metrics:</strong> mean busbw <strong>29.243 GB/s</strong>, peak busbw <strong>29.58 GB/s</strong>.</p>
+<p><strong>Analysis.</strong> The enabled baseline essentially matches <code>T024</code> within noise. That makes the earlier high-level collectives (<code>T018</code>-<code>T023</code>) more informative than this paired toggle on the current hardware slice.</p>
+
+<hr>
+<h3>Test 026 — vLLM Serve + Load (FP8 stress) - 70B</h3>
+<p><strong>Status:</strong> <code>PASS after rerun</code> &nbsp; <strong>Subsystem:</strong> <em>Inference (FP8)</em></p>
+<ul>
+<li><strong>Workload:</strong> Long-context FP8 stress case for 70B on TP2.</li>
+<li><strong>Expected:</strong> Either a clean FP8 pass or a deterministic skip with explicit reason.</li>
+</ul>
+<table>
+<thead><tr><th>KPI</th><th style="text-align: right;">Value</th></tr></thead>
+<tbody>
+<tr><td>Request throughput</td><td style="text-align: right;">1.59 req/s</td></tr>
+<tr><td>Output token throughput</td><td style="text-align: right;">291.28 tok/s</td></tr>
+<tr><td>Peak output throughput</td><td style="text-align: right;">562.00 tok/s</td></tr>
+<tr><td>P50 / P99 TTFT</td><td style="text-align: right;">5.41 s / 7.80 s</td></tr>
+<tr><td>P50 / P99 E2EL</td><td style="text-align: right;">22.90 s / 62.81 s</td></tr>
+</tbody>
+</table>
+<p><strong>Analysis.</strong> This stress rerun confirms that the FP8 70B path is reproducibly serviceable on 2 GPUs once the server is launched in the successful configuration. It is slightly faster in request throughput than <code>T005</code> and slightly better in E2E tail.</p>
+
+<h2>6. Interconnect and System Observations</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Observation</th>
+<th>Operational meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>CPU preprocessing</td><td>Tokenizer throughput stayed in a tight 1.0-1.15 M tok/s band across prompt sizes and thread counts.</td><td>Front-end prompt preparation is not a bottleneck for this test suite.</td></tr>
+<tr><td>Host-device path</td><td>H2D and D2H CE both landed near 112 GB/s aggregate.</td><td>The dual-H200 NVL host path is healthy and balanced.</td></tr>
+<tr><td>Large-model serving</td><td>Most successful TP2 large-model cases converged around 270-301 tok/s output throughput.</td><td>The 2-GPU platform can serve these models, but they all live in the same basic capacity band.</td></tr>
+<tr><td>8B serving</td><td>All TP1 8B serving slices stayed near 473 tok/s output throughput.</td><td>The 8B path is stable across baseline, mixed-prompt, and burst variations.</td></tr>
+<tr><td>Collectives</td><td>ReduceScatter, AllGather, and AllToAll all peak above 50 GB/s busbw.</td><td>Inter-GPU communication quality is strong for 2-GPU distributed workloads.</td></tr>
+</tbody>
+</table>
+<p><img alt="2-GPU NCCL bus bandwidth summary" src="nccl_busbw_2gpu.png"/></p>
+
+<h2>7. Risks and Recommendations</h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Current state</th>
+<th>Recommended action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T010</code> TRT-LLM environment</td>
+<td class="status-fail">FAIL</td>
+<td>Align <code>flashinfer</code> and <code>flashinfer-cubin</code> versions, then rerun the offline throughput case.</td>
+</tr>
+<tr>
+<td><code>T012</code> TP-scaling validation</td>
+<td class="status-skip">SKIP</td>
+<td>Investigate why the TP2 vLLM engine-core path still fails while other TP2 reruns pass under <code>--enforce-eager</code>; compare launch flags and memory budget with the successful TP2 cases.</td>
+</tr>
+<tr>
+<td>70B BF16 baseline latency</td>
+<td>Functional but very heavy tails in <code>T003</code></td>
+<td>Treat the random 2k/256 profile as a worst-case functional proof. For practical serving, use the ShareGPT-style rerun profiles as the more representative baseline.</td>
+</tr>
+<tr>
+<td>Long output and long context GenAI runs</td>
+<td>Passes with high request latency</td>
+<td>Use these profiles for capacity planning rather than SLO claims; they are stable, but not cheap.</td>
+</tr>
+</tbody>
+</table>
+
+<p>Generated from the local evidence log <code>onlyperflogs.log</code>. The report reflects combined effective testcase status across the baseline run and targeted reruns, so it should be read as the final 2-GPU evidence package rather than as a single-session transcript.</p>
+</body>
+</html>

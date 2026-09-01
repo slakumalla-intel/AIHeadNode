@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic AI Validation Report — 2026-08-14</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --intel-blue: #0068B5;
+      --intel-dark: #003C71;
+      --intel-light: #E9F2FA;
+      --pass-green: #2E7D32;
+      --pass-bg: #E8F5E9;
+      --fail-red: #C62828;
+      --fail-bg: #FFEBEE;
+      --warn-amber: #F57F17;
+      --warn-bg: #FFF8E1;
+      --card-bg: #FFFFFF;
+      --border: #DEE2E6;
+      --text: #212529;
+      --muted: #6C757D;
+      --font: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: #F4F6F9;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--intel-dark) 0%, var(--intel-blue) 100%);
+      color: #fff;
+      padding: 28px 40px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+    }
+    .header-logo {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: #00C7FD;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    .header-info h1 { font-size: 22px; font-weight: 700; }
+    .header-info p  { font-size: 13px; opacity: .85; margin-top: 4px; }
+    .header-badges  { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.35);
+    }
+
+    /* ── Layout ── */
+    main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 48px; }
+    section { margin-bottom: 32px; }
+    h2.section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--intel-dark);
+      border-left: 4px solid var(--intel-blue);
+      padding-left: 12px;
+      margin-bottom: 16px;
+    }
+
+    /* ── Summary cards ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .summary-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .summary-card .val {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--intel-blue);
+      line-height: 1.1;
+    }
+    .summary-card .val.green { color: var(--pass-green); }
+    .summary-card .val.amber { color: var(--warn-amber); }
+    .summary-card .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── KPI table ── */
+    .kpi-table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    th, td { padding: 11px 16px; text-align: left; }
+    thead tr { background: var(--intel-dark); color: #fff; font-size: 13px; }
+    tbody tr:nth-child(even) { background: var(--intel-light); }
+    tbody tr:hover { background: #deeaf5; }
+    .status-pass {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 10px;
+      background: var(--pass-bg);
+      color: var(--pass-green);
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .status-fail {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 10px;
+      background: var(--fail-bg);
+      color: var(--fail-red);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    /* ── Charts grid ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+      gap: 20px;
+    }
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .chart-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--intel-dark);
+      margin-bottom: 14px;
+    }
+    .chart-card canvas { max-height: 260px; }
+
+    /* ── KPI detail cards ── */
+    .kpi-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--intel-blue);
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .kpi-card .tc-id {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--intel-blue);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+    .kpi-card h4 { font-size: 14px; font-weight: 700; margin: 4px 0 12px; }
+    .kpi-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #E0E0E0; font-size: 13px; }
+    .kpi-row:last-child { border-bottom: none; }
+    .kpi-row .k { color: var(--muted); }
+    .kpi-row .v { font-weight: 600; }
+
+    /* ── Warnings ── */
+    .warn-box {
+      background: var(--warn-bg);
+      border: 1px solid #FFD54F;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #5D4037;
+    }
+    .warn-box strong { display: block; margin-bottom: 6px; color: var(--warn-amber); }
+    .warn-box li { margin-left: 20px; line-height: 1.8; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--intel-dark);
+      color: rgba(255,255,255,.7);
+      text-align: center;
+      padding: 14px;
+      font-size: 12px;
+    }
+    footer a { color: #00C7FD; text-decoration: none; }
+
+    /* ── Progress bar ── */
+    .progress-bar-wrap { background: #E0E0E0; border-radius: 6px; overflow: hidden; height: 10px; margin-top: 6px; }
+    .progress-bar { height: 100%; background: var(--intel-blue); border-radius: 6px; }
+
+    /* ── Speedometer gauge (SVG) ── */
+    .gauge-row { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; justify-content: center; }
+    .gauge-item { text-align: center; }
+    .gauge-item .gauge-label { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .gauge-item .gauge-value { font-size: 18px; font-weight: 700; color: var(--intel-dark); }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════ HEADER -->
+<header>
+  <div class="header-logo">Intel®</div>
+  <div class="header-info">
+    <h1>Agentic AI Workload Validation — AI Head Node</h1>
+    <p>
+      Host: <strong>SC009011168H0070</strong> &nbsp;|&nbsp;
+      Run date: <strong>2026-08-14 16:03:22 UTC</strong> &nbsp;|&nbsp;
+      Suite: <strong>test_agentic_ai_validation.py</strong>
+    </p>
+    <div class="header-badges">
+      <span class="badge">Python 3.12.13</span>
+      <span class="badge">pytest 9.1.1</span>
+      <span class="badge">Platform: Linux</span>
+      <span class="badge">venv: .venv-vllm</span>
+      <span class="badge">Runtime: 19.61 s</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══════════════════════════════════════════ EXECUTIVE SUMMARY -->
+<section>
+  <h2 class="section-title">Executive Summary</h2>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="val green">9</div>
+      <div class="lbl">Tests Collected</div>
+    </div>
+    <div class="summary-card">
+      <div class="val green">9</div>
+      <div class="lbl">Passed</div>
+    </div>
+    <div class="summary-card">
+      <div class="val">0</div>
+      <div class="lbl">Failed</div>
+    </div>
+    <div class="summary-card">
+      <div class="val amber">2</div>
+      <div class="lbl">Warnings</div>
+    </div>
+    <div class="summary-card">
+      <div class="val">19.61 s</div>
+      <div class="lbl">Total Duration</div>
+    </div>
+    <div class="summary-card">
+      <div class="val green">100%</div>
+      <div class="lbl">Pass Rate</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" style="width:100%"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ TEST RESULTS TABLE -->
+<section>
+  <h2 class="section-title">Test Case Results</h2>
+  <div class="kpi-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Test Case ID</th>
+          <th>Test Name</th>
+          <th>Class</th>
+          <th>Status</th>
+          <th>Duration</th>
+          <th>Key Metric</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>TC-AGENT-01a</td>
+          <td>test_single_tool_dispatch_latency</td>
+          <td>TestToolInvocationOverhead</td>
+          <td><span class="status-pass">PASSED</span></td>
+          <td>~1 s</td>
+          <td>Avg dispatch: <strong>0.001 ms</strong></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>TC-AGENT-01b</td>
+          <td>test_parallel_tool_dispatch_scalability</td>
+          <td>TestToolInvocationOverhead</td>
+          <td><span class="status-pass">PASSED</span></td>
+          <td>~1 s</td>
+          <td>Scaling ratio: <strong>4.91×</strong></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>TC-AGENT-02</td>
+          <td>test_reasoning_latency_by_token_count</td>
+          <td>TestReasoningPhaseLatency</td>
+          <td><span class="status-pass">PASSED</span></td>
+          <td>&lt;1 s</td>
+          <td>512-token: <strong>10.48 ms</strong></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>TC-AGENT-03</td>
+          <td>test_cpu_gpu_sync_latency</td>
+          <td>TestCPUGPUSynchronization</td>
+          <td><span class="status-pass">PASSED</span></td>
+          <td>&lt;1 s</td>
+          <td>Avg sync: <strong>38.82 µs</strong></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>TC-AGENT-04</td>
+          <td>test_sequential_vs_parallel_tool_execution</td>
+          <td>TestToolExecutionParallelization</td>
+          <td><span class="status-pass">PASSED</span></td>
+          <td>~6 s</td>
+          <td>Speedup: <strong>2.13×</strong></td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>TC-AGENT-05</td>
+          <td>test_multi_turn_session_latency</td>
+          <td>TestMultiTurnConversation</td>
+          <td><span class="status-pass">PASSED</span></td>
+          <td>~1 s</td>
+          <td>Total session: <strong>1027.42 ms</strong></td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>TC-AGENT-06</td>
+          <td>test_memory_usage_scaling_with_tools</td>
+          <td>TestCPUMemoryDuringToolExecution</td>
+          <td><span class="status-pass">PASSED</span></td>
+          <td>~3 s</td>
+          <td>8-tool delta: <strong>0.04 MB</strong></td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>TC-AGENT-07</td>
+          <td>test_agent_state_serialization_overhead</td>
+          <td>TestAgentStateManagement</td>
+          <td><span class="status-pass">PASSED</span></td>
+          <td>&lt;1 s</td>
+          <td>Rate: <strong>55.10 MB/s</strong></td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td>TC-AGENT-08</td>
+          <td>test_agent_latency_percentiles</td>
+          <td>TestLatencyPercentiles</td>
+          <td><span class="status-pass">PASSED</span></td>
+          <td>~2 s</td>
+          <td>P99: <strong>70.04 ms</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ CHARTS -->
+<section>
+  <h2 class="section-title">Performance Charts</h2>
+  <div class="charts-grid">
+
+    <!-- Chart 1: Tool Dispatch Latency -->
+    <div class="chart-card">
+      <h3>TC-AGENT-01a — Tool Dispatch Latency (ms)</h3>
+      <canvas id="chartDispatch"></canvas>
+    </div>
+
+    <!-- Chart 2: Parallel Tool Dispatch Scalability -->
+    <div class="chart-card">
+      <h3>TC-AGENT-01b — Parallel Dispatch Latency vs Tool Count (ms)</h3>
+      <canvas id="chartParallel"></canvas>
+    </div>
+
+    <!-- Chart 3: Reasoning Phase Latency -->
+    <div class="chart-card">
+      <h3>TC-AGENT-02 — Reasoning Latency vs Token Count (ms)</h3>
+      <canvas id="chartReasoning"></canvas>
+    </div>
+
+    <!-- Chart 4: CPU-GPU Sync Overhead -->
+    <div class="chart-card">
+      <h3>TC-AGENT-03 — CPU-GPU Sync Latency (µs)</h3>
+      <canvas id="chartSync"></canvas>
+    </div>
+
+    <!-- Chart 5: Sequential vs Parallel Execution -->
+    <div class="chart-card">
+      <h3>TC-AGENT-04 — Sequential vs Parallel Tool Execution Time (s)</h3>
+      <canvas id="chartParallelExec"></canvas>
+    </div>
+
+    <!-- Chart 6: Multi-turn Per-turn Latency -->
+    <div class="chart-card">
+      <h3>TC-AGENT-05 — Per-turn Latency Breakdown (ms)</h3>
+      <canvas id="chartMultiTurn"></canvas>
+    </div>
+
+    <!-- Chart 7: Memory Delta by Tool Count -->
+    <div class="chart-card">
+      <h3>TC-AGENT-06 — CPU Memory Delta vs Tool Count (MB)</h3>
+      <canvas id="chartMemory"></canvas>
+    </div>
+
+    <!-- Chart 8: Latency Percentiles -->
+    <div class="chart-card">
+      <h3>TC-AGENT-08 — Agent Latency Percentile Distribution (ms)</h3>
+      <canvas id="chartPercentiles"></canvas>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ KPI DETAIL CARDS -->
+<section>
+  <h2 class="section-title">Detailed KPI Metrics</h2>
+  <div class="kpi-detail-grid">
+
+    <!-- TC-AGENT-01a -->
+    <div class="kpi-card">
+      <div class="tc-id">TC-AGENT-01a</div>
+      <h4>Single Tool Dispatch Latency</h4>
+      <div class="kpi-row"><span class="k">Avg Dispatch Latency</span><span class="v">0.0008444 ms</span></div>
+      <div class="kpi-row"><span class="k">Min Dispatch Latency</span><span class="v">0.000366 ms</span></div>
+      <div class="kpi-row"><span class="k">Max Dispatch Latency</span><span class="v">0.002793 ms</span></div>
+      <div class="kpi-row"><span class="k">Iterations</span><span class="v">10</span></div>
+    </div>
+
+    <!-- TC-AGENT-01b -->
+    <div class="kpi-card">
+      <div class="tc-id">TC-AGENT-01b</div>
+      <h4>Parallel Tool Dispatch Scalability</h4>
+      <div class="kpi-row"><span class="k">1 tool</span><span class="v">0.00129 ms</span></div>
+      <div class="kpi-row"><span class="k">4 tools</span><span class="v">0.00192 ms</span></div>
+      <div class="kpi-row"><span class="k">8 tools</span><span class="v">0.00343 ms</span></div>
+      <div class="kpi-row"><span class="k">16 tools</span><span class="v">0.00635 ms</span></div>
+      <div class="kpi-row"><span class="k">Scaling Ratio (1→16)</span><span class="v">4.91×</span></div>
+    </div>
+
+    <!-- TC-AGENT-02 -->
+    <div class="kpi-card">
+      <div class="tc-id">TC-AGENT-02</div>
+      <h4>Reasoning Phase Latency</h4>
+      <div class="kpi-row"><span class="k">Device</span><span class="v">GPU</span></div>
+      <div class="kpi-row"><span class="k">64 tokens</span><span class="v">1.33 ms</span></div>
+      <div class="kpi-row"><span class="k">128 tokens</span><span class="v">2.64 ms</span></div>
+      <div class="kpi-row"><span class="k">256 tokens</span><span class="v">5.27 ms</span></div>
+      <div class="kpi-row"><span class="k">512 tokens</span><span class="v">10.48 ms</span></div>
+      <div class="kpi-row"><span class="k">Throughput (512t)</span><span class="v">~48.8 tok/ms</span></div>
+    </div>
+
+    <!-- TC-AGENT-03 -->
+    <div class="kpi-card">
+      <div class="tc-id">TC-AGENT-03</div>
+      <h4>CPU-GPU Synchronization Overhead</h4>
+      <div class="kpi-row"><span class="k">Avg Sync Latency</span><span class="v">38.82 µs</span></div>
+      <div class="kpi-row"><span class="k">Min Sync Latency</span><span class="v">37.40 µs</span></div>
+      <div class="kpi-row"><span class="k">Max Sync Latency</span><span class="v">42.03 µs</span></div>
+      <div class="kpi-row"><span class="k">Iterations</span><span class="v">10</span></div>
+      <div class="kpi-row"><span class="k">Jitter (max−min)</span><span class="v">4.63 µs</span></div>
+    </div>
+
+    <!-- TC-AGENT-04 -->
+    <div class="kpi-card">
+      <div class="tc-id">TC-AGENT-04</div>
+      <h4>Tool Execution Parallelization</h4>
+      <div class="kpi-row"><span class="k">Sequential Time</span><span class="v">4.032 s</span></div>
+      <div class="kpi-row"><span class="k">Parallel Time</span><span class="v">1.892 s</span></div>
+      <div class="kpi-row"><span class="k">Speedup</span><span class="v">2.13×</span></div>
+      <div class="kpi-row"><span class="k">Number of Tools</span><span class="v">8</span></div>
+      <div class="kpi-row"><span class="k">Iterations</span><span class="v">10</span></div>
+    </div>
+
+    <!-- TC-AGENT-05 -->
+    <div class="kpi-card">
+      <div class="tc-id">TC-AGENT-05</div>
+      <h4>Multi-Turn Conversation</h4>
+      <div class="kpi-row"><span class="k">Number of Turns</span><span class="v">5</span></div>
+      <div class="kpi-row"><span class="k">Total Session Latency</span><span class="v">1027.42 ms</span></div>
+      <div class="kpi-row"><span class="k">Avg Reasoning Latency</span><span class="v">5.40 ms</span></div>
+      <div class="kpi-row"><span class="k">Avg Tool Latency</span><span class="v">200.07 ms</span></div>
+      <div class="kpi-row"><span class="k">Avg Turn Latency</span><span class="v">205.48 ms</span></div>
+    </div>
+
+    <!-- TC-AGENT-06 -->
+    <div class="kpi-card">
+      <div class="tc-id">TC-AGENT-06</div>
+      <h4>CPU Memory During Tool Execution</h4>
+      <div class="kpi-row"><span class="k">Memory Baseline</span><span class="v">861.94 MB</span></div>
+      <div class="kpi-row"><span class="k">Delta (1 tool)</span><span class="v">0.000 MB</span></div>
+      <div class="kpi-row"><span class="k">Delta (4 tools)</span><span class="v">0.020 MB</span></div>
+      <div class="kpi-row"><span class="k">Delta (8 tools)</span><span class="v">0.035 MB</span></div>
+    </div>
+
+    <!-- TC-AGENT-07 -->
+    <div class="kpi-card">
+      <div class="tc-id">TC-AGENT-07</div>
+      <h4>Agent State Serialization</h4>
+      <div class="kpi-row"><span class="k">Avg Serialization Time</span><span class="v">8.138 ms</span></div>
+      <div class="kpi-row"><span class="k">State Size</span><span class="v">448.36 KB</span></div>
+      <div class="kpi-row"><span class="k">Serialization Rate</span><span class="v">55.10 MB/s</span></div>
+      <div class="kpi-row"><span class="k">Turns in State</span><span class="v">5</span></div>
+      <div class="kpi-row"><span class="k">Tools per Turn</span><span class="v">4</span></div>
+    </div>
+
+    <!-- TC-AGENT-08 -->
+    <div class="kpi-card">
+      <div class="tc-id">TC-AGENT-08</div>
+      <h4>Agent Latency Percentiles</h4>
+      <div class="kpi-row"><span class="k">P50</span><span class="v">55.53 ms</span></div>
+      <div class="kpi-row"><span class="k">P95</span><span class="v">70.04 ms</span></div>
+      <div class="kpi-row"><span class="k">P99</span><span class="v">70.04 ms</span></div>
+      <div class="kpi-row"><span class="k">Min</span><span class="v">55.21 ms</span></div>
+      <div class="kpi-row"><span class="k">Max</span><span class="v">70.04 ms</span></div>
+      <div class="kpi-row"><span class="k">Avg</span><span class="v">56.20 ms</span></div>
+      <div class="kpi-row"><span class="k">Samples</span><span class="v">20</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ WARNINGS -->
+<section>
+  <h2 class="section-title">Warnings</h2>
+  <div class="warn-box">
+    <strong>⚠ 2 Deprecation Warnings (non-blocking)</strong>
+    <ul>
+      <li><code>&lt;frozen importlib._bootstrap&gt;:488</code> — builtin type <code>SwigPyPacked</code> has no <code>__module__</code> attribute</li>
+      <li><code>&lt;frozen importlib._bootstrap&gt;:488</code> — builtin type <code>SwigPyObject</code> has no <code>__module__</code> attribute</li>
+      <li><code>sys:1</code> — builtin type <code>swigvarlink</code> has no <code>__module__</code> attribute</li>
+    </ul>
+    <p style="margin-top:8px;">These originate from SWIG-generated bindings (likely CUDA/oneAPI driver libraries) and do not affect test correctness.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ ENVIRONMENT -->
+<section>
+  <h2 class="section-title">Environment &amp; Configuration</h2>
+  <div class="kpi-table-wrap">
+    <table>
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Host</td><td>SC009011168H0070</td></tr>
+        <tr><td>OS Platform</td><td>Linux</td></tr>
+        <tr><td>Python</td><td>3.12.13 (.venv-vllm)</td></tr>
+        <tr><td>pytest</td><td>9.1.1</td></tr>
+        <tr><td>pluggy</td><td>1.6.0</td></tr>
+        <tr><td>Plugins</td><td>timeout-2.4.0, anyio-4.14.1, mock-3.15.1</td></tr>
+        <tr><td>AGENTIC_EXECUTE</td><td>1</td></tr>
+        <tr><td>AGENTIC_MODEL_ID</td><td>openai-community/gpt2</td></tr>
+        <tr><td>AGENTIC_NUM_TOOLS</td><td>8</td></tr>
+        <tr><td>AGENTIC_NUM_TURNS</td><td>5</td></tr>
+        <tr><td>AGENTIC_BENCH_ITERS</td><td>10</td></tr>
+        <tr><td>AGENTIC_WARMUP_ITERS</td><td>3</td></tr>
+        <tr><td>AGENTIC_TOOL_EXEC_TIME_MS</td><td>50</td></tr>
+        <tr><td>Test timeout</td><td>1800.0 s (signal)</td></tr>
+        <tr><td>rootdir</td><td>/home/workspace/AIHeadNode</td></tr>
+        <tr><td>configfile</td><td>pytest.ini</td></tr>
+        <tr><td>KPI artifacts</td><td>artifacts/agentic_ai_kpis.jsonl</td></tr>
+        <tr><td>Testcase Report</td><td>TESTCASE_EXECUTION_FINAL_REPORT.md</td></tr>
+        <tr><td>Node Validation Report</td><td>NODE_VALIDATION_REPORT.md</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Generated by AI Head Node Validation Framework &mdash; 2026-08-14 16:03:42 UTC &mdash;
+  Host: SC009011168H0070 &mdash; Intel® Internal Use
+</footer>
+
+<!-- ═══════════════════════════════════════════ CHART.JS SETUP -->
+<script>
+const INTEL_BLUE   = '#0068B5';
+const INTEL_DARK   = '#003C71';
+const INTEL_LIGHT  = '#4DB4F0';
+const ACCENT1      = '#00C7FD';
+const ACCENT2      = '#F57F17';
+const ACCENT3      = '#2E7D32';
+const GRID_COLOR   = 'rgba(0,0,0,0.07)';
+
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size   = 12;
+
+/* ─── TC-AGENT-01a: Single Dispatch Bar ─── */
+new Chart(document.getElementById('chartDispatch'), {
+  type: 'bar',
+  data: {
+    labels: ['Min', 'Avg', 'Max'],
+    datasets: [{
+      label: 'Latency (ms)',
+      data: [0.000366, 0.0008444, 0.002793],
+      backgroundColor: [ACCENT3, INTEL_BLUE, ACCENT2],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { title: { display: true, text: 'ms' }, grid: { color: GRID_COLOR } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+/* ─── TC-AGENT-01b: Parallel Dispatch Scalability ─── */
+new Chart(document.getElementById('chartParallel'), {
+  type: 'line',
+  data: {
+    labels: ['1', '4', '8', '16'],
+    datasets: [{
+      label: 'Dispatch Latency (ms)',
+      data: [0.001292, 0.001915, 0.003434, 0.006347],
+      borderColor: INTEL_BLUE,
+      backgroundColor: 'rgba(0,104,181,0.12)',
+      tension: 0.35,
+      fill: true,
+      pointBackgroundColor: INTEL_BLUE,
+      pointRadius: 5,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { title: { display: true, text: 'ms' }, grid: { color: GRID_COLOR } },
+      x: { title: { display: true, text: 'Number of Tools' }, grid: { display: false } }
+    }
+  }
+});
+
+/* ─── TC-AGENT-02: Reasoning Latency ─── */
+new Chart(document.getElementById('chartReasoning'), {
+  type: 'line',
+  data: {
+    labels: ['64', '128', '256', '512'],
+    datasets: [{
+      label: 'Reasoning Latency (ms)',
+      data: [1.3323154, 2.6368840, 5.2735583, 10.4843337],
+      borderColor: ACCENT1,
+      backgroundColor: 'rgba(0,199,253,0.12)',
+      tension: 0.35,
+      fill: true,
+      pointBackgroundColor: ACCENT1,
+      pointRadius: 5,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { title: { display: true, text: 'ms' }, grid: { color: GRID_COLOR } },
+      x: { title: { display: true, text: 'Token Count' }, grid: { display: false } }
+    }
+  }
+});
+
+/* ─── TC-AGENT-03: CPU-GPU Sync ─── */
+new Chart(document.getElementById('chartSync'), {
+  type: 'bar',
+  data: {
+    labels: ['Min', 'Avg', 'Max'],
+    datasets: [{
+      label: 'Sync Latency (µs)',
+      data: [37.404, 38.8169, 42.032],
+      backgroundColor: [ACCENT3, INTEL_BLUE, ACCENT2],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        title: { display: true, text: 'µs' },
+        min: 36,
+        grid: { color: GRID_COLOR }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+/* ─── TC-AGENT-04: Sequential vs Parallel ─── */
+new Chart(document.getElementById('chartParallelExec'), {
+  type: 'bar',
+  data: {
+    labels: ['Sequential', 'Parallel'],
+    datasets: [{
+      label: 'Execution Time (s)',
+      data: [4.031973937, 1.892136081],
+      backgroundColor: [ACCENT2, ACCENT3],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          afterLabel: (ctx) => ctx.dataIndex === 1 ? 'Speedup: 2.13×' : ''
+        }
+      }
+    },
+    scales: {
+      y: { title: { display: true, text: 'seconds' }, grid: { color: GRID_COLOR } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+/* ─── TC-AGENT-05: Per-turn Latency Stacked ─── */
+new Chart(document.getElementById('chartMultiTurn'), {
+  type: 'bar',
+  data: {
+    labels: ['Turn 1', 'Turn 2', 'Turn 3', 'Turn 4', 'Turn 5'],
+    datasets: [
+      {
+        label: 'Reasoning (ms)',
+        data: [5.40, 5.40, 5.40, 5.40, 5.40],
+        backgroundColor: ACCENT1,
+        borderRadius: 4,
+        stack: 'turn',
+      },
+      {
+        label: 'Tool Execution (ms)',
+        data: [200.32, 200.03, 200.03, 200.01, 200.02],
+        backgroundColor: INTEL_BLUE,
+        borderRadius: 4,
+        stack: 'turn',
+      }
+    ]
+  },
+  options: {
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      y: { title: { display: true, text: 'ms' }, stacked: true, grid: { color: GRID_COLOR } },
+      x: { stacked: true, grid: { display: false } }
+    }
+  }
+});
+
+/* ─── TC-AGENT-06: Memory Delta ─── */
+new Chart(document.getElementById('chartMemory'), {
+  type: 'bar',
+  data: {
+    labels: ['1 tool', '4 tools', '8 tools'],
+    datasets: [{
+      label: 'Memory Delta (MB)',
+      data: [0.0, 0.01953125, 0.03515625],
+      backgroundColor: [INTEL_LIGHT, INTEL_BLUE, INTEL_DARK],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        title: { display: true, text: 'MB' },
+        beginAtZero: true,
+        grid: { color: GRID_COLOR }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+/* ─── TC-AGENT-08: Latency Percentiles ─── */
+new Chart(document.getElementById('chartPercentiles'), {
+  type: 'bar',
+  data: {
+    labels: ['Min', 'P50', 'Avg', 'P95', 'P99', 'Max'],
+    datasets: [{
+      label: 'Latency (ms)',
+      data: [55.21, 55.53, 56.20, 70.04, 70.04, 70.04],
+      backgroundColor: [
+        ACCENT3, INTEL_LIGHT, INTEL_BLUE, ACCENT2, ACCENT2, '#C62828'
+      ],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        title: { display: true, text: 'ms' },
+        min: 54,
+        grid: { color: GRID_COLOR }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>

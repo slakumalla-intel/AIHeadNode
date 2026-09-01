@@ -1,0 +1,195 @@
+HOST CPU AND PERIPHERAL PATH LATENCY TEST LOG
+==============================================
+Generated: 2026-08-28
+Focus: system-level CPU, host memory, PCIe and peripheral-path behavior
+GPU role: PCIe endpoint used to exercise the host path; not the primary KPI subject
+
+ENVIRONMENT
+-----------
+Host: SC009011168H0070
+OS: CentOS Stream 10
+CPU affinity: 0-223
+NUMA nodes: 1 (node 0)
+NUMA memory: 3,095,163 MB total; 1,972,104 MB free at capture
+GPU endpoint: NVIDIA H100 PCIe, logical device 0
+GPU NUMA affinity: 0
+GPU CPU affinity: 0-223
+Driver: 595.45.04
+CUDA runtime: 13020
+Nsight Systems: 2025.6.3.343-256337165561v0
+Nsight Compute: 2026.1.0.0
+Nsight Compute executable: /usr/local/cuda-13.2/bin/ncu
+Python: 3.12.13
+pytest: 9.1.1
+
+TOPOLOGY
+--------
+nvidia-smi topo -m:
+  GPU0 <-> GPU1: NV12
+  GPU2 <-> GPU3: NV12
+  GPU0/GPU1 <-> GPU2/GPU3: NODE
+  All GPUs: CPU affinity 0-223, NUMA affinity 0
+
+GPU0 PCIe link:
+  Negotiated speed: 32 GT/s
+  Negotiated width: x16
+  Max payload: 256 bytes
+  Max read request: 4096 bytes
+  ASPM: Disabled
+  NUMA node: 0
+  Kernel driver: nvidia
+
+PCIe status observed in lspci:
+  DevSta: UnsupReq+
+  Secondary PCI Express: lane errors reported on lanes 5, 9, 11, 13
+  AER: UESta UnsupReq+, CESta AdvNonFatalErr+
+  These status bits require correlation with kernel logs and a clean reboot before treating them as recurring hardware events.
+
+TEST COMMANDS
+-------------
+1. Direct H2D bandwidth, CPU and memory bound to NUMA node 0:
+CUDA_VISIBLE_DEVICES=0 \
+numactl --cpunodebind=0 --membind=0 \
+python -m pytest -s -vv \
+  tests/test_node_validation.py::TestPCIeBandwidthDirect::test_h2d_bandwidth_all_gpus
+
+2. H2D copy-engine bandwidth, CPU and memory bound to NUMA node 0:
+CUDA_VISIBLE_DEVICES=0 \
+numactl --cpunodebind=0 --membind=0 \
+python -m pytest -s -vv \
+  tests/test_node_validation.py::TestNVBandwidthMemcpy::test_host_to_device_memcpy_ce
+
+3. Nsight Systems CPU scheduling and host wait profile:
+nsys profile \
+  --trace=cuda,nvtx,osrt \
+  --sample=process-tree \
+  --cpuctxsw=process-tree \
+  --stats=true \
+  --force-overwrite=true \
+  -o artifacts/nsys/host_pcie_repeat \
+  numactl --cpunodebind=0 --membind=0 \
+  python -m pytest -s -vv \
+    tests/test_node_validation.py::TestNVBandwidthMemcpy::test_host_to_device_memcpy_ce
+
+4. Nsight Compute endpoint diagnostic:
+ncu \
+  --target-processes all \
+  --set basic \
+  --launch-count 5 \
+  --force-overwrite \
+  --export artifacts/ncu/smoke \
+  python -m pytest -s -vv \
+    tests/test_node_validation.py::TestNVBandwidthMemcpy::test_host_to_device_memcpy_sm
+
+TEST RESULTS
+------------
+Direct H2D, 1 GB x 8, NUMA-bound:
+  Result: PASS
+  Bandwidth: 56.18 GB/s
+  Threshold: 40.95 GB/s
+  Test time: 3.66 s
+
+H2D copy-engine, unprofiled and NUMA-bound:
+  Result: PASS
+  Bandwidth: 56.29 GB/s
+  Threshold: 40.00 GB/s
+  Test time: 4.50 s
+
+H2D copy-engine, Nsight Systems and NUMA-bound:
+  Result: PASS
+  Bandwidth: 56.24 GB/s
+  Threshold: 40.00 GB/s
+  Test time: 5.31 s
+
+H2D SM path, Nsight Compute instrumented:
+  Result: PASS
+  Bandwidth: 36.22 GB/s
+  Threshold: 30.00 GB/s
+  Test time: 116.05 s
+  Report: artifacts/ncu/smoke.ncu-rep
+  Note: NCU replay/instrumentation reduces the observed bandwidth. Use the unprofiled result for the official bandwidth KPI.
+
+NUMA AND PCIe OBSERVATIONS
+--------------------------
+1. All CPUs, host memory and GPU endpoints are on NUMA node 0. There is no cross-NUMA path in this configuration.
+2. GPU0 is negotiated at PCIe 32 GT/s x16, indicating the expected full-width link.
+3. ASPM is disabled, which is favorable for a low-latency measurement.
+4. Direct H2D and copy-engine H2D results are consistent: 56.18, 56.29 and 56.24 GB/s.
+5. The measured H2D values are approximately 89% of the nominal 63 GB/s PCIe reference and exceed configured thresholds.
+
+NSIGHT SYSTEMS HOST-PATH SUMMARY
+--------------------------------
+Capture: artifacts/nsys/host_pcie_repeat.nsys-rep
+
+OS runtime:
+  poll: 92 calls, 69.3% of traced OS runtime time, median approximately 100.13 ms
+  ioctl: 2,455 calls, 19.1% of traced OS runtime time, median approximately 10.68 us
+
+CUDA API:
+  cuStreamSynchronize: 12 calls, total 606.506 ms, median 5.408 ms, max 191.0 ms
+  cudaDeviceSynchronize: 2 calls, total 138.795 ms, median 69.397 ms, max 138.781 ms
+  cuMemHostAlloc: 11 calls, total 394.540 ms, median 597.164 us, max 321.585 ms
+  cuMemFreeHost: 10 calls, total 61.012 ms, median 407.157 us, max 55.654 ms
+  cudaLaunchKernel: 12 calls, total 4.209 ms, median 14.477 us
+  cuMemcpyAsync: 75 calls, total 354.566 us, median 2.387 us
+
+CUDA memory operations:
+  H2D: 72 operations, total 32,231.129 MB, median size 536.871 MB
+  H2D: total device transfer time 572.910 ms, median 9.529 ms
+  D2H: 3 operations, approximately 0 MB, cleanup/validation activity
+
+NSIGHT COMPUTE SUMMARY
+----------------------
+Capture: artifacts/ncu/smoke.ncu-rep
+Profiled kernels include memsetKernelDevice, spinKernelDevice and stridingMemcpyKernel.
+
+memsetKernelDevice:
+  One instance: 377.41 us, memory throughput 67.04%, achieved occupancy 67.10%
+  Another instance: 10.16 ms, memory throughput 6.05%, achieved occupancy 47.34%
+
+spinKernelDevice:
+  Duration: 10.00 s
+  Grid: 1 block, 1 thread
+  Achieved occupancy: 1.56%
+  Interpretation: intentional benchmark wait kernel; exclude from PCIe link conclusions.
+
+stridingMemcpyKernel:
+  Block size: 512 threads
+  Grid size: 114 blocks
+  Registers per thread: 72
+  Theoretical occupancy: 25%
+  Achieved occupancy: approximately 24.8%
+  Memory throughput: approximately 3.3%
+  Interpretation: endpoint-kernel diagnostic; register-limited and not evidence of a PCIe link fault.
+
+PERFORMANCE IMPROVEMENTS
+------------------------
+Priority 1: Reuse pinned host buffers. Reduce repeated cuMemHostAlloc/cudaHostAlloc and free operations.
+Priority 2: Batch small transfers to reduce fixed CPU submission and synchronization cost.
+Priority 3: Use cudaMemcpyAsync with persistent streams and event-based waits for individual buffers.
+Priority 4: Keep CPU and memory placement controlled with numactl --cpunodebind=0 --membind=0 for repeatability.
+Priority 5: Keep 2 MB hugepages only after controlled A/B testing confirms stable latency or bandwidth benefit.
+Priority 6: Add warm-up iterations and report steady-state values separately from initialization and allocation costs.
+Priority 7: Check kernel logs for recurring PCIe AER, lane-error, or NVIDIA Xid events.
+
+RECOMMENDED COMPARISON METRICS
+------------------------------
+Compare baseline and optimized runs using:
+  H2D and D2H bandwidth
+  CPU wait p50/p95
+  cuStreamSynchronize count and p50/p95
+  cudaDeviceSynchronize count and p50/p95
+  pinned host allocation count and time
+  number and median size of transfer operations
+  CPU context-switch activity
+  PCIe AER/error events
+
+CONCLUSION
+----------
+The host CPU, NUMA placement and PCIe peripheral path are operating within the measured acceptance criteria. The 32 GT/s x16 link is negotiated correctly, and NUMA-bound H2D measurements are stable at approximately 56.2 GB/s. The primary improvement opportunity is host-side overhead from pinned-memory allocation, broad synchronization and transfer granularity. Nsight Compute confirms endpoint-kernel behavior but should not replace the unprofiled or Nsight Systems values for official host/peripheral KPIs.
+
+ARTIFACTS
+---------
+HTML report: artifacts/nsys/cpu_pcie_memory_latency_test_report.html
+NSYS profile: artifacts/nsys/host_pcie_repeat.nsys-rep
+NCU profile: artifacts/ncu/smoke.ncu-rep

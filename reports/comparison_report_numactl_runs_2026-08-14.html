@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NUMA Run Comparison Report</title>
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --panel: #fffdf8;
+      --ink: #1f2933;
+      --muted: #52606d;
+      --line: #d9d0c3;
+      --accent: #9f3a2d;
+      --accent-soft: #f7d9d4;
+      --good: #1f7a4d;
+      --warn: #9a6700;
+      --bad: #b42318;
+      --shadow: 0 18px 40px rgba(45, 36, 28, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(159, 58, 45, 0.08), transparent 28%),
+        linear-gradient(180deg, #f8f4ec 0%, var(--bg) 100%);
+      line-height: 1.55;
+    }
+
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 40px 20px 64px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(159, 58, 45, 0.98), rgba(116, 28, 47, 0.94));
+      color: #fff8f1;
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -80px auto;
+      width: 240px;
+      height: 240px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+    }
+
+    h1, h2 {
+      margin: 0 0 16px;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.3rem);
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      color: var(--accent);
+      margin-top: 32px;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    .lede {
+      max-width: 920px;
+      font-size: 1.06rem;
+      color: rgba(255, 248, 241, 0.9);
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.95rem;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 24px;
+      margin-top: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 0 0 10px;
+    }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      background: rgba(159, 58, 45, 0.08);
+      color: #6d1f17;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fffaf2;
+      padding: 16px;
+    }
+
+    .card strong {
+      display: block;
+      font-size: 1.5rem;
+      margin-bottom: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 0.96rem;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3eadf;
+      color: #4e3428;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .status-fail {
+      color: var(--bad);
+      font-weight: 700;
+    }
+
+    .status-warn {
+      color: var(--warn);
+      font-weight: 700;
+    }
+
+    .status-good {
+      color: var(--good);
+      font-weight: 700;
+    }
+
+    .callout {
+      border-left: 5px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin-top: 16px;
+    }
+
+    .foot {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 860px) {
+      .wrap {
+        padding: 20px 12px 40px;
+      }
+
+      .hero,
+      .section {
+        padding: 18px;
+        border-radius: 18px;
+      }
+
+      table,
+      thead,
+      tbody,
+      th,
+      td,
+      tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 10px;
+        margin-bottom: 12px;
+        background: #fff;
+      }
+
+      td {
+        border: 0;
+        padding: 8px 0;
+      }
+
+      td::before {
+        content: attr(data-label) ": ";
+        font-weight: 700;
+        color: #4e3428;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>NUMA Run Comparison Report</h1>
+      <p class="lede">Four successful <code>.venv-vllm</code> runs and one invalid <code>numactl</code> invocation were compared to isolate the effect of CPU and memory binding on the bottleneck analysis suite. Across all valid runs, NVLink remained the only repeated hard failure.</p>
+      <div class="meta">
+        <span class="chip">Date: 2026-08-14</span>
+        <span class="chip">Successful runs: 4</span>
+        <span class="chip">Invalid invocations: 1</span>
+        <span class="chip">Repeated failure: NVLink GPU 0-&gt;1</span>
+      </div>
+      <div class="summary-grid">
+        <div class="card">
+          <strong>24 / 1</strong>
+          <span>Pass/fail result for every valid run</span>
+        </div>
+        <div class="card">
+          <strong>264.3 - 264.5 GB/s</strong>
+          <span>Observed NVLink bandwidth range</span>
+        </div>
+        <div class="card">
+          <strong>29.4%</strong>
+          <span>Approximate NVLink efficiency in every valid run</span>
+        </div>
+        <div class="card">
+          <strong>Not fixed by NUMA</strong>
+          <span>Binding policy changed CPU/DRAM behavior, not NVLink</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Scope</h2>
+      <ul>
+        <li><code>pytest -vv tests/test_bottleneck_analysis.py</code></li>
+        <li><code>numactl --cpunodebind=0 --membind=0 pytest -vv tests/test_bottleneck_analysis.py</code></li>
+        <li><code>numactl --cpunodebind=0 pytest -vv tests/test_bottleneck_analysis.py</code></li>
+        <li><code>numactl --membind=0 pytest -vv tests/test_bottleneck_analysis.py</code></li>
+        <li>Invalid comparison attempt: <code>numactl --cpunodebind=0 --membind=1 ...</code></li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Executive Summary</h2>
+      <p>All four successful runs finished with <code>24 passed, 1 failed</code>. The only repeated hard failure was <code>TestNVLinkBottleneck::test_nvlink_bw_vs_theoretical</code>, with measured NVLink bandwidth tightly clustered around <code>264.3 to 264.5 GB/s</code>, or about <code>29.4%</code> of the <code>900 GB/s</code> target.</p>
+      <p>CPU and DRAM behavior changed meaningfully with binding strategy, but NVLink did not. The data points to a persistent GPU fabric issue rather than a NUMA placement issue.</p>
+    </section>
+
+    <section class="section">
+      <h2>Comparison Table</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Run</th>
+            <th>Numactl</th>
+            <th>Memctl</th>
+            <th>Runtime</th>
+            <th>Pass/Fail</th>
+            <th>CPU FP32 1x32</th>
+            <th>CPU FP32 4x52</th>
+            <th>CPU DRAM BW</th>
+            <th>4-GPU FP16</th>
+            <th>NVLink 0-&gt;1</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Run">Plain pytest</td>
+            <td data-label="Numactl">undefined</td>
+            <td data-label="Memctl">undefined</td>
+            <td data-label="Runtime">33.35s</td>
+            <td data-label="Pass/Fail" class="status-fail">24/1</td>
+            <td data-label="CPU FP32 1x32">5.166</td>
+            <td data-label="CPU FP32 4x52">6.733</td>
+            <td data-label="CPU DRAM BW">2187.430</td>
+            <td data-label="4-GPU FP16">1899.762</td>
+            <td data-label="NVLink 0-&gt;1">264.317</td>
+            <td data-label="Notes">Best DRAM BW, stable GPU, NVLink fail</td>
+          </tr>
+          <tr>
+            <td data-label="Run"><code>cpunodebind=0,membind=0</code></td>
+            <td data-label="Numactl">0</td>
+            <td data-label="Memctl">0</td>
+            <td data-label="Runtime">31.90s</td>
+            <td data-label="Pass/Fail" class="status-fail">24/1</td>
+            <td data-label="CPU FP32 1x32">5.107</td>
+            <td data-label="CPU FP32 4x52">6.502</td>
+            <td data-label="CPU DRAM BW">1136.308</td>
+            <td data-label="4-GPU FP16">1907.965</td>
+            <td data-label="NVLink 0-&gt;1">264.452</td>
+            <td data-label="Notes">Lowest DRAM BW among valid runs</td>
+          </tr>
+          <tr>
+            <td data-label="Run"><code>cpunodebind=0</code></td>
+            <td data-label="Numactl">0</td>
+            <td data-label="Memctl">undefined</td>
+            <td data-label="Runtime">30.73s</td>
+            <td data-label="Pass/Fail" class="status-fail">24/1</td>
+            <td data-label="CPU FP32 1x32">5.090</td>
+            <td data-label="CPU FP32 4x52">14.143 best / 5.923 median</td>
+            <td data-label="CPU DRAM BW">1816.784</td>
+            <td data-label="4-GPU FP16">1913.231</td>
+            <td data-label="NVLink 0-&gt;1">264.512</td>
+            <td data-label="Notes">Best-case CPU spike, unstable, end-to-end PCIe anomaly</td>
+          </tr>
+          <tr>
+            <td data-label="Run"><code>membind=0</code></td>
+            <td data-label="Numactl">undefined</td>
+            <td data-label="Memctl">0</td>
+            <td data-label="Runtime">32.24s</td>
+            <td data-label="Pass/Fail" class="status-fail">24/1</td>
+            <td data-label="CPU FP32 1x32">5.128</td>
+            <td data-label="CPU FP32 4x52">7.645</td>
+            <td data-label="CPU DRAM BW">2047.891</td>
+            <td data-label="4-GPU FP16">1901.488</td>
+            <td data-label="NVLink 0-&gt;1">264.390</td>
+            <td data-label="Notes">Balanced run, no extra anomalies</td>
+          </tr>
+          <tr>
+            <td data-label="Run">Invalid invocation</td>
+            <td data-label="Numactl">0</td>
+            <td data-label="Memctl">1</td>
+            <td data-label="Runtime">n/a</td>
+            <td data-label="Pass/Fail" class="status-warn">did not run</td>
+            <td data-label="CPU FP32 1x32">n/a</td>
+            <td data-label="CPU FP32 4x52">n/a</td>
+            <td data-label="CPU DRAM BW">n/a</td>
+            <td data-label="4-GPU FP16">n/a</td>
+            <td data-label="NVLink 0-&gt;1">n/a</td>
+            <td data-label="Notes">Node 1 out of range</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Findings</h2>
+      <ul>
+        <li>NVLink is independent of the tested NUMA policy in this dataset. The failed metric varies by less than <code>0.2 GB/s</code> across all successful runs.</li>
+        <li>Binding only CPU execution to node <code>0</code> produced the highest observed <code>4 proc x 52 threads</code> CPU FP32 best result, but the median stayed much lower. That looks like instability rather than durable improvement.</li>
+        <li>Binding memory to node <code>0</code> without CPU binding gave the most balanced valid run: strong DRAM bandwidth, no invalid configuration, no extra summary-path anomaly, and normal GPU metrics.</li>
+        <li>Binding both CPU and memory to node <code>0</code> reduced multi-thread STREAM bandwidth relative to the unbound and memory-only runs.</li>
+        <li>The invalid <code>membind=1</code> command confirms this environment does not expose NUMA node <code>1</code> for binding.</li>
+      </ul>
+      <div class="callout">
+        Focus on NVLink rather than NUMA policy if the goal is to isolate the persistent platform issue. None of the valid binding combinations changed the NVLink result enough to matter.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Recommended Interpretation</h2>
+      <p>If the goal is to isolate the persistent platform issue, focus on NVLink rather than NUMA policy. None of the valid binding combinations changed the NVLink result enough to matter, and every successful run failed at nearly the same threshold gap.</p>
+      <p>If the goal is to choose a stable comparison mode for future CPU-side measurements, <code>numactl --membind=0</code> is the least noisy of the tested variants. <code>numactl --cpunodebind=0</code> alone produced the most dramatic CPU headline number, but it also showed the clearest instability and one anomalous end-to-end PCIe regression.</p>
+    </section>
+
+    <section class="section">
+      <h2>Recommended Follow-up</h2>
+      <ol>
+        <li>Validate actual NUMA topology with <code>numactl --hardware</code> before trying additional node combinations.</li>
+        <li>Re-run the dedicated NVLink test repeatedly to confirm the low bandwidth is not transient.</li>
+        <li>Cross-check NVLink topology and health with GPU fabric tooling, because the NUMA policy changes are not moving that metric.</li>
+        <li>Use <code>membind=0</code> as the default comparison mode if you need one stable CPU-side reference for additional experiments.</li>
+      </ol>
+      <p class="foot">Generated from the saved markdown comparison report in the same workspace folder.</p>
+    </section>
+  </div>
+</body>
+</html>

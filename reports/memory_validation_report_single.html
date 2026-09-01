@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Validation Comprehensive Test Report</title>
+  <style>
+    :root {
+      --bg: #f4f8ff;
+      --panel: #ffffff;
+      --ink: #11243f;
+      --muted: #5d6e86;
+      --ok: #148a48;
+      --bad: #c62828;
+      --warn: #b26a00;
+      --line: #d9e4f2;
+      --accent: #0b5cab;
+      --accent2: #007a8a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, #dbeafe 0%, transparent 38%),
+        radial-gradient(circle at 90% 4%, #cffafe 0%, transparent 35%),
+        var(--bg);
+      line-height: 1.45;
+    }
+
+    .wrap {
+      width: min(1260px, 95vw);
+      margin: 22px auto 46px;
+    }
+
+    .hero {
+      border-radius: 18px;
+      padding: 24px;
+      color: #fff;
+      background: linear-gradient(130deg, #093569, #0d7a8c);
+      box-shadow: 0 16px 34px rgba(9, 53, 105, 0.28);
+      animation: riseIn .7s ease;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 3.1vw, 38px);
+      letter-spacing: 0.3px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #e7f2ff;
+    }
+
+    .meta-grid {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+    }
+
+    .meta-card {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .meta-card .v { font-size: 25px; font-weight: 700; }
+    .meta-card .l { font-size: 12px; color: #cce4ff; text-transform: uppercase; letter-spacing: .7px; }
+
+    section {
+      margin-top: 16px;
+      border-radius: 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 18px rgba(17, 36, 63, 0.07);
+      padding: 16px;
+      animation: riseIn .7s ease;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    .pills { margin-top: 8px; }
+
+    .pill {
+      display: inline-block;
+      margin: 5px 7px 0 0;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .pill.ok { color: #0f6a36; background: #edfdf4; border-color: #97d9b3; }
+    .pill.bad { color: #8e1a1a; background: #fff3f3; border-color: #f2a5a5; }
+
+    .chart-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+
+    .chart {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .chart svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .two-col {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #ebf4ff; }
+
+    .ok { color: var(--ok); font-weight: 700; }
+    .bad { color: var(--bad); font-weight: 700; }
+
+    ul {
+      margin: 6px 0 0 18px;
+      padding: 0;
+    }
+
+    pre {
+      margin: 0;
+      background: #0d1524;
+      color: #d6e8ff;
+      border-radius: 10px;
+      padding: 12px;
+      overflow: auto;
+      white-space: pre-wrap;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(7px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1080px) {
+      .meta-grid { grid-template-columns: repeat(3, minmax(120px, 1fr)); }
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .meta-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>Memory Validation Comprehensive Report</h1>
+      <p>Source: pytest -vv tests/test_memory_validation.py | Run time: 2026-08-14 16:14:20 to 16:14:49</p>
+      <div class="meta-grid">
+        <div class="meta-card"><div class="v">28</div><div class="l">Tests Collected</div></div>
+        <div class="meta-card"><div class="v">27</div><div class="l">Passed</div></div>
+        <div class="meta-card"><div class="v">1</div><div class="l">Failed</div></div>
+        <div class="meta-card"><div class="v">96.43%</div><div class="l">Pass Rate</div></div>
+        <div class="meta-card"><div class="v">28.51s</div><div class="l">Execution Time</div></div>
+      </div>
+    </header>
+
+    <section>
+      <h2>Executive Summary</h2>
+      <p>
+        The node passed 27/28 memory validation checks, including RAM capacity, storage baseline, DRAM metadata, hugepages,
+        NUMA visibility, ECC error checks, memory pressure, cache hierarchy bandwidth, and sustained bandwidth stability.
+        The only failure is single-thread STREAM Triad performance falling below the dynamically derived threshold.
+      </p>
+      <div class="pills">
+        <span class="pill ok">Capacity: PASS</span>
+        <span class="pill ok">Latency: PASS</span>
+        <span class="pill ok">Aggregate BW: PASS</span>
+        <span class="pill bad">Single-thread Triad: FAIL</span>
+        <span class="pill ok">ECC / NUMA / THP: PASS</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>Charts and Visuals</h2>
+      <div class="chart-grid">
+        <div class="chart">
+          <svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-label="Pass fail doughnut chart">
+            <rect width="960" height="420" fill="#f8fbff"/>
+            <text x="28" y="38" font-size="25" font-family="Segoe UI, Arial" fill="#11243f" font-weight="700">Overall Test Outcome</text>
+            <text x="28" y="62" font-size="14" font-family="Segoe UI, Arial" fill="#5d6e86">Passed: 27 | Failed: 1 | Total: 28</text>
+            <circle cx="270" cy="222" r="130" fill="#e5eaf2"/>
+            <path d="M 270 222 L 270 92 A 130 130 0 1 1 240.98 348.72 Z" fill="#1aa157"/>
+            <path d="M 270 222 L 240.98 348.72 A 130 130 0 0 1 270 92 Z" fill="#cf2f2f"/>
+            <circle cx="270" cy="222" r="68" fill="#f8fbff"/>
+            <text x="270" y="214" text-anchor="middle" font-family="Segoe UI, Arial" font-size="24" fill="#11243f" font-weight="700">96.4%</text>
+            <text x="270" y="236" text-anchor="middle" font-family="Segoe UI, Arial" font-size="13" fill="#5d6e86">Pass Rate</text>
+            <rect x="515" y="150" width="20" height="20" fill="#1aa157" rx="4"/>
+            <text x="545" y="166" font-size="16" font-family="Segoe UI, Arial" fill="#11243f">Passed (27)</text>
+            <rect x="515" y="194" width="20" height="20" fill="#cf2f2f" rx="4"/>
+            <text x="545" y="210" font-size="16" font-family="Segoe UI, Arial" fill="#11243f">Failed (1)</text>
+            <text x="515" y="260" font-size="14" font-family="Segoe UI, Arial" fill="#5d6e86">One functional bottleneck in TC-MEM-03c</text>
+          </svg>
+        </div>
+
+        <div class="chart">
+          <svg xmlns="http://www.w3.org/2000/svg" width="960" height="450" viewBox="0 0 960 450" role="img" aria-label="Single thread bandwidth bars">
+            <rect width="960" height="450" fill="#f8fbff"/>
+            <text x="28" y="38" font-size="24" font-family="Segoe UI, Arial" fill="#11243f" font-weight="700">Single-Thread STREAM Bandwidth</text>
+            <text x="28" y="62" font-size="14" font-family="Segoe UI, Arial" fill="#5d6e86">Copy and Scale pass, Triad fails threshold</text>
+            <line x1="120" y1="90" x2="120" y2="380" stroke="#6b7280" stroke-width="2"/>
+            <line x1="120" y1="380" x2="840" y2="380" stroke="#6b7280" stroke-width="2"/>
+            <text x="85" y="384" font-size="12" font-family="Segoe UI, Arial" fill="#5d6e86">0</text>
+            <text x="80" y="322" font-size="12" font-family="Segoe UI, Arial" fill="#5d6e86">10</text>
+            <text x="80" y="260" font-size="12" font-family="Segoe UI, Arial" fill="#5d6e86">20</text>
+            <text x="80" y="198" font-size="12" font-family="Segoe UI, Arial" fill="#5d6e86">30</text>
+            <text x="80" y="136" font-size="12" font-family="Segoe UI, Arial" fill="#5d6e86">40</text>
+            <line x1="120" y1="318" x2="840" y2="318" stroke="#d7deea"/>
+            <line x1="120" y1="256" x2="840" y2="256" stroke="#d7deea"/>
+            <line x1="120" y1="194" x2="840" y2="194" stroke="#d7deea"/>
+            <line x1="120" y1="132" x2="840" y2="132" stroke="#d7deea"/>
+            <rect x="200" y="134" width="140" height="246" fill="#0b6dcc" rx="8"/>
+            <text x="270" y="398" text-anchor="middle" font-size="13" font-family="Segoe UI, Arial" fill="#11243f">Copy 39.60</text>
+            <line x1="200" y1="194" x2="340" y2="194" stroke="#0c9150" stroke-width="4" stroke-dasharray="8 6"/>
+            <text x="270" y="186" text-anchor="middle" font-size="12" font-family="Segoe UI, Arial" fill="#0c9150">Thr 30.00</text>
+            <rect x="410" y="214" width="140" height="166" fill="#07a6a6" rx="8"/>
+            <text x="480" y="398" text-anchor="middle" font-size="13" font-family="Segoe UI, Arial" fill="#11243f">Scale 26.80</text>
+            <line x1="410" y1="268" x2="550" y2="268" stroke="#0c9150" stroke-width="4" stroke-dasharray="8 6"/>
+            <text x="480" y="260" text-anchor="middle" font-size="12" font-family="Segoe UI, Arial" fill="#0c9150">Thr 18.04</text>
+            <rect x="620" y="307" width="140" height="73" fill="#f49e0b" rx="8"/>
+            <text x="690" y="398" text-anchor="middle" font-size="13" font-family="Segoe UI, Arial" fill="#11243f">Triad 11.80</text>
+            <line x1="620" y1="281" x2="760" y2="281" stroke="#cf2f2f" stroke-width="4" stroke-dasharray="8 6"/>
+            <text x="690" y="273" text-anchor="middle" font-size="12" font-family="Segoe UI, Arial" fill="#cf2f2f">Thr 15.97</text>
+          </svg>
+        </div>
+
+        <div class="two-col">
+          <div class="chart">
+            <svg xmlns="http://www.w3.org/2000/svg" width="470" height="380" viewBox="0 0 470 380" role="img" aria-label="Latency trend chart">
+              <rect width="470" height="380" fill="#f8fbff"/>
+              <text x="20" y="34" font-size="20" font-family="Segoe UI, Arial" fill="#11243f" font-weight="700">Latency Trend</text>
+              <line x1="70" y1="80" x2="70" y2="320" stroke="#6b7280" stroke-width="2"/>
+              <line x1="70" y1="320" x2="440" y2="320" stroke="#6b7280" stroke-width="2"/>
+              <polyline points="110,286 190,293 270,282 350,232" fill="none" stroke="#0b6dcc" stroke-width="4"/>
+              <circle cx="110" cy="286" r="5" fill="#0b6dcc"/>
+              <circle cx="190" cy="293" r="5" fill="#0b6dcc"/>
+              <circle cx="270" cy="282" r="5" fill="#0b6dcc"/>
+              <circle cx="350" cy="232" r="5" fill="#0b6dcc"/>
+              <text x="110" y="338" text-anchor="middle" font-size="11" font-family="Segoe UI, Arial">32KB</text>
+              <text x="190" y="338" text-anchor="middle" font-size="11" font-family="Segoe UI, Arial">512KB</text>
+              <text x="270" y="338" text-anchor="middle" font-size="11" font-family="Segoe UI, Arial">16MB</text>
+              <text x="350" y="338" text-anchor="middle" font-size="11" font-family="Segoe UI, Arial">512MB</text>
+              <text x="110" y="275" text-anchor="middle" font-size="10" font-family="Segoe UI, Arial" fill="#0b6dcc">1.66</text>
+              <text x="190" y="282" text-anchor="middle" font-size="10" font-family="Segoe UI, Arial" fill="#0b6dcc">0.95</text>
+              <text x="270" y="271" text-anchor="middle" font-size="10" font-family="Segoe UI, Arial" fill="#0b6dcc">1.95</text>
+              <text x="350" y="221" text-anchor="middle" font-size="10" font-family="Segoe UI, Arial" fill="#0b6dcc">7.24</text>
+            </svg>
+          </div>
+
+          <div class="chart">
+            <svg xmlns="http://www.w3.org/2000/svg" width="470" height="380" viewBox="0 0 470 380" role="img" aria-label="Sustained bandwidth trend chart">
+              <rect width="470" height="380" fill="#f8fbff"/>
+              <text x="20" y="34" font-size="20" font-family="Segoe UI, Arial" fill="#11243f" font-weight="700">Sustained BW Readings</text>
+              <line x1="70" y1="80" x2="70" y2="320" stroke="#6b7280" stroke-width="2"/>
+              <line x1="70" y1="320" x2="440" y2="320" stroke="#6b7280" stroke-width="2"/>
+              <polyline points="100,103 170,174 240,145 310,183 380,149" fill="none" stroke="#0d8a4f" stroke-width="4"/>
+              <circle cx="100" cy="103" r="5" fill="#0d8a4f"/>
+              <circle cx="170" cy="174" r="5" fill="#0d8a4f"/>
+              <circle cx="240" cy="145" r="5" fill="#0d8a4f"/>
+              <circle cx="310" cy="183" r="5" fill="#0d8a4f"/>
+              <circle cx="380" cy="149" r="5" fill="#0d8a4f"/>
+              <text x="100" y="338" text-anchor="middle" font-size="11" font-family="Segoe UI, Arial">R1</text>
+              <text x="170" y="338" text-anchor="middle" font-size="11" font-family="Segoe UI, Arial">R2</text>
+              <text x="240" y="338" text-anchor="middle" font-size="11" font-family="Segoe UI, Arial">R3</text>
+              <text x="310" y="338" text-anchor="middle" font-size="11" font-family="Segoe UI, Arial">R4</text>
+              <text x="380" y="338" text-anchor="middle" font-size="11" font-family="Segoe UI, Arial">R5</text>
+              <text x="100" y="92" text-anchor="middle" font-size="10" font-family="Segoe UI, Arial" fill="#0d8a4f">45.18</text>
+              <text x="170" y="163" text-anchor="middle" font-size="10" font-family="Segoe UI, Arial" fill="#0d8a4f">41.88</text>
+              <text x="240" y="134" text-anchor="middle" font-size="10" font-family="Segoe UI, Arial" fill="#0d8a4f">43.23</text>
+              <text x="310" y="172" text-anchor="middle" font-size="10" font-family="Segoe UI, Arial" fill="#0d8a4f">41.43</text>
+              <text x="380" y="138" text-anchor="middle" font-size="10" font-family="Segoe UI, Arial" fill="#0d8a4f">42.99</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Critical Failure Detail</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Test Case</th>
+            <th>Status</th>
+            <th>Measured</th>
+            <th>Expected</th>
+            <th>Deviation</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>TestSingleThreadBandwidth::test_triad_bw_exceeds_15gbs (TC-MEM-03c)</td>
+            <td class="bad">FAILED</td>
+            <td>11.803 GB/s</td>
+            <td>15.966 GB/s</td>
+            <td>-4.163 GB/s (-26.1%)</td>
+            <td>tests/test_memory_validation.py:371</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="two-col" style="margin-top:12px;">
+        <div>
+          <h3>Likely Causes</h3>
+          <ul>
+            <li>Triad kernel sensitivity to CPU frequency transitions and scheduler movement.</li>
+            <li>Run-to-run variability where Copy baseline remains high but Triad transiently dips.</li>
+            <li>NUMA locality or memory-controller contention during triad sampling window.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Recommended Actions</h3>
+          <ul>
+            <li>Pin test process to specific CPU and NUMA node for repeatability.</li>
+            <li>Collect >= 10 triad samples and evaluate median instead of single/short run.</li>
+            <li>Capture CPU clocks, C-state residency, and thermal throttling telemetry during test.</li>
+            <li>Review dynamic threshold factor against historical node baselines.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>KPI Table</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>KPI</th>
+            <th>Observed</th>
+            <th>Limit / Target</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Total RAM</td><td>3022.62 GB</td><td>>= 1024 GB and within baseline</td><td class="ok">PASS</td></tr>
+          <tr><td>Available RAM</td><td>3006.87 GB (99.48%)</td><td>>= 50% available fraction</td><td class="ok">PASS</td></tr>
+          <tr><td>Storage Capacity</td><td>1675.69 GB</td><td>Within 5% of baseline</td><td class="ok">PASS</td></tr>
+          <tr><td>Copy BW</td><td>39.601 GB/s</td><td>>= 30.0 GB/s</td><td class="ok">PASS</td></tr>
+          <tr><td>Scale BW</td><td>26.802 GB/s</td><td>>= 18.038 GB/s</td><td class="ok">PASS</td></tr>
+          <tr><td>Triad BW</td><td>11.803 GB/s</td><td>>= 15.966 GB/s</td><td class="bad">FAIL</td></tr>
+          <tr><td>Aggregate Triad BW</td><td>1102.18 GB/s</td><td>75% of 307.2 GB/s theoretical</td><td class="ok">PASS (358.78%)</td></tr>
+          <tr><td>Read/Write Ratio</td><td>0.735</td><td>Test marked passed by suite logic</td><td class="ok">PASS</td></tr>
+          <tr><td>Latency 32KB/512KB/16MB/512MB</td><td>1.66 / 0.95 / 1.95 / 7.24 ns</td><td>4 / 8 / 30 / 120 ns limits</td><td class="ok">PASS</td></tr>
+          <tr><td>Sustained BW Degradation</td><td>0.0829</td><td><= 0.15</td><td class="ok">PASS</td></tr>
+          <tr><td>ECC Uncorrected Errors</td><td>max UE count = 0</td><td>No uncorrected errors</td><td class="ok">PASS</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Run Metadata and Assertion Snippet</h2>
+      <table>
+        <tbody>
+          <tr><th>Platform</th><td>linux</td></tr>
+          <tr><th>Python</th><td>3.12.13</td></tr>
+          <tr><th>Pytest / Pluggy</th><td>9.1.1 / 1.6.0</td></tr>
+          <tr><th>Plugins</th><td>timeout-2.4.0, anyio-4.14.1, mock-3.15.1</td></tr>
+          <tr><th>Root Dir</th><td>/home/workspace/AIHeadNode</td></tr>
+          <tr><th>Timeout</th><td>1800s, signal method</td></tr>
+        </tbody>
+      </table>
+      <pre>AssertionError: STREAM Triad 11.80 GB/s < expected 15.97 GB/s (40% of Copy 39.92 GB/s, floor 12 GB/s)
+assert 11.802877352131341 >= 15.966066227926593
+Failure point: tests/test_memory_validation.py:371</pre>
+      <div class="small">Log source preserved at memory.log in the same folder as this report.</div>
+    </section>
+  </div>
+</body>
+</html>

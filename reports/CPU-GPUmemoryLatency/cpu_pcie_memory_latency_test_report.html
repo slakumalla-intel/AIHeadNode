@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Host CPU and Peripheral Path Latency Test Report</title>
+  <style>
+    :root { --ink:#17212b; --muted:#5d6a75; --line:#d7e0e8; --navy:#17324d; --blue:#1261a0; --green:#087f5b; --amber:#9a5b00; --red:#b42318; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#eef2f5; color:var(--ink); font-family:Georgia,"Times New Roman",serif; line-height:1.45; }
+    main { max-width:1180px; margin:auto; padding:34px 24px 56px; }
+    header { background:var(--navy); color:#fff; padding:30px 34px; border-radius:8px; }
+    h1 { margin:0 0 8px; font-size:2rem; letter-spacing:0; }
+    h2 { margin:30px 0 12px; font-size:1.35rem; }
+    h3 { margin:0 0 7px; font-size:1rem; }
+    p { margin:8px 0; }
+    .subtitle { color:#d9e8f4; }
+    .status { display:inline-block; margin-top:17px; padding:6px 12px; border-radius:4px; background:#fff1cf; color:#744500; font-weight:bold; }
+    .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+    .panel { background:#fff; border:1px solid var(--line); border-radius:6px; padding:17px; }
+    .metric { border-top:4px solid var(--blue); }
+    .metric strong { display:block; color:var(--blue); font-size:1.45rem; }
+    .metric span { color:var(--muted); font-size:.9rem; }
+    table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); }
+    th,td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { background:#f7f9fb; color:#31404d; }
+    tr:last-child td { border-bottom:0; }
+    code { font-family:Consolas,"Liberation Mono",monospace; font-size:.88em; background:#f1f4f6; padding:2px 4px; border-radius:3px; }
+    pre { overflow-x:auto; padding:14px; background:#18232d; color:#e5edf3; border-radius:5px; }
+    .note { border-left:4px solid var(--amber); background:#fff8eb; padding:12px 16px; }
+    .failure { border-left:4px solid var(--red); background:#fff1f0; padding:12px 16px; }
+    .good { color:var(--green); font-weight:bold; }
+    .warn { color:var(--amber); font-weight:bold; }
+    .small { color:var(--muted); font-size:.9rem; }
+    footer { margin-top:30px; color:var(--muted); font-size:.85rem; }
+    @media (max-width:800px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:500px) { main { padding:18px 12px 36px; } .grid { grid-template-columns:1fr; } header { padding:22px; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Host CPU and Peripheral Path Latency Test Report</h1>
+    <p class="subtitle">Nsight Systems profiling of CPU scheduling, host memory, PCIe transfers and peripheral interaction</p>
+    <span class="status">PASS: measured performance checks passed</span>
+  </header>
+
+  <h2>Test Name</h2>
+  <div class="panel">
+    <h3>Host CPU, Memory and PCIe Peripheral Path Validation</h3>
+    <p>This system-level test measures CPU submission and wait behavior, pinned host-memory allocation, host-device transfers across the PCIe path, bidirectional peripheral traffic, CPU scheduling, and the effect of 2 MB hugepages. The GPU is treated as the PCIe endpoint used to exercise the host path, not as the primary subject of the test.</p>
+  </div>
+
+  <h2>Description</h2>
+  <p>The validation combines two focused workloads captured with NVIDIA Nsight Systems:</p>
+  <table>
+    <tr><th>Workload</th><th>Purpose</th><th>Capture</th></tr>
+    <tr><td>CPU submission and wait behavior</td><td>Measure CPU-side CUDA launch calls, synchronization waits, host allocation, and 1 MB host-peripheral round-trip latency.</td><td><code>cpu_gpu_launch_sync.nsys-rep</code></td></tr>
+    <tr><td>PCIe and host-memory peripheral path</td><td>Measure direct H2D/D2H bandwidth, copy-engine and SM-assisted transfers, bidirectional traffic, pinned memory, CPU scheduling, and hugepage behavior.</td><td><code>pcie_memory_latency.nsys-rep</code> and <code>cpu_pcie_memory_latency.nsys-rep</code></td></tr>
+  </table>
+
+  <h2>Procedure</h2>
+  <ol>
+    <li>Confirm the host CPU topology, NUMA layout, PCIe topology, driver/runtime versions, peripheral inventory, and idle system state.</li>
+    <li>Activate the project virtual environment and use one logical endpoint with <code>CUDA_VISIBLE_DEVICES=0</code> to keep the host-path comparison controlled.</li>
+    <li>Run the CPU submission and synchronization workload under Nsight Systems with OS runtime tracing.</li>
+    <li>Run the PCIe and host-memory tests selected by the <code>pcie_validation</code> and <code>memory_validation</code> markers, including a run with CPU context-switch tracing.</li>
+    <li>Export each <code>.nsys-rep</code> file to SQLite and review CPU waits, host allocations, copy API calls, transfer-engine activity, and PCIe traffic.</li>
+    <li>Compare per-call latency and bandwidth with thresholds; keep aggregate allocation and transfer time separate from endpoint latency.</li>
+  </ol>
+
+  <h2>Test Method</h2>
+  <p>Nsight Systems traced CUDA API calls, peripheral transfer operations, operating-system runtime calls, CPU process samples, and CPU context switches. GPU kernel records are retained only to identify time spent by the endpoint while the host is waiting. The primary report names supported by Nsight Systems 2025.6.3 were used:</p>
+  <p><code>cuda_api_sum</code>, <code>cuda_gpu_kern_sum</code>, <code>cuda_gpu_mem_time_sum</code>, and <code>cuda_gpu_mem_size_sum</code>.</p>
+  <p>Latency values reported by the Python test are measured in microseconds. Transfer bandwidth values are reported in GB/s by the validation code and by nvbandwidth. Nsight aggregate times include all calls in the capture and therefore are not equivalent to the latency of one API call.</p>
+
+  <h2>Environment</h2>
+  <table>
+    <tr><th>Component</th><th>Configuration</th></tr>
+    <tr><td>Host</td><td>SC009011168H0070; CentOS/Linux environment</td></tr>
+    <tr><td>PCIe peripheral endpoint</td><td>NVIDIA H100 PCIe, logical CUDA device 0; used to exercise the host I/O path</td></tr>
+    <tr><td>Endpoint state</td><td>0 MiB used before profiling; MIG disabled; persistence mode off</td></tr>
+    <tr><td>System focus</td><td>CPU scheduling, NUMA placement, pinned host memory, PCIe/root-complex traffic, copy engines, and synchronization waits</td></tr>
+    <tr><td>NVIDIA driver</td><td>595.45.04</td></tr>
+    <tr><td>CUDA</td><td>Runtime 13.0.20; driver reports CUDA 13.2 support</td></tr>
+    <tr><td>Nsight Systems</td><td>2025.6.3.343-256337165561v0</td></tr>
+    <tr><td>Nsight Compute</td><td>2026.1.0.0; executable <code>/usr/local/cuda-13.2/bin/ncu</code></td></tr>
+    <tr><td>Python and pytest</td><td>Python 3.12.13; pytest 9.1.1</td></tr>
+    <tr><td>Samples</td><td>200 kernel-launch samples and 200 synchronization samples</td></tr>
+    <tr><td>Memory mode</td><td>Hugepage validation reported 2 MB hugepages active</td></tr>
+  </table>
+
+  <h2>Results</h2>
+  <h3>CPU submission and host-peripheral synchronization latency</h3>
+  <div class="grid">
+    <div class="panel metric"><strong>21.24 us</strong><span>Kernel launch p50</span></div>
+    <div class="panel metric"><strong>24.18 us</strong><span>Kernel launch p95</span></div>
+    <div class="panel metric"><strong>3.01 us</strong><span>cudaDeviceSynchronize p50</span></div>
+    <div class="panel metric"><strong>3.15 us</strong><span>cudaDeviceSynchronize p95</span></div>
+  </div>
+  <table>
+    <tr><th>Measurement</th><th>Min</th><th>p50</th><th>Mean</th><th>p95</th><th>p99</th><th>Max</th></tr>
+    <tr><td>Kernel launch latency</td><td>20.00 us</td><td>21.24 us</td><td>21.61 us</td><td>24.18 us</td><td>26.48 us</td><td>27.75 us</td></tr>
+    <tr><td>cudaDeviceSynchronize overhead</td><td>2.88 us</td><td>3.01 us</td><td>3.02 us</td><td>3.15 us</td><td>3.29 us</td><td>3.47 us</td></tr>
+    <tr><td>CPU-GPU round trip, 1 MB</td><td>70.54 us</td><td>80.02 us</td><td>-</td><td>84.66 us</td><td>-</td><td>94.67 us</td></tr>
+  </table>
+  <p class="good">Both application-level latency assertions passed: kernel launch p50 was below 100 us and synchronization p95 was below 1,000 us.</p>
+
+  <h3>Direct H2D and D2H transfer results</h3>
+  <table>
+    <tr><th>Path</th><th>Measured bandwidth</th><th>Threshold</th><th>Result</th></tr>
+    <tr><td>Direct H2D, 1 GB x 8, NUMA-bound repeat</td><td>56.18 GB/s</td><td>40.95 GB/s</td><td class="good">PASS</td></tr>
+    <tr><td>Direct D2H, 1 GB x 8</td><td>54.80 GB/s</td><td>40.95 GB/s</td><td class="good">PASS</td></tr>
+    <tr><td>nvbandwidth H2D copy engine, NUMA-bound repeat</td><td>56.29 GB/s</td><td>40.00 GB/s</td><td class="good">PASS</td></tr>
+    <tr><td>nvbandwidth D2H copy engine</td><td>55.38 GB/s</td><td>40.00 GB/s</td><td class="good">PASS</td></tr>
+    <tr><td>H2D bidirectional copy engine</td><td>51.83 GB/s</td><td>40.00 GB/s</td><td class="good">PASS</td></tr>
+    <tr><td>D2H bidirectional copy engine</td><td>49.76 GB/s</td><td>35.00 GB/s</td><td class="good">PASS</td></tr>
+    <tr><td>nvbandwidth H2D SM path, unprofiled baseline</td><td>53.39 GB/s</td><td>30.00 GB/s</td><td class="good">PASS</td></tr>
+    <tr><td>nvbandwidth D2H SM path</td><td>52.80 GB/s</td><td>30.00 GB/s</td><td class="good">PASS</td></tr>
+  </table>
+
+  <h3>Hugepage and PyTorch transfer results</h3>
+  <table>
+    <tr><th>Condition</th><th>H2D</th><th>D2H</th><th>Observation</th></tr>
+    <tr><td>2 MB hugepages active, PyTorch 512 MB</td><td>55.88 GB/s</td><td>55.16 GB/s</td><td>Hugepage path active during validation.</td></tr>
+    <tr><td>nvbandwidth under hugepage test</td><td>55.92 GB/s H2D CE</td><td>55.34 GB/s D2H CE</td><td>Both exceeded their thresholds.</td></tr>
+  </table>
+
+  <h3>Nsight Compute endpoint diagnostic</h3>
+  <table>
+    <tr><th>Item</th><th>Result</th><th>System-level interpretation</th></tr>
+    <tr><td>Profiled test</td><td class="good">1 passed in 116.05 s</td><td><code>test_host_to_device_memcpy_sm</code> completed successfully under NCU.</td></tr>
+    <tr><td>Instrumented H2D SM bandwidth</td><td>36.22 GB/s</td><td>Above the 30.00 GB/s test threshold; lower than the 53.39 GB/s unprofiled baseline because NCU replays and instruments kernels.</td></tr>
+    <tr><td><code>stridingMemcpyKernel</code></td><td>24.8% achieved occupancy; 3.3% memory throughput</td><td>Endpoint diagnostic only. Register use of 72 per thread limits theoretical occupancy to 25%; this does not indicate a PCIe link fault.</td></tr>
+    <tr><td><code>spinKernelDevice</code></td><td>10.00 s; one thread and one block</td><td>Intentional benchmark wait behavior; exclude it from host PCIe performance conclusions.</td></tr>
+    <tr><td><code>memsetKernelDevice</code></td><td>67.04% memory throughput in one instance</td><td>Shows endpoint memory activity while validating the transfer; not the primary host-path KPI.</td></tr>
+  </table>
+  <p class="small">NCU is used here to diagnose endpoint copy kernels. Official host/peripheral bandwidth and latency values come from the unprofiled validation and Nsight Systems captures.</p>
+
+  <h3>Nsight Systems CPU and peripheral-path results</h3>
+  <table>
+    <tr><th>API or operation</th><th>Calls</th><th>Total</th><th>Average</th><th>Median</th><th>Maximum</th></tr>
+    <tr><td><code>cuStreamSynchronize</code></td><td>144</td><td>8.358 s</td><td>58.040 ms</td><td>10.191 ms</td><td>334.655 ms</td></tr>
+    <tr><td><code>cudaDeviceSynchronize</code></td><td>25</td><td>309.835 ms</td><td>12.394 ms</td><td>22.272 us</td><td>156.730 ms</td></tr>
+    <tr><td><code>cudaLaunchKernel</code></td><td>157</td><td>23.684 ms</td><td>150.852 us</td><td>11.599 us</td><td>4.784 ms</td></tr>
+    <tr><td><code>cuMemcpyAsync</code></td><td>780</td><td>44.202 ms</td><td>56.670 us</td><td>2.189 us</td><td>40.764 ms</td></tr>
+    <tr><td>Endpoint striding memcpy kernel</td><td>12</td><td>1.212 s</td><td>100.990 ms</td><td>100.634 ms</td><td>162.662 ms</td></tr>
+  </table>
+
+  <h3>Nsight GPU memory operation results</h3>
+  <table>
+    <tr><th>Direction</th><th>Count</th><th>Total time</th><th>Median time</th><th>Total data</th><th>Median size</th></tr>
+    <tr><td>Device to Host</td><td>351</td><td>4.887 s</td><td>10.779 ms</td><td>238,907.556 MB</td><td>536.871 MB</td></tr>
+    <tr><td>Host to Device</td><td>459</td><td>4.094 s</td><td>9.580 ms</td><td>206,921.794 MB</td><td>536.871 MB</td></tr>
+  </table>
+
+  <h2>Performance Improvement Opportunities</h2>
+  <table>
+    <tr><th>Priority</th><th>Action</th><th>Reason from this capture</th><th>Expected effect</th></tr>
+    <tr><td>1</td><td>Reuse pinned host buffers instead of allocating and freeing them for each transfer.</td><td><code>cudaHostAlloc</code> and host allocation APIs dominate aggregate CPU/API time.</td><td>Reduces CPU setup cost and removes allocation-related stalls.</td></tr>
+    <tr><td>2</td><td>Batch small transfers and use persistent <code>cudaMemcpyAsync</code> operations on dedicated streams.</td><td>Small transfers pay fixed launch and synchronization costs; the trace contains hundreds of copy operations.</td><td>Improves effective PCIe bandwidth and lowers per-transfer CPU overhead.</td></tr>
+    <tr><td>3</td><td>Replace broad stream/device waits with event-based waits for only the required buffer.</td><td>Stream synchronization totals include time waiting for outstanding transfer and endpoint work.</td><td>Allows CPU work and independent transfers to overlap with peripheral activity.</td></tr>
+    <tr><td>4</td><td>Pin the transfer thread to a CPU close to the PCIe root complex and bind memory to the matching NUMA node.</td><td>CPU scheduling and NUMA placement are host-side controls that directly affect DMA preparation and submission.</td><td>Reduces host staging and submission variability; validate with <code>numactl</code> and CPU affinity comparisons.</td></tr>
+    <tr><td>5</td><td>Keep 2 MB hugepages enabled for the intended buffer path and compare with a controlled non-hugepage run.</td><td>The capture reports hugepages active and shows approximately 55.9 GB/s H2D and 55.3 GB/s D2H copy-engine bandwidth.</td><td>Can reduce host page-management overhead; retain only if repeatable under the production buffer size.</td></tr>
+    <tr><td>6</td><td>Use a warm-up phase and steady-state measurement window before collecting production KPIs.</td><td>Initialization, library loading, allocation, and first-use costs inflate aggregate totals.</td><td>Produces more stable CPU/peripheral latency baselines.</td></tr>
+  </table>
+  <div class="note"><strong>Recommended next experiment:</strong> run the same transfer workload with reusable pinned buffers, NUMA/CPU affinity, and batched asynchronous copies. Compare p50/p95 host wait time, H2D/D2H bandwidth, allocation count, and the number of synchronization calls against this baseline.</div>
+
+  <h2>Test Execution Status</h2>
+  <table>
+    <tr><th>Run</th><th>Result</th><th>Details</th></tr>
+    <tr><td>CPU-GPU launch/sync run</td><td class="good">2 passed</td><td>Both focused latency tests passed in 21.54 seconds in the latest capture.</td></tr>
+    <tr><td>PCIe/memory run</td><td class="good">Measured checks passed</td><td>NUMA-bound direct H2D and copy-engine H2D checks passed; the D2D copy-engine case was waived because no numeric bandwidth value was returned.</td></tr>
+    <tr><td>Nsight Compute smoke run</td><td class="good">1 passed</td><td>NCU generated <code>artifacts/ncu/smoke.ncu-rep</code> and captured the endpoint copy kernels.</td></tr>
+  </table>
+
+  <h2>Test Commands</h2>
+  <h3>CPU-GPU launch and synchronization</h3>
+  <pre>export CUDA_VISIBLE_DEVICES=0
+export NODE_KERNEL_LAUNCH_SAMPLES=200
+export NODE_SYNC_OVERHEAD_SAMPLES=200
+
+nsys profile \
+  --trace=cuda,nvtx,osrt \
+  --cuda-memory-usage=false \
+  --sample=none \
+  --cpuctxsw=none \
+  --stats=true \
+  --force-overwrite=true \
+  -o artifacts/nsys/cpu_gpu_launch_sync \
+  python -m pytest -s -vv \
+    tests/test_node_validation.py::TestCPUGPULaunchAndSyncOverhead</pre>
+
+  <h3>PCIe and memory validation with CPU scheduling</h3>
+  <pre>nsys profile \
+  --trace=cuda,nvtx,osrt \
+  --sample=process-tree \
+  --cpuctxsw=process-tree \
+  --stats=true \
+  --force-overwrite=true \
+  -o artifacts/nsys/cpu_pcie_memory_latency \
+  python -m pytest -s -vv \
+    -m "pcie_validation or memory_validation" \
+    tests/test_node_validation.py</pre>
+
+  <h3>Report export</h3>
+  <pre>nsys stats \
+  --force-export=true \
+  --report cuda_api_sum \
+  --report cuda_gpu_kern_sum \
+  --report cuda_gpu_mem_time_sum \
+  --report cuda_gpu_mem_size_sum \
+  --format csv \
+  --output artifacts/nsys/cpu_pcie_memory_summary \
+  artifacts/nsys/cpu_pcie_memory_latency.nsys-rep</pre>
+
+  <h2>Conclusion</h2>
+  <p class="good">From a system perspective, the host CPU, pinned-memory path, PCIe transfer path, copy engines, bidirectional traffic, and hugepage configuration met the measured acceptance thresholds.</p>
+  <p>The main optimization target is host-side overhead rather than GPU compute: pinned-memory allocation, stream waits, CPU scheduling, NUMA placement, and the number and size of transfers. Aggregate synchronization totals include outstanding peripheral and endpoint work and must not be reported as single-call CPU latency.</p>
+  <p>The baseline is suitable for comparison. The NUMA-bound repeat confirms stable H2D performance at 56.18 GB/s direct and 56.29 GB/s copy-engine bandwidth. NCU adds endpoint-kernel diagnostics, while the host optimization focus remains pinned-buffer reuse, transfer batching, reduced broad synchronization, and repeatable CPU placement.</p>
+
+  <h2>Artifacts</h2>
+  <table>
+    <tr><th>Artifact</th><th>Purpose</th></tr>
+    <tr><td><code>cpu_gpu_launch_sync.nsys-rep</code></td><td>Detailed CPU-GPU launch and synchronization timeline.</td></tr>
+    <tr><td><code>pcie_memory_latency.nsys-rep</code></td><td>PCIe and memory capture without CPU context-switch tracing.</td></tr>
+    <tr><td><code>cpu_pcie_memory_latency.nsys-rep</code></td><td>PCIe and memory capture with process sampling and context-switch tracing.</td></tr>
+    <tr><td><code>cpu_pcie_memory_latency.sqlite</code></td><td>SQLite export used for Nsight summaries.</td></tr>
+    <tr><td><code>host_pcie_repeat.nsys-rep</code></td><td>Latest NUMA-bound H2D copy-engine capture with CPU scheduling tracing.</td></tr>
+    <tr><td><code>smoke.ncu-rep</code></td><td>Nsight Compute endpoint-kernel diagnostic capture.</td></tr>
+    <tr><td><code>cpu_gpu_summary_*.csv</code></td><td>Earlier CPU-GPU CUDA API, kernel, and memory summaries.</td></tr>
+  </table>
+
+  <footer>Prepared from the Nsight Systems and pytest console output supplied on 2026-08-28.</footer>
+</main>
+</body>
+</html>

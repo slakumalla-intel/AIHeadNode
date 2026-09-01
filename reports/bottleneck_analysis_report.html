@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Head Node — Bottleneck Analysis Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #21263a;
+      --border: #2e3450;
+      --accent-blue: #4f8ef7;
+      --accent-green: #22c55e;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #a855f7;
+      --accent-cyan: #06b6d4;
+      --text: #e2e8f0;
+      --text-muted: #8892b0;
+      --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+      --radius: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    .header {
+      background: linear-gradient(135deg, #0d1b3e 0%, #1a1d27 50%, #0d2137 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 36px 48px 28px;
+    }
+    .header-top { display: flex; align-items: center; gap: 18px; margin-bottom: 16px; }
+    .badge-intel {
+      background: #0071c5;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .badge-pass {
+      background: rgba(34,197,94,0.15);
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 4px;
+    }
+    h1 { font-size: 26px; font-weight: 700; color: #fff; }
+    .header-meta {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .meta-item { display: flex; flex-direction: column; }
+    .meta-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .meta-value { font-size: 13px; color: var(--text); font-family: var(--font-mono); }
+
+    /* ── Layout ─────────────────────────────────────────────────────────── */
+    .container { max-width: 1440px; margin: 0 auto; padding: 32px 48px 64px; }
+
+    /* ── Section titles ─────────────────────────────────────────────────── */
+    .section { margin-bottom: 48px; }
+    .section-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      border-left: 3px solid var(--accent-blue);
+      padding-left: 12px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Summary cards ──────────────────────────────────────────────────── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 40px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+    .card-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .card-value { font-size: 22px; font-weight: 700; font-family: var(--font-mono); }
+    .card-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .c-green { color: var(--accent-green); }
+    .c-amber { color: var(--accent-amber); }
+    .c-red   { color: var(--accent-red); }
+    .c-blue  { color: var(--accent-blue); }
+    .c-cyan  { color: var(--accent-cyan); }
+    .c-purple{ color: var(--accent-purple); }
+
+    /* ── KPI Table ──────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin-bottom: 32px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-family: var(--font-mono);
+    }
+    thead tr { background: var(--surface2); }
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(46,52,80,0.5);
+    }
+    tr:hover td { background: rgba(79,142,247,0.05); }
+    .status-ok       { color: var(--accent-green); font-weight: 700; }
+    .status-warn     { color: var(--accent-amber); font-weight: 700; }
+    .status-bottle   { color: var(--accent-red);   font-weight: 700; }
+    .eff-bar-wrap    { display: flex; align-items: center; gap: 8px; min-width: 140px; }
+    .eff-bar-bg      { flex: 1; height: 6px; background: var(--border); border-radius: 3px; }
+    .eff-bar-fill    { height: 6px; border-radius: 3px; }
+
+    /* ── Chart grid ─────────────────────────────────────────────────────── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+    }
+    .chart-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+    .chart-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Roofline ───────────────────────────────────────────────────────── */
+    .roofline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .roofline-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+    .roofline-prec { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .roofline-peak { font-size: 20px; font-weight: 700; font-family: var(--font-mono); }
+    .roofline-knee { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Bottleneck list ─────────────────────────────────────────────────── */
+    .bottleneck-list { display: flex; flex-direction: column; gap: 12px; }
+    .bottleneck-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent-amber);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+    }
+    .bn-title { font-size: 13px; font-weight: 700; color: var(--accent-amber); margin-bottom: 4px; }
+    .bn-detail { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+    .bn-mitigation { font-size: 12px; color: var(--text); }
+
+    /* ── Platform spec table ─────────────────────────────────────────────── */
+    .spec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .spec-table td:first-child { color: var(--text-muted); width: 55%; }
+
+    /* ── Test run log ────────────────────────────────────────────────────── */
+    .log-block {
+      background: #090b12;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      overflow-x: auto;
+      line-height: 1.7;
+    }
+    .log-pass   { color: var(--accent-green); }
+    .log-warn   { color: var(--accent-amber); }
+    .log-info   { color: #6a7fa8; }
+    .log-metric { color: var(--accent-cyan); }
+
+    /* ── Footer ─────────────────────────────────────────────────────────── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 48px;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════ HEADER ══════════════════════════════ -->
+<div class="header">
+  <div class="header-top">
+    <span class="badge-intel">Intel</span>
+    <span class="badge-pass">25 / 25 PASSED</span>
+  </div>
+  <h1>AI Head Node — Bottleneck Analysis Report</h1>
+  <div class="header-meta">
+    <div class="meta-item"><span class="meta-label">Host</span><span class="meta-value">SC009011168H0070</span></div>
+    <div class="meta-item"><span class="meta-label">Test Suite</span><span class="meta-value">test_bottleneck_analysis.py</span></div>
+    <div class="meta-item"><span class="meta-label">Run Date</span><span class="meta-value">2026-08-14  15:47:40 UTC</span></div>
+    <div class="meta-item"><span class="meta-label">Duration</span><span class="meta-value">32.56 s</span></div>
+    <div class="meta-item"><span class="meta-label">Python</span><span class="meta-value">3.12.13</span></div>
+    <div class="meta-item"><span class="meta-label">pytest</span><span class="meta-value">9.1.1</span></div>
+    <div class="meta-item"><span class="meta-label">Platform</span><span class="meta-value">Linux x86_64</span></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ══════════════════ EXECUTIVE SUMMARY CARDS ══════════════════ -->
+  <div class="section">
+    <div class="section-title">Executive Summary</div>
+    <div class="summary-grid">
+      <div class="card">
+        <div class="card-label">Tests Run</div>
+        <div class="card-value c-blue">25</div>
+        <div class="card-sub">10 test classes</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Passed</div>
+        <div class="card-value c-green">25</div>
+        <div class="card-sub">100 % pass rate</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Bottlenecks (E2E)</div>
+        <div class="card-value c-amber">3</div>
+        <div class="card-sub">Single-thread + FP16/FP32 GPU</div>
+      </div>
+      <div class="card">
+        <div class="card-label">CPU Sockets</div>
+        <div class="card-value c-cyan">1</div>
+        <div class="card-sub">224 physical cores</div>
+      </div>
+      <div class="card">
+        <div class="card-label">GPU Count</div>
+        <div class="card-value c-purple">4</div>
+        <div class="card-sub">H100-class, HBM3</div>
+      </div>
+      <div class="card">
+        <div class="card-label">CPU FP32 Peak</div>
+        <div class="card-value c-blue">27.2</div>
+        <div class="card-sub">TFLOPS (base clock)</div>
+      </div>
+      <div class="card">
+        <div class="card-label">GPU FP16 Peak</div>
+        <div class="card-value c-purple">756</div>
+        <div class="card-sub">TFLOPS / GPU</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Total HBM3 BW</div>
+        <div class="card-value c-green">8.0</div>
+        <div class="card-sub">TB/s (4 × 2 TB/s)</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Roofline Knee FP16</div>
+        <div class="card-value c-amber">378</div>
+        <div class="card-sub">FLOP / byte</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ CHART GRID ══════════════════ -->
+  <div class="section">
+    <div class="section-title">Performance Efficiency Overview</div>
+    <div class="chart-grid">
+
+      <!-- CPU Compute Efficiency -->
+      <div class="chart-card">
+        <div class="chart-title">TC-BN-01 — CPU FP32 GEMM Efficiency</div>
+        <div class="chart-subtitle">Measured TFLOPS vs 27.24 TFLOPS theoretical (base clock)</div>
+        <canvas id="cpuFP32Chart" height="220"></canvas>
+      </div>
+
+      <!-- GPU FP16 per-GPU -->
+      <div class="chart-card">
+        <div class="chart-title">TC-BN-03a — Per-GPU FP16 Tensor Core Efficiency</div>
+        <div class="chart-subtitle">Threshold: 60% (HBM-limited workload adjustment)</div>
+        <canvas id="gpuFP16Chart" height="220"></canvas>
+      </div>
+
+      <!-- HBM Bandwidth -->
+      <div class="chart-card">
+        <div class="chart-title">TC-BN-04 — HBM3 Bandwidth per GPU</div>
+        <div class="chart-subtitle">Measured vs 2.00 TB/s theoretical — threshold 80%</div>
+        <canvas id="hbmChart" height="220"></canvas>
+      </div>
+
+      <!-- PCIe Bandwidth -->
+      <div class="chart-card">
+        <div class="chart-title">TC-BN-05 — PCIe 5.0 H2D Bandwidth per GPU</div>
+        <div class="chart-subtitle">Measured vs 63.00 GB/s theoretical — threshold 65%</div>
+        <canvas id="pcieChart" height="220"></canvas>
+      </div>
+
+      <!-- Multi-GPU Scaling -->
+      <div class="chart-card">
+        <div class="chart-title">TC-BN-09 — Multi-GPU FP16 Scaling Efficiency</div>
+        <div class="chart-subtitle">Measured vs linear-ideal scaling — threshold 80%</div>
+        <canvas id="scalingChart" height="220"></canvas>
+      </div>
+
+      <!-- End-to-End Summary -->
+      <div class="chart-card">
+        <div class="chart-title">TC-BN-10 — End-to-End System Bottleneck Summary</div>
+        <div class="chart-subtitle">Efficiency % vs per-metric threshold</div>
+        <canvas id="e2eChart" height="220"></canvas>
+      </div>
+
+    </div>
+
+    <!-- Aggregate 4-GPU FP16 -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">TC-BN-03b — Aggregate 4-GPU FP16 TFLOPS (3 trials)</div>
+        <div class="chart-subtitle">Trial breakdown vs 3024 TFLOPS theoretical — threshold 60%</div>
+        <canvas id="agg4gpuChart" height="200"></canvas>
+      </div>
+
+      <!-- CPU DRAM vs HBM ratio -->
+      <div class="chart-card">
+        <div class="chart-title">TC-BN-02 / TC-BN-05 — Memory Hierarchy Bandwidth Ratios</div>
+        <div class="chart-subtitle">Bandwidth at each tier (log-scale context)</div>
+        <canvas id="memHierarchyChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ KPI TABLES ══════════════════ -->
+  <div class="section">
+    <div class="section-title">TC-BN-01 — CPU FP32 GEMM (Detailed KPI)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Configuration</th>
+            <th>Processes</th>
+            <th>BLAS Threads</th>
+            <th>Best TFLOPS</th>
+            <th>Median TFLOPS</th>
+            <th>Theoretical TFLOPS</th>
+            <th>Efficiency</th>
+            <th>Threshold</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Config A</td>
+            <td>1</td>
+            <td>32</td>
+            <td>5.136</td>
+            <td>4.970</td>
+            <td>27.238</td>
+            <td>
+              <div class="eff-bar-wrap">
+                18.86%
+                <div class="eff-bar-bg"><div class="eff-bar-fill" style="width:18.86%;background:#4f8ef7;"></div></div>
+              </div>
+            </td>
+            <td>5%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+          <tr>
+            <td>Config B</td>
+            <td>4</td>
+            <td>52</td>
+            <td>7.855</td>
+            <td>6.575</td>
+            <td>27.238</td>
+            <td>
+              <div class="eff-bar-wrap">
+                28.84%
+                <div class="eff-bar-bg"><div class="eff-bar-fill" style="width:28.84%;background:#4f8ef7;"></div></div>
+              </div>
+            </td>
+            <td>5%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TC-BN-02 — CPU DRAM Bandwidth</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Measured (GB/s)</th>
+            <th>Theoretical (GB/s)</th>
+            <th>Efficiency</th>
+            <th>Threshold</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>HBM/DRAM topology ratio</td>
+            <td>26.0× (HBM/DRAM)</td>
+            <td>≥ 10×</td>
+            <td>
+              <div class="eff-bar-wrap">
+                260%
+                <div class="eff-bar-bg"><div class="eff-bar-fill" style="width:100%;background:#22c55e;"></div></div>
+              </div>
+            </td>
+            <td>10×</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+          <tr>
+            <td>CPU DRAM BW (multi-thread STREAM Copy)</td>
+            <td>2134.02</td>
+            <td>307.20</td>
+            <td>
+              <div class="eff-bar-wrap">
+                694.7%
+                <div class="eff-bar-bg"><div class="eff-bar-fill" style="width:100%;background:#22c55e;"></div></div>
+              </div>
+            </td>
+            <td>75%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TC-BN-03 — GPU Compute Bottleneck</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Measured (TFLOPS)</th>
+            <th>Theoretical (TFLOPS)</th>
+            <th>Efficiency</th>
+            <th>Threshold</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GPU 0 FP16 Tensor Core</td>
+            <td>470.42</td>
+            <td>756.00</td>
+            <td><div class="eff-bar-wrap">62.2%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:62.2%;background:#22c55e;"></div></div></div></td>
+            <td>60%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+          <tr>
+            <td>GPU 1 FP16 Tensor Core</td>
+            <td>465.48</td>
+            <td>756.00</td>
+            <td><div class="eff-bar-wrap">61.6%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:61.6%;background:#22c55e;"></div></div></div></td>
+            <td>60%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+          <tr>
+            <td>GPU 2 FP16 Tensor Core</td>
+            <td>482.19</td>
+            <td>756.00</td>
+            <td><div class="eff-bar-wrap">63.8%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:63.8%;background:#22c55e;"></div></div></div></td>
+            <td>60%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+          <tr>
+            <td>GPU 3 FP16 Tensor Core</td>
+            <td>485.26</td>
+            <td>756.00</td>
+            <td><div class="eff-bar-wrap">64.2%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:64.2%;background:#22c55e;"></div></div></div></td>
+            <td>60%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+          <tr>
+            <td>4-GPU Aggregate FP16</td>
+            <td>1900.96</td>
+            <td>3024.00</td>
+            <td><div class="eff-bar-wrap">62.9%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:62.9%;background:#22c55e;"></div></div></div></td>
+            <td>60%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TC-BN-04 — HBM3 Bandwidth per GPU</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>GPU</th>
+            <th>Measured (TB/s)</th>
+            <th>Theoretical (TB/s)</th>
+            <th>Efficiency</th>
+            <th>Threshold</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>GPU 0 HBM3 BW</td><td>1.855</td><td>2.000</td><td><div class="eff-bar-wrap">92.76%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:92.76%;background:#22c55e;"></div></div></div></td><td>80%</td><td class="status-ok">✓ PASS</td></tr>
+          <tr><td>GPU 1 HBM3 BW</td><td>1.857</td><td>2.000</td><td><div class="eff-bar-wrap">92.87%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:92.87%;background:#22c55e;"></div></div></div></td><td>80%</td><td class="status-ok">✓ PASS</td></tr>
+          <tr><td>GPU 2 HBM3 BW</td><td>1.855</td><td>2.000</td><td><div class="eff-bar-wrap">92.76%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:92.76%;background:#22c55e;"></div></div></div></td><td>80%</td><td class="status-ok">✓ PASS</td></tr>
+          <tr><td>GPU 3 HBM3 BW</td><td>1.855</td><td>2.000</td><td><div class="eff-bar-wrap">92.76%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:92.76%;background:#22c55e;"></div></div></div></td><td>80%</td><td class="status-ok">✓ PASS</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TC-BN-05 — PCIe 5.0 H2D Bandwidth</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>GPU</th>
+            <th>Measured (GB/s)</th>
+            <th>Theoretical (GB/s)</th>
+            <th>Efficiency</th>
+            <th>Threshold</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>GPU 0 H2D PCIe</td><td>56.287</td><td>63.000</td><td><div class="eff-bar-wrap">89.34%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:89.34%;background:#22c55e;"></div></div></div></td><td>65%</td><td class="status-ok">✓ PASS</td></tr>
+          <tr><td>GPU 1 H2D PCIe</td><td>56.217</td><td>63.000</td><td><div class="eff-bar-wrap">89.23%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:89.23%;background:#22c55e;"></div></div></div></td><td>65%</td><td class="status-ok">✓ PASS</td></tr>
+          <tr><td>GPU 2 H2D PCIe</td><td>56.325</td><td>63.000</td><td><div class="eff-bar-wrap">89.40%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:89.40%;background:#22c55e;"></div></div></div></td><td>65%</td><td class="status-ok">✓ PASS</td></tr>
+          <tr><td>GPU 3 H2D PCIe</td><td>56.326</td><td>63.000</td><td><div class="eff-bar-wrap">89.41%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:89.41%;background:#22c55e;"></div></div></div></td><td>65%</td><td class="status-ok">✓ PASS</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TC-BN-06 — NVLink Bandwidth</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Measured (GB/s)</th>
+            <th>Theoretical (GB/s)</th>
+            <th>Efficiency</th>
+            <th>Threshold</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>NVLink P2P BW GPU 0→1</td>
+            <td>264.358</td>
+            <td>300.000</td>
+            <td><div class="eff-bar-wrap">88.12%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:88.12%;background:#22c55e;"></div></div></div></td>
+            <td>70%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+          <tr>
+            <td>NVLink faster than PCIe</td>
+            <td>264.4 GB/s</td>
+            <td>> 63 GB/s PCIe</td>
+            <td><div class="eff-bar-wrap">4.2×<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:100%;background:#22c55e;"></div></div></div></td>
+            <td>1×</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TC-BN-07 — Roofline Model Analysis (All Precisions)</div>
+
+    <div class="roofline-grid">
+      <div class="roofline-card">
+        <div class="roofline-prec c-blue">FP16 Tensor Core</div>
+        <div class="roofline-peak">756.0 <small style="font-size:13px;">TFLOPS</small></div>
+        <div class="roofline-knee">Knee: <strong>378.0</strong> FLOP/byte</div>
+        <div class="roofline-knee">HBM: 2.00 TB/s</div>
+      </div>
+      <div class="roofline-card">
+        <div class="roofline-prec c-purple">BF16 Tensor Core</div>
+        <div class="roofline-peak">989.0 <small style="font-size:13px;">TFLOPS</small></div>
+        <div class="roofline-knee">Knee: <strong>494.5</strong> FLOP/byte</div>
+        <div class="roofline-knee">HBM: 2.00 TB/s</div>
+      </div>
+      <div class="roofline-card">
+        <div class="roofline-prec c-cyan">FP32 CUDA Core</div>
+        <div class="roofline-peak">67.0 <small style="font-size:13px;">TFLOPS</small></div>
+        <div class="roofline-knee">Knee: <strong>33.5</strong> FLOP/byte</div>
+        <div class="roofline-knee">HBM: 2.00 TB/s</div>
+      </div>
+      <div class="roofline-card">
+        <div class="roofline-prec c-green">FP64 Tensor Core</div>
+        <div class="roofline-peak">34.0 <small style="font-size:13px;">TFLOPS</small></div>
+        <div class="roofline-knee">Knee: <strong>17.0</strong> FLOP/byte</div>
+        <div class="roofline-knee">HBM: 2.00 TB/s</div>
+      </div>
+      <div class="roofline-card">
+        <div class="roofline-prec c-amber">INT8 Tensor Core</div>
+        <div class="roofline-peak">3958.0 <small style="font-size:13px;">TOPS</small></div>
+        <div class="roofline-knee">Knee: <strong>1979.0</strong> OP/byte</div>
+        <div class="roofline-knee">HBM: 2.00 TB/s</div>
+      </div>
+    </div>
+
+    <div class="chart-grid" style="grid-template-columns:1fr;">
+      <div class="chart-card">
+        <div class="chart-title">Roofline Model — Peak Compute vs Arithmetic Intensity Knee (per Precision)</div>
+        <div class="chart-subtitle">Horizontal axis = roofline knee (FLOP/byte). Vertical axis = peak performance (TFLOPS). Kernels left of knee are memory-bound; right are compute-bound.</div>
+        <canvas id="rooflineChart" height="260"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TC-BN-08 — CPU-GPU Pipeline Bottleneck</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Stage</th>
+            <th>Avg Time (s)</th>
+            <th>Ratio vs GPU</th>
+            <th>Limit</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>CPU Preprocess</td><td>0.0353</td><td>0.47×</td><td>—</td><td class="status-ok">Non-blocking</td></tr>
+          <tr><td>H2D Copy</td><td>0.0153</td><td>0.20×</td><td>—</td><td class="status-ok">Non-blocking</td></tr>
+          <tr><td>Host Stage (Preprocess + H2D)</td><td>0.0506</td><td>0.67×</td><td>≤ 1.25×</td><td class="status-ok">✓ PASS</td></tr>
+          <tr><td>GPU Compute</td><td>0.0759</td><td>1.00× (reference)</td><td>—</td><td class="status-ok">Reference</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TC-BN-09 — Multi-GPU Scaling Efficiency</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Config</th>
+            <th>Measured (TFLOPS)</th>
+            <th>Ideal Linear (TFLOPS)</th>
+            <th>Efficiency</th>
+            <th>Threshold</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2-GPU FP16 scaling</td>
+            <td>935.52</td>
+            <td>928.97</td>
+            <td><div class="eff-bar-wrap">100.71%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:100%;background:#22c55e;"></div></div></div></td>
+            <td>80%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+          <tr>
+            <td>4-GPU FP16 scaling</td>
+            <td>1891.55</td>
+            <td>1856.98</td>
+            <td><div class="eff-bar-wrap">101.86%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:100%;background:#22c55e;"></div></div></div></td>
+            <td>80%</td>
+            <td class="status-ok">✓ PASS</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TC-BN-10 — End-to-End System Bottleneck Report</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Measured</th>
+            <th>Theoretical</th>
+            <th>Unit</th>
+            <th>Efficiency</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CPU DRAM BW (single-thread STREAM)</td>
+            <td>44.13</td>
+            <td>307.20</td>
+            <td>GB/s</td>
+            <td><div class="eff-bar-wrap">14.4%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:14.4%;background:#ef4444;"></div></div></div></td>
+            <td class="status-bottle">⚠ BOTTLENECK</td>
+          </tr>
+          <tr>
+            <td>GPU 0 FP16 Tensor Core</td>
+            <td>466.89</td>
+            <td>756.00</td>
+            <td>TFLOPS</td>
+            <td><div class="eff-bar-wrap">61.8%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:61.8%;background:#f59e0b;"></div></div></div></td>
+            <td class="status-bottle">⚠ BOTTLENECK</td>
+          </tr>
+          <tr>
+            <td>GPU 0 FP32 CUDA Core</td>
+            <td>16.01</td>
+            <td>67.00</td>
+            <td>TFLOPS</td>
+            <td><div class="eff-bar-wrap">23.9%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:23.9%;background:#ef4444;"></div></div></div></td>
+            <td class="status-bottle">⚠ BOTTLENECK</td>
+          </tr>
+          <tr>
+            <td>GPU 0 HBM3 BW</td>
+            <td>1.851</td>
+            <td>2.00</td>
+            <td>TB/s</td>
+            <td><div class="eff-bar-wrap">92.6%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:92.6%;background:#22c55e;"></div></div></div></td>
+            <td class="status-ok">✓ OK</td>
+          </tr>
+          <tr>
+            <td>GPU 0 PCIe H2D BW</td>
+            <td>55.39</td>
+            <td>63.00</td>
+            <td>GB/s</td>
+            <td><div class="eff-bar-wrap">87.9%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:87.9%;background:#22c55e;"></div></div></div></td>
+            <td class="status-ok">✓ OK</td>
+          </tr>
+          <tr>
+            <td>NVLink BW (GPU 0→1)</td>
+            <td>265.12</td>
+            <td>300.00</td>
+            <td>GB/s</td>
+            <td><div class="eff-bar-wrap">88.4%<div class="eff-bar-bg"><div class="eff-bar-fill" style="width:88.4%;background:#22c55e;"></div></div></div></td>
+            <td class="status-ok">✓ OK</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════ KNOWN BOTTLENECKS ══════════════════ -->
+  <div class="section">
+    <div class="section-title">TC-BN-10 — Known System Bottlenecks & Mitigations</div>
+    <div class="bottleneck-list">
+      <div class="bottleneck-item">
+        <div class="bn-title">⚠  Host PCIe (data ingestion)</div>
+        <div class="bn-detail">PCIe 5.0 ×16 = 63 GB/s per GPU  &lt;&lt;  HBM3 = 3350 GB/s  |  Ratio: 32× HBM/PCIe</div>
+        <div class="bn-mitigation">Mitigation: Use in-GPU preprocessing, NVLink-based data redistribution, or PCIe switches.</div>
+      </div>
+      <div class="bottleneck-item">
+        <div class="bn-title">⚠  CPU DRAM Bandwidth</div>
+        <div class="bn-detail">CPU DRAM peak = 307 GB/s  &lt;&lt;  HBM3 total = 8000 GB/s  |  Ratio: 26× HBM/DRAM</div>
+        <div class="bn-mitigation">Mitigation: Pre-process data on GPU, use NUMA-local allocation, or async prefetch.</div>
+      </div>
+      <div class="bottleneck-item">
+        <div class="bn-title">⚠  CPU FP32 vs GPU FP32</div>
+        <div class="bn-detail">CPU FP32 turbo = 56 TFLOPS  &lt;&lt;  GPU total FP32 = 268 TFLOPS  |  Ratio: 5× GPU/CPU</div>
+        <div class="bn-mitigation">Mitigation: Offload all FP32 workloads to GPU; CPU handles orchestration only.</div>
+      </div>
+      <div class="bottleneck-item">
+        <div class="bn-title">⚠  NVLink Fabric (GPU-to-GPU)</div>
+        <div class="bn-detail">NVLink total BW = 1200 GB/s — not a bottleneck vs HBM but limits all-reduce in training  |  Ratio: 0.60× NVLink/HBM</div>
+        <div class="bn-mitigation">Mitigation: Overlap all-reduce with compute; use ring-all-reduce or NCCL overlap.</div>
+      </div>
+      <div class="bottleneck-item">
+        <div class="bn-title">⚠  Memory-Bound Kernels (low Arithmetic Intensity)</div>
+        <div class="bn-detail">Any kernel with AI &lt; 378 FLOP/byte is HBM-bandwidth-limited on this platform  |  Roofline knee = 378 FLOP/byte</div>
+        <div class="bn-mitigation">Mitigation: Fuse kernels to increase arithmetic intensity; use Flash Attention.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ PLATFORM SPECS ══════════════════ -->
+  <div class="section">
+    <div class="section-title">Theoretical Platform Specifications</div>
+    <div class="spec-grid">
+      <div class="table-wrap">
+        <table class="spec-table">
+          <thead><tr><th colspan="2">CPU</th></tr></thead>
+          <tbody>
+            <tr><td>Physical cores</td><td>224</td></tr>
+            <tr><td>Logical threads</td><td>224</td></tr>
+            <tr><td>FP32 peak — base (TFLOPS)</td><td>27.2</td></tr>
+            <tr><td>FP32 peak — turbo (TFLOPS)</td><td>55.9</td></tr>
+            <tr><td>DRAM BW peak (GB/s)</td><td>307.2</td></tr>
+            <tr><td>L3 cache total (MB)</td><td>640</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table class="spec-table">
+          <thead><tr><th colspan="2">GPU (per device)</th></tr></thead>
+          <tbody>
+            <tr><td>GPU count</td><td>4</td></tr>
+            <tr><td>FP32 peak (TFLOPS)</td><td>67.0</td></tr>
+            <tr><td>FP16 peak (TFLOPS)</td><td>756.0</td></tr>
+            <tr><td>BF16 peak (TFLOPS)</td><td>989.0</td></tr>
+            <tr><td>INT8 peak (TOPS)</td><td>3958.0</td></tr>
+            <tr><td>FP8  peak (TFLOPS)</td><td>3958.0</td></tr>
+            <tr><td>FP64 peak (TFLOPS)</td><td>34.0</td></tr>
+            <tr><td>HBM3 capacity (GB)</td><td>79</td></tr>
+            <tr><td>HBM3 BW / GPU (TB/s)</td><td>2.00</td></tr>
+            <tr><td>Total HBM3 BW (TB/s)</td><td>8.00</td></tr>
+            <tr><td>Inter-GPU BW / GPU (GB/s)</td><td>300</td></tr>
+            <tr><td>PCIe 5.0 H2D BW (GB/s)</td><td>63</td></tr>
+            <tr><td>Aggregate GPU FP16 (TFLOPS)</td><td>3024</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ TEST LOG ══════════════════ -->
+  <div class="section">
+    <div class="section-title">Test Execution Summary</div>
+    <div class="log-block">
+<span class="log-info">platform linux -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0</span>
+<span class="log-info">rootdir: /home/workspace/AIHeadNode  |  configfile: pytest.ini  |  timeout: 1800.0s</span>
+<span class="log-info">collected 25 items</span>
+
+<span class="log-pass">PASSED</span> TestCPUComputeBottleneck::test_cpu_fp32_efficiency_report                <span class="log-metric">[  4%]</span>
+<span class="log-pass">PASSED</span> TestCPUMemoryBandwidthBottleneck::test_cpu_dram_bandwidth_vs_hbm         <span class="log-metric">[  8%]</span>
+<span class="log-pass">PASSED</span> TestCPUMemoryBandwidthBottleneck::test_cpu_dram_bandwidth_measured        <span class="log-metric">[ 12%]</span>
+<span class="log-pass">PASSED</span> TestGPUComputeBottleneck::test_per_gpu_fp16_efficiency                     <span class="log-metric">[ 16%]</span>
+<span class="log-pass">PASSED</span> TestGPUComputeBottleneck::test_aggregate_4gpu_fp16_tflops                 <span class="log-metric">[ 20%]</span>
+<span class="log-pass">PASSED</span> TestHBMBandwidthBottleneck::test_hbm_bandwidth_per_gpu_vs_theoretical      <span class="log-metric">[ 24%]</span>
+<span class="log-pass">PASSED</span> TestHBMBandwidthBottleneck::test_hbm_is_limiting_for_memory_bound_kernels  <span class="log-metric">[ 28%]</span>
+<span class="log-pass">PASSED</span> TestPCIeBottleneck::test_pcie_h2d_bandwidth_vs_theoretical                 <span class="log-metric">[ 32%]</span>
+<span class="log-pass">PASSED</span> TestPCIeBottleneck::test_pcie_bottleneck_ratio_vs_hbm                      <span class="log-metric">[ 36%]</span>
+<span class="log-pass">PASSED</span> TestNVLinkBottleneck::test_nvlink_bw_vs_theoretical                         <span class="log-metric">[ 40%]</span>
+<span class="log-pass">PASSED</span> TestNVLinkBottleneck::test_nvlink_faster_than_pcie_bottleneck               <span class="log-metric">[ 44%]</span>
+<span class="log-pass">PASSED</span> TestRooflineAnalysis::test_roofline_knee_fp16                               <span class="log-metric">[ 48%]</span>
+<span class="log-pass">PASSED</span> TestRooflineAnalysis::test_roofline_memory_bound_regime                     <span class="log-metric">[ 52%]</span>
+<span class="log-pass">PASSED</span> TestRooflineAnalysis::test_roofline_compute_bound_regime                    <span class="log-metric">[ 56%]</span>
+<span class="log-pass">PASSED</span> TestRooflineAnalysis::test_roofline_knee_per_precision[FP16-756.0]          <span class="log-metric">[ 60%]</span>
+<span class="log-pass">PASSED</span> TestRooflineAnalysis::test_roofline_knee_per_precision[BF16-989.0]          <span class="log-metric">[ 64%]</span>
+<span class="log-pass">PASSED</span> TestRooflineAnalysis::test_roofline_knee_per_precision[FP32-67.0]           <span class="log-metric">[ 68%]</span>
+<span class="log-pass">PASSED</span> TestRooflineAnalysis::test_roofline_knee_per_precision[FP64-34.0]           <span class="log-metric">[ 72%]</span>
+<span class="log-pass">PASSED</span> TestRooflineAnalysis::test_roofline_knee_per_precision[INT8-3958.0]         <span class="log-metric">[ 76%]</span>
+<span class="log-pass">PASSED</span> TestCPUGPUPipelineBottleneck::test_data_preprocessing_not_bottleneck        <span class="log-metric">[ 80%]</span>
+<span class="log-pass">PASSED</span> TestMultiGPUScalingBottleneck::test_scaling_efficiency_2_vs_1_gpu           <span class="log-metric">[ 84%]</span>
+<span class="log-pass">PASSED</span> TestMultiGPUScalingBottleneck::test_scaling_efficiency_4_vs_1_gpu           <span class="log-metric">[ 88%]</span>
+<span class="log-pass">PASSED</span> TestSystemLevelSummary::test_theoretical_platform_summary                   <span class="log-metric">[ 92%]</span>
+<span class="log-pass">PASSED</span> TestSystemLevelSummary::test_known_bottlenecks_summary                      <span class="log-metric">[ 96%]</span>
+<span class="log-pass">PASSED</span> TestSystemLevelSummary::test_end_to_end_bottleneck_report                   <span class="log-metric">[100%]</span>
+
+<span class="log-warn">15 warnings  (multiprocessing fork deprecation)</span>
+<span class="log-pass">======================== 25 passed in 32.56s ========================</span>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  <span>AI Head Node — Bottleneck Analysis Report &nbsp;|&nbsp; Generated 2026-08-14 15:48:12 UTC</span>
+  <span>Host: SC009011168H0070 &nbsp;|&nbsp; Suite: test_bottleneck_analysis.py &nbsp;|&nbsp; 25/25 PASSED</span>
+</div>
+
+<!-- ══════════════════════════ CHARTS JS ══════════════════════════ -->
+<script>
+/* ── shared palette ─────────────────────────────────────────────── */
+const GREEN  = '#22c55e';
+const AMBER  = '#f59e0b';
+const RED    = '#ef4444';
+const BLUE   = '#4f8ef7';
+const PURPLE = '#a855f7';
+const CYAN   = '#06b6d4';
+const MUTED  = '#2e3450';
+
+const gridOpts = {
+  color: 'rgba(46,52,80,0.6)',
+  drawBorder: false,
+};
+const tickFont = { family: "'JetBrains Mono', monospace", size: 11, color: '#8892b0' };
+const legendFont = { family: "'JetBrains Mono', monospace", size: 11, color: '#e2e8f0' };
+Chart.defaults.color = '#8892b0';
+
+/* helper: colour by efficiency */
+function effColor(eff, threshold) {
+  if (eff >= 85) return GREEN;
+  if (eff >= threshold) return AMBER;
+  return RED;
+}
+
+/* ── 1. CPU FP32 GEMM ─────────────────────────────────────────── */
+new Chart(document.getElementById('cpuFP32Chart'), {
+  type: 'bar',
+  data: {
+    labels: ['Config A\n1 proc × 32 threads', 'Config B\n4 procs × 52 threads'],
+    datasets: [
+      {
+        label: 'Measured (TFLOPS)',
+        data: [5.136, 7.855],
+        backgroundColor: [BLUE, PURPLE],
+        borderRadius: 4,
+      },
+      {
+        label: 'Theoretical (TFLOPS)',
+        data: [27.238, 27.238],
+        backgroundColor: 'rgba(255,255,255,0.07)',
+        borderColor: 'rgba(255,255,255,0.2)',
+        borderWidth: 1,
+        borderRadius: 4,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { labels: { font: legendFont, color: '#e2e8f0' } },
+      tooltip: { mode: 'index' }
+    },
+    scales: {
+      x: { grid: gridOpts, ticks: { font: tickFont } },
+      y: {
+        grid: gridOpts,
+        ticks: { font: tickFont, callback: v => v + ' T' },
+        title: { display: true, text: 'TFLOPS', font: tickFont, color: '#8892b0' }
+      }
+    }
+  }
+});
+
+/* ── 2. Per-GPU FP16 ─────────────────────────────────────────── */
+const gpuFp16Data = [470.42, 465.48, 482.19, 485.26];
+const gpuFp16Th   = 756;
+new Chart(document.getElementById('gpuFP16Chart'), {
+  type: 'bar',
+  data: {
+    labels: ['GPU 0', 'GPU 1', 'GPU 2', 'GPU 3'],
+    datasets: [
+      {
+        label: 'Measured (TFLOPS)',
+        data: gpuFp16Data,
+        backgroundColor: gpuFp16Data.map(v => effColor(v/gpuFp16Th*100, 60)),
+        borderRadius: 4,
+      },
+      {
+        label: 'Theoretical 756 TFLOPS',
+        data: [gpuFp16Th, gpuFp16Th, gpuFp16Th, gpuFp16Th],
+        type: 'line',
+        borderColor: 'rgba(255,255,255,0.3)',
+        borderDash: [6, 3],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+      },
+      {
+        label: 'Threshold 60%',
+        data: [453.6, 453.6, 453.6, 453.6],
+        type: 'line',
+        borderColor: AMBER,
+        borderDash: [4, 4],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { font: legendFont, color: '#e2e8f0' } } },
+    scales: {
+      x: { grid: gridOpts, ticks: { font: tickFont } },
+      y: { grid: gridOpts, ticks: { font: tickFont, callback: v => v + ' T' }, min: 400, max: 800 }
+    }
+  }
+});
+
+/* ── 3. HBM Bandwidth ─────────────────────────────────────────── */
+const hbmData = [1.855, 1.857, 1.855, 1.855];
+new Chart(document.getElementById('hbmChart'), {
+  type: 'bar',
+  data: {
+    labels: ['GPU 0', 'GPU 1', 'GPU 2', 'GPU 3'],
+    datasets: [
+      {
+        label: 'Measured HBM3 BW (TB/s)',
+        data: hbmData,
+        backgroundColor: GREEN,
+        borderRadius: 4,
+      },
+      {
+        label: 'Theoretical 2.00 TB/s',
+        data: [2, 2, 2, 2],
+        type: 'line',
+        borderColor: 'rgba(255,255,255,0.3)',
+        borderDash: [6, 3],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+      },
+      {
+        label: 'Threshold 80%',
+        data: [1.6, 1.6, 1.6, 1.6],
+        type: 'line',
+        borderColor: AMBER,
+        borderDash: [4, 4],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { font: legendFont, color: '#e2e8f0' } } },
+    scales: {
+      x: { grid: gridOpts, ticks: { font: tickFont } },
+      y: { grid: gridOpts, ticks: { font: tickFont, callback: v => v + ' TB/s' }, min: 1.5, max: 2.1 }
+    }
+  }
+});
+
+/* ── 4. PCIe Bandwidth ─────────────────────────────────────────── */
+const pcieData = [56.287, 56.217, 56.325, 56.326];
+new Chart(document.getElementById('pcieChart'), {
+  type: 'bar',
+  data: {
+    labels: ['GPU 0', 'GPU 1', 'GPU 2', 'GPU 3'],
+    datasets: [
+      {
+        label: 'Measured H2D BW (GB/s)',
+        data: pcieData,
+        backgroundColor: CYAN,
+        borderRadius: 4,
+      },
+      {
+        label: 'Theoretical 63 GB/s',
+        data: [63, 63, 63, 63],
+        type: 'line',
+        borderColor: 'rgba(255,255,255,0.3)',
+        borderDash: [6, 3],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+      },
+      {
+        label: 'Threshold 65%',
+        data: [40.95, 40.95, 40.95, 40.95],
+        type: 'line',
+        borderColor: AMBER,
+        borderDash: [4, 4],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { font: legendFont, color: '#e2e8f0' } } },
+    scales: {
+      x: { grid: gridOpts, ticks: { font: tickFont } },
+      y: { grid: gridOpts, ticks: { font: tickFont, callback: v => v + ' GB/s' }, min: 0, max: 70 }
+    }
+  }
+});
+
+/* ── 5. Multi-GPU scaling ─────────────────────────────────────── */
+new Chart(document.getElementById('scalingChart'), {
+  type: 'bar',
+  data: {
+    labels: ['2-GPU', '4-GPU'],
+    datasets: [
+      {
+        label: 'Measured TFLOPS',
+        data: [935.52, 1891.55],
+        backgroundColor: [GREEN, GREEN],
+        borderRadius: 4,
+      },
+      {
+        label: 'Ideal Linear Scaling',
+        data: [928.97, 1856.98],
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        borderColor: 'rgba(255,255,255,0.25)',
+        borderWidth: 1,
+        borderRadius: 4,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { labels: { font: legendFont, color: '#e2e8f0' } },
+      tooltip: {
+        callbacks: {
+          afterBody: (items) => {
+            const m = items[0]?.raw;
+            const t = items[1]?.raw;
+            if (m && t) return ['Efficiency: ' + (m/t*100).toFixed(1) + '%'];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: gridOpts, ticks: { font: tickFont } },
+      y: { grid: gridOpts, ticks: { font: tickFont, callback: v => v + ' T' } }
+    }
+  }
+});
+
+/* ── 6. E2E bottleneck radar-style horizontal bar ────────────── */
+const e2eLabels = [
+  'CPU DRAM BW\n(single-thread)',
+  'GPU 0 FP16\nTensor Core',
+  'GPU 0 FP32\nCUDA Core',
+  'GPU 0 HBM3 BW',
+  'GPU 0 PCIe H2D',
+  'NVLink GPU 0→1'
+];
+const e2eEff    = [14.4, 61.8, 23.9, 92.6, 87.9, 88.4];
+const e2eColors = e2eEff.map((v, i) => {
+  const thresholds = [70, 70, 70, 80, 65, 70];
+  return v >= 85 ? GREEN : v >= thresholds[i] ? AMBER : RED;
+});
+new Chart(document.getElementById('e2eChart'), {
+  type: 'bar',
+  data: {
+    labels: e2eLabels,
+    datasets: [{
+      label: 'Efficiency (%)',
+      data: e2eEff,
+      backgroundColor: e2eColors,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      annotation: {},
+    },
+    scales: {
+      x: {
+        grid: gridOpts,
+        ticks: { font: tickFont, callback: v => v + '%' },
+        min: 0, max: 110,
+      },
+      y: { grid: { display: false }, ticks: { font: tickFont } }
+    }
+  }
+});
+
+/* ── 7. 4-GPU aggregate FP16 trials ─────────────────────────── */
+new Chart(document.getElementById('agg4gpuChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Trial 1', 'Trial 2', 'Trial 3'],
+    datasets: [
+      {
+        label: 'Aggregate FP16 TFLOPS',
+        data: [1900.96, 1900.38, 1897.99],
+        backgroundColor: [PURPLE, PURPLE, PURPLE],
+        borderRadius: 4,
+      },
+      {
+        label: 'Theoretical 3024 TFLOPS',
+        data: [3024, 3024, 3024],
+        type: 'line',
+        borderColor: 'rgba(255,255,255,0.25)',
+        borderDash: [6, 3],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+      },
+      {
+        label: 'Threshold 60% (1814 T)',
+        data: [1814.4, 1814.4, 1814.4],
+        type: 'line',
+        borderColor: AMBER,
+        borderDash: [4, 4],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { font: legendFont, color: '#e2e8f0' } } },
+    scales: {
+      x: { grid: gridOpts, ticks: { font: tickFont } },
+      y: { grid: gridOpts, ticks: { font: tickFont, callback: v => v + ' T' }, min: 1700, max: 3100 }
+    }
+  }
+});
+
+/* ── 8. Memory hierarchy bandwidth ──────────────────────────── */
+new Chart(document.getElementById('memHierarchyChart'), {
+  type: 'bar',
+  data: {
+    labels: [
+      'CPU DRAM\n(single-thread)',
+      'CPU DRAM\n(multi-thread)',
+      'PCIe 5.0 H2D\n(per GPU)',
+      'NVLink\n(GPU 0→1)',
+      'HBM3\n(per GPU)',
+      'HBM3 Total\n(4 GPU)'
+    ],
+    datasets: [{
+      label: 'Bandwidth (GB/s)',
+      data: [44.13, 2134.02, 56.29, 264.36, 1855, 7420],
+      backgroundColor: [RED, BLUE, CYAN, GREEN, PURPLE, AMBER],
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ctx.raw.toFixed(1) + ' GB/s' } }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: tickFont } },
+      y: {
+        type: 'logarithmic',
+        grid: gridOpts,
+        ticks: {
+          font: tickFont,
+          callback: v => {
+            if ([10, 100, 1000, 10000].includes(v)) return v >= 1000 ? (v/1000)+'k' : v;
+            return '';
+          }
+        },
+        title: { display: true, text: 'GB/s (log scale)', font: tickFont, color: '#8892b0' }
+      }
+    }
+  }
+});
+
+/* ── 9. Roofline knee scatter ─────────────────────────────────── */
+new Chart(document.getElementById('rooflineChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [
+      {
+        label: 'INT8 Tensor Core',
+        data: [{ x: 1979, y: 3958 }],
+        backgroundColor: AMBER,
+        pointRadius: 12,
+        pointHoverRadius: 14,
+      },
+      {
+        label: 'BF16 Tensor Core',
+        data: [{ x: 494.5, y: 989 }],
+        backgroundColor: PURPLE,
+        pointRadius: 12,
+        pointHoverRadius: 14,
+      },
+      {
+        label: 'FP16 Tensor Core',
+        data: [{ x: 378, y: 756 }],
+        backgroundColor: BLUE,
+        pointRadius: 12,
+        pointHoverRadius: 14,
+      },
+      {
+        label: 'FP32 CUDA Core',
+        data: [{ x: 33.5, y: 67 }],
+        backgroundColor: CYAN,
+        pointRadius: 12,
+        pointHoverRadius: 14,
+      },
+      {
+        label: 'FP64 Tensor Core',
+        data: [{ x: 17, y: 34 }],
+        backgroundColor: GREEN,
+        pointRadius: 12,
+        pointHoverRadius: 14,
+      },
+      {
+        // Memory-bound slope line: perf = AI * HBM_BW_TBs * 1000
+        label: 'Memory roof (HBM 2 TB/s)',
+        data: Array.from({ length: 30 }, (_, i) => {
+          const ai = Math.pow(10, -0.5 + i * 0.12);
+          return { x: ai, y: ai * 2000 };
+        }),
+        type: 'line',
+        borderColor: 'rgba(239,68,68,0.5)',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+        showLine: true,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { labels: { font: legendFont, color: '#e2e8f0', boxWidth: 10 } },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            if (ctx.datasetIndex <= 4)
+              return ` ${ctx.dataset.label}: ${ctx.raw.y} TFLOPS @ ${ctx.raw.x} FLOP/byte`;
+            return '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        grid: gridOpts,
+        ticks: { font: tickFont, callback: v => v },
+        title: { display: true, text: 'Arithmetic Intensity (FLOP / byte)', font: tickFont, color: '#8892b0' }
+      },
+      y: {
+        type: 'logarithmic',
+        grid: gridOpts,
+        ticks: { font: tickFont, callback: v => v >= 1000 ? (v/1000)+'k' : v },
+        title: { display: true, text: 'Peak Performance (TFLOPS)', font: tickFont, color: '#8892b0' }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>

@@ -26,8 +26,9 @@ LOG_DIR="artifacts/soak_$(date +%Y%m%d_%H%M%S)"
 # HuggingFace model/dataset to use when LLAMA_TRAIN_CMD is not set.
 # Override via env or --llama-cmd to supply a custom training command.
 HF_MODEL="${HF_MODEL:-meta-llama/Meta-Llama-3.1-8B-Instruct}"
-HF_DATASET="${HF_DATASET:-wikitext}"
-HF_DATASET_CONFIG="${HF_DATASET_CONFIG:-plain_text}"
+# Namespaced repo id required by recent `datasets`; bare `wikitext` alias no longer resolves.
+HF_DATASET="${HF_DATASET:-Salesforce/wikitext}"
+HF_DATASET_CONFIG="${HF_DATASET_CONFIG:-wikitext-103-raw-v1}"
 HF_OUTPUT_DIR="${HF_OUTPUT_DIR:-artifacts/hf_soak_output}"
 
 # Optional but useful defaults for MLPerf-style llama 70B LoRA fine-tuning.
@@ -58,6 +59,8 @@ Options:
 Example:
   LLAMA_TRAIN_CMD='torchrun --nproc_per_node=4 /root/workloads/mlcommons/training/llm_finetune/run_lora_finetune.py --model_name_or_path meta-llama/Meta-Llama-3.1-70B-Instruct --dataset_name scrolls --dataset_config govreport --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 --num_train_epochs 1 --per_device_train_batch_size 2 --gradient_accumulation_steps 4 --learning_rate 4e-4 --bf16 --output_dir artifacts/mlperf/llama31-lora --logging_steps 50' \
   ./scripts/run_parallel_soak_12h.sh --duration-hours 12
+EOF
+}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -104,6 +107,16 @@ if [[ -z "${LLAMA_TRAIN_CMD:-}" ]]; then
         -o "$HF_CLM_SCRIPT"
     fi
   fi
+  # FSDP shards params/grads/optimizer across GPUs so full 8B fine-tuning fits in 80 GB.
+  FSDP_CONFIG_FILE="${FSDP_CONFIG_FILE:-/tmp/hf_fsdp_config.json}"
+  cat > "$FSDP_CONFIG_FILE" <<'JSON'
+{
+  "transformer_layer_cls_to_wrap": ["LlamaDecoderLayer"],
+  "activation_checkpointing": true,
+  "use_orig_params": true,
+  "backward_prefetch": "backward_pre"
+}
+JSON
   LLAMA_TRAIN_CMD="torchrun \
     --nproc_per_node=${ML_NUM_GPUS} \
     ${HF_CLM_SCRIPT} \
@@ -112,13 +125,16 @@ if [[ -z "${LLAMA_TRAIN_CMD:-}" ]]; then
     --dataset_config_name ${HF_DATASET_CONFIG} \
     --per_device_train_batch_size 1 \
     --gradient_accumulation_steps 4 \
+    --block_size 1024 \
     --bf16 \
     --do_train \
     --max_steps 200 \
     --logging_steps 20 \
     --save_strategy no \
+    --fsdp 'full_shard auto_wrap' \
+    --fsdp_config ${FSDP_CONFIG_FILE} \
     --output_dir ${HF_OUTPUT_DIR}"
-  echo "[INFO] Using default HuggingFace CLM training command (model: ${HF_MODEL}, dataset: ${HF_DATASET}/${HF_DATASET_CONFIG})"
+  echo "[INFO] Using default HuggingFace CLM training command (model: ${HF_MODEL}, dataset: ${HF_DATASET}/${HF_DATASET_CONFIG}, FSDP full_shard)"
 fi
 
 for c in stress-ng fio timeout; do

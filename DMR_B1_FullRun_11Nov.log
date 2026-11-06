@@ -1,0 +1,41 @@
+
+---------------------------- live log sessionstart -----------------------------
+08:22:13 INFO     ai_headnode_tests System config captured: /mnt/nvme1n1p1/AIHeadNode/system_config_report.json
+08:22:13 INFO     ai_headnode_tests System config captured: /mnt/nvme1n1p1/system_config_report.json
+============================= test session starts ==============================
+platform linux -- Python 3.12.15, pytest-9.1.1, pluggy-1.6.0 -- /mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python
+rootdir: /mnt/nvme1n1p1/AIHeadNode
+configfile: pytest.ini
+plugins: anyio-4.15.0, timeout-2.4.0, ai-dynamo-1.5.0, typeguard-2.13.3, jaxtyping-0.3.11, mock-3.15.1
+timeout: 1800.0s
+timeout method: signal
+timeout func_only: False
+collecting ... collected 25 items
+
+tests/test_bottleneck_analysis.py::TestCPUComputeBottleneck::test_cpu_fp32_efficiency_report 
+-------------------------------- live log call ---------------------------------
+08:22:19 INFO     bottleneck_analysis CPU FP32 GEMM — Config A: 1 proc × 32 threads  (detected: 1 sockets, 224 cores/socket, 224 total cores)
+08:22:21 INFO     bottleneck_analysis 
+==========================================================================================
+METRIC                                            MEASURED    THEORETICAL     EFF%       STATUS
+==========================================================================================
+CPU FP32 (1 processes × 32 threads)                 6.25 TFLOPS         27.24 TFLOPS    22.9%            OK
+==========================================================================================
+
+✅  No bottlenecks detected (all metrics ≥ 70 % of theoretical).
+
+08:22:21 INFO     bottleneck_analysis 
+CPU FP32 ANALYSIS REPORT
+----------------------------------------------------------------------------------------
+Python processes                   : 1
+BLAS threads per process           : 32
+GEMM size                          : 4096 x 4096
+Timed iterations                   : 12
+Warmup iterations                  : 3
+Measured best                      : 6.249 TFLOPS
+Measured median                    : 5.769 TFLOPS
+Theoretical aggregate (base clock) : 27.238 TFLOPS
+Efficiency (best/theoretical)      : 22.94%
+Trials TFLOPS                      : 5.634, 5.769, 6.249
+----------------------------------------------------------------------------------------
+08:22:21 INFO     bottleneck_analysis CPU FP32 GEMM — Config B: 4 procs × 52 threads  (detected: 1 sockets, 224 cores/socket, 224 total cores)

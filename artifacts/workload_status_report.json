@@ -1,115 +1,131 @@
 {
-  "generated_at_utc": "2026-08-17T03:17:19.989106+00:00",
-  "host": "SC009011168H0070",
-  "python": "3.12.13",
+  "generated_at_utc": "2026-11-05T17:57:53.520713+00:00",
+  "host": "dmr-bkc",
+  "python": "3.12.15",
   "domains": [
     {
       "domain": "bottleneck",
       "description": "Roofline and bottleneck analysis",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-08-17T01:16:28.400773+00:00",
-      "finished_at_utc": "2026-08-17T01:17:08.658002+00:00",
+      "started_at_utc": "2026-11-05T15:08:06.681517+00:00",
+      "finished_at_utc": "2026-11-05T15:08:43.255355+00:00",
       "tests": 25,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 38.151,
+      "duration_sec": 34.529,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/bottleneck.xml",
       "log_file": "artifacts/reports/logs/bottleneck.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/bottleneck.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/bottleneck.log --log-file-level INFO tests/test_bottleneck_analysis.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/bottleneck.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/bottleneck.log --log-file-level INFO tests/test_bottleneck_analysis.py"
     },
     {
       "domain": "cpu",
       "description": "CPU validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-08-17T01:17:08.658203+00:00",
-      "finished_at_utc": "2026-08-17T01:27:46.113613+00:00",
+      "started_at_utc": "2026-11-05T15:08:43.255560+00:00",
+      "finished_at_utc": "2026-11-05T15:17:32.313485+00:00",
       "tests": 33,
       "failures": 0,
       "errors": 0,
       "skipped": 1,
-      "duration_sec": 636.184,
+      "duration_sec": 527.712,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/cpu.xml",
       "log_file": "artifacts/reports/logs/cpu.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/cpu.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/cpu.log --log-file-level INFO tests/test_cpu_validation.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/cpu.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/cpu.log --log-file-level INFO tests/test_cpu_validation.py"
     },
     {
       "domain": "memory",
       "description": "Memory subsystem validation",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-08-17T01:27:46.113918+00:00",
-      "finished_at_utc": "2026-08-17T01:28:15.643148+00:00",
+      "started_at_utc": "2026-11-05T15:17:32.313688+00:00",
+      "finished_at_utc": "2026-11-05T15:17:57.037271+00:00",
       "tests": 28,
       "failures": 1,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 28.01,
+      "duration_sec": 23.334,
       "failed_tests": [
         {
           "nodeid": "tests.test_memory_validation.TestSingleThreadBandwidth::test_triad_bw_exceeds_15gbs",
-          "message": "AssertionError: STREAM Triad 11.30 GB/s < expected 16.21 GB/s (40% of Copy 40.53 GB/s, floor 12 GB/s)\nassert 11.300759439444041 >= 16.21216196692994",
+          "message": "AssertionError: STREAM Triad 11.45 GB/s < expected 14.60 GB/s (40% of Copy 36.50 GB/s, floor 12 GB/s)\nassert 11.454824424373532 >= 14.598929664283672",
           "kind": "failure"
         }
       ],
       "junit_xml": "artifacts/reports/junit/memory.xml",
       "log_file": "artifacts/reports/logs/memory.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/memory.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/memory.log --log-file-level INFO tests/test_memory_validation.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/memory.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/memory.log --log-file-level INFO tests/test_memory_validation.py"
     },
     {
       "domain": "gpu",
       "description": "GPU validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-08-17T01:28:15.643337+00:00",
-      "finished_at_utc": "2026-08-17T01:28:46.758815+00:00",
+      "started_at_utc": "2026-11-05T15:17:57.037441+00:00",
+      "finished_at_utc": "2026-11-05T15:18:23.375952+00:00",
       "tests": 53,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 29.701,
+      "duration_sec": 24.697,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/gpu.xml",
       "log_file": "artifacts/reports/logs/gpu.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/gpu.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/gpu.log --log-file-level INFO tests/test_gpu_validation.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/gpu.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/gpu.log --log-file-level INFO tests/test_gpu_validation.py"
     },
     {
       "domain": "interconnect",
       "description": "PCIe / NVLink / P2P interconnect validation",
-      "status": "PASS",
-      "return_code": 0,
-      "started_at_utc": "2026-08-17T01:28:46.759008+00:00",
-      "finished_at_utc": "2026-08-17T01:30:29.826814+00:00",
+      "status": "FAIL",
+      "return_code": 1,
+      "started_at_utc": "2026-11-05T15:18:23.376210+00:00",
+      "finished_at_utc": "2026-11-05T15:19:45.831766+00:00",
       "tests": 77,
-      "failures": 0,
+      "failures": 2,
       "errors": 0,
       "skipped": 8,
-      "duration_sec": 97.699,
-      "failed_tests": [],
+      "duration_sec": 78.011,
+      "failed_tests": [
+        {
+          "nodeid": "tests.test_interconnect_validation.TestAllGPUH2D::test_concurrent_h2d_all_gpus",
+          "message": "AssertionError: Concurrent H2D BW all 4 GPUs: efficiency 55.01% is below threshold 65.00% (measured=138.628, theoretical=252.000)\nassert 0.5501129927213975 >= 0.65",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_interconnect_validation.TestNVLinkDetection::test_p2p_access_enabled",
+          "message": "AssertionError: GPU 0 cannot access GPU 2 via P2P\nassert False",
+          "kind": "failure"
+        }
+      ],
       "junit_xml": "artifacts/reports/junit/interconnect.xml",
       "log_file": "artifacts/reports/logs/interconnect.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/interconnect.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/interconnect.log --log-file-level INFO tests/test_interconnect_validation.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/interconnect.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/interconnect.log --log-file-level INFO tests/test_interconnect_validation.py"
     },
     {
       "domain": "node_validation",
       "description": "Node bring-up and workload acceptance",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-08-17T01:30:29.826991+00:00",
-      "finished_at_utc": "2026-08-17T02:09:26.203998+00:00",
+      "started_at_utc": "2026-11-05T15:19:45.831939+00:00",
+      "finished_at_utc": "2026-11-05T15:41:07.905843+00:00",
       "tests": 51,
-      "failures": 3,
+      "failures": 6,
       "errors": 0,
-      "skipped": 9,
-      "duration_sec": 2331.766,
+      "skipped": 16,
+      "duration_sec": 1278.548,
       "failed_tests": [
         {
-          "nodeid": "tests.test_node_validation.TestPCIeBandwidthDirect::test_d2h_bandwidth_all_gpus",
-          "message": "Failed: D2H PCIe bandwidth validation failed.\nthreshold=40.95 GB/s, boundary=1.00 GB/s, min=38.99 GB/s, mean=50.81 GB/s\nPer-GPU failures:\nGPU 0: 38.99 GB/s < 40.95 GB/s",
+          "nodeid": "tests.test_node_validation.TestNCCLAndNVLinkValidation::test_nccl_p2p_perf",
+          "message": "AssertionError: NCCL sendrecv busbw 20.2 GB/s too low\nassert 20.24 >= 24.0",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_hf_causal_lm_inference_latency_enterprise_workloads[llama_70b-meta-llama/Meta-Llama-3.1-70B-Instruct-16-12000.0-True]",
+          "message": "ImportError: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`",
           "kind": "failure"
         },
         {
@@ -119,138 +135,142 @@
         },
         {
           "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_vision_object_detection_yolo_fps",
-          "message": "Failed: YOLO workload collected 0 worker results for 4 processes",
+          "message": "AssertionError: YOLO aggregate FPS too low: 170.5 < target 200.0\nassert 170.47288547814924 >= 200.0",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_predictable_memory_orchestration_kv_cache_offload",
+          "message": "AssertionError: Offload throughput degradation too high: 87.9% (baseline 394.2 -> offload 47.5)\nassert 87.93874015647138 <= 60",
+          "kind": "failure"
+        },
+        {
+          "nodeid": "tests.test_node_validation.TestWorkloadAcceptanceHuggingFace::test_llm_training_small_multigpu",
+          "message": "AssertionError: TC-013: gradient sync ratio 15.3% exceeds threshold 15% \u2014 communication bottleneck detected; check NVLink status and NCCL topology\nassert 0.15295 <= 0.15",
           "kind": "failure"
         }
       ],
       "junit_xml": "artifacts/reports/junit/node_validation.xml",
       "log_file": "artifacts/reports/logs/node_validation.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/node_validation.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/node_validation.log --log-file-level INFO tests/test_node_validation.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/node_validation.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/node_validation.log --log-file-level INFO tests/test_node_validation.py"
     },
     {
       "domain": "agentic_ai",
       "description": "Agentic AI KPI validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-08-17T02:09:26.204194+00:00",
-      "finished_at_utc": "2026-08-17T02:09:49.084019+00:00",
+      "started_at_utc": "2026-11-05T15:41:07.906016+00:00",
+      "finished_at_utc": "2026-11-05T15:41:29.829765+00:00",
       "tests": 9,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 21.332,
+      "duration_sec": 20.534,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/agentic_ai.xml",
       "log_file": "artifacts/reports/logs/agentic_ai.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/agentic_ai.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/agentic_ai.log --log-file-level INFO tests/test_agentic_ai_validation.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/agentic_ai.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/agentic_ai.log --log-file-level INFO tests/test_agentic_ai_validation.py"
     },
     {
       "domain": "ai_pipeline",
       "description": "AI pipeline KPI validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-08-17T02:09:49.084370+00:00",
-      "finished_at_utc": "2026-08-17T02:11:21.393318+00:00",
+      "started_at_utc": "2026-11-05T15:41:29.829899+00:00",
+      "finished_at_utc": "2026-11-05T15:42:34.959283+00:00",
       "tests": 38,
       "failures": 0,
       "errors": 0,
       "skipped": 4,
-      "duration_sec": 89.228,
+      "duration_sec": 63.053,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/ai_pipeline.xml",
       "log_file": "artifacts/reports/logs/ai_pipeline.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/ai_pipeline.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/ai_pipeline.log --log-file-level INFO tests/test_ai_pipeline_kpis.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/ai_pipeline.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/ai_pipeline.log --log-file-level INFO tests/test_ai_pipeline_kpis.py"
     },
     {
       "domain": "system_health",
       "description": "System health and reliability",
-      "status": "FAIL",
-      "return_code": 1,
-      "started_at_utc": "2026-08-17T02:11:21.393501+00:00",
-      "finished_at_utc": "2026-08-17T02:12:25.766345+00:00",
+      "status": "PASS",
+      "return_code": 0,
+      "started_at_utc": "2026-11-05T15:42:34.959424+00:00",
+      "finished_at_utc": "2026-11-05T15:43:34.568830+00:00",
       "tests": 39,
-      "failures": 1,
+      "failures": 0,
       "errors": 0,
       "skipped": 2,
-      "duration_sec": 61.928,
-      "failed_tests": [
-        {
-          "nodeid": "tests.test_system_health_and_reliability.TestTorchCompileCorrectnessAndSpeedup::test_compile_speedup_over_eager",
-          "message": "AssertionError: torch.compile speedup 0.231\u00d7 < floor 0.75\u00d7 (strict floor 1.05\u00d7, eager_time=0.0068s). Compiled kernels may be suboptimal for this workload shape.\nassert 0.2310136786297916 >= 0.75",
-          "kind": "failure"
-        }
-      ],
+      "duration_sec": 57.995,
+      "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/system_health.xml",
       "log_file": "artifacts/reports/logs/system_health.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/system_health.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/system_health.log --log-file-level INFO tests/test_system_health_and_reliability.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/system_health.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/system_health.log --log-file-level INFO tests/test_system_health_and_reliability.py"
     },
     {
       "domain": "system_config",
       "description": "System config report validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-08-17T02:12:25.766544+00:00",
-      "finished_at_utc": "2026-08-17T02:12:33.420490+00:00",
+      "started_at_utc": "2026-11-05T15:43:34.568971+00:00",
+      "finished_at_utc": "2026-11-05T15:43:44.576315+00:00",
       "tests": 8,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "duration_sec": 6.5,
+      "duration_sec": 8.684,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/system_config.xml",
       "log_file": "artifacts/reports/logs/system_config.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/system_config.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/system_config.log --log-file-level INFO tests/test_system_config_report.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/system_config.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/system_config.log --log-file-level INFO tests/test_system_config_report.py"
     },
     {
       "domain": "vllm_prefill",
       "description": "vLLM prefill validation",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-08-17T02:12:33.420817+00:00",
-      "finished_at_utc": "2026-08-17T02:17:02.743556+00:00",
+      "started_at_utc": "2026-11-05T15:43:44.576473+00:00",
+      "finished_at_utc": "2026-11-05T15:47:05.647979+00:00",
       "tests": 3,
       "failures": 0,
       "errors": 0,
       "skipped": 1,
-      "duration_sec": 267.478,
+      "duration_sec": 199.823,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/vllm_prefill.xml",
       "log_file": "artifacts/reports/logs/vllm_prefill.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/vllm_prefill.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/vllm_prefill.log --log-file-level INFO tests/test_vllm_prefill_validation.py"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/vllm_prefill.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/vllm_prefill.log --log-file-level INFO tests/test_vllm_prefill_validation.py"
     },
     {
       "domain": "performance_suite",
       "description": "Performance suite catalog / execution",
       "status": "PASS",
       "return_code": 0,
-      "started_at_utc": "2026-08-17T02:17:02.743758+00:00",
-      "finished_at_utc": "2026-08-17T02:46:00.642632+00:00",
+      "started_at_utc": "2026-11-05T15:47:05.648151+00:00",
+      "finished_at_utc": "2026-11-05T16:12:58.580989+00:00",
       "tests": 26,
       "failures": 0,
       "errors": 0,
-      "skipped": 3,
-      "duration_sec": 1736.591,
+      "skipped": 2,
+      "duration_sec": 1551.549,
       "failed_tests": [],
       "junit_xml": "artifacts/reports/junit/performance_suite.xml",
       "log_file": "artifacts/reports/logs/performance_suite.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/performance_suite.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/performance_suite.log --log-file-level INFO tests/test_performance_suite.py -k test_performance_case_suite"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/performance_suite.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/performance_suite.log --log-file-level INFO tests/test_performance_suite.py -k test_performance_case_suite"
     },
     {
       "domain": "mlperf_suite",
       "description": "MLPerf suite catalog / execution",
       "status": "FAIL",
       "return_code": 1,
-      "started_at_utc": "2026-08-17T02:46:00.642846+00:00",
-      "finished_at_utc": "2026-08-17T03:17:19.988927+00:00",
+      "started_at_utc": "2026-11-05T16:12:58.581239+00:00",
+      "finished_at_utc": "2026-11-05T17:57:53.520558+00:00",
       "tests": 21,
       "failures": 19,
       "errors": 0,
       "skipped": 2,
-      "duration_sec": 1877.924,
+      "duration_sec": 6293.486,
       "failed_tests": [
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_003]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_003: command failed (rc=1)\nexecuted_command: vllm serve mistralai/Mixtral-8x7B-Instruct-v0.1 --tensor-parallel-size 4 --max-model-len 32768 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n   File \"/home/workspace/AIHeadNode",
+          "message": "Failed: Timeout (>1800.0s) from pytest-timeout.",
           "kind": "failure"
         },
         {
@@ -260,17 +280,17 @@
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_005]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=3065356) T",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_005: command failed (rc=1)\nexecuted_command: vllm serve meta-llama/Llama-2-70b-chat-hf --tensor-parallel-size 4 --dtype bfloat16 --max-model-len 4096 --gpu-memory-utilization 0.90 --port 8000\nstderr_tail:\n(APIServer pid=78963) Tra",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_006]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_006: command failed (rc=2)\nexecuted_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch resnet50 gpu --scenario Offline --dataset-path /mnt/datasets/imagenet --output artifact",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_006: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch resnet50 gpu --scenario Offline --dataset-path /mnt/datasets/imagenet --output artifa",
           "kind": "failure"
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_007]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_007: command failed (rc=2)\nexecuted_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch retinanet gpu --scenario Offline --dataset-path /mnt/datasets/openimages --output artif",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_007: command failed (rc=127)\nexecuted_command: bash /root/workloads/mlcommons/inference/vision/classification_and_detection/run_local.sh pytorch retinanet gpu --scenario Offline --dataset-path /mnt/datasets/openimages --output art",
           "kind": "failure"
         },
         {
@@ -290,7 +310,7 @@
         },
         {
           "nodeid": "tests.test_mlperf_suite::test_mlperf_case_suite[AI_HOSTCPU_ML_TEST_ID_011]",
-          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_011: command failed (rc=2)\nexecuted_command: /home/workspace/AIHeadNode/.venv-vllm/bin/python /root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py --scenario Offline --dataset-path /mnt/datasets/criteo --model",
+          "message": "Failed: AI_HOSTCPU_ML_TEST_ID_011: command failed (rc=2)\nexecuted_command: /mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python /root/workloads/mlcommons/inference/recommendation/dlrm_v2/pytorch/run.py --scenario Offline --dataset-path /mnt/datasets/criteo --mod",
           "kind": "failure"
         },
         {
@@ -346,7 +366,7 @@
       ],
       "junit_xml": "artifacts/reports/junit/mlperf_suite.xml",
       "log_file": "artifacts/reports/logs/mlperf_suite.log",
-      "command": "/home/workspace/AIHeadNode/.venv-vllm/bin/python -m pytest -v --tb=short --junitxml /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/junit/mlperf_suite.xml --log-file /home/workspace/AIHeadNode1/AIHeadNode/artifacts/reports/logs/mlperf_suite.log --log-file-level INFO tests/test_mlperf_suite.py -k test_mlperf_case_suite"
+      "command": "/mnt/nvme1n1p1/venvs/.venv-vllm-updated/bin/python -m pytest -v --tb=short --junitxml /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/junit/mlperf_suite.xml --log-file /mnt/nvme1n1p1/AIHeadNode/artifacts/reports/logs/mlperf_suite.log --log-file-level INFO tests/test_mlperf_suite.py -k test_mlperf_case_suite"
     }
   ],
   "summary": {
@@ -354,9 +374,9 @@
     "passed_domains": 9,
     "failed_domains": 4,
     "tests": 411,
-    "failures": 24,
+    "failures": 28,
     "errors": 0,
-    "skipped": 30
+    "skipped": 36
   },
   "defaults_applied": {
     "ML_EXECUTE_CASES": "1",

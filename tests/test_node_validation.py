@@ -5224,14 +5224,17 @@ class TestWorkloadAcceptanceHuggingFace:
         try:
             _ = llm.generate(prompts[:1], sampling_params)
         except Exception as exc:
-            pytest.skip(f"vLLM warmup failed: {exc}")
+            # The engine already initialized successfully (environment is proven
+            # viable at this point), so a warmup crash indicates a real inference
+            # regression, not an environment issue — fail, don't silently skip.
+            pytest.fail(f"vLLM warmup failed after successful engine init: {exc}")
 
         # Measure
         t0 = time.perf_counter()
         try:
             outputs = llm.generate(prompts, sampling_params)
         except Exception as exc:
-            pytest.skip(f"vLLM inference run failed: {exc}")
+            pytest.fail(f"vLLM inference run failed after successful engine init: {exc}")
         elapsed = time.perf_counter() - t0
 
         total_tokens = sum(len(o.outputs[0].token_ids) for o in outputs)

@@ -239,11 +239,8 @@ def _detect_gpu_memory_bandwidth_tbs() -> float:
     return 0.0
 
 
-def _detect_gpu_fp16_tflops() -> float:
-    """
-    Return the theoretical FP16 Tensor Core peak TFLOPS for the first GPU.
-    Falls back to 0 if detection fails.
-    """
+def _detect_gpu_name_upper() -> str:
+    """Return the uppercased name of GPU 0 via NVML, or '' if unavailable."""
     try:
         import pynvml
         pynvml.nvmlInit()
@@ -251,18 +248,100 @@ def _detect_gpu_fp16_tflops() -> float:
         name = pynvml.nvmlDeviceGetName(handle)
         if isinstance(name, bytes):
             name = name.decode()
-        n = name.upper()
-        # Use dense Tensor Core peaks for utilization calculations.
-        if "H100" in n and "SXM" in n:  return 989.0
-        if "H100" in n:                  return 756.0
-        if "H200" in n:                  return 989.0
-        if "A100" in n and "80" in n:    return 312.0
-        if "A100" in n:                  return 312.0
-        if "MI300X" in n:                return 1307.0
-        if "MI250X" in n:                return 383.0
-        if "RTX 4090" in n:              return 165.2
+        return name.upper()
     except Exception:
-        pass
+        return ""
+
+
+def _detect_gpu_fp16_tflops() -> float:
+    """
+    Return the theoretical FP16 Tensor Core peak TFLOPS for the first GPU.
+    Falls back to 0 if detection fails.
+    """
+    n = _detect_gpu_name_upper()
+    if not n:
+        return 0.0
+    # Use dense Tensor Core peaks for utilization calculations.
+    if "H100" in n and "SXM" in n:  return 989.0
+    if "H100" in n:                  return 756.0
+    if "H200" in n:                  return 989.0
+    if "A100" in n and "80" in n:    return 312.0
+    if "A100" in n:                  return 312.0
+    if "MI300X" in n:                return 1307.0
+    if "MI250X" in n:                return 383.0
+    if "RTX 4090" in n:              return 165.2
+    return 0.0
+
+
+def _detect_gpu_bf16_tflops() -> float:
+    """BF16 Tensor Core dense TFLOPS — identical throughput to FP16 on NVIDIA
+    Hopper/Ampere (and AMD CDNA) Tensor Cores, so this mirrors fp16 detection."""
+    return _detect_gpu_fp16_tflops()
+
+
+def _detect_gpu_tf32_tflops() -> float:
+    """TF32 Tensor Core dense TFLOPS peak for the first GPU (0 if N/A, e.g. AMD)."""
+    n = _detect_gpu_name_upper()
+    if not n:
+        return 0.0
+    if "H100" in n and "SXM" in n:  return 495.0
+    if "H100" in n:                  return 378.0
+    if "H200" in n:                  return 495.0
+    if "A100" in n:                  return 156.0
+    return 0.0
+
+
+def _detect_gpu_int8_tops() -> float:
+    """INT8 Tensor Core dense TOPS peak for the first GPU."""
+    n = _detect_gpu_name_upper()
+    if not n:
+        return 0.0
+    if "H100" in n and "SXM" in n:  return 1979.0
+    if "H100" in n:                  return 1513.0
+    if "H200" in n:                  return 1979.0
+    if "A100" in n:                  return 624.0
+    if "MI300X" in n:                return 2614.0
+    return 0.0
+
+
+def _detect_gpu_fp8_tflops() -> float:
+    """FP8 Tensor Core dense TFLOPS peak for the first GPU (Hopper+ only; 0 for
+    older architectures such as A100 that have no FP8 Tensor Core path)."""
+    n = _detect_gpu_name_upper()
+    if not n:
+        return 0.0
+    if "H100" in n and "SXM" in n:  return 1979.0
+    if "H100" in n:                  return 1513.0
+    if "H200" in n:                  return 1979.0
+    if "MI300X" in n:                return 2614.0
+    return 0.0
+
+
+def _detect_gpu_fp32_tflops() -> float:
+    """Non-Tensor (CUDA/stream-processor) core FP32 dense TFLOPS peak."""
+    n = _detect_gpu_name_upper()
+    if not n:
+        return 0.0
+    if "H100" in n and "SXM" in n:  return 67.0
+    if "H100" in n:                  return 51.0
+    if "H200" in n:                  return 67.0
+    if "A100" in n:                  return 19.5
+    if "MI300X" in n:                return 163.4
+    return 0.0
+
+
+def _detect_gpu_fp64_tflops() -> float:
+    """FP64 Tensor Core dense TFLOPS peak — this is what the GEMM-based FP64
+    benchmark (torch.mm on float64, which cuBLAS dispatches to FP64 Tensor
+    Cores on Hopper) actually measures, not the plain CUDA-core FP64 rate."""
+    n = _detect_gpu_name_upper()
+    if not n:
+        return 0.0
+    if "H100" in n and "SXM" in n:  return 67.0
+    if "H100" in n:                  return 51.0
+    if "H200" in n:                  return 67.0
+    if "A100" in n:                  return 19.5
+    if "MI300X" in n:                return 163.4
     return 0.0
 
 
@@ -420,27 +499,20 @@ class GPUSpecs:
       export GPU_MAX_TEMP_C=90
     """
 
-    # Compute throughput (per GPU)
-    fp64_tflops: float = 34.0          # Tensor Core FP64
-    fp32_tflops: float = 67.0          # non-Tensor Core FP32
-    tf32_tflops: float = 989.0         # Tensor Core TF32
+    # Compute throughput (per GPU, dense, H100 SXM5 defaults — see module-level
+    # _detect_gpu_*_tflops()/_tops() for the PCIe-vs-SXM-aware runtime overrides
+    # wired into H100_SPECS below)
+    fp64_tflops: float = 34.0          # non-Tensor (CUDA core) FP64
+    fp32_tflops: float = 67.0          # non-Tensor (CUDA core) FP32
+    tf32_tflops: float = 495.0         # Tensor Core TF32 (dense)
     fp16_tflops: float = 989.0         # Tensor Core FP16 (dense)
     bf16_tflops: float = 989.0         # Tensor Core BF16 (dense)
-    int8_tops: float = 3958.0          # Tensor Core INT8 (dense)
-    fp8_tflops: float = 3958.0         # Tensor Core FP8 (dense)
+    int8_tops: float = 1979.0          # Tensor Core INT8 (dense)
+    fp8_tflops: float = 1979.0         # Tensor Core FP8 (dense)
 
     # Accelerator memory (HBM or GDDR)
     memory_capacity_gb: float = 80.0        # per-GPU memory capacity
     memory_bandwidth_tbs: float = 2.0      # per-GPU peak memory BW (TB/s), conservative PCIe fallback
-
-    # Compute peaks (per GPU, theoretical dense)
-    fp64_tflops: float = 34.0
-    fp32_tflops: float = 67.0
-    tf32_tflops: float = 989.0
-    fp16_tflops: float = 989.0
-    bf16_tflops: float = 989.0
-    int8_tops: float = 3958.0
-    fp8_tflops: float = 3958.0
 
     # Power and thermal
     tdp_watts: float = 700.0
@@ -516,6 +588,12 @@ _DETECTED_NVLINK_LINKS_PER_GPU = _detect_nvlink_links_per_gpu() if _NVLINK_AVAIL
 _DETECTED_GPU_MEM_GB = _detect_gpu_memory_capacity_gb()
 _DETECTED_GPU_BW_TBS = _detect_gpu_memory_bandwidth_tbs()
 _DETECTED_GPU_FP16   = _detect_gpu_fp16_tflops()
+_DETECTED_GPU_BF16   = _detect_gpu_bf16_tflops()
+_DETECTED_GPU_TF32   = _detect_gpu_tf32_tflops()
+_DETECTED_GPU_INT8   = _detect_gpu_int8_tops()
+_DETECTED_GPU_FP8    = _detect_gpu_fp8_tflops()
+_DETECTED_GPU_FP32   = _detect_gpu_fp32_tflops()
+_DETECTED_GPU_FP64   = _detect_gpu_fp64_tflops()
 _DETECTED_GPU_TDP    = _detect_gpu_tdp_watts()
 _DETECTED_GPU_TEMP   = _detect_gpu_max_temp_c()
 
@@ -533,6 +611,16 @@ H100_SPECS = GPUSpecs(
         if _DETECTED_GPU_FP16 > 0
         else (756.0 if (_DETECTED_GPU_BW_TBS > 0 and _DETECTED_GPU_BW_TBS <= 2.1) else 989.0)
     ),
+    # All of the below previously stayed at hardcoded H100 SXM5 class defaults
+    # regardless of actual GPU variant (only fp16_tflops had a PCIe-aware
+    # override) — now each is runtime-detected the same way, falling back to
+    # the SXM-oriented class default only if NVML detection fails entirely.
+    bf16_tflops=_DETECTED_GPU_BF16 if _DETECTED_GPU_BF16 > 0 else 989.0,
+    tf32_tflops=_DETECTED_GPU_TF32 if _DETECTED_GPU_TF32 > 0 else 495.0,
+    int8_tops=_DETECTED_GPU_INT8 if _DETECTED_GPU_INT8 > 0 else 1979.0,
+    fp8_tflops=_DETECTED_GPU_FP8 if _DETECTED_GPU_FP8 > 0 else 1979.0,
+    fp32_tflops=_DETECTED_GPU_FP32 if _DETECTED_GPU_FP32 > 0 else 67.0,
+    fp64_tflops=_DETECTED_GPU_FP64 if _DETECTED_GPU_FP64 > 0 else 34.0,
     tdp_watts=_DETECTED_GPU_TDP,
     max_temp_c=_DETECTED_GPU_TEMP,
 )

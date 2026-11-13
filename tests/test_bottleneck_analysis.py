@@ -758,7 +758,13 @@ class TestPCIeBottleneck:
 class TestNVLinkBottleneck:
 
     def test_nvlink_bw_vs_theoretical(self):
-        """TC-BN-06a: Inter-GPU P2P BW must meet threshold for active fabric."""
+        """TC-BN-06a: Inter-GPU P2P BW must meet threshold for active fabric.
+
+        fabric_unidirectional_bw_gbs is used (not nvlink_total_bw_gbs) because
+        _p2p_bw_gbs measures a single-direction copy, while nvlink_total_bw_gbs
+        is the bidirectional per-link spec — comparing a one-way measurement
+        against the two-way peak understates efficiency by ~2x.
+        """
         if not _HAS_TORCH:
             pytest.skip("CUDA / PyTorch not available")
         n_gpus = _safe_cuda_device_count()
@@ -767,7 +773,7 @@ class TestNVLinkBottleneck:
 
         fabric_label = "NVLink" if SYSTEM_SPECS.has_nvlink else "PCIe P2P"
         theoretical = (
-            H100_SPECS.nvlink_total_bw_gbs
+            H100_SPECS.fabric_unidirectional_bw_gbs
             if SYSTEM_SPECS.has_nvlink
             else H100_SPECS.pcie_unidirectional_bw_gbs
         )

@@ -1198,6 +1198,16 @@ class TestInferencePipelineKPIs:
         )
         model.eval()
 
+        # Guard against requesting a longer context than the model actually
+        # supports: e.g. GPT-2 (the default PIPELINE_MODEL_ID) has
+        # max_position_embeddings=1024, so input_len=2048 indexes past the
+        # positional embedding table and triggers a CUDA device-side assert
+        # that poisons the CUDA context for every subsequent test in this
+        # process. Skip rather than let that happen.
+        max_ctx = getattr(model.config, "max_position_embeddings", None) or getattr(model.config, "n_positions", None)
+        if max_ctx and input_len > max_ctx:
+            pytest.skip(f"input_len={input_len} exceeds {_MODEL_ID}'s max context length ({max_ctx})")
+
         text = "The AI inference pipeline processes sequences. " * (input_len // 8 + 1)
         inputs = tokenizer(text, truncation=True, max_length=input_len,
                            return_tensors="pt").to("cuda:0")

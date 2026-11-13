@@ -1140,7 +1140,7 @@ class TestP2PBandwidth:
 class TestNVLinkAllToAll:
 
     def test_all_to_all_aggregate_bandwidth(self):
-        """TC-IC-08: All-to-all P2P aggregate BW ≥ 70 % of theoretical aggregate.
+        """TC-IC-08: All-to-all P2P aggregate BW ≥ threshold of theoretical aggregate.
 
         Topology-aware: the theoretical aggregate sums each tested pair's own
         fabric theoretical (NVLink for pairs NVML reports as directly
@@ -1148,6 +1148,17 @@ class TestNVLinkAllToAll:
         NVLink just because NVLink exists somewhere on the system. This
         matches reality on a partial-mesh system (e.g. H100 PCIe bridged in
         pairs) where cross-pair traffic is PCIe-bound.
+
+        Methodology note: a plain "start N threads in a loop" approach does
+        NOT reliably make all pairs transfer simultaneously — Python thread
+        start-up overhead means some pairs can finish before others even
+        begin, so the "aggregate" is really measuring a random, unstable
+        overlap pattern rather than true concurrent contention (observed
+        9%-25% efficiency swings run-to-run with the naive approach). This
+        uses a threading.Barrier so every pair's transfer genuinely starts
+        at the same instant, pre-allocates buffers outside the timed region
+        to remove first-touch allocation noise, and averages several
+        barrier-synchronized rounds for a stable result.
         """
         _skip_if_no_gpu()
         if not SYSTEM_SPECS.has_nvlink:
@@ -1156,31 +1167,50 @@ class TestNVLinkAllToAll:
         if n_gpus < 2:
             pytest.skip("Need ≥ 2 GPUs")
 
-        results: List[float] = []
-        theoretical_per_pair: List[float] = []
-        lock = threading.Lock()
+        pairs = [(s, d) for s in range(n_gpus) for d in range(n_gpus) if s != d]
+        n_bytes = 1 * 1024 ** 3
+        n_rounds = 5
+
+        # Pre-allocate persistent source buffers once, outside the timed region,
+        # so first-touch CUDA allocation cost never pollutes a timed round.
+        src_tensors = {
+            (s, d): torch.ones(n_bytes // 4, device=f"cuda:{s}", dtype=torch.float32)
+            for s, d in pairs
+        }
+        for gpu_idx in range(n_gpus):
+            torch.cuda.synchronize(gpu_idx)
+
+        bw_samples = {pair: [] for pair in pairs}
+        start_barrier = threading.Barrier(len(pairs))
 
         def _worker(src: int, dst: int):
-            bw = _p2p_bandwidth_gbs(src, dst, n_bytes=512 * 1024 ** 2, n_runs=2)
-            pair_theoretical = (
-                H100_SPECS.fabric_unidirectional_bw_gbs if pair_has_nvlink(src, dst) else H100_SPECS.pcie_unidirectional_bw_gbs
-            )
-            with lock:
-                results.append(bw)
-                theoretical_per_pair.append(pair_theoretical)
+            tensor = src_tensors[(src, dst)]
+            for _ in range(n_rounds):
+                start_barrier.wait()  # every pair begins its copy at the same instant
+                t0 = time.perf_counter()
+                tensor.to(f"cuda:{dst}")
+                torch.cuda.synchronize(dst)
+                elapsed = time.perf_counter() - t0
+                bw_samples[(src, dst)].append(n_bytes / elapsed / 1e9)
+                start_barrier.wait()  # resync so rounds don't bleed into each other
 
-        threads = []
-        for src in range(n_gpus):
-            for dst in range(n_gpus):
-                if src != dst:
-                    threads.append(threading.Thread(target=_worker, args=(src, dst)))
+        threads = [threading.Thread(target=_worker, args=(s, d)) for s, d in pairs]
         for t in threads:
             t.start()
         for t in threads:
             t.join()
 
-        total_bw = sum(results)
-        theoretical = sum(theoretical_per_pair)
+        # Aggregate BW for a round = sum across all pairs transferring at that
+        # same barrier-synchronized instant; average across rounds for stability.
+        round_totals = [
+            sum(bw_samples[pair][r] for pair in pairs)
+            for r in range(n_rounds)
+        ]
+        total_bw = sum(round_totals) / len(round_totals)
+        theoretical = sum(
+            H100_SPECS.fabric_unidirectional_bw_gbs if pair_has_nvlink(s, d) else H100_SPECS.pcie_unidirectional_bw_gbs
+            for s, d in pairs
+        )
         # Concurrent all-to-all contention (every pair transferring simultaneously)
         # achieves lower efficiency than an isolated pairwise test — NVLink streams
         # compete for shared link bandwidth, and PCIe paths dilute the aggregate —

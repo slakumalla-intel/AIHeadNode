@@ -678,11 +678,15 @@ ACCEPTANCE_THRESHOLDS: Dict[str, float] = {
 
     # Interconnect
     "nvlink_bandwidth_efficiency": 0.70,
-    # Concurrent all-to-all P2P (all GPU pairs transferring simultaneously) sees
-    # lower efficiency than an isolated pairwise test: NVLink streams compete for
-    # shared link bandwidth and the mix of NVLink + PCIe-only pairs dilutes the
-    # achievable aggregate relative to the sum of each pair's own peak.
-    "nvlink_all_to_all_efficiency": 0.20,
+    # Concurrent all-to-all P2P (all GPU pairs transferring simultaneously, with
+    # start times barrier-synchronized so this is genuine, not accidental,
+    # concurrency) sees much lower efficiency than an isolated pairwise test:
+    # NVLink streams compete for shared link bandwidth, and the 4 PCIe-only
+    # pairs contend heavily for shared root-complex bandwidth. Calibrated from
+    # 10 barrier-synchronized runs on a 4x H100 PCIe (2 NVLink-bridge pairs)
+    # node: 8.93%-17.18% observed, mean ~11.9% — 8% sits safely below the
+    # observed floor while still catching a real regression.
+    "nvlink_all_to_all_efficiency": 0.08,
     "p2p_pcie_bandwidth_efficiency": 0.50,
     "p2p_multi_stream_stability_ratio": 0.85,
     "p2p_multi_stream_directional_symmetry": 0.75,

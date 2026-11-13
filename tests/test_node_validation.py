@@ -39,7 +39,7 @@ import numpy as np
 
 from tests.kpi_efficiency import enrich_efficiency_kpis
 
-from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, _NVLINK_AVAILABLE
+from tests.theoretical_specs import ACCEPTANCE_THRESHOLDS, NVLINK_CONNECTED_PAIRS, _NVLINK_AVAILABLE
 
 try:
     import torch
@@ -54,6 +54,27 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
+
+
+def _group_is_fully_nvlink_connected(world_size: int) -> bool:
+    """Return True only if every GPU pair within range(world_size) has a direct
+    NVLink connection. On a partial NVLink mesh (e.g. H100 PCIe bridged in
+    pairs), a multi-GPU group spanning more than one pair will include at
+    least one PCIe-only hop, so the looser PCIe-only communication threshold
+    should be used rather than the tight NVLink threshold.
+
+    Returns False whenever NVLink is unavailable at all (NVLINK_CONNECTED_PAIRS
+    empty) or when world_size < 2 (no cross-GPU communication to grade).
+    """
+    if world_size < 2:
+        return False
+    return all(
+        frozenset((i, j)) in NVLINK_CONNECTED_PAIRS
+        for i in range(world_size)
+        for j in range(world_size)
+        if i != j
+    )
+
 
 # =============================================================================
 # Binary / workload paths  (edit here if paths change)
@@ -1546,22 +1567,35 @@ class TestNVBandwidthMemcpy:
         # 1.  Try to enable 2 MB hugepages                                     #
         # ------------------------------------------------------------------ #
         HP_NODE = Path("/sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages")
+        hugepages_target = int(os.environ.get("NODE_HUGEPAGES_2MB_TARGET", "512"))
         hugepages_before = 0
+        hugepages_after = 0
         hugepages_active = False
+        hugepages_modified = False
         if HP_NODE.exists():
             try:
                 hugepages_before = int(HP_NODE.read_text().strip())
-                if hugepages_before < 512:
-                    HP_NODE.write_text("512\n")
-                    hugepages_active = int(HP_NODE.read_text().strip()) >= 512
+                hugepages_after = hugepages_before
+                if hugepages_before < hugepages_target:
+                    HP_NODE.write_text(f"{hugepages_target}\n")
+                    hugepages_after = int(HP_NODE.read_text().strip())
+                    hugepages_active = hugepages_after >= hugepages_target
+                    hugepages_modified = True
                 else:
+                    hugepages_after = hugepages_before
                     hugepages_active = True
             except PermissionError:
                 logger.warning("No permission to configure hugepages; test proceeds without")
             except Exception as exc:
                 logger.warning("Hugepage configuration error: %s", exc)
 
-        logger.info("2 MB hugepages: before=%d  active=%s", hugepages_before, hugepages_active)
+        logger.info(
+            "2 MB hugepages: target=%d before=%d after=%d active=%s",
+            hugepages_target,
+            hugepages_before,
+            hugepages_after,
+            hugepages_active,
+        )
 
         bw_results: Dict[str, object] = {"hugepages_active": hugepages_active}
         try:
@@ -1637,7 +1671,7 @@ class TestNVBandwidthMemcpy:
             # ---------------------------------------------------------------- #
             # 3.  Restore original hugepage count                              #
             # ---------------------------------------------------------------- #
-            if HP_NODE.exists() and hugepages_before < 512:
+            if HP_NODE.exists() and hugepages_modified:
                 try:
                     HP_NODE.write_text(f"{hugepages_before}\n")
                 except Exception:
@@ -1646,7 +1680,9 @@ class TestNVBandwidthMemcpy:
         _record_kpi(
             "test_pcie_bw_p2p_latency_hugepages_2mb",
             {
+                "hugepages_target": hugepages_target,
                 "hugepages_before": hugepages_before,
+                "hugepages_after": hugepages_after,
                 "hugepages_active": hugepages_active,
                 "bw_results": {str(k): v for k, v in bw_results.items()},
             },
@@ -5982,8 +6018,11 @@ class TestWorkloadAcceptanceHuggingFace:
                 "Pre-download with scripts/download_models_datasets.sh or set LLM_TRAIN_SMALL_MODEL "
                 "to a cached model."
             )
-        # Adjust threshold based on GPU interconnect: NVLink 15%, PCIe-only 25%
-        default_sync_ratio = "0.15" if _NVLINK_AVAILABLE else "0.25"
+        # Adjust threshold based on whether every GPU in this group is NVLink-connected
+        # to every other (15%) vs. the group spanning a PCIe-only hop (25%) — a partial
+        # NVLink mesh (e.g. H100 PCIe bridged in pairs) is not "fully NVLink" for world_size > 2.
+        group_is_nvlink = _group_is_fully_nvlink_connected(world_size)
+        default_sync_ratio = "0.15" if group_is_nvlink else "0.25"
         max_sync_ratio = float(os.environ.get("LLM_TRAIN_SMALL_MAX_SYNC_RATIO", default_sync_ratio))
         master_port  = int(os.environ.get("LLM_TRAIN_SMALL_MASTER_PORT", "29601"))
 
@@ -6000,7 +6039,7 @@ class TestWorkloadAcceptanceHuggingFace:
             "TC-013 LLM Training Small: model=%s world_size=%d batch=%d seq=%d steps=%d "
             "(interconnect=%s, sync_threshold=%.0f%%)",
             model_id, world_size, batch_size, seq_len, n_steps,
-            "NVLink" if _NVLINK_AVAILABLE else "PCIe-only",
+            "NVLink" if group_is_nvlink else "PCIe-only (or partial mesh)",
             max_sync_ratio * 100,
         )
 
@@ -6123,8 +6162,11 @@ class TestWorkloadAcceptanceHuggingFace:
         n_steps      = int(os.environ.get("LLM_TRAIN_LARGE_STEPS", "20"))
         warmup_steps = int(os.environ.get("LLM_TRAIN_LARGE_WARMUP", "3"))
         timeout_sec  = int(os.environ.get("LLM_TRAIN_LARGE_TIMEOUT_SEC", "3600"))
-        # Adjust threshold based on GPU interconnect: NVLink 10%, PCIe-only 20%
-        default_sync_ratio = "0.10" if _NVLINK_AVAILABLE else "0.20"
+        # Adjust threshold based on whether every GPU in this group is NVLink-connected
+        # to every other (10%) vs. the group spanning a PCIe-only hop (20%) — a partial
+        # NVLink mesh (e.g. H100 PCIe bridged in pairs) is not "fully NVLink" for world_size > 2.
+        group_is_nvlink = _group_is_fully_nvlink_connected(world_size)
+        default_sync_ratio = "0.10" if group_is_nvlink else "0.20"
         max_sync_ratio  = float(os.environ.get("LLM_TRAIN_LARGE_MAX_SYNC_RATIO", default_sync_ratio))
         min_scaling_eff = float(os.environ.get("LLM_TRAIN_LARGE_MIN_SCALING_EFF", "70.0"))
         master_port  = int(os.environ.get("LLM_TRAIN_LARGE_MASTER_PORT", "29602"))
@@ -6170,7 +6212,7 @@ class TestWorkloadAcceptanceHuggingFace:
             "steps=%d deepspeed=%s zero_stage=%d (interconnect=%s, sync_threshold=%.0f%%)",
             model_id, world_size, batch_size, seq_len, n_steps, use_deepspeed,
             deepspeed_zero_stage,
-            "NVLink" if _NVLINK_AVAILABLE else "PCIe-only",
+            "NVLink" if group_is_nvlink else "PCIe-only (or partial mesh)",
             max_sync_ratio * 100,
         )
 

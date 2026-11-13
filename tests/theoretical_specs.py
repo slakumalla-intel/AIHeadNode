@@ -92,6 +92,93 @@ def _detect_nvlink_available() -> bool:
         return False
 
 
+def _detect_nvlink_links_per_gpu() -> int:
+    """
+    Count active NVLink links on GPU 0 via NVML.
+
+    H100 SXM5 (NVSwitch full-mesh) typically reports 18 active links;
+    H100 PCIe (2-GPU NVLink bridge) typically reports 12. Detecting the
+    real count (rather than hardcoding 18) keeps fabric bandwidth math
+    correct for both variants. Falls back to 18 (safe SXM-style default)
+    when NVLink/NVML is unavailable or nothing is detected — this value
+    is unused in that case since callers gate on has_high_bw_fabric.
+    """
+    try:
+        import pynvml
+        pynvml.nvmlInit()
+        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        active = 0
+        link_id = 0
+        while link_id < 32:
+            try:
+                state = pynvml.nvmlDeviceGetNvLinkState(handle, link_id)
+            except pynvml.NVMLError:
+                break
+            if state == pynvml.NVML_FEATURE_ENABLED:
+                active += 1
+            link_id += 1
+        return active if active > 0 else 18
+    except Exception:
+        return 18
+
+
+def _detect_nvlink_connected_pairs() -> frozenset:
+    """
+    Return the set of GPU index pairs (as frozenset({i, j})) that have a
+    direct NVLink connection, determined via NVML per-link remote PCI info.
+
+    This is topology-aware: on systems with partial NVLink meshes (e.g. H100
+    PCIe cards bridged in pairs rather than a full NVSwitch mesh), only the
+    actually-connected pairs are returned — callers must not assume that
+    NVLink being present anywhere implies a full mesh.
+
+    Returns an empty frozenset when NVLink/NVML/pynvml is unavailable, when
+    no GPU reports an active link, or on any detection error — callers
+    should treat an empty result the same as "no NVLink pairs" (PCIe-only).
+    """
+    try:
+        import pynvml
+        pynvml.nvmlInit()
+        count = pynvml.nvmlDeviceGetCount()
+        bus_to_idx = {}
+        handles = []
+        for i in range(count):
+            handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+            handles.append(handle)
+            try:
+                pci = pynvml.nvmlDeviceGetPciInfo(handle)
+                bus_id = pci.busId
+                if isinstance(bus_id, bytes):
+                    bus_id = bus_id.decode()
+                bus_to_idx[bus_id.upper()] = i
+            except Exception:
+                continue
+
+        pairs = set()
+        for i, handle in enumerate(handles):
+            link_id = 0
+            while link_id < 32:
+                try:
+                    state = pynvml.nvmlDeviceGetNvLinkState(handle, link_id)
+                except pynvml.NVMLError:
+                    break
+                if state == pynvml.NVML_FEATURE_ENABLED:
+                    try:
+                        remote = pynvml.nvmlDeviceGetNvLinkRemotePciInfo(handle, link_id)
+                        remote_bus = remote.busId
+                        if isinstance(remote_bus, bytes):
+                            remote_bus = remote_bus.decode()
+                        j = bus_to_idx.get(remote_bus.upper())
+                        if j is not None and j != i:
+                            pairs.add(frozenset((i, j)))
+                    except Exception:
+                        pass  # link active but remote info unavailable — skip this link
+                link_id += 1
+        return frozenset(pairs)
+    except Exception:
+        return frozenset()
+
+
 def _detect_gpu_memory_capacity_gb() -> float:
     """Detect per-GPU HBM/VRAM capacity in GB via torch; fallback 0."""
     if _HAS_TORCH:
@@ -361,15 +448,30 @@ class GPUSpecs:
 
     # GPU-to-GPU fabric (NVLink or xGMI/Infinity Fabric for AMD)
     has_high_bw_fabric: bool = True         # False = PCIe-only
-    fabric_bw_per_link_gbs: float = 50.0
+    fabric_bw_per_link_gbs: float = 50.0    # bidirectional per-link rate (NVLink4: 25 GB/s/direction x2)
     fabric_links_per_gpu: int = 18
 
     @property
     def fabric_total_bw_gbs(self) -> float:
-        """Total unidirectional GPU-to-GPU fabric BW (NVLink / xGMI) in GB/s."""
+        """Total BIDIRECTIONAL GPU-to-GPU fabric BW (NVLink / xGMI) in GB/s.
+
+        fabric_bw_per_link_gbs is itself a bidirectional per-link spec, so this
+        total is also bidirectional — use fabric_unidirectional_bw_gbs instead
+        when comparing against a single-direction P2P copy benchmark.
+        """
         if not self.has_high_bw_fabric:
             return 0.0
         return self.fabric_links_per_gpu * self.fabric_bw_per_link_gbs
+
+    @property
+    def fabric_unidirectional_bw_gbs(self) -> float:
+        """Per-direction GPU-to-GPU fabric BW in GB/s.
+
+        A single-direction P2P copy (e.g. torch .copy_() or cudaMemcpyPeerAsync)
+        only saturates one direction of the link, so halve the bidirectional
+        total when grading such a benchmark.
+        """
+        return self.fabric_total_bw_gbs / 2.0
 
     # PCIe host interface (used for CPU↔GPU transfers regardless of fabric type)
     pcie_gen: int = 5
@@ -393,6 +495,11 @@ class GPUSpecs:
         """Legacy alias for per-GPU high-bandwidth fabric total BW."""
         return self.fabric_total_bw_gbs
 
+    @property
+    def nvlink_links_per_gpu(self) -> int:
+        """Legacy alias for fabric_links_per_gpu (used by older test modules)."""
+        return self.fabric_links_per_gpu
+
     # Legacy aliases kept for backwards compatibility
     @property
     def hbm3_capacity_gb(self) -> float:
@@ -404,6 +511,8 @@ class GPUSpecs:
 
 
 _NVLINK_AVAILABLE = _detect_nvlink_available()
+_NVLINK_CONNECTED_PAIRS = _detect_nvlink_connected_pairs() if _NVLINK_AVAILABLE else frozenset()
+_DETECTED_NVLINK_LINKS_PER_GPU = _detect_nvlink_links_per_gpu() if _NVLINK_AVAILABLE else 18
 _DETECTED_GPU_MEM_GB = _detect_gpu_memory_capacity_gb()
 _DETECTED_GPU_BW_TBS = _detect_gpu_memory_bandwidth_tbs()
 _DETECTED_GPU_FP16   = _detect_gpu_fp16_tflops()
@@ -412,8 +521,11 @@ _DETECTED_GPU_TEMP   = _detect_gpu_max_temp_c()
 
 H100_SPECS = GPUSpecs(
     has_high_bw_fabric=_NVLINK_AVAILABLE,
-    # Per-pair NVLink BW observed ~265 GB/s on this system; 6 links × 50 GB/s = 300 GB/s theoretical.
-    fabric_links_per_gpu=6,
+    # Real per-GPU active NVLink link count, auto-detected via NVML (e.g. 12 for
+    # H100 PCIe NVLink-bridge pairs, 18 for H100 SXM5 NVSwitch). fabric_bw_per_link_gbs
+    # is a BIDIRECTIONAL per-link spec; use fabric_unidirectional_bw_gbs below for
+    # single-direction P2P copy benchmarks rather than fudging this link count.
+    fabric_links_per_gpu=_DETECTED_NVLINK_LINKS_PER_GPU,
     memory_capacity_gb=_DETECTED_GPU_MEM_GB if _DETECTED_GPU_MEM_GB > 0 else 80.0,
     memory_bandwidth_tbs=_DETECTED_GPU_BW_TBS if _DETECTED_GPU_BW_TBS > 0 else 2.0,
     fp16_tflops=(
@@ -427,6 +539,20 @@ H100_SPECS = GPUSpecs(
 
 # Canonical alias for new code
 GPU_SPECS = H100_SPECS
+
+# Public export: set of GPU index pairs (frozenset({i, j})) with a direct
+# NVLink connection. Empty on PCIe-only systems or when NVLink/NVML cannot
+# be queried — callers must not assume has_nvlink=True implies a full mesh.
+NVLINK_CONNECTED_PAIRS = _NVLINK_CONNECTED_PAIRS
+
+
+def pair_has_nvlink(gpu_a: int, gpu_b: int) -> bool:
+    """Return True only if this specific GPU pair has a direct NVLink connection.
+
+    Safe to call regardless of whether NVLink exists anywhere on the system —
+    returns False for any pair when NVLINK_CONNECTED_PAIRS is empty.
+    """
+    return frozenset((gpu_a, gpu_b)) in NVLINK_CONNECTED_PAIRS
 
 
 # ---------------------------------------------------------------------------
@@ -486,6 +612,13 @@ class SystemSpecs:
     def fabric_topology(self) -> str:
         """Human-readable description of GPU-to-GPU connectivity."""
         if self.has_nvlink:
+            max_pairs = self.gpu_count * (self.gpu_count - 1) // 2
+            connected_pairs = len(NVLINK_CONNECTED_PAIRS)
+            if max_pairs > 0 and connected_pairs < max_pairs:
+                return (
+                    f"{self.gpu.interconnect_label} partial mesh "
+                    f"({connected_pairs}/{max_pairs} GPU pairs connected)"
+                )
             return f"{self.gpu.interconnect_label} full-mesh ({self.gpu_count} GPUs)"
         return f"PCIe fabric ({self.gpu_count} GPUs, no dedicated GPU fabric)"
 
@@ -545,6 +678,11 @@ ACCEPTANCE_THRESHOLDS: Dict[str, float] = {
 
     # Interconnect
     "nvlink_bandwidth_efficiency": 0.70,
+    # Concurrent all-to-all P2P (all GPU pairs transferring simultaneously) sees
+    # lower efficiency than an isolated pairwise test: NVLink streams compete for
+    # shared link bandwidth and the mix of NVLink + PCIe-only pairs dilutes the
+    # achievable aggregate relative to the sum of each pair's own peak.
+    "nvlink_all_to_all_efficiency": 0.20,
     "p2p_pcie_bandwidth_efficiency": 0.50,
     "p2p_multi_stream_stability_ratio": 0.85,
     "p2p_multi_stream_directional_symmetry": 0.75,

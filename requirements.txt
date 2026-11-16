@@ -8,6 +8,9 @@ psutil>=5.9.0
 pytest>=7.4.0
 pytest-timeout>=2.1.0
 transformers-stream-generator>=0.0.5
+# Required by HF `from_pretrained(..., device_map=...)` code paths (e.g. the
+# multi-GPU "balanced" placement test and single-GPU model-load-time KPI).
+accelerate>=1.0.0
 
 # GPU / CUDA dependencies (optional - tests skip gracefully when absent)
 # Use the PyTorch CUDA 12.8 wheel index for Linux x86_64 GPU nodes.

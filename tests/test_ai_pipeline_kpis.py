@@ -1265,8 +1265,8 @@ class TestInferencePipelineKPIs:
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
         model.generation_config.pad_token_id = tokenizer.pad_token_id
 
@@ -1344,14 +1344,30 @@ class TestInferencePipelineKPIs:
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
         model.generation_config.pad_token_id = tokenizer.pad_token_id
 
         prompt = "The quick brown fox jumped over the lazy dog. " * 4
         inputs = tokenizer(prompt, return_tensors="pt").to("cuda:0")
         n_decode_steps = 32
+
+        # Warm-up: the first ~50 cache-based decode forward passes in a fresh
+        # process pay a one-time cuDNN/SDPA kernel-selection cost (observed
+        # ~165 ms/step vs. a steady-state ~3 ms/step on this hardware). This
+        # is a JIT/kernel-autotuning artifact, not real inference latency, so
+        # it must be absorbed here rather than measured as part of the KPI.
+        n_warmup_steps = max(_WARMUP * n_decode_steps, 50)
+        with torch.no_grad():
+            out = model(**inputs, use_cache=True)
+            past_kv = out.past_key_values
+            next_token = out.logits[:, -1, :].argmax(dim=-1, keepdim=True)
+            for _ in range(n_warmup_steps):
+                step_out = model(input_ids=next_token, past_key_values=past_kv, use_cache=True)
+                past_kv = step_out.past_key_values
+                next_token = step_out.logits[:, -1, :].argmax(dim=-1, keepdim=True)
+            torch.cuda.synchronize()
 
         # Measure token-by-token decode latency using CUDA events to avoid
         # host-side synchronization overhead dominating per-step timings.
@@ -1420,8 +1436,8 @@ class TestInferencePipelineKPIs:
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
         model.generation_config.pad_token_id = tokenizer.pad_token_id
 
@@ -1447,6 +1463,19 @@ class TestInferencePipelineKPIs:
         n_decode = 32
         decode_times = []
         with torch.no_grad():
+            # Warm-up: absorb the one-time cuDNN/SDPA kernel-selection cost
+            # of the first cache-based decode calls (see test_inter_token_latency)
+            # so this phase measures steady-state decode throughput, not JIT cost.
+            out = model(**inputs, use_cache=True)
+            past_kv = out.past_key_values
+            next_tok = out.logits[:, -1, :].argmax(dim=-1, keepdim=True)
+            n_warmup_steps = max(_WARMUP * n_decode, 50)
+            for _ in range(n_warmup_steps):
+                step = model(input_ids=next_tok, past_key_values=past_kv, use_cache=True)
+                past_kv = step.past_key_values
+                next_tok = step.logits[:, -1, :].argmax(dim=-1, keepdim=True)
+            torch.cuda.synchronize()
+
             out = model(**inputs, use_cache=True)
             past_kv = out.past_key_values
             next_tok = out.logits[:, -1, :].argmax(dim=-1, keepdim=True)
@@ -1506,8 +1535,8 @@ class TestInferencePipelineKPIs:
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
         model.generation_config.pad_token_id = tokenizer.pad_token_id
 
@@ -1576,8 +1605,8 @@ class TestInferencePipelineKPIs:
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
         model.generation_config.pad_token_id = tokenizer.pad_token_id
 
@@ -1662,8 +1691,8 @@ class TestInferencePipelineKPIs:
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
         tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
 
         # Small models are latency-dominated and typically cannot drive HBM util
@@ -1688,6 +1717,18 @@ class TestInferencePipelineKPIs:
         )
 
         with torch.no_grad():
+            # Warm-up: absorb the one-time cuDNN/SDPA kernel-selection cost
+            # of the first cache-based decode calls (see test_inter_token_latency)
+            # so the timed decode phase below is not polluted by it.
+            out = model(**inputs, use_cache=True)
+            past_kv = out.past_key_values
+            next_tok = out.logits[:, -1, :].argmax(dim=-1, keepdim=True)
+            for _ in range(max(_WARMUP * n_steps, 50)):
+                step = model(input_ids=next_tok, past_key_values=past_kv, use_cache=True)
+                past_kv = step.past_key_values
+                next_tok = step.logits[:, -1, :].argmax(dim=-1, keepdim=True)
+            torch.cuda.synchronize()
+
             out = model(**inputs, use_cache=True)
             past_kv = out.past_key_values
             next_tok = out.logits[:, -1, :].argmax(dim=-1, keepdim=True)
@@ -1827,8 +1868,8 @@ class TestInferencePipelineKPIs:
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
         model.generation_config.pad_token_id = tokenizer.pad_token_id
 
@@ -1897,8 +1938,8 @@ class TestInferencePipelineKPIs:
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
         model.generation_config.pad_token_id = tokenizer.pad_token_id
 

@@ -1194,8 +1194,8 @@ class TestInferencePipelineKPIs:
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
         tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, torch_dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, torch_dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
 
         # Guard against requesting a longer context than the model actually
@@ -1269,8 +1269,8 @@ class TestInferencePipelineKPIs:
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
         tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, torch_dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, torch_dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
 
         prompt = "The quick brown fox jumped over the lazy dog. " * 4
@@ -1339,8 +1339,8 @@ class TestInferencePipelineKPIs:
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
         tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, torch_dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, torch_dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
 
         prompt_512 = "benchmark " * 64  # ~512 tokens for prefill
@@ -1422,8 +1422,8 @@ class TestInferencePipelineKPIs:
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
         tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, torch_dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, torch_dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
 
         seq_len = 128
@@ -1491,8 +1491,8 @@ class TestInferencePipelineKPIs:
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
         model.generation_config.pad_token_id = tokenizer.pad_token_id
 
@@ -1571,8 +1571,8 @@ class TestInferencePipelineKPIs:
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
         tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, torch_dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, torch_dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
 
         prompt = "benchmark autoregressive decode memory bandwidth " * 8
@@ -1718,8 +1718,8 @@ class TestInferencePipelineKPIs:
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
         tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, torch_dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, torch_dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
 
         seq_len, n_gen = 64, 16
@@ -1785,8 +1785,8 @@ class TestInferencePipelineKPIs:
         tokenizer = AutoTokenizer.from_pretrained(_MODEL_ID)
         tokenizer.pad_token = tokenizer.eos_token
         model = AutoModelForCausalLM.from_pretrained(
-            _MODEL_ID, torch_dtype=torch.float16, device_map="cuda:0"
-        )
+            _MODEL_ID, torch_dtype=torch.float16
+        ).to("cuda:0")
         model.eval()
 
         raw_text = "The inference pipeline benchmark processes these tokens " * 16

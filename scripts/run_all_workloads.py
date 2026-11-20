@@ -59,8 +59,9 @@ DEFAULT_ENV: Dict[str, str] = {
     "NODE_WORKLOAD_AUTO_INSTALL": "1",
     "NODE_WORKLOAD_AUTO_INSTALL_TIMEOUT_SEC": "1800",
     # Tooling binaries / external workload paths
-    "NVBANDWIDTH_BIN": "/root/workloads/nvbandwidth",
-    "PERF_NVBANDWIDTH_BIN": "/root/workloads/nvbandwidth",
+    # NVBANDWIDTH_BIN / PERF_NVBANDWIDTH_BIN are resolved dynamically in
+    # _build_env() (see _resolve_nvbandwidth_bin_default) rather than hardcoded
+    # here, since the installed path varies by host and by nvbandwidth version.
     "PERF_NCCL_TESTS_DIR": "/root/workloads/nccl-tests/build",
     "PERF_VLLM_BENCH_NUM_PROMPTS_CAP": "100",
     # Timeout defaults
@@ -109,6 +110,18 @@ def _default_cuda_visible_devices() -> str:
     if gpu_count <= 0:
         return "0"
     return ",".join(str(i) for i in range(gpu_count))
+
+
+def _resolve_nvbandwidth_bin_default(env: Dict[str, str]) -> str:
+    """Mirror tests/conftest.py's nvbandwidth auto-detection so the orchestrator
+    does not force a hardcoded path that may not exist on this host."""
+    datasets_root = env.get("DATASETS_ROOT", "/mnt/datasets")
+    workloads_root = env.get("WORKLOADS_ROOT", "/root/workloads")
+    versions = ("nvbandwidth-0.9", "nvbandwidth-0.8", "nvbandwidth-0.7", "nvbandwidth")
+    candidates = [
+        os.path.join(root, name) for name in versions for root in (datasets_root, workloads_root)
+    ]
+    return next((p for p in candidates if os.path.isdir(p)), candidates[0])
 
 
 DOMAINS: "OrderedDict[str, DomainSpec]" = OrderedDict(
@@ -441,6 +454,10 @@ def _build_env() -> Dict[str, str]:
     env = os.environ.copy()
     for key, value in DEFAULT_ENV.items():
         env.setdefault(key, value)
+
+    nvbandwidth_default = _resolve_nvbandwidth_bin_default(env)
+    env.setdefault("NVBANDWIDTH_BIN", nvbandwidth_default)
+    env.setdefault("PERF_NVBANDWIDTH_BIN", env.get("NVBANDWIDTH_BIN", nvbandwidth_default))
 
     gpu_count = _detect_nvidia_gpu_count()
     if "CUDA_VISIBLE_DEVICES" in env:

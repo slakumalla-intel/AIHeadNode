@@ -1318,17 +1318,46 @@ class TestCPUGPUPipelineOverlap:
         b = torch.randn(m, m, device=device, dtype=torch.float16)
         host_buf = torch.ones(512 * 1024 * 1024 // 4, dtype=torch.float32).pin_memory()
 
+        def _compute_block(reps: int) -> torch.Tensor:
+            c = a
+            for _ in range(reps):
+                c = torch.mm(c, b)
+            return c
+
         # Warmup: establish steady GPU clock/power state before timing.
         for _ in range(3):
-            _ = torch.mm(a, b)
+            _ = _compute_block(1)
             _ = host_buf.to(device, non_blocking=False)
             torch.cuda.synchronize(device)
+
+        # Calibrate compute intensity so a "compute block" takes roughly as
+        # long as one H2D transfer. On H100-class GPUs a single 4096x4096
+        # fp16 matmul (~0.3ms) is ~30x faster than a 512 MB H2D copy
+        # (~10ms), so the overlap-vs-serial benefit from a single matmul per
+        # block is only a few percent -- smaller than typical CPU-side timing
+        # noise and making the assertion flaky regardless of real hardware
+        # overlap capability. Chaining enough matmuls per block to match the
+        # transfer duration makes the expected overlap speedup large (~50%)
+        # and robust across GPU generations instead of hardcoding a rep count.
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        _ = _compute_block(1)
+        torch.cuda.synchronize(device)
+        single_matmul_sec = time.perf_counter() - t0
+
+        torch.cuda.synchronize(device)
+        t0 = time.perf_counter()
+        _ = host_buf.to(device, non_blocking=False)
+        torch.cuda.synchronize(device)
+        single_transfer_sec = time.perf_counter() - t0
+
+        compute_reps = max(1, round(single_transfer_sec / max(single_matmul_sec, 1e-9)))
 
         # Serial: compute then transfer
         torch.cuda.synchronize(device)
         t0 = time.perf_counter()
         for _ in range(5):
-            c = torch.mm(a, b)
+            c = _compute_block(compute_reps)
             torch.cuda.synchronize(device)
         for _ in range(5):
             dev = host_buf.to(device, non_blocking=False)
@@ -1342,7 +1371,7 @@ class TestCPUGPUPipelineOverlap:
         t0 = time.perf_counter()
         for _ in range(5):
             with torch.cuda.stream(compute_stream):
-                c = torch.mm(a, b)
+                c = _compute_block(compute_reps)
             with torch.cuda.stream(transfer_stream):
                 dev = host_buf.to(device, non_blocking=True)
         torch.cuda.synchronize(device)
@@ -1350,7 +1379,9 @@ class TestCPUGPUPipelineOverlap:
 
         assert overlap_time < serial_time, (
             f"GPU {device_idx}: overlapped ({overlap_time:.3f}s) not faster "
-            f"than serial ({serial_time:.3f}s)"
+            f"than serial ({serial_time:.3f}s) [compute_reps={compute_reps}, "
+            f"single_matmul={single_matmul_sec * 1000:.3f}ms, "
+            f"single_transfer={single_transfer_sec * 1000:.3f}ms]"
         )
 
 

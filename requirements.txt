@@ -11,6 +11,9 @@ transformers-stream-generator>=0.0.5
 # Required by HF `from_pretrained(..., device_map=...)` code paths (e.g. the
 # multi-GPU "balanced" placement test and single-GPU model-load-time KPI).
 accelerate>=1.0.0
+# Required for 4-bit (bitsandbytes) quantized model loading in the enterprise
+# HF workload acceptance tests (e.g. the DeepSeek-R1 / Llama-70B int4 cases).
+bitsandbytes>=0.46.1
 
 # GPU / CUDA dependencies (optional - tests skip gracefully when absent)
 # Use the PyTorch CUDA 12.8 wheel index for Linux x86_64 GPU nodes.
@@ -25,6 +28,12 @@ nvidia-ml-py>=12.535.77
 # vllm>=0.18.1
 deepspeed>=0.15.0
 ultralytics>=8.3.0
+# ultralytics does not pin opencv-python, so a bare install resolves to the
+# latest major release. opencv-python 5.0.0.93 segfaults inside cv2.imread()
+# on this stack (reproduced independently of torch/CUDA/ultralytics), which
+# crashes the YOLO workload's worker subprocesses before they can report any
+# result. Pin to the last known-good 4.x release until 5.x is verified fixed.
+opencv-python<5
 diffusers>=0.31.0
 # NOTE: vLLM may compile native helpers at runtime and requires Python dev headers
 # (Python.h), e.g. python3-dev / python3-devel for your interpreter version.
